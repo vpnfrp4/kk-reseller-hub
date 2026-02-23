@@ -12,7 +12,7 @@ import {
   ArrowDownRight,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays, startOfDay } from "date-fns";
 
 export default function DashboardHome() {
@@ -103,20 +103,36 @@ export default function DashboardHome() {
     },
   });
 
-  const chartData = useMemo(() => {
+  // Top-up chart data (last 30 days of approved top-ups)
+  const { data: topupData } = useQuery({
+    queryKey: ["topup-chart"],
+    queryFn: async () => {
+      const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
+      const { data } = await supabase
+        .from("wallet_transactions")
+        .select("amount, created_at")
+        .eq("type", "topup")
+        .eq("status", "approved")
+        .gte("created_at", thirtyDaysAgo)
+        .order("created_at", { ascending: true });
+      return data || [];
+    },
+  });
+
+  const buildChartDays = (rawData: any[], valueKey: string) => {
     const days: Record<string, number> = {};
-    // Initialize last 30 days with 0
     for (let i = 29; i >= 0; i--) {
-      const key = format(subDays(new Date(), i), "MMM dd");
-      days[key] = 0;
+      days[format(subDays(new Date(), i), "MMM dd")] = 0;
     }
-    // Aggregate order amounts by day
-    (spendingData || []).forEach((o: any) => {
-      const key = format(new Date(o.created_at), "MMM dd");
-      if (key in days) days[key] += Number(o.price);
+    (rawData || []).forEach((row: any) => {
+      const key = format(new Date(row.created_at), "MMM dd");
+      if (key in days) days[key] += Number(row[valueKey]);
     });
     return Object.entries(days).map(([date, amount]) => ({ date, amount }));
-  }, [spendingData]);
+  };
+
+  const chartData = useMemo(() => buildChartDays(spendingData, "price"), [spendingData]);
+  const topupChartData = useMemo(() => buildChartDays(topupData, "amount"), [topupData]);
 
   const stats = [
     {
@@ -169,52 +185,52 @@ export default function DashboardHome() {
         ))}
       </div>
 
-      {/* Spending Chart */}
-      <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.25s" }}>
-        <h3 className="font-semibold text-foreground mb-4">Spending Trends (Last 30 Days)</h3>
-        <div className="h-[220px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-              <defs>
-                <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-              <XAxis
-                dataKey="date"
-                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                tickLine={false}
-                axisLine={false}
-                interval="preserveStartEnd"
-              />
-              <YAxis
-                tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "hsl(var(--card))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "8px",
-                  fontSize: "12px",
-                  color: "hsl(var(--foreground))",
-                }}
-                formatter={(value: number) => [`${value.toLocaleString()} MMK`, "Spent"]}
-                labelStyle={{ color: "hsl(var(--muted-foreground))" }}
-              />
-              <Area
-                type="monotone"
-                dataKey="amount"
-                stroke="hsl(var(--primary))"
-                strokeWidth={2}
-                fill="url(#spendGradient)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Spending Chart */}
+        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.25s" }}>
+          <h3 className="font-semibold text-foreground mb-4">Spending (Last 30 Days)</h3>
+          <div className="h-[200px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px", color: "hsl(var(--foreground))" }}
+                  formatter={(value: number) => [`${value.toLocaleString()} MMK`, "Spent"]}
+                  labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+                />
+                <Area type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#spendGradient)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Top-up Chart */}
+        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+          <h3 className="font-semibold text-foreground mb-4">Top-ups (Last 30 Days)</h3>
+          <div className="h-[200px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={topupChartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px", color: "hsl(var(--foreground))" }}
+                  formatter={(value: number) => [`${value.toLocaleString()} MMK`, "Deposited"]}
+                  labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+                />
+                <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} opacity={0.8} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
 
