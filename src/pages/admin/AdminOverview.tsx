@@ -1,10 +1,13 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, KeyRound, Wallet, Users, ShoppingCart } from "lucide-react";
+import { Package, KeyRound, Wallet, Users, ShoppingCart, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
 import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
+import { Link } from "react-router-dom";
+
+const LOW_BALANCE_THRESHOLD = 5000;
 
 export default function AdminOverview() {
   const queryClient = useQueryClient();
@@ -49,6 +52,19 @@ export default function AdminOverview() {
         () => {
           queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
           queryClient.invalidateQueries({ queryKey: ["admin-cred-per-product"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles" },
+        (payload: any) => {
+          queryClient.invalidateQueries({ queryKey: ["admin-low-balance"] });
+          if (initialized.current && payload.new?.balance < LOW_BALANCE_THRESHOLD) {
+            const name = payload.new.name || payload.new.email || "A reseller";
+            const msg = `⚠️ ${name}'s balance dropped to ${Number(payload.new.balance).toLocaleString()} MMK`;
+            toast.warning(msg);
+            notifyEvent("Low Balance Alert", msg, "info");
+          }
         }
       )
       .subscribe();
@@ -99,6 +115,18 @@ export default function AdminOverview() {
     },
   });
 
+  const { data: lowBalanceResellers } = useQuery({
+    queryKey: ["admin-low-balance"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("user_id, name, email, balance")
+        .lt("balance", LOW_BALANCE_THRESHOLD)
+        .order("balance", { ascending: true });
+      return data || [];
+    },
+  });
+
   const sold = (stats?.totalCredentials || 0) - (stats?.availableCredentials || 0);
   const total = stats?.totalCredentials || 0;
   const availablePct = total > 0 ? ((stats?.availableCredentials || 0) / total) * 100 : 0;
@@ -116,6 +144,40 @@ export default function AdminOverview() {
         <h1 className="text-2xl font-bold text-foreground">Admin Overview</h1>
         <p className="text-muted-foreground text-sm">Manage your reseller platform</p>
       </div>
+
+      {/* Low Balance Warning */}
+      {lowBalanceResellers && lowBalanceResellers.length > 0 && (
+        <div className="glass-card border-warning/30 p-5 animate-fade-in">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle className="w-5 h-5 text-warning" />
+            <h2 className="text-sm font-semibold text-foreground">
+              Low Balance Alert
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                ({lowBalanceResellers.length} reseller{lowBalanceResellers.length !== 1 ? "s" : ""} below {LOW_BALANCE_THRESHOLD.toLocaleString()} MMK)
+              </span>
+            </h2>
+            <Link to="/admin/resellers" className="text-xs text-primary hover:underline ml-auto">
+              View all
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {lowBalanceResellers.slice(0, 5).map((r: any) => (
+              <div key={r.user_id} className="flex items-center justify-between p-2.5 rounded-lg bg-warning/5 border border-warning/10">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{r.name || "—"}</p>
+                  <p className="text-xs text-muted-foreground">{r.email}</p>
+                </div>
+                <p className="text-sm font-mono font-semibold text-warning">{r.balance.toLocaleString()} MMK</p>
+              </div>
+            ))}
+            {lowBalanceResellers.length > 5 && (
+              <p className="text-xs text-muted-foreground text-center pt-1">
+                +{lowBalanceResellers.length - 5} more
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card, i) => (
