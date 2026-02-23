@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Wallet,
   TrendingUp,
@@ -11,7 +12,32 @@ import {
 import { Link } from "react-router-dom";
 
 export default function DashboardHome() {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("reseller-dashboard-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "wallet_transactions" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
+          refreshProfile();
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
+          refreshProfile();
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient, refreshProfile]);
 
   const { data: transactions } = useQuery({
     queryKey: ["recent-transactions"],
