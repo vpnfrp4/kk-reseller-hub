@@ -1,10 +1,12 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Package, KeyRound, Wallet, Users, ShoppingCart } from "lucide-react";
+import { toast } from "sonner";
 
 export default function AdminOverview() {
   const queryClient = useQueryClient();
+  const initialized = useRef(false);
 
   useEffect(() => {
     const channel = supabase
@@ -12,17 +14,23 @@ export default function AdminOverview() {
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "orders" },
-        () => {
+        (payload: any) => {
           queryClient.invalidateQueries({ queryKey: ["admin-recent-orders"] });
           queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
           queryClient.invalidateQueries({ queryKey: ["admin-cred-per-product"] });
+          if (initialized.current) {
+            toast.info(`New order: ${payload.new?.product_name || "Unknown"} 🛒`);
+          }
         }
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "wallet_transactions" },
-        () => {
+        { event: "INSERT", schema: "public", table: "wallet_transactions" },
+        (payload: any) => {
           queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+          if (initialized.current && payload.new?.type === "topup") {
+            toast.info(`New top-up request: ${Number(payload.new.amount).toLocaleString()} MMK 💰`);
+          }
         }
       )
       .on(
@@ -35,7 +43,9 @@ export default function AdminOverview() {
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    setTimeout(() => { initialized.current = true; }, 2000);
+
+    return () => { supabase.removeChannel(channel); initialized.current = false; };
   }, [queryClient]);
 
   const { data: stats } = useQuery({

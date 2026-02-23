@@ -1,4 +1,5 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,29 +16,43 @@ export default function DashboardHome() {
   const { profile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
 
+  const initialized = useRef(false);
+
   useEffect(() => {
     const channel = supabase
       .channel("reseller-dashboard-realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "wallet_transactions" },
-        () => {
+        (payload: any) => {
           queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
           refreshProfile();
+          if (!initialized.current) return;
+          if (payload.eventType === "UPDATE" && payload.new?.status === "approved" && payload.new?.type === "topup") {
+            toast.success(`Top-up of ${Number(payload.new.amount).toLocaleString()} MMK approved! 🎉`);
+          } else if (payload.eventType === "UPDATE" && payload.new?.status === "rejected") {
+            toast.error("Your top-up request was rejected.");
+          }
         }
       )
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "orders" },
-        () => {
+        (payload: any) => {
           queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
           refreshProfile();
+          if (!initialized.current) return;
+          toast.success(`Order placed: ${payload.new?.product_name || "New order"} 🛒`);
         }
       )
       .subscribe();
 
-    return () => { supabase.removeChannel(channel); };
+    // Skip toasts for initial data load
+    setTimeout(() => { initialized.current = true; }, 2000);
+
+    return () => { supabase.removeChannel(channel); initialized.current = false; };
   }, [queryClient, refreshProfile]);
+
 
   const { data: transactions } = useQuery({
     queryKey: ["recent-transactions"],
