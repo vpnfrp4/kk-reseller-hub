@@ -2,35 +2,14 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { ShoppingCart, Package, Copy, CheckCircle2, AlertTriangle, Search, X, ArrowUpDown, RotateCcw } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Package } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Checkbox } from "@/components/ui/checkbox";
+import ProductFilters from "@/components/products/ProductFilters";
+import ProductCard from "@/components/products/ProductCard";
+import ProductCardSkeleton from "@/components/products/ProductCardSkeleton";
+import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
+import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
 
 interface PurchaseResult {
   order_id: string;
@@ -39,14 +18,11 @@ interface PurchaseResult {
   price: number;
 }
 
-const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
-
 export default function ProductsPage() {
   const { profile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [result, setResult] = useState<PurchaseResult | null>(null);
-  const [copied, setCopied] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<string>("name");
@@ -106,11 +82,14 @@ export default function ProductsPage() {
     }
   };
 
-  const copyCredentials = (creds: string) => {
-    navigator.clipboard.writeText(creds);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
+  const filtered = (products || [])
+    .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
+    .filter((p: any) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    .sort((a: any, b: any) => {
+      if (sortBy === "price-low") return a.wholesale_price - b.wholesale_price;
+      if (sortBy === "price-high") return b.wholesale_price - a.wholesale_price;
+      return a.name.localeCompare(b.name);
+    });
 
   return (
     <div className="space-y-8">
@@ -124,275 +103,52 @@ export default function ProductsPage() {
         <p className="text-muted-foreground text-sm">Browse digital services at wholesale prices</p>
       </div>
 
-      {/* Search & Category Filters */}
-      <div className="glass-card p-4 animate-fade-in flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-8 py-2 rounded-lg bg-muted/50 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors duration-200"
-          />
-          {searchQuery && (
-            <button
-              onClick={() => setSearchQuery("")}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-muted-foreground hover:text-foreground transition-colors duration-200"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-[160px] bg-muted/50 border-border text-sm">
-            <ArrowUpDown className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="name">Name</SelectItem>
-            <SelectItem value="price-low">Price: Low → High</SelectItem>
-            <SelectItem value="price-high">Price: High → Low</SelectItem>
-          </SelectContent>
-        </Select>
-        <div className="flex gap-2 flex-wrap">
-          {CATEGORIES.map((cat) => {
-            const count = cat === "All"
-              ? (products || []).length
-              : (products || []).filter((p: any) => p.category === cat).length;
-            return (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
-                  activeCategory === cat
-                    ? "btn-glow"
-                    : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
-                }`}
-              >
-                {cat}
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
-                  activeCategory === cat
-                    ? "bg-primary-foreground/20"
-                    : "bg-border/80"
-                }`}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-          {(searchQuery || activeCategory !== "All" || sortBy !== "name") && (
-            <button
-              onClick={() => { setSearchQuery(""); setActiveCategory("All"); setSortBy("name"); }}
-              className="px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/50 hover:bg-muted/80 border border-border/50 transition-all duration-200 flex items-center gap-1.5"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Reset
-            </button>
-          )}
-        </div>
-      </div>
+      <ProductFilters
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        activeCategory={activeCategory}
+        onCategoryChange={setActiveCategory}
+        products={products || []}
+      />
 
-      {/* Product Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="glass-card p-6 flex flex-col animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
-              <div className="flex items-start justify-between mb-4">
-                <Skeleton className="w-12 h-12 rounded-2xl" />
-                <Skeleton className="w-20 h-5 rounded-full" />
-              </div>
-              <Skeleton className="h-5 w-3/4 rounded mb-2" />
-              <Skeleton className="h-4 w-1/3 rounded mb-4" />
-              <div className="mt-auto space-y-3">
-                <div className="flex items-end justify-between">
-                  <div className="space-y-1.5">
-                    <Skeleton className="h-3 w-20 rounded" />
-                    <Skeleton className="h-6 w-28 rounded" />
-                  </div>
-                  <Skeleton className="h-3 w-14 rounded" />
-                </div>
-                <Skeleton className="h-10 w-full rounded-lg" />
-              </div>
-            </div>
+            <ProductCardSkeleton key={i} index={i} />
           ))
-        ) : (() => {
-          const filtered = (products || [])
-            .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
-            .filter((p: any) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
-            .sort((a: any, b: any) => {
-              if (sortBy === "price-low") return a.wholesale_price - b.wholesale_price;
-              if (sortBy === "price-high") return b.wholesale_price - a.wholesale_price;
-              return a.name.localeCompare(b.name);
-            });
-
-          if (filtered.length === 0) {
-            return (
-              <div className="col-span-full glass-card p-12 text-center animate-fade-in">
-                <Package className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
-                <p className="text-foreground font-medium">No products found</p>
-                <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filter</p>
-              </div>
-            );
-          }
-
-          return filtered.map((product: any, i: number) => (
-          <div
-            key={product.id}
-            className="glass-card p-6 flex flex-col animate-fade-in hover-lift hover:border-primary/30 transition-all duration-250"
-            style={{ animationDelay: `${i * 0.05}s` }}
-          >
-            <Link to={`/dashboard/products/${product.id}`} className="flex items-start justify-between mb-4">
-              <div className="text-3xl">{product.icon}</div>
-              <span className="text-[10px] uppercase tracking-widest gold-text font-semibold px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
-                {product.category}
-              </span>
-            </Link>
-
-            <Link to={`/dashboard/products/${product.id}`}>
-              <h3 className="font-semibold text-foreground text-lg hover:text-primary transition-colors duration-200">{product.name}</h3>
-            </Link>
-            <p className="text-sm text-muted-foreground mb-4">{product.duration}</p>
-
-            <div className="mt-auto space-y-3">
-              <div className="flex items-end justify-between">
-                <div>
-                  <p className="text-xs text-muted-foreground line-through">{product.retail_price.toLocaleString()} MMK</p>
-                  <p className="text-xl font-bold font-mono gold-text">
-                    {product.wholesale_price.toLocaleString()} <span className="text-xs text-muted-foreground">MMK</span>
-                  </p>
-                </div>
-                <div className={`flex items-center gap-1 text-xs ${product.stock <= 5 ? "stock-low font-semibold" : "text-muted-foreground"}`}>
-                  <Package className="w-3 h-3" />
-                  {product.stock} left
-                </div>
-              </div>
-
-              <Button
-                className="w-full btn-glow gap-2"
-                onClick={() => handleBuyClick(product)}
-                disabled={product.stock === 0 || purchasing === product.id}
-              >
-                {purchasing === product.id ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-4 h-4" />
-                    Buy Now
-                  </>
-                )}
-              </Button>
-            </div>
+        ) : filtered.length === 0 ? (
+          <div className="col-span-full glass-card p-12 text-center animate-fade-in">
+            <Package className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
+            <p className="text-foreground font-medium">No products found</p>
+            <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filter</p>
           </div>
-        ));
-        })()}
+        ) : (
+          filtered.map((product: any, i: number) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              index={i}
+              isPurchasing={purchasing === product.id}
+              onBuyClick={handleBuyClick}
+            />
+          ))
+        )}
       </div>
 
-      {/* Purchase Confirmation Modal */}
-      <AlertDialog open={!!confirmProduct} onOpenChange={(open) => { if (!open) setConfirmProduct(null); }}>
-        <AlertDialogContent className="bg-card border-border/50 max-w-md">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-foreground flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-warning" />
-              Confirm Purchase
-            </AlertDialogTitle>
-          </AlertDialogHeader>
+      <PurchaseConfirmModal
+        product={confirmProduct}
+        agreedTerms={agreedTerms}
+        onAgreedTermsChange={setAgreedTerms}
+        onConfirm={handleBuy}
+        onClose={() => setConfirmProduct(null)}
+      />
 
-          {confirmProduct && (
-            <div className="space-y-4">
-              <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3">
-                <p className="text-sm text-destructive leading-relaxed">
-                  ဝယ်ယူပြီးသား အကောင့်များကို Refund (ငွေပြန်အမ်းခြင်း) လုံးဝပြုလုပ်ပေးမည်မဟုတ်ပါ။ Customer အဆင်သင့်ရှိမှသာ ဝယ်ယူပေးပါရန်။
-                </p>
-              </div>
-
-              <div className="stat-card space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Product</span>
-                  <span className="font-semibold text-foreground">{confirmProduct.name}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Deduct from Wallet</span>
-                  <span className="font-mono font-bold gold-text">{confirmProduct.wholesale_price.toLocaleString()} MMK</span>
-                </div>
-              </div>
-
-              <label className="flex items-start gap-3 cursor-pointer select-none">
-                <Checkbox
-                  checked={agreedTerms}
-                  onCheckedChange={(checked) => setAgreedTerms(checked === true)}
-                  className="mt-0.5"
-                />
-                <span className="text-sm text-muted-foreground">
-                  I agree to the{" "}
-                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
-                    Terms and Conditions
-                  </a>.
-                </span>
-              </label>
-            </div>
-          )}
-
-          <AlertDialogFooter>
-            <AlertDialogCancel className="border-border">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={!agreedTerms}
-              onClick={() => confirmProduct && handleBuy(confirmProduct)}
-              className="btn-glow disabled:opacity-50"
-            >
-              Confirm
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Instant Delivery Dialog */}
-      <Dialog open={!!result} onOpenChange={() => setResult(null)}>
-        <DialogContent className="bg-card border-border/50 max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-foreground flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-success" />
-              Purchase Successful!
-            </DialogTitle>
-          </DialogHeader>
-
-          {result && (
-            <div className="space-y-4">
-              <div className="stat-card">
-                <p className="text-sm text-muted-foreground mb-1">Product</p>
-                <p className="text-foreground font-semibold">{result.product_name}</p>
-              </div>
-
-              <div className="stat-card">
-                <p className="text-sm text-muted-foreground mb-2">Account Credentials</p>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 text-sm font-mono text-primary bg-primary/10 px-3 py-2 rounded-lg break-all">
-                    {result.credentials}
-                  </code>
-                  <button
-                    onClick={() => copyCredentials(result.credentials)}
-                    className="p-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors duration-200"
-                  >
-                    {copied ? <CheckCircle2 className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Amount Charged</span>
-                <span className="font-mono font-semibold text-foreground">{result.price.toLocaleString()} MMK</span>
-              </div>
-
-              <p className="text-xs text-muted-foreground text-center">
-                These credentials are also saved in your Order History.
-              </p>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <PurchaseSuccessModal
+        result={result}
+        onClose={() => setResult(null)}
+      />
     </div>
   );
 }
