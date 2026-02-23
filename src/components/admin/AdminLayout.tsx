@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   Users,
+  ShoppingCart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationSettings from "@/components/NotificationSettings";
@@ -20,6 +21,7 @@ const navItems = [
   { label: "Products", icon: Package, path: "/admin/products" },
   { label: "Credentials", icon: KeyRound, path: "/admin/credentials" },
   { label: "Top-ups", icon: Wallet, path: "/admin/topups" },
+  { label: "Orders", icon: ShoppingCart, path: "/admin/orders" },
   { label: "Resellers", icon: Users, path: "/admin/resellers" },
 ];
 

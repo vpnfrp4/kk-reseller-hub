@@ -19,6 +19,7 @@ import AdminProducts from "./pages/admin/AdminProducts";
 import AdminCredentials from "./pages/admin/AdminCredentials";
 import AdminTopups from "./pages/admin/AdminTopups";
 import AdminResellers from "./pages/admin/AdminResellers";
+import AdminOrders from "./pages/admin/AdminOrders";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -75,8 +76,9 @@ function AppRoutes() {
       <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
       <Route path="/admin/credentials" element={<AdminRoute><AdminCredentials /></AdminRoute>} />
       <Route path="/admin/topups" element={<AdminRoute><AdminTopups /></AdminRoute>} />
-      <Route path="/admin/resellers" element={<AdminRoute><AdminResellers /></AdminRoute>} />
-      <Route path="*" element={<NotFound />} />
+        <Route path="/admin/resellers" element={<AdminRoute><AdminResellers /></AdminRoute>} />
+        <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+        <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
