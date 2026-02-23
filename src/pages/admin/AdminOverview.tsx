@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Package, KeyRound, Wallet, Users } from "lucide-react";
+import { Package, KeyRound, Wallet, Users, ShoppingCart } from "lucide-react";
 
 export default function AdminOverview() {
   const { data: stats } = useQuery({
@@ -122,6 +122,80 @@ export default function AdminOverview() {
           )}
         </div>
       </div>
+
+      <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.5s" }}>
+        <div className="flex items-center gap-3 mb-4">
+          <ShoppingCart className="w-5 h-5 text-primary" />
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Recent Orders</h2>
+            <p className="text-sm text-muted-foreground">Latest purchases across all resellers</p>
+          </div>
+        </div>
+        <RecentOrdersFeed />
+      </div>
+    </div>
+  );
+}
+
+function RecentOrdersFeed() {
+  const { data: orders } = useQuery({
+    queryKey: ["admin-recent-orders"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("id, product_name, price, created_at, user_id, status")
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (!data || data.length === 0) return [];
+
+      const userIds = [...new Set(data.map((o: any) => o.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name, email")
+        .in("user_id", userIds);
+
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+
+      return data.map((o: any) => ({ ...o, profile: profileMap[o.user_id] || null }));
+    },
+  });
+
+  if (!orders || orders.length === 0) {
+    return <p className="text-sm text-muted-foreground text-center py-6">No orders yet</p>;
+  }
+
+  const timeAgo = (date: string) => {
+    const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
+
+  return (
+    <div className="space-y-2">
+      {orders.map((o: any) => (
+        <div key={o.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+            {(o.profile?.name || "?")[0].toUpperCase()}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">{o.product_name}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {o.profile?.name || o.profile?.email || "Unknown user"}
+            </p>
+          </div>
+          <div className="text-right shrink-0">
+            <p className="text-sm font-mono font-semibold text-foreground">{o.price.toLocaleString()} MMK</p>
+            <p className="text-[10px] text-muted-foreground">{timeAgo(o.created_at)}</p>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
