@@ -19,12 +19,15 @@ interface PurchaseResult {
   price: number;
 }
 
+const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
+
 export default function ProductsPage() {
   const { profile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [result, setResult] = useState<PurchaseResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string>("All");
 
   const { data: products } = useQuery({
     queryKey: ["products"],
@@ -87,8 +90,26 @@ export default function ProductsPage() {
         <p className="text-muted-foreground text-sm">Browse digital services at wholesale prices</p>
       </div>
 
+      <div className="flex gap-2 animate-fade-in">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              activeCategory === cat
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {(products || []).map((product: any, i: number) => (
+        {(products || [])
+          .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
+          .map((product: any, i: number) => (
           <div
             key={product.id}
             className="glass-card p-6 flex flex-col animate-fade-in hover:border-primary/30 transition-colors"
