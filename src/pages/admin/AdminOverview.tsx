@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Package, KeyRound, Wallet, Users, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
+import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
 
 export default function AdminOverview() {
   const queryClient = useQueryClient();
@@ -127,6 +128,8 @@ export default function AdminOverview() {
           </div>
         ))}
       </div>
+
+      <AdminAnalyticsCharts />
 
       <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.4s" }}>
         <h2 className="text-lg font-semibold text-foreground mb-1">Credentials Overview</h2>
