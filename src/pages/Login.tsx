@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +13,7 @@ export default function Login() {
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
+  const [isForgot, setIsForgot] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,6 +25,19 @@ export default function Login() {
     setError("");
     setSuccess("");
     setLoading(true);
+
+    if (isForgot) {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        setError(error.message);
+      } else {
+        setSuccess("Password reset link sent! Check your email.");
+      }
+      setLoading(false);
+      return;
+    }
 
     if (isSignup) {
       const { error } = await signup(email, password, name);
@@ -54,7 +69,7 @@ export default function Login() {
           </div>
           <h1 className="text-2xl font-bold text-foreground">KKTech Reseller</h1>
           <p className="text-muted-foreground text-sm mt-1">
-            {isSignup ? "Create your reseller account" : "Sign in to your reseller dashboard"}
+            {isForgot ? "Enter your email to reset your password" : isSignup ? "Create your reseller account" : "Sign in to your reseller dashboard"}
           </p>
         </div>
 
@@ -86,45 +101,70 @@ export default function Login() {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password" className="text-sm text-muted-foreground">Password</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="bg-muted/50 border-border focus:border-primary pr-10"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
+          {!isForgot && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password" className="text-sm text-muted-foreground">Password</Label>
+                {!isSignup && (
+                  <button
+                    type="button"
+                    onClick={() => { setIsForgot(true); setError(""); setSuccess(""); }}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                  className="bg-muted/50 border-border focus:border-primary pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
-          </div>
+          )}
 
           {error && <p className="text-destructive text-sm text-center">{error}</p>}
           {success && <p className="text-success text-sm text-center">{success}</p>}
 
           <Button type="submit" className="w-full btn-glow font-semibold" disabled={loading}>
-            {loading ? "Please wait..." : isSignup ? "Create Account" : "Sign In"}
+            {loading ? "Please wait..." : isForgot ? "Send Reset Link" : isSignup ? "Create Account" : "Sign In"}
           </Button>
 
           <p className="text-center text-sm text-muted-foreground">
-            {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button
-              type="button"
-              onClick={() => { setIsSignup(!isSignup); setError(""); setSuccess(""); }}
-              className="text-primary hover:underline"
-            >
-              {isSignup ? "Sign In" : "Sign Up"}
-            </button>
+            {isForgot ? (
+              <button
+                type="button"
+                onClick={() => { setIsForgot(false); setError(""); setSuccess(""); }}
+                className="text-primary hover:underline"
+              >
+                Back to Sign In
+              </button>
+            ) : (
+              <>
+                {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+                <button
+                  type="button"
+                  onClick={() => { setIsSignup(!isSignup); setError(""); setSuccess(""); }}
+                  className="text-primary hover:underline"
+                >
+                  {isSignup ? "Sign In" : "Sign Up"}
+                </button>
+              </>
+            )}
           </p>
         </form>
       </div>
