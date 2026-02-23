@@ -168,7 +168,7 @@ export default function DashboardHome() {
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <p className="text-sm text-muted-foreground mb-1">Available Balance</p>
-            <p className="text-4xl lg:text-5xl font-bold font-mono gold-text glow-text">
+            <p className="text-4xl lg:text-5xl font-bold font-mono gold-shimmer glow-text">
               {(profile?.balance || 0).toLocaleString()}
             </p>
             <p className="text-sm text-muted-foreground mt-1">MMK</p>

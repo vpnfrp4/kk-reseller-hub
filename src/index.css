@@ -176,6 +176,23 @@
     background-clip: text;
   }
 
+  /* Gold shimmer text */
+  .gold-shimmer {
+    background: linear-gradient(
+      110deg,
+      hsl(43 72% 52%) 0%,
+      hsl(47 80% 68%) 40%,
+      hsl(43 72% 52%) 50%,
+      hsl(47 80% 68%) 60%,
+      hsl(43 72% 52%) 100%
+    );
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+
   /* Button glow – gold */
   .btn-glow {
     background: var(--gradient-gold);
