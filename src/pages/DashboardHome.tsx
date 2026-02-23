@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { toast } from "sonner";
+import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,6 +20,10 @@ export default function DashboardHome() {
   const initialized = useRef(false);
 
   useEffect(() => {
+    requestNotificationPermission();
+  }, []);
+
+  useEffect(() => {
     const channel = supabase
       .channel("reseller-dashboard-realtime")
       .on(
@@ -29,9 +34,12 @@ export default function DashboardHome() {
           refreshProfile();
           if (!initialized.current) return;
           if (payload.eventType === "UPDATE" && payload.new?.status === "approved" && payload.new?.type === "topup") {
-            toast.success(`Top-up of ${Number(payload.new.amount).toLocaleString()} MMK approved! 🎉`);
+            const msg = `Top-up of ${Number(payload.new.amount).toLocaleString()} MMK approved! 🎉`;
+            toast.success(msg);
+            notifyEvent("Top-up Approved", msg, "success");
           } else if (payload.eventType === "UPDATE" && payload.new?.status === "rejected") {
             toast.error("Your top-up request was rejected.");
+            notifyEvent("Top-up Rejected", "Your top-up request was rejected.", "error");
           }
         }
       )
@@ -42,12 +50,13 @@ export default function DashboardHome() {
           queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
           refreshProfile();
           if (!initialized.current) return;
-          toast.success(`Order placed: ${payload.new?.product_name || "New order"} 🛒`);
+          const msg = `Order placed: ${payload.new?.product_name || "New order"} 🛒`;
+          toast.success(msg);
+          notifyEvent("Order Placed", msg, "success");
         }
       )
       .subscribe();
 
-    // Skip toasts for initial data load
     setTimeout(() => { initialized.current = true; }, 2000);
 
     return () => { supabase.removeChannel(channel); initialized.current = false; };
