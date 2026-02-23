@@ -113,8 +113,8 @@ export default function OrdersPage() {
             <h1 className="text-2xl font-bold text-foreground">Order History</h1>
             <p className="text-muted-foreground text-sm">View all your previous purchases</p>
           </div>
-          <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2">
-            <Download className="w-4 h-4" />
+          <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2 border-primary/20 hover:border-primary/40">
+            <Download className="w-4 h-4 text-primary" />
             Export CSV
           </Button>
         </div>
@@ -192,7 +192,7 @@ export default function OrdersPage() {
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border">
+              <tr className="border-b border-border/50">
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Order ID</th>
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Product</th>
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Credentials</th>
@@ -207,7 +207,7 @@ export default function OrdersPage() {
                   {hasFilters ? "No orders match your filters" : "No orders yet"}
                 </td></tr>
               ) : orders.map((order: any) => (
-                <tr key={order.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                <tr key={order.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors duration-200">
                   <td className="p-4 text-sm font-mono text-muted-foreground">{order.id.slice(0, 8)}</td>
                   <td className="p-4 text-sm font-medium text-foreground">{order.product_name}</td>
                   <td className="p-4">
@@ -217,7 +217,7 @@ export default function OrdersPage() {
                       </code>
                       <button
                         onClick={() => copyCredentials(order.id, order.credentials)}
-                        className="text-muted-foreground hover:text-primary transition-colors"
+                        className="text-muted-foreground hover:text-primary transition-colors duration-200"
                       >
                         {copiedId === order.id ? (
                           <CheckCircle2 className="w-4 h-4 text-success" />
@@ -227,7 +227,7 @@ export default function OrdersPage() {
                       </button>
                     </div>
                   </td>
-                  <td className="p-4 text-sm font-mono text-right text-foreground">{order.price.toLocaleString()} MMK</td>
+                  <td className="p-4 text-sm font-mono text-right gold-text font-semibold">{order.price.toLocaleString()} MMK</td>
                   <td className="p-4 text-sm text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</td>
                   <td className="p-4 text-center">
                     <span className="text-xs px-2 py-1 rounded-full bg-success/10 text-success">{order.status}</span>
@@ -238,7 +238,7 @@ export default function OrdersPage() {
           </table>
         </div>
 
-        <div className="md:hidden divide-y divide-border/50">
+        <div className="md:hidden divide-y divide-border/30">
           {(!orders || orders.length === 0) ? (
             <p className="p-8 text-center text-sm text-muted-foreground">
               {hasFilters ? "No orders match your filters" : "No orders yet"}
@@ -262,14 +262,14 @@ export default function OrdersPage() {
               </div>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{new Date(order.created_at).toLocaleDateString()}</span>
-                <span className="font-mono">{order.price.toLocaleString()} MMK</span>
+                <span className="font-mono gold-text font-semibold">{order.price.toLocaleString()} MMK</span>
               </div>
             </div>
           ))}
         </div>
 
         {totalCount > PAGE_SIZE && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border/50">
             <p className="text-xs text-muted-foreground">
               Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
             </p>
