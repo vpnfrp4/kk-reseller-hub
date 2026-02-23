@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationSettings from "@/components/NotificationSettings";
+import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
   { label: "Overview", icon: LayoutDashboard, path: "/admin" },
@@ -124,6 +125,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </h2>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <NotificationSettings />
             <span className="text-xs bg-destructive/10 text-destructive px-3 py-1 rounded-full font-medium">ADMIN</span>
           </div>
