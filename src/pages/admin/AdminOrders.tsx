@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Filter, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, Filter, ShoppingCart, ChevronLeft, ChevronRight, CheckSquare, Square, MinusSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -23,6 +24,8 @@ export default function AdminOrders() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(25);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkUpdating, setBulkUpdating] = useState(false);
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-all-orders"],
@@ -93,6 +96,48 @@ export default function AdminOrders() {
     }
   };
 
+  const handleBulkStatusChange = async (newStatus: string) => {
+    if (selectedIds.size === 0) return;
+    setBulkUpdating(true);
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase
+      .from("orders")
+      .update({ status: newStatus })
+      .in("id", ids);
+    setBulkUpdating(false);
+
+    if (error) {
+      toast.error("Failed to update orders");
+    } else {
+      toast.success(`${ids.length} order(s) updated to ${newStatus}`);
+      setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    const pageIds = paginatedOrders.map((o: any) => o.id);
+    const allSelected = pageIds.every((id: string) => selectedIds.has(id));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      pageIds.forEach((id: string) => allSelected ? next.delete(id) : next.add(id));
+      return next;
+    });
+  };
+
+  const pageIds = paginatedOrders.map((o: any) => o.id);
+  const allPageSelected = pageIds.length > 0 && pageIds.every((id: string) => selectedIds.has(id));
+  const somePageSelected = pageIds.some((id: string) => selectedIds.has(id));
+
   const statusBadge = (status: string) => {
     const styles: Record<string, string> = {
       delivered: "bg-success/10 text-success",
@@ -145,12 +190,42 @@ export default function AdminOrders() {
         <span>{filtered.length} order{filtered.length !== 1 ? "s" : ""} found</span>
       </div>
 
+      {/* Bulk Actions */}
+      {selectedIds.size > 0 && (
+        <div className="flex items-center gap-3 glass-card p-3 animate-fade-in">
+          <span className="text-sm text-foreground font-medium">{selectedIds.size} selected</span>
+          <div className="flex gap-2 ml-auto">
+            {["delivered", "pending", "cancelled"].map((s) => (
+              <Button
+                key={s}
+                size="sm"
+                variant="outline"
+                className="text-xs h-8"
+                disabled={bulkUpdating}
+                onClick={() => handleBulkStatusChange(s)}
+              >
+                Mark {s.charAt(0).toUpperCase() + s.slice(1)}
+              </Button>
+            ))}
+            <Button size="sm" variant="ghost" className="text-xs h-8" onClick={() => setSelectedIds(new Set())}>
+              Clear
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Table */}
       <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s" }}>
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
+                <th className="p-4 w-10">
+                  <Checkbox
+                    checked={allPageSelected ? true : somePageSelected ? "indeterminate" : false}
+                    onCheckedChange={toggleSelectAll}
+                  />
+                </th>
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Order ID</th>
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Product</th>
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">User</th>
@@ -163,19 +238,25 @@ export default function AdminOrders() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center">
+                  <td colSpan={8} className="p-8 text-center">
                     <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
                   </td>
                 </tr>
               ) : paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={8} className="p-8 text-center text-sm text-muted-foreground">
                     No orders found
                   </td>
                 </tr>
               ) : (
                 paginatedOrders.map((o: any) => (
-                  <tr key={o.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                  <tr key={o.id} className={`border-b border-border/50 hover:bg-muted/30 transition-colors ${selectedIds.has(o.id) ? "bg-primary/5" : ""}`}>
+                    <td className="p-4 w-10">
+                      <Checkbox
+                        checked={selectedIds.has(o.id)}
+                        onCheckedChange={() => toggleSelect(o.id)}
+                      />
+                    </td>
                     <td className="p-4 text-xs font-mono text-muted-foreground">{o.id.slice(0, 8)}…</td>
                     <td className="p-4 text-sm font-medium text-foreground">{o.product_name}</td>
                     <td className="p-4">
