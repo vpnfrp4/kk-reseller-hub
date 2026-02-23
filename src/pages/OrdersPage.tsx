@@ -1,20 +1,39 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Copy, CheckCircle2, Download } from "lucide-react";
+import { Copy, CheckCircle2, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
+const PAGE_SIZE = 10;
+
 export default function OrdersPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+
+  const { data: countData } = useQuery({
+    queryKey: ["orders-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true });
+      return count || 0;
+    },
+  });
+
+  const totalCount = countData || 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   const { data: orders } = useQuery({
-    queryKey: ["orders"],
+    queryKey: ["orders", page],
     queryFn: async () => {
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
       const { data } = await supabase
         .from("orders")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .range(from, to);
       return data || [];
     },
   });
@@ -25,13 +44,17 @@ export default function OrdersPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const exportCSV = () => {
-    if (!orders || orders.length === 0) {
+  const exportCSV = async () => {
+    const { data: allOrders } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (!allOrders || allOrders.length === 0) {
       toast.error("No orders to export");
       return;
     }
     const headers = ["Order ID", "Product", "Credentials", "Price (MMK)", "Date", "Status"];
-    const rows = orders.map((o: any) => [
+    const rows = allOrders.map((o: any) => [
       o.id,
       o.product_name,
       `"${o.credentials.replace(/"/g, '""')}"`,
@@ -140,6 +163,45 @@ export default function OrdersPage() {
             </div>
           ))}
         </div>
+
+        {totalCount > PAGE_SIZE && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+            <p className="text-xs text-muted-foreground">
+              Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
+            </p>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                disabled={page === 0}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <Button
+                  key={i}
+                  variant={i === page ? "default" : "ghost"}
+                  size="icon"
+                  className="h-8 w-8 text-xs"
+                  onClick={() => setPage(i)}
+                >
+                  {i + 1}
+                </Button>
+              ))}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
