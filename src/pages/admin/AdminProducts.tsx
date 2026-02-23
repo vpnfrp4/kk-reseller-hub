@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -25,6 +25,7 @@ export default function AdminProducts() {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [uploading, setUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: "", icon: "📦", category: "General", description: "",
@@ -73,10 +74,7 @@ export default function AdminProducts() {
     setDialogOpen(true);
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadFile = useCallback(async (file: File) => {
     if (!file.type.startsWith("image/")) {
       toast.error("Please select an image file");
       return;
@@ -110,7 +108,29 @@ export default function AdminProducts() {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
+  }, []);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) uploadFile(file);
   };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) uploadFile(file);
+  }, [uploadFile]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
 
   const removeImage = () => {
     setForm((prev) => ({ ...prev, image_url: "" }));
@@ -185,15 +205,22 @@ export default function AdminProducts() {
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
                     disabled={uploading}
-                    className="w-full flex flex-col items-center justify-center gap-2 py-6 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-muted/30 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all duration-200"
+                    className={`w-full flex flex-col items-center justify-center gap-2 py-6 rounded-lg border-2 border-dashed bg-muted/30 text-muted-foreground hover:text-foreground transition-all duration-200 ${
+                      isDragging
+                        ? "border-primary bg-primary/5 text-foreground"
+                        : "border-border hover:border-primary/50 hover:bg-muted/50"
+                    }`}
                   >
                     {uploading ? (
                       <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <Upload className="w-5 h-5" />
                     )}
-                    <span className="text-xs">{uploading ? "Uploading..." : "Click to upload image"}</span>
+                    <span className="text-xs">{uploading ? "Uploading..." : isDragging ? "Drop image here" : "Click or drag image here"}</span>
                   </button>
                 )}
                 <input
