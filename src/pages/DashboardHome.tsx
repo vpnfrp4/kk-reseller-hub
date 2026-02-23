@@ -185,7 +185,7 @@ export default function DashboardHome() {
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map((stat, i) => (
-          <div key={stat.label} className="stat-card hover-lift animate-fade-in" style={{ animationDelay: `${(i + 1) * 0.08}s` }}>
+          <div key={stat.label} className="stat-card hover-lift animate-fade-in opacity-0 scale-95 transition-all duration-500 ease-out" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
             <div className="flex items-start justify-between mb-4">
               <div className={`w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center`}>
                 <stat.icon className={`w-5 h-5 ${stat.color}`} />
