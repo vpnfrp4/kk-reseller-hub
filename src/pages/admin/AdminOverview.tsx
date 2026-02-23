@@ -3,10 +3,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Package, KeyRound, Wallet, Users, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
 
 export default function AdminOverview() {
   const queryClient = useQueryClient();
   const initialized = useRef(false);
+
+  useEffect(() => {
+    requestNotificationPermission();
+  }, []);
 
   useEffect(() => {
     const channel = supabase
@@ -19,7 +24,9 @@ export default function AdminOverview() {
           queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
           queryClient.invalidateQueries({ queryKey: ["admin-cred-per-product"] });
           if (initialized.current) {
-            toast.info(`New order: ${payload.new?.product_name || "Unknown"} 🛒`);
+            const msg = `New order: ${payload.new?.product_name || "Unknown"} 🛒`;
+            toast.info(msg);
+            notifyEvent("New Order", msg, "info");
           }
         }
       )
@@ -29,7 +36,9 @@ export default function AdminOverview() {
         (payload: any) => {
           queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
           if (initialized.current && payload.new?.type === "topup") {
-            toast.info(`New top-up request: ${Number(payload.new.amount).toLocaleString()} MMK 💰`);
+            const msg = `New top-up request: ${Number(payload.new.amount).toLocaleString()} MMK 💰`;
+            toast.info(msg);
+            notifyEvent("New Top-up Request", msg, "info");
           }
         }
       )
