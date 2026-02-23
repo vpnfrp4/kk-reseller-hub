@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Package } from "lucide-react";
+import { useState } from "react";
 
 interface ProductCardProps {
   product: any;
@@ -10,19 +11,39 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, index, isPurchasing, onBuyClick }: ProductCardProps) {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <div
-      className="glass-card p-6 flex flex-col animate-fade-in hover-lift hover:border-primary/30 transition-all duration-250"
+      className="glass-card flex flex-col animate-fade-in hover-lift hover:border-primary/30 transition-all duration-250 overflow-hidden"
       style={{ animationDelay: `${index * 0.05}s` }}
     >
-      <Link to={`/dashboard/products/${product.id}`} className="flex items-start justify-between mb-4">
-        <div className="text-3xl">{product.icon}</div>
-        <span className="text-[10px] uppercase tracking-widest gold-text font-semibold px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
-          {product.category}
-        </span>
+      <Link to={`/dashboard/products/${product.id}`} className="block">
+        {product.image_url && !imgError ? (
+          <div className="relative w-full aspect-[16/9] bg-muted/30">
+            <img
+              src={product.image_url}
+              alt={product.name}
+              loading="lazy"
+              onError={() => setImgError(true)}
+              className="w-full h-full object-cover"
+            />
+            <span className="absolute top-2.5 right-2.5 text-[10px] uppercase tracking-widest gold-text font-semibold px-2.5 py-1 rounded-full bg-card/80 backdrop-blur-sm border border-primary/20">
+              {product.category}
+            </span>
+          </div>
+        ) : (
+          <div className="flex items-start justify-between p-6 pb-0">
+            <div className="text-3xl">{product.icon}</div>
+            <span className="text-[10px] uppercase tracking-widest gold-text font-semibold px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
+              {product.category}
+            </span>
+          </div>
+        )}
       </Link>
 
-      <Link to={`/dashboard/products/${product.id}`}>
+      <div className="p-6 flex flex-col flex-1">
+        <Link to={`/dashboard/products/${product.id}`}>
         <h3 className="font-semibold text-foreground text-lg hover:text-primary transition-colors duration-200">{product.name}</h3>
       </Link>
       <p className="text-sm text-muted-foreground mb-4">{product.duration}</p>
@@ -58,6 +79,7 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick }
             </>
           )}
         </Button>
+      </div>
       </div>
     </div>
   );
