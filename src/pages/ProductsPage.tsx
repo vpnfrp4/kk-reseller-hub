@@ -2,16 +2,26 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Package, Copy, CheckCircle2 } from "lucide-react";
+import { ShoppingCart, Package, Copy, CheckCircle2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface PurchaseResult {
   order_id: string;
@@ -29,6 +39,8 @@ export default function ProductsPage() {
   const [result, setResult] = useState<PurchaseResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
+  const [agreedTerms, setAgreedTerms] = useState(false);
 
   const { data: products } = useQuery({
     queryKey: ["products"],
@@ -41,7 +53,7 @@ export default function ProductsPage() {
     },
   });
 
-  const handleBuy = async (product: any) => {
+  const handleBuyClick = (product: any) => {
     if ((profile?.balance || 0) < product.wholesale_price) {
       toast.error("Insufficient balance. Please top up your wallet.");
       return;
@@ -50,6 +62,12 @@ export default function ProductsPage() {
       toast.error("This product is currently out of stock.");
       return;
     }
+    setConfirmProduct(product);
+    setAgreedTerms(false);
+  };
+
+  const handleBuy = async (product: any) => {
+    setConfirmProduct(null);
 
     setPurchasing(product.id);
 
@@ -144,7 +162,7 @@ export default function ProductsPage() {
 
               <Button
                 className="w-full btn-glow gap-2"
-                onClick={() => handleBuy(product)}
+                onClick={() => handleBuyClick(product)}
                 disabled={product.stock === 0 || purchasing === product.id}
               >
                 {purchasing === product.id ? (
@@ -163,6 +181,59 @@ export default function ProductsPage() {
           </div>
         ))}
       </div>
+
+      {/* Purchase Confirmation Modal */}
+      <AlertDialog open={!!confirmProduct} onOpenChange={(open) => { if (!open) setConfirmProduct(null); }}>
+        <AlertDialogContent className="bg-card border-border max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-warning" />
+              Confirm Purchase
+            </AlertDialogTitle>
+          </AlertDialogHeader>
+
+          {confirmProduct && (
+            <div className="space-y-4">
+              <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3">
+                <p className="text-sm text-destructive leading-relaxed">
+                  ဝယ်ယူပြီးသား အကောင့်များကို Refund (ငွေပြန်အမ်းခြင်း) လုံးဝပြုလုပ်ပေးမည်မဟုတ်ပါ။ Customer အဆင်သင့်ရှိမှသာ ဝယ်ယူပေးပါရန်။
+                </p>
+              </div>
+
+              <div className="stat-card space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Product</span>
+                  <span className="font-semibold text-foreground">{confirmProduct.name}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Deduct from Wallet</span>
+                  <span className="font-mono font-bold text-primary">{confirmProduct.wholesale_price.toLocaleString()} MMK</span>
+                </div>
+              </div>
+
+              <label className="flex items-start gap-3 cursor-pointer select-none">
+                <Checkbox
+                  checked={agreedTerms}
+                  onCheckedChange={(checked) => setAgreedTerms(checked === true)}
+                  className="mt-0.5"
+                />
+                <span className="text-sm text-muted-foreground">I agree to the Terms and Conditions.</span>
+              </label>
+            </div>
+          )}
+
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-border">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={!agreedTerms}
+              onClick={() => confirmProduct && handleBuy(confirmProduct)}
+              className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+            >
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Instant Delivery Dialog */}
       <Dialog open={!!result} onOpenChange={() => setResult(null)}>
