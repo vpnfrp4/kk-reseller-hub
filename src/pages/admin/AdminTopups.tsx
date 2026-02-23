@@ -5,6 +5,19 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Clock, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
+interface TopupTransaction {
+  id: string;
+  user_id: string;
+  amount: number;
+  status: string;
+  method: string | null;
+  description: string;
+  screenshot_url: string | null;
+  created_at: string;
+  reseller_name?: string;
+  reseller_email?: string;
+}
+
 export default function AdminTopups() {
   const queryClient = useQueryClient();
   const [processing, setProcessing] = useState<string | null>(null);
@@ -24,15 +37,38 @@ export default function AdminTopups() {
     return () => { supabase.removeChannel(channel); };
   }, [queryClient]);
 
-  const { data: transactions } = useQuery({
+  const { data: transactions, isLoading } = useQuery({
     queryKey: ["admin-topups"],
     queryFn: async () => {
-      const { data } = await supabase
+      // Fetch topup transactions
+      const { data: txData, error: txError } = await supabase
         .from("wallet_transactions")
-        .select("*, profiles!wallet_transactions_user_id_fkey(name, email)")
+        .select("*")
         .eq("type", "topup")
         .order("created_at", { ascending: false });
-      return data || [];
+
+      if (txError) throw txError;
+      if (!txData || txData.length === 0) return [];
+
+      // Fetch profile info for all unique user_ids
+      const userIds = [...new Set(txData.map((t) => t.user_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, name, email")
+        .in("user_id", userIds);
+
+      const profileMap = new Map(
+        (profiles || []).map((p) => [p.user_id, p])
+      );
+
+      return txData.map((tx) => {
+        const profile = profileMap.get(tx.user_id);
+        return {
+          ...tx,
+          reseller_name: profile?.name || "Unknown",
+          reseller_email: profile?.email || "",
+        } as TopupTransaction;
+      });
     },
   });
 
@@ -65,8 +101,8 @@ export default function AdminTopups() {
     }
   };
 
-  const pending = (transactions || []).filter((t: any) => t.status === "pending");
-  const processed = (transactions || []).filter((t: any) => t.status !== "pending");
+  const pending = (transactions || []).filter((t) => t.status === "pending");
+  const processed = (transactions || []).filter((t) => t.status !== "pending");
 
   return (
     <div className="space-y-8">
@@ -81,15 +117,17 @@ export default function AdminTopups() {
           <Clock className="w-4 h-4" /> Pending ({pending.length})
         </h3>
         {pending.length === 0 ? (
-          <div className="glass-card p-8 text-center text-sm text-muted-foreground">No pending top-ups</div>
+          <div className="glass-card p-8 text-center text-sm text-muted-foreground">
+            {isLoading ? "Loading..." : "No pending top-ups"}
+          </div>
         ) : (
           <div className="space-y-3">
-            {pending.map((tx: any) => (
+            {pending.map((tx) => (
               <div key={tx.id} className="glass-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">
-                    {(tx.profiles as any)?.name || "Unknown"}{" "}
-                    <span className="text-muted-foreground font-normal">({(tx.profiles as any)?.email})</span>
+                    {tx.reseller_name}{" "}
+                    <span className="text-muted-foreground font-normal">({tx.reseller_email})</span>
                   </p>
                   <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
                     <span className="font-mono font-semibold text-foreground text-base">
@@ -101,7 +139,7 @@ export default function AdminTopups() {
                 </div>
                 <div className="flex items-center gap-2">
                   {tx.screenshot_url && (
-                    <Button variant="outline" size="sm" onClick={() => viewScreenshot(tx.screenshot_url)} className="gap-1 text-xs">
+                    <Button variant="outline" size="sm" onClick={() => viewScreenshot(tx.screenshot_url!)} className="gap-1 text-xs">
                       <ImageIcon className="w-3 h-3" />
                       Screenshot
                     </Button>
@@ -150,9 +188,9 @@ export default function AdminTopups() {
               <tbody>
                 {processed.length === 0 ? (
                   <tr><td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">No processed transactions</td></tr>
-                ) : processed.map((tx: any) => (
+                ) : processed.map((tx) => (
                   <tr key={tx.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                    <td className="p-4 text-sm text-foreground">{(tx.profiles as any)?.name || "Unknown"}</td>
+                    <td className="p-4 text-sm text-foreground">{tx.reseller_name}</td>
                     <td className="p-4 text-sm font-mono text-right text-foreground">+{tx.amount.toLocaleString()}</td>
                     <td className="p-4 text-sm text-muted-foreground">{tx.method}</td>
                     <td className="p-4 text-sm text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</td>
