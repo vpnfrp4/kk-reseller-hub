@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -23,7 +24,7 @@ export default function AdminProducts() {
   const [editing, setEditing] = useState<any>(null);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [form, setForm] = useState({
-    name: "", icon: "📦", category: "General",
+    name: "", icon: "📦", category: "General", description: "",
     retail_price: "", wholesale_price: "", duration: "", stock: "",
   });
 
@@ -52,14 +53,14 @@ export default function AdminProducts() {
   });
 
   const resetForm = () => {
-    setForm({ name: "", icon: "📦", category: "General", retail_price: "", wholesale_price: "", duration: "", stock: "" });
+    setForm({ name: "", icon: "📦", category: "General", description: "", retail_price: "", wholesale_price: "", duration: "", stock: "" });
     setEditing(null);
   };
 
   const openEdit = (p: any) => {
     setEditing(p);
     setForm({
-      name: p.name, icon: p.icon, category: p.category,
+      name: p.name, icon: p.icon, category: p.category, description: p.description || "",
       retail_price: p.retail_price.toString(), wholesale_price: p.wholesale_price.toString(),
       duration: p.duration, stock: p.stock.toString(),
     });
@@ -69,9 +70,10 @@ export default function AdminProducts() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = {
-      name: form.name, icon: form.icon, category: form.category,
+      name: form.name.trim(), icon: form.icon, category: form.category.trim(),
+      description: form.description.trim(),
       retail_price: parseInt(form.retail_price), wholesale_price: parseInt(form.wholesale_price),
-      duration: form.duration, stock: parseInt(form.stock),
+      duration: form.duration.trim(), stock: parseInt(form.stock),
     };
 
     if (editing) {
@@ -146,6 +148,17 @@ export default function AdminProducts() {
                   <Label className="text-muted-foreground text-xs">Stock</Label>
                   <Input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required className="bg-muted/50 border-border font-mono" />
                 </div>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-muted-foreground text-xs">Description</Label>
+                <Textarea
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Product description shown on detail page..."
+                  className="bg-muted/50 border-border resize-none"
+                  rows={3}
+                  maxLength={500}
+                />
               </div>
               <Button type="submit" className="w-full btn-glow">{editing ? "Update" : "Create"} Product</Button>
             </form>
