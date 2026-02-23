@@ -1,7 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
-import { Copy, CheckCircle2 } from "lucide-react";
+import { Copy, CheckCircle2, Download } from "lucide-react";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export default function OrdersPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -23,11 +25,44 @@ export default function OrdersPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const exportCSV = () => {
+    if (!orders || orders.length === 0) {
+      toast.error("No orders to export");
+      return;
+    }
+    const headers = ["Order ID", "Product", "Credentials", "Price (MMK)", "Date", "Status"];
+    const rows = orders.map((o: any) => [
+      o.id,
+      o.product_name,
+      `"${o.credentials.replace(/"/g, '""')}"`,
+      o.price,
+      new Date(o.created_at).toLocaleDateString(),
+      o.status,
+    ]);
+    const csv = [headers.join(","), ...rows.map((r: any[]) => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Orders exported successfully");
+  };
+
   return (
     <div className="space-y-8">
       <div className="animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Order History</h1>
-        <p className="text-muted-foreground text-sm">View all your previous purchases</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">Order History</h1>
+            <p className="text-muted-foreground text-sm">View all your previous purchases</p>
+          </div>
+          <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2">
+            <Download className="w-4 h-4" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.1s" }}>
