@@ -15,7 +15,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminCredentials() {
@@ -94,6 +94,40 @@ export default function AdminCredentials() {
     setDialogOpen(false);
     setBulkCredentials("");
     setSelectedProduct("");
+  };
+
+  const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.name.endsWith(".csv") && !file.name.endsWith(".txt")) {
+      toast.error("Please upload a .csv or .txt file");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      if (!text?.trim()) { toast.error("File is empty"); return; }
+      // Parse CSV: support single column or multi-column (take first column)
+      const lines = text.trim().split("\n").filter(Boolean);
+      // Skip header if it looks like one
+      const firstLine = lines[0].toLowerCase().trim();
+      const startIdx = (firstLine.includes("credential") || firstLine.includes("email") || firstLine.includes("account")) ? 1 : 0;
+      const creds = lines.slice(startIdx).map((line) => {
+        // Handle quoted CSV values and take the first meaningful column
+        const trimmed = line.trim();
+        if (!trimmed) return "";
+        // Simple CSV parse: split by comma, take first non-empty field
+        const parts = trimmed.split(",").map(p => p.trim().replace(/^"|"$/g, ""));
+        return parts[0] || trimmed;
+      }).filter(Boolean);
+
+      if (creds.length === 0) { toast.error("No credentials found in file"); return; }
+      setBulkCredentials(creds.join("\n"));
+      toast.success(`${creds.length} credential(s) loaded from file`);
+    };
+    reader.readAsText(file);
+    // Reset input so same file can be re-uploaded
+    e.target.value = "";
   };
 
   const handleDelete = async (id: string) => {
@@ -184,7 +218,14 @@ export default function AdminCredentials() {
                 </select>
               </div>
               <div className="space-y-2">
-                <Label className="text-muted-foreground text-xs">Credentials (one per line)</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-muted-foreground text-xs">Credentials (one per line)</Label>
+                  <label className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline cursor-pointer">
+                    <Upload className="w-3.5 h-3.5" />
+                    Upload CSV
+                    <input type="file" accept=".csv,.txt" onChange={handleCSVUpload} className="hidden" />
+                  </label>
+                </div>
                 <Textarea
                   value={bulkCredentials}
                   onChange={(e) => setBulkCredentials(e.target.value)}
@@ -195,6 +236,7 @@ export default function AdminCredentials() {
                 />
                 <p className="text-[10px] text-muted-foreground">
                   {bulkCredentials.trim() ? bulkCredentials.trim().split("\n").filter(Boolean).length : 0} credential(s) detected
+                  {" · "}Paste manually or upload a CSV/TXT file
                 </p>
               </div>
               <Button type="submit" className="w-full btn-glow">Add Credentials</Button>
