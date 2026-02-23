@@ -1,3 +1,4 @@
+import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -103,6 +104,11 @@ export default function ProductsPage() {
 
   return (
     <div className="space-y-8">
+      <Breadcrumb items={[
+        { label: "Dashboard", path: "/dashboard" },
+        { label: "Products" },
+      ]} />
+
       <div className="animate-fade-in">
         <h1 className="text-2xl font-bold text-foreground">Products</h1>
         <p className="text-muted-foreground text-sm">Browse digital services at wholesale prices</p>
