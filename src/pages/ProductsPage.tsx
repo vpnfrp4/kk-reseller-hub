@@ -217,7 +217,12 @@ export default function ProductsPage() {
                   onCheckedChange={(checked) => setAgreedTerms(checked === true)}
                   className="mt-0.5"
                 />
-                <span className="text-sm text-muted-foreground">I agree to the Terms and Conditions.</span>
+                <span className="text-sm text-muted-foreground">
+                  I agree to the{" "}
+                  <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+                    Terms and Conditions
+                  </a>.
+                </span>
               </label>
             </div>
           )}
