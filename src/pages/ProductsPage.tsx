@@ -146,10 +146,22 @@ export default function ProductsPage() {
 
       {/* Product Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {(products || [])
-          .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
-          .filter((p: any) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
-          .map((product: any, i: number) => (
+        {(() => {
+          const filtered = (products || [])
+            .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
+            .filter((p: any) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()));
+
+          if (filtered.length === 0) {
+            return (
+              <div className="col-span-full glass-card p-12 text-center animate-fade-in">
+                <Package className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-foreground font-medium">No products found</p>
+                <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filter</p>
+              </div>
+            );
+          }
+
+          return filtered.map((product: any, i: number) => (
           <div
             key={product.id}
             className="glass-card p-6 flex flex-col animate-fade-in hover-lift hover:border-primary/30 transition-all duration-250"
@@ -200,7 +212,8 @@ export default function ProductsPage() {
               </Button>
             </div>
           </div>
-        ))}
+        ));
+        })()}
       </div>
 
       {/* Purchase Confirmation Modal */}
