@@ -12,6 +12,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays } from "date-fns";
@@ -187,21 +188,34 @@ export default function DashboardHome() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {stats.map((stat, i) => (
-          <div key={stat.label} className="stat-card hover-lift animate-fade-in opacity-0 scale-95 transition-all duration-500 ease-out" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
-            <div className="flex items-start justify-between mb-4">
-              <div className={`w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center`}>
-                <stat.icon className={`w-5 h-5 ${stat.color}`} />
+        {!profile ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="stat-card animate-fade-in" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+              <div className="flex items-start justify-between mb-4">
+                <Skeleton className="w-10 h-10 rounded-lg" />
+                <Skeleton className="w-16 h-4 rounded" />
               </div>
-              <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                <ArrowUpRight className="w-3 h-3 text-success" />
-                {stat.change}
-              </span>
+              <Skeleton className="h-7 w-32 rounded mb-2" />
+              <Skeleton className="h-4 w-24 rounded" />
             </div>
-            <p className="text-2xl font-bold font-mono text-foreground">{stat.value}</p>
-            <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
-          </div>
-        ))}
+          ))
+        ) : (
+          stats.map((stat, i) => (
+            <div key={stat.label} className="stat-card hover-lift animate-fade-in opacity-0 scale-95 transition-all duration-500 ease-out" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                </div>
+                <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <ArrowUpRight className="w-3 h-3 text-success" />
+                  {stat.change}
+                </span>
+              </div>
+              <p className="text-2xl font-bold font-mono text-foreground">{stat.value}</p>
+              <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Charts */}
