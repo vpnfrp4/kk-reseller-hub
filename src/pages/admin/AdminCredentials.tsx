@@ -20,6 +20,21 @@ import { toast } from "sonner";
 
 export default function AdminCredentials() {
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-credentials-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "product_credentials" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-credentials"] });
+          queryClient.invalidateQueries({ queryKey: ["admin-credential-counts"] });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filterProduct, setFilterProduct] = useState(searchParams.get("product") || "");

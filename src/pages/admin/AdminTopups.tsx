@@ -1,13 +1,28 @@
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, XCircle, Clock, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
 
 export default function AdminTopups() {
   const queryClient = useQueryClient();
   const [processing, setProcessing] = useState<string | null>(null);
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-topups-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "wallet_transactions" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-topups"] });
+          queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
 
   const { data: transactions } = useQuery({
     queryKey: ["admin-topups"],

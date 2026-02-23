@@ -8,12 +8,27 @@ export default function AdminOverview() {
 
   useEffect(() => {
     const channel = supabase
-      .channel("admin-orders-realtime")
+      .channel("admin-overview-realtime")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "orders" },
         () => {
           queryClient.invalidateQueries({ queryKey: ["admin-recent-orders"] });
+          queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+          queryClient.invalidateQueries({ queryKey: ["admin-cred-per-product"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "wallet_transactions" },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "product_credentials" },
+        () => {
           queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
           queryClient.invalidateQueries({ queryKey: ["admin-cred-per-product"] });
         }
