@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminCredentials() {
@@ -94,6 +94,32 @@ export default function AdminCredentials() {
           <h1 className="text-2xl font-bold text-foreground">Credentials</h1>
           <p className="text-muted-foreground text-sm">Manage pre-loaded account credentials</p>
         </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => {
+              const q = searchQuery.toLowerCase();
+              const filtered = (credentials || []).filter((c: any) =>
+                (!filterProduct || c.product_id === filterProduct) &&
+                (statusFilter === "all" || (statusFilter === "available" ? !c.is_sold : c.is_sold)) &&
+                (!q || c.credentials.toLowerCase().includes(q))
+              );
+              if (filtered.length === 0) { toast.error("No credentials to export"); return; }
+              const csv = "Product,Credentials,Status,Added\n" + filtered.map((c: any) =>
+                `"${(c.products as any)?.name || "Unknown"} - ${(c.products as any)?.duration || ""}","${c.credentials}","${c.is_sold ? "Sold" : "Available"}","${new Date(c.created_at).toLocaleDateString()}"`
+              ).join("\n");
+              const blob = new Blob([csv], { type: "text/csv" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `credentials-${new Date().toISOString().slice(0, 10)}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            <Download className="w-4 h-4" />Export CSV
+          </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
             <Button className="btn-glow gap-2"><Plus className="w-4 h-4" />Add Credentials</Button>
@@ -135,6 +161,7 @@ export default function AdminCredentials() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="flex gap-2 animate-fade-in">
