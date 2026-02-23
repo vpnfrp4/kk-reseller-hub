@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Package, Copy, CheckCircle2, AlertTriangle, Search, X, ArrowUpDown } from "lucide-react";
+import { ShoppingCart, Package, Copy, CheckCircle2, AlertTriangle, Search, X, ArrowUpDown, RotateCcw } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -181,6 +181,15 @@ export default function ProductsPage() {
               </button>
             );
           })}
+          {(searchQuery || activeCategory !== "All" || sortBy !== "name") && (
+            <button
+              onClick={() => { setSearchQuery(""); setActiveCategory("All"); setSortBy("name"); }}
+              className="px-3 py-1.5 rounded-full text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/50 hover:bg-muted/80 border border-border/50 transition-all duration-200 flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-3 h-3" />
+              Reset
+            </button>
+          )}
         </div>
       </div>
 
