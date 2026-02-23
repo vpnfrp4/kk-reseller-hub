@@ -13,6 +13,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import NotificationSettings from "@/components/NotificationSettings";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -137,7 +138,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </h2>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <NotificationSettings />
             <div className="stat-card !p-2 !px-4 flex items-center gap-2">
               <Wallet className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold font-mono text-foreground">
