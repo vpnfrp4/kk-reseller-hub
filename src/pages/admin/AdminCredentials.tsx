@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminCredentials() {
@@ -24,6 +24,8 @@ export default function AdminCredentials() {
   const [selectedProduct, setSelectedProduct] = useState("");
   const [bulkCredentials, setBulkCredentials] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "available" | "sold">("all");
+  const [page, setPage] = useState(1);
+  const perPage = 20;
 
   useEffect(() => {
     const p = searchParams.get("product");
@@ -136,7 +138,7 @@ export default function AdminCredentials() {
 
       <div className="flex gap-2 animate-fade-in">
         <button
-          onClick={() => { setFilterProduct(""); setSearchParams({}); }}
+          onClick={() => { setFilterProduct(""); setSearchParams({}); setPage(1); }}
           className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
             !filterProduct ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
           }`}
@@ -144,7 +146,7 @@ export default function AdminCredentials() {
         {(products || []).map((p: any) => (
           <button
             key={p.id}
-            onClick={() => { setFilterProduct(p.id); setSearchParams({ product: p.id }); }}
+            onClick={() => { setFilterProduct(p.id); setSearchParams({ product: p.id }); setPage(1); }}
             className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
               filterProduct === p.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
             }`}
@@ -156,7 +158,7 @@ export default function AdminCredentials() {
         {(["all", "available", "sold"] as const).map((s) => (
           <button
             key={s}
-            onClick={() => setStatusFilter(s)}
+            onClick={() => { setStatusFilter(s); setPage(1); }}
             className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
               statusFilter === s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
             }`}
@@ -182,9 +184,12 @@ export default function AdminCredentials() {
                   (!filterProduct || c.product_id === filterProduct) &&
                   (statusFilter === "all" || (statusFilter === "available" ? !c.is_sold : c.is_sold))
                 );
-                return filtered.length === 0 ? (
+                const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+                const currentPage = Math.min(page, totalPages);
+                const paginated = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
+                return paginated.length === 0 ? (
                 <tr><td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">No credentials found</td></tr>
-              ) : filtered.map((c: any) => (
+              ) : paginated.map((c: any) => (
                 <tr key={c.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                   <td className="p-4 text-sm text-foreground">
                     {(c.products as any)?.name || "Unknown"} - {(c.products as any)?.duration || ""}
@@ -211,6 +216,39 @@ export default function AdminCredentials() {
             </tbody>
           </table>
         </div>
+        {(() => {
+          const filtered = (credentials || []).filter((c: any) =>
+            (!filterProduct || c.product_id === filterProduct) &&
+            (statusFilter === "all" || (statusFilter === "available" ? !c.is_sold : c.is_sold))
+          );
+          const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+          if (totalPages <= 1) return null;
+          const currentPage = Math.min(page, totalPages);
+          return (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+              <span className="text-xs text-muted-foreground">
+                Showing {(currentPage - 1) * perPage + 1}–{Math.min(currentPage * perPage, filtered.length)} of {filtered.length}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage <= 1}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <span className="text-xs font-medium text-foreground px-2">{currentPage} / {totalPages}</span>
+                <button
+                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage >= totalPages}
+                  className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted disabled:opacity-30 disabled:pointer-events-none transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
