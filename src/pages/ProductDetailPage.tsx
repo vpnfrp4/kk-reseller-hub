@@ -110,29 +110,28 @@ export default function ProductDetailPage() {
       <div className="animate-fade-in">
         <Link
           to="/dashboard/products"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors duration-200 mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
           Back to Products
         </Link>
       </div>
 
+      {/* Product Info Card */}
       <div className="glass-card p-6 lg:p-8 animate-fade-in" style={{ animationDelay: "0.05s" }}>
         <div className="flex flex-col sm:flex-row gap-6">
-          {/* Icon & Category */}
           <div className="flex flex-col items-center gap-3">
-            <div className="w-20 h-20 rounded-2xl bg-primary/10 flex items-center justify-center text-4xl">
+            <div className="w-20 h-20 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-4xl">
               {product.icon}
             </div>
-            <span className="text-[10px] uppercase tracking-wider bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
+            <span className="text-[10px] uppercase tracking-widest gold-text font-semibold px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
               {product.category}
             </span>
           </div>
 
-          {/* Info */}
           <div className="flex-1 space-y-3">
             <h1 className="text-2xl font-bold text-foreground">{product.name}</h1>
-            <p className="text-sm text-muted-foreground">{product.duration}</p>
+            <p className="text-sm text-primary font-medium">{product.duration}</p>
             {product.description && (
               <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
             )}
@@ -150,16 +149,16 @@ export default function ProductDetailPage() {
           <p className="text-xs text-muted-foreground">Standard market price</p>
         </div>
 
-        <div className="glass-card p-5 space-y-2 border-primary/30">
+        <div className="stat-card space-y-2">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-primary uppercase tracking-wider">Wholesale Price</p>
+            <p className="text-xs font-medium gold-text uppercase tracking-wider font-semibold">Wholesale Price</p>
             {savingsPercent > 0 && (
               <span className="text-[10px] font-semibold bg-success/10 text-success px-2 py-0.5 rounded-full">
                 Save {savingsPercent}%
               </span>
             )}
           </div>
-          <p className="text-2xl font-bold font-mono text-primary">
+          <p className="text-2xl font-bold font-mono gold-shimmer">
             {product.wholesale_price.toLocaleString()} <span className="text-xs text-muted-foreground">MMK</span>
           </p>
           <p className="text-xs text-muted-foreground">Your reseller price</p>
@@ -169,12 +168,14 @@ export default function ProductDetailPage() {
       {/* Purchase Section */}
       <div className="glass-card p-6 animate-fade-in space-y-4" style={{ animationDelay: "0.15s" }}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Package className="w-4 h-4" />
-            <span>{product.stock} in stock</span>
+          <div className="flex items-center gap-2 text-sm">
+            <Package className="w-4 h-4 text-primary" />
+            <span className={product.stock <= 5 ? "stock-low font-semibold" : "text-muted-foreground"}>
+              {product.stock} in stock
+            </span>
           </div>
           <p className="text-sm text-muted-foreground">
-            Your balance: <span className="font-mono font-semibold text-foreground">{(profile?.balance || 0).toLocaleString()} MMK</span>
+            Balance: <span className="font-mono font-semibold gold-text">{(profile?.balance || 0).toLocaleString()} MMK</span>
           </p>
         </div>
 
@@ -201,7 +202,7 @@ export default function ProductDetailPage() {
 
       {/* Purchase Success Dialog */}
       <Dialog open={!!result} onOpenChange={() => setResult(null)}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="bg-card border-border/50 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-success" />
@@ -217,12 +218,12 @@ export default function ProductDetailPage() {
               <div className="stat-card">
                 <p className="text-sm text-muted-foreground mb-2">Account Credentials</p>
                 <div className="flex items-center gap-2">
-                  <code className="flex-1 text-sm font-mono text-primary bg-primary/10 px-3 py-2 rounded-lg break-all">
+                  <code className="flex-1 text-sm font-mono gold-text bg-primary/10 border border-primary/20 px-3 py-2 rounded-lg break-all">
                     {result.credentials}
                   </code>
                   <button
                     onClick={() => copyCredentials(result.credentials)}
-                    className="p-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+                    className="p-2 rounded-lg bg-muted hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors duration-200"
                   >
                     {copied ? <CheckCircle2 className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
                   </button>
@@ -230,7 +231,7 @@ export default function ProductDetailPage() {
               </div>
               <div className="flex items-center justify-between text-sm">
                 <span className="text-muted-foreground">Amount Charged</span>
-                <span className="font-mono font-semibold text-foreground">{result.price.toLocaleString()} MMK</span>
+                <span className="font-mono font-semibold gold-text">{result.price.toLocaleString()} MMK</span>
               </div>
               <p className="text-xs text-muted-foreground text-center">
                 These credentials are also saved in your Order History.
