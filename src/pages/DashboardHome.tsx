@@ -64,7 +64,7 @@ export default function DashboardHome() {
     return () => { supabase.removeChannel(channel); initialized.current = false; };
   }, [queryClient, refreshProfile]);
 
-  const { data: transactions } = useQuery({
+  const { data: transactions, isLoading: txLoading } = useQuery({
     queryKey: ["recent-transactions"],
     queryFn: async () => {
       const { data } = await supabase
@@ -76,7 +76,7 @@ export default function DashboardHome() {
     },
   });
 
-  const { data: orders } = useQuery({
+  const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ["recent-orders"],
     queryFn: async () => {
       const { data } = await supabase
@@ -297,7 +297,20 @@ export default function DashboardHome() {
             <Link to="/dashboard/wallet" className="text-xs text-primary hover:underline">View all</Link>
           </div>
           <div className="space-y-3">
-            {(!transactions || transactions.length === 0) ? (
+            {txLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-4 w-36 rounded" />
+                    <Skeleton className="h-3 w-20 rounded" />
+                  </div>
+                  <div className="space-y-1.5 flex flex-col items-end">
+                    <Skeleton className="h-4 w-20 rounded" />
+                    <Skeleton className="h-4 w-14 rounded-full" />
+                  </div>
+                </div>
+              ))
+            ) : (!transactions || transactions.length === 0) ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No transactions yet</p>
             ) : transactions.map((tx: any) => (
               <div key={tx.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
@@ -326,7 +339,20 @@ export default function DashboardHome() {
             <Link to="/dashboard/orders" className="text-xs text-primary hover:underline">View all</Link>
           </div>
           <div className="space-y-3">
-            {(!orders || orders.length === 0) ? (
+            {ordersLoading ? (
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-4 w-32 rounded" />
+                    <Skeleton className="h-3 w-44 rounded" />
+                  </div>
+                  <div className="space-y-1.5 flex flex-col items-end">
+                    <Skeleton className="h-4 w-24 rounded" />
+                    <Skeleton className="h-3 w-16 rounded" />
+                  </div>
+                </div>
+              ))
+            ) : (!orders || orders.length === 0) ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No orders yet</p>
             ) : orders.map((order: any) => (
               <div key={order.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
