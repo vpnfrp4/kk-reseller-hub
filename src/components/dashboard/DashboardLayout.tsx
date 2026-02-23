@@ -146,8 +146,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <NotificationSettings />
             <div className="glass-card !p-2 !px-4 flex items-center gap-2 !rounded-full">
               <Wallet className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold font-mono text-foreground">
-                {(profile?.balance || 0).toLocaleString()} <span className="text-xs text-primary">MMK</span>
+              <span className="text-sm font-semibold font-mono gold-shimmer">
+                {(profile?.balance || 0).toLocaleString()} <span className="text-xs">MMK</span>
               </span>
             </div>
           </div>
