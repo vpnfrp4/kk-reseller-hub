@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -96,6 +96,30 @@ export default function WalletPage() {
   const totalDeposited = (transactions || [])
     .filter((t: any) => t.type === "topup" && t.status === "approved")
     .reduce((sum: number, t: any) => sum + t.amount, 0);
+
+  // Count-up animation for hero balance
+  const [displayBalance, setDisplayBalance] = useState(0);
+  const targetBalance = profile?.balance || 0;
+  const countUpRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const duration = 1200;
+    const startTime = performance.now();
+    const startValue = displayBalance;
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplayBalance(Math.round(startValue + (targetBalance - startValue) * eased));
+      if (progress < 1) {
+        countUpRef.current = requestAnimationFrame(step);
+      }
+    };
+
+    countUpRef.current = requestAnimationFrame(step);
+    return () => { if (countUpRef.current) cancelAnimationFrame(countUpRef.current); };
+  }, [targetBalance]);
 
   return (
     <div className="space-y-8">
@@ -214,7 +238,7 @@ export default function WalletPage() {
               <span className="text-sm text-muted-foreground">Available Balance</span>
             </div>
             <p className="text-4xl font-bold font-mono gold-shimmer glow-text">
-              {(profile?.balance || 0).toLocaleString()}
+              {displayBalance.toLocaleString()}
             </p>
             <p className="text-xs text-muted-foreground mt-1">MMK</p>
           </div>
