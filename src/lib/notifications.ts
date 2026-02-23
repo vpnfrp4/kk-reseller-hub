@@ -1,4 +1,31 @@
-// Notification sound using Web Audio API (no external files needed)
+const PREFS_KEY = "notification-preferences";
+
+export interface NotificationPrefs {
+  soundEnabled: boolean;
+  browserNotificationsEnabled: boolean;
+}
+
+const defaultPrefs: NotificationPrefs = {
+  soundEnabled: true,
+  browserNotificationsEnabled: true,
+};
+
+export function getNotificationPrefs(): NotificationPrefs {
+  try {
+    const stored = localStorage.getItem(PREFS_KEY);
+    if (stored) return { ...defaultPrefs, ...JSON.parse(stored) };
+  } catch {}
+  return defaultPrefs;
+}
+
+export function setNotificationPrefs(prefs: Partial<NotificationPrefs>) {
+  const current = getNotificationPrefs();
+  const updated = { ...current, ...prefs };
+  localStorage.setItem(PREFS_KEY, JSON.stringify(updated));
+  window.dispatchEvent(new CustomEvent("notification-prefs-changed", { detail: updated }));
+}
+
+// Sound via Web Audio API
 let audioCtx: AudioContext | null = null;
 
 function getAudioContext() {
@@ -7,6 +34,7 @@ function getAudioContext() {
 }
 
 export function playSound(type: "success" | "info" | "error" = "info") {
+  if (!getNotificationPrefs().soundEnabled) return;
   try {
     const ctx = getAudioContext();
     const oscillator = ctx.createOscillator();
@@ -30,9 +58,7 @@ export function playSound(type: "success" | "info" | "error" = "info") {
 
     oscillator.start(ctx.currentTime);
     oscillator.stop(ctx.currentTime + 0.4);
-  } catch {
-    // Audio not supported or blocked
-  }
+  } catch {}
 }
 
 export async function requestNotificationPermission() {
@@ -44,8 +70,9 @@ export async function requestNotificationPermission() {
 }
 
 export function sendBrowserNotification(title: string, body: string, icon?: string) {
+  if (!getNotificationPrefs().browserNotificationsEnabled) return;
   if (!("Notification" in window) || Notification.permission !== "granted") return;
-  if (document.hasFocus()) return; // Only show when tab is not focused
+  if (document.hasFocus()) return;
 
   try {
     const notification = new Notification(title, {
@@ -58,9 +85,7 @@ export function sendBrowserNotification(title: string, body: string, icon?: stri
       notification.close();
     };
     setTimeout(() => notification.close(), 5000);
-  } catch {
-    // Notifications not supported
-  }
+  } catch {}
 }
 
 export function notifyEvent(

@@ -13,6 +13,7 @@ import {
   Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import NotificationSettings from "@/components/NotificationSettings";
 
 const navItems = [
   { label: "Overview", icon: LayoutDashboard, path: "/admin" },
@@ -120,7 +121,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               {navItems.find((i) => i.path === location.pathname)?.label || "Admin"}
             </h2>
           </div>
-          <span className="text-xs bg-destructive/10 text-destructive px-3 py-1 rounded-full font-medium">ADMIN</span>
+          <div className="flex items-center gap-2">
+            <NotificationSettings />
+            <span className="text-xs bg-destructive/10 text-destructive px-3 py-1 rounded-full font-medium">ADMIN</span>
+          </div>
         </header>
 
         <main className="flex-1 p-4 lg:p-8 overflow-auto">{children}</main>
