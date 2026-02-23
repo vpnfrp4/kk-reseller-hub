@@ -1,12 +1,17 @@
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { User, Wallet, ShoppingCart, Calendar, TrendingUp } from "lucide-react";
+import { User, Wallet, ShoppingCart, Calendar, TrendingUp, Plus, Minus } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 
 interface ResellerDetailModalProps {
   reseller: any;
@@ -15,6 +20,11 @@ interface ResellerDetailModalProps {
 }
 
 export default function ResellerDetailModal({ reseller, open, onOpenChange }: ResellerDetailModalProps) {
+  const queryClient = useQueryClient();
+  const [adjustAmount, setAdjustAmount] = useState("");
+  const [adjustReason, setAdjustReason] = useState("");
+  const [adjustType, setAdjustType] = useState<"add" | "deduct">("add");
+  const [adjusting, setAdjusting] = useState(false);
   const { data: orders } = useQuery({
     queryKey: ["admin-reseller-orders", reseller?.user_id],
     enabled: open && !!reseller?.user_id,
@@ -44,6 +54,61 @@ export default function ResellerDetailModal({ reseller, open, onOpenChange }: Re
   });
 
   if (!reseller) return null;
+
+  const handleAdjustBalance = async () => {
+    const amount = Math.round(Number(adjustAmount));
+    if (!amount || amount <= 0) {
+      toast.error("Enter a valid positive amount");
+      return;
+    }
+    if (!adjustReason.trim()) {
+      toast.error("Please provide a reason");
+      return;
+    }
+    if (adjustReason.trim().length > 200) {
+      toast.error("Reason must be under 200 characters");
+      return;
+    }
+    if (adjustType === "deduct" && amount > reseller.balance) {
+      toast.error("Deduction exceeds current balance");
+      return;
+    }
+
+    setAdjusting(true);
+    const newBalance = adjustType === "add"
+      ? reseller.balance + amount
+      : reseller.balance - amount;
+
+    const { error: profileErr } = await supabase
+      .from("profiles")
+      .update({ balance: newBalance })
+      .eq("user_id", reseller.user_id);
+
+    if (profileErr) {
+      setAdjusting(false);
+      toast.error("Failed to update balance");
+      return;
+    }
+
+    const description = `Admin ${adjustType === "add" ? "credit" : "debit"}: ${adjustReason.trim()}`;
+    await supabase.from("wallet_transactions").insert({
+      user_id: reseller.user_id,
+      type: adjustType === "add" ? "topup" : "purchase",
+      amount,
+      status: "approved",
+      description,
+      method: "admin_adjustment",
+    });
+
+    setAdjusting(false);
+    setAdjustAmount("");
+    setAdjustReason("");
+    toast.success(`Balance ${adjustType === "add" ? "increased" : "decreased"} by ${amount.toLocaleString()} MMK`);
+    queryClient.invalidateQueries({ queryKey: ["admin-resellers"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-reseller-transactions", reseller.user_id] });
+    // Update local reseller data
+    reseller.balance = newBalance;
+  };
 
   const statusBadge = (status: string) => {
     const styles: Record<string, string> = {
@@ -95,6 +160,55 @@ export default function ResellerDetailModal({ reseller, open, onOpenChange }: Re
                 <p className="text-sm font-mono font-semibold text-foreground">{s.value}</p>
               </div>
             ))}
+          </div>
+
+          {/* Balance Adjustment */}
+          <div className="space-y-3 border-t border-border pt-4">
+            <div className="flex items-center gap-2 text-sm">
+              <Wallet className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium text-foreground">Adjust Balance</span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={adjustType === "add" ? "default" : "outline"}
+                className="h-8 text-xs gap-1"
+                onClick={() => setAdjustType("add")}
+              >
+                <Plus className="w-3 h-3" /> Add
+              </Button>
+              <Button
+                size="sm"
+                variant={adjustType === "deduct" ? "destructive" : "outline"}
+                className="h-8 text-xs gap-1"
+                onClick={() => setAdjustType("deduct")}
+              >
+                <Minus className="w-3 h-3" /> Deduct
+              </Button>
+            </div>
+            <Input
+              type="number"
+              placeholder="Amount (MMK)"
+              value={adjustAmount}
+              onChange={(e) => setAdjustAmount(e.target.value)}
+              className="bg-muted/30 border-border"
+              min={1}
+            />
+            <Textarea
+              placeholder="Reason for adjustment..."
+              value={adjustReason}
+              onChange={(e) => setAdjustReason(e.target.value)}
+              className="bg-muted/30 border-border resize-none h-16 text-sm"
+              maxLength={200}
+            />
+            <Button
+              size="sm"
+              className="w-full h-9 text-xs"
+              disabled={adjusting || !adjustAmount || !adjustReason.trim()}
+              onClick={handleAdjustBalance}
+            >
+              {adjusting ? "Updating..." : `${adjustType === "add" ? "Add" : "Deduct"} ${adjustAmount ? Number(adjustAmount).toLocaleString() : "0"} MMK`}
+            </Button>
           </div>
 
           {/* Orders */}
