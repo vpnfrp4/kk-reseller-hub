@@ -1,9 +1,21 @@
-import { mockOrders } from "@/data/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { Copy, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 
 export default function OrdersPage() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const { data: orders } = useQuery({
+    queryKey: ["orders"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+  });
 
   const copyCredentials = (id: string, creds: string) => {
     navigator.clipboard.writeText(creds);
@@ -19,7 +31,6 @@ export default function OrdersPage() {
       </div>
 
       <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.1s" }}>
-        {/* Desktop */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -33,10 +44,12 @@ export default function OrdersPage() {
               </tr>
             </thead>
             <tbody>
-              {mockOrders.map((order) => (
+              {(!orders || orders.length === 0) ? (
+                <tr><td colSpan={6} className="p-8 text-center text-sm text-muted-foreground">No orders yet</td></tr>
+              ) : orders.map((order: any) => (
                 <tr key={order.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                  <td className="p-4 text-sm font-mono text-muted-foreground">{order.id}</td>
-                  <td className="p-4 text-sm font-medium text-foreground">{order.productName}</td>
+                  <td className="p-4 text-sm font-mono text-muted-foreground">{order.id.slice(0, 8)}</td>
+                  <td className="p-4 text-sm font-medium text-foreground">{order.product_name}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
                       <code className="text-xs font-mono text-muted-foreground bg-muted/50 px-2 py-1 rounded">
@@ -55,11 +68,9 @@ export default function OrdersPage() {
                     </div>
                   </td>
                   <td className="p-4 text-sm font-mono text-right text-foreground">{order.price.toLocaleString()} MMK</td>
-                  <td className="p-4 text-sm text-muted-foreground">{order.date}</td>
+                  <td className="p-4 text-sm text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</td>
                   <td className="p-4 text-center">
-                    <span className="text-xs px-2 py-1 rounded-full bg-success/10 text-success">
-                      {order.status}
-                    </span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-success/10 text-success">{order.status}</span>
                   </td>
                 </tr>
               ))}
@@ -67,12 +78,13 @@ export default function OrdersPage() {
           </table>
         </div>
 
-        {/* Mobile */}
         <div className="md:hidden divide-y divide-border/50">
-          {mockOrders.map((order) => (
+          {(!orders || orders.length === 0) ? (
+            <p className="p-8 text-center text-sm text-muted-foreground">No orders yet</p>
+          ) : orders.map((order: any) => (
             <div key={order.id} className="p-4 space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-foreground">{order.productName}</p>
+                <p className="text-sm font-medium text-foreground">{order.product_name}</p>
                 <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success">{order.status}</span>
               </div>
               <div className="flex items-center gap-2">
@@ -87,7 +99,7 @@ export default function OrdersPage() {
                 </button>
               </div>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{order.date}</span>
+                <span>{new Date(order.created_at).toLocaleDateString()}</span>
                 <span className="font-mono">{order.price.toLocaleString()} MMK</span>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { mockTransactions } from "@/data/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,25 +25,68 @@ import {
 } from "lucide-react";
 
 export default function WalletPage() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const queryClient = useQueryClient();
   const [topupAmount, setTopupAmount] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"kpay" | "wavepay">("kpay");
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const presetAmounts = [10000, 30000, 50000, 100000];
 
-  const handleSubmitTopup = (e: React.FormEvent) => {
+  const { data: transactions } = useQuery({
+    queryKey: ["wallet-transactions"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("wallet_transactions")
+        .select("*")
+        .order("created_at", { ascending: false });
+      return data || [];
+    },
+  });
+
+  const handleSubmitTopup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!topupAmount || !screenshot) return;
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setDialogOpen(false);
-      setTopupAmount("");
-      setScreenshot(null);
-    }, 2000);
+    if (!topupAmount || !screenshot || !user) return;
+    setUploading(true);
+
+    try {
+      // Upload screenshot
+      const fileExt = screenshot.name.split(".").pop();
+      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from("payment-screenshots")
+        .upload(filePath, screenshot);
+
+      if (uploadError) throw uploadError;
+
+      // Create transaction
+      await supabase.from("wallet_transactions").insert({
+        user_id: user.id,
+        type: "topup",
+        amount: parseInt(topupAmount),
+        status: "pending",
+        method: paymentMethod === "kpay" ? "KPay" : "WavePay",
+        description: `Wallet Top-up via ${paymentMethod === "kpay" ? "KPay" : "WavePay"}`,
+        screenshot_url: filePath,
+      });
+
+      setSubmitted(true);
+      queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] });
+
+      setTimeout(() => {
+        setSubmitted(false);
+        setDialogOpen(false);
+        setTopupAmount("");
+        setScreenshot(null);
+      }, 2500);
+    } catch (err) {
+      console.error("Top-up error:", err);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const statusIcon = (status: string) => {
@@ -51,9 +95,13 @@ export default function WalletPage() {
     return <XCircle className="w-4 h-4 text-destructive" />;
   };
 
+  // Compute totals from transactions
+  const totalDeposited = (transactions || [])
+    .filter((t: any) => t.type === "topup" && t.status === "approved")
+    .reduce((sum: number, t: any) => sum + t.amount, 0);
+
   return (
     <div className="space-y-8">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Wallet</h1>
@@ -79,7 +127,6 @@ export default function WalletPage() {
               </div>
             ) : (
               <form onSubmit={handleSubmitTopup} className="space-y-5">
-                {/* Amount */}
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Amount (MMK)</Label>
                   <Input
@@ -89,6 +136,7 @@ export default function WalletPage() {
                     onChange={(e) => setTopupAmount(e.target.value)}
                     className="bg-muted/50 border-border font-mono"
                     required
+                    min={1000}
                   />
                   <div className="flex gap-2 flex-wrap">
                     {presetAmounts.map((amt) => (
@@ -108,7 +156,6 @@ export default function WalletPage() {
                   </div>
                 </div>
 
-                {/* Payment Method */}
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Payment Method</Label>
                   <div className="grid grid-cols-2 gap-3">
@@ -129,7 +176,6 @@ export default function WalletPage() {
                   </div>
                 </div>
 
-                {/* Screenshot upload */}
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Payment Screenshot</Label>
                   <label className="flex flex-col items-center gap-2 p-6 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-muted/20">
@@ -153,8 +199,8 @@ export default function WalletPage() {
                   </label>
                 </div>
 
-                <Button type="submit" className="w-full btn-glow" disabled={!topupAmount || !screenshot}>
-                  Submit Top-up Request
+                <Button type="submit" className="w-full btn-glow" disabled={!topupAmount || !screenshot || uploading}>
+                  {uploading ? "Submitting..." : "Submit Top-up Request"}
                 </Button>
               </form>
             )}
@@ -162,7 +208,6 @@ export default function WalletPage() {
         </Dialog>
       </div>
 
-      {/* Balance Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="stat-card animate-fade-in">
           <div className="flex items-center gap-2 mb-3">
@@ -170,7 +215,7 @@ export default function WalletPage() {
             <span className="text-sm text-muted-foreground">Available Balance</span>
           </div>
           <p className="text-3xl font-bold font-mono text-foreground glow-text">
-            {user?.balance?.toLocaleString()}
+            {(profile?.balance || 0).toLocaleString()}
           </p>
           <p className="text-xs text-muted-foreground mt-1">MMK</p>
         </div>
@@ -180,7 +225,7 @@ export default function WalletPage() {
             <ArrowUpRight className="w-5 h-5 text-success" />
             <span className="text-sm text-muted-foreground">Total Deposited</span>
           </div>
-          <p className="text-3xl font-bold font-mono text-foreground">180,000</p>
+          <p className="text-3xl font-bold font-mono text-foreground">{totalDeposited.toLocaleString()}</p>
           <p className="text-xs text-muted-foreground mt-1">MMK</p>
         </div>
 
@@ -190,19 +235,17 @@ export default function WalletPage() {
             <span className="text-sm text-muted-foreground">Total Spent</span>
           </div>
           <p className="text-3xl font-bold font-mono text-foreground">
-            {user?.totalSpent?.toLocaleString()}
+            {(profile?.total_spent || 0).toLocaleString()}
           </p>
           <p className="text-xs text-muted-foreground mt-1">MMK</p>
         </div>
       </div>
 
-      {/* Transaction History */}
       <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.3s" }}>
         <div className="p-6 border-b border-border">
           <h3 className="font-semibold text-foreground">Transaction History</h3>
         </div>
 
-        {/* Desktop table */}
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -215,13 +258,15 @@ export default function WalletPage() {
               </tr>
             </thead>
             <tbody>
-              {mockTransactions.map((tx) => (
+              {(!transactions || transactions.length === 0) ? (
+                <tr><td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">No transactions yet</td></tr>
+              ) : transactions.map((tx: any) => (
                 <tr key={tx.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                  <td className="p-4 text-sm text-muted-foreground">{tx.date}</td>
+                  <td className="p-4 text-sm text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</td>
                   <td className="p-4 text-sm font-medium text-foreground">{tx.description}</td>
                   <td className="p-4 text-sm text-muted-foreground">{tx.method || "—"}</td>
                   <td className={`p-4 text-sm font-mono font-semibold text-right ${tx.type === "topup" ? "text-success" : "text-foreground"}`}>
-                    {tx.type === "topup" ? "+" : ""}{tx.amount.toLocaleString()}
+                    {tx.type === "topup" ? "+" : "-"}{Math.abs(tx.amount).toLocaleString()}
                   </td>
                   <td className="p-4">
                     <div className="flex items-center justify-center gap-1.5">
@@ -235,19 +280,20 @@ export default function WalletPage() {
           </table>
         </div>
 
-        {/* Mobile list */}
         <div className="md:hidden divide-y divide-border/50">
-          {mockTransactions.map((tx) => (
+          {(!transactions || transactions.length === 0) ? (
+            <p className="p-8 text-center text-sm text-muted-foreground">No transactions yet</p>
+          ) : transactions.map((tx: any) => (
             <div key={tx.id} className="p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 {statusIcon(tx.status)}
                 <div>
                   <p className="text-sm font-medium text-foreground">{tx.description}</p>
-                  <p className="text-xs text-muted-foreground">{tx.date}{tx.method ? ` · ${tx.method}` : ""}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}{tx.method ? ` · ${tx.method}` : ""}</p>
                 </div>
               </div>
               <p className={`text-sm font-mono font-semibold ${tx.type === "topup" ? "text-success" : "text-foreground"}`}>
-                {tx.type === "topup" ? "+" : ""}{tx.amount.toLocaleString()}
+                {tx.type === "topup" ? "+" : "-"}{Math.abs(tx.amount).toLocaleString()}
               </p>
             </div>
           ))}
