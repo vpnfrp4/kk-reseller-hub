@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 
 const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
@@ -205,6 +206,9 @@ export default function AdminProducts() {
                   </td>
                   <td className="p-4">
                     <div className="flex items-center justify-center gap-2">
+                      <Link to={`/admin/credentials?product=${p.id}`} className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="View credentials">
+                        <KeyRound className="w-4 h-4" />
+                      </Link>
                       <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                         <Pencil className="w-4 h-4" />
                       </button>
