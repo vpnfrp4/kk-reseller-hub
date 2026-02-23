@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Package, Copy, CheckCircle2, AlertTriangle, Search, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -44,7 +45,7 @@ export default function ProductsPage() {
   const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
   const [agreedTerms, setAgreedTerms] = useState(false);
 
-  const { data: products } = useQuery({
+  const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
     queryFn: async () => {
       const { data } = await supabase
@@ -154,7 +155,28 @@ export default function ProductsPage() {
 
       {/* Product Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {(() => {
+        {isLoading ? (
+          Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="glass-card p-6 flex flex-col animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
+              <div className="flex items-start justify-between mb-4">
+                <Skeleton className="w-12 h-12 rounded-2xl" />
+                <Skeleton className="w-20 h-5 rounded-full" />
+              </div>
+              <Skeleton className="h-5 w-3/4 rounded mb-2" />
+              <Skeleton className="h-4 w-1/3 rounded mb-4" />
+              <div className="mt-auto space-y-3">
+                <div className="flex items-end justify-between">
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-3 w-20 rounded" />
+                    <Skeleton className="h-6 w-28 rounded" />
+                  </div>
+                  <Skeleton className="h-3 w-14 rounded" />
+                </div>
+                <Skeleton className="h-10 w-full rounded-lg" />
+              </div>
+            </div>
+          ))
+        ) : (() => {
           const filtered = (products || [])
             .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
             .filter((p: any) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()));
