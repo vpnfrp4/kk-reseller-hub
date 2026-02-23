@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -17,9 +18,16 @@ import { toast } from "sonner";
 
 export default function AdminCredentials() {
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [filterProduct, setFilterProduct] = useState(searchParams.get("product") || "");
   const [selectedProduct, setSelectedProduct] = useState("");
   const [bulkCredentials, setBulkCredentials] = useState("");
+
+  useEffect(() => {
+    const p = searchParams.get("product");
+    if (p) setFilterProduct(p);
+  }, [searchParams]);
 
   const { data: products } = useQuery({
     queryKey: ["admin-products"],
@@ -125,6 +133,24 @@ export default function AdminCredentials() {
         </Dialog>
       </div>
 
+      <div className="flex gap-2 animate-fade-in">
+        <button
+          onClick={() => { setFilterProduct(""); setSearchParams({}); }}
+          className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            !filterProduct ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
+          }`}
+        >All</button>
+        {(products || []).map((p: any) => (
+          <button
+            key={p.id}
+            onClick={() => { setFilterProduct(p.id); setSearchParams({ product: p.id }); }}
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              filterProduct === p.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >{p.icon} {p.name}</button>
+        ))}
+      </div>
+
       <div className="glass-card overflow-hidden animate-fade-in">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -138,9 +164,11 @@ export default function AdminCredentials() {
               </tr>
             </thead>
             <tbody>
-              {(!credentials || credentials.length === 0) ? (
-                <tr><td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">No credentials yet</td></tr>
-              ) : credentials.map((c: any) => (
+              {(() => {
+                const filtered = (credentials || []).filter((c: any) => !filterProduct || c.product_id === filterProduct);
+                return filtered.length === 0 ? (
+                <tr><td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">No credentials found</td></tr>
+              ) : filtered.map((c: any) => (
                 <tr key={c.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                   <td className="p-4 text-sm text-foreground">
                     {(c.products as any)?.name || "Unknown"} - {(c.products as any)?.duration || ""}
@@ -162,7 +190,8 @@ export default function AdminCredentials() {
                     )}
                   </td>
                 </tr>
-              ))}
+              ));
+              })()}
             </tbody>
           </table>
         </div>
