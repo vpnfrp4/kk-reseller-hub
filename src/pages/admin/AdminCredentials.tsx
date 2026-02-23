@@ -12,6 +12,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download } from "lucide-react";
 import { toast } from "sonner";
@@ -87,6 +89,21 @@ export default function AdminCredentials() {
     queryClient.invalidateQueries({ queryKey: ["admin-credentials"] });
   };
 
+  const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const soldCount = (credentials || []).filter((c: any) => c.is_sold).length;
+
+  const handleBulkDeleteSold = async () => {
+    setBulkDeleting(true);
+    const soldIds = (credentials || []).filter((c: any) => c.is_sold).map((c: any) => c.id);
+    const { error } = await supabase.from("product_credentials").delete().in("id", soldIds);
+    setBulkDeleting(false);
+    setBulkDeleteOpen(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${soldIds.length} sold credential(s) deleted`);
+    queryClient.invalidateQueries({ queryKey: ["admin-credentials"] });
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between animate-fade-in">
@@ -119,6 +136,14 @@ export default function AdminCredentials() {
             }}
           >
             <Download className="w-4 h-4" />Export CSV
+          </Button>
+          <Button
+            variant="outline"
+            className="gap-2 text-destructive hover:text-destructive"
+            disabled={soldCount === 0}
+            onClick={() => setBulkDeleteOpen(true)}
+          >
+            <Trash2 className="w-4 h-4" />Delete Sold ({soldCount})
           </Button>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
@@ -292,6 +317,23 @@ export default function AdminCredentials() {
           );
         })()}
       </div>
+
+      <Dialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Delete Sold Credentials</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              This will permanently delete <span className="font-semibold text-foreground">{soldCount}</span> sold credential(s). This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setBulkDeleteOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleBulkDeleteSold} disabled={bulkDeleting}>
+              {bulkDeleting ? "Deleting..." : `Delete ${soldCount} Credentials`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
