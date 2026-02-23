@@ -2,6 +2,16 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { CheckCircle2, XCircle, Clock, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -21,6 +31,7 @@ interface TopupTransaction {
 export default function AdminTopups() {
   const queryClient = useQueryClient();
   const [processing, setProcessing] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{ txId: string; action: "approve" | "reject"; name: string; amount: number } | null>(null);
 
   useEffect(() => {
     const channel = supabase
@@ -146,7 +157,7 @@ export default function AdminTopups() {
                   )}
                   <Button
                     size="sm"
-                    onClick={() => handleAction(tx.id, "approve")}
+                    onClick={() => setConfirmDialog({ txId: tx.id, action: "approve", name: tx.reseller_name || "Unknown", amount: tx.amount })}
                     disabled={processing === tx.id}
                     className="bg-success hover:bg-success/80 text-success-foreground gap-1 text-xs"
                   >
@@ -156,7 +167,7 @@ export default function AdminTopups() {
                   <Button
                     size="sm"
                     variant="destructive"
-                    onClick={() => handleAction(tx.id, "reject")}
+                    onClick={() => setConfirmDialog({ txId: tx.id, action: "reject", name: tx.reseller_name || "Unknown", amount: tx.amount })}
                     disabled={processing === tx.id}
                     className="gap-1 text-xs"
                   >
@@ -206,6 +217,36 @@ export default function AdminTopups() {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      <AlertDialog open={!!confirmDialog} onOpenChange={(open) => !open && setConfirmDialog(null)}>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">
+              {confirmDialog?.action === "approve" ? "Approve Top-up" : "Reject Top-up"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmDialog?.action === "approve"
+                ? `This will add ${confirmDialog?.amount.toLocaleString()} MMK to ${confirmDialog?.name}'s balance. This action cannot be undone.`
+                : `This will reject ${confirmDialog?.name}'s top-up request of ${confirmDialog?.amount.toLocaleString()} MMK. This action cannot be undone.`}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className={confirmDialog?.action === "approve" ? "bg-success hover:bg-success/80 text-success-foreground" : "bg-destructive hover:bg-destructive/80 text-destructive-foreground"}
+              onClick={() => {
+                if (confirmDialog) {
+                  handleAction(confirmDialog.txId, confirmDialog.action);
+                  setConfirmDialog(null);
+                }
+              }}
+            >
+              {confirmDialog?.action === "approve" ? "Approve" : "Reject"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
