@@ -9,45 +9,70 @@ import { Zap, Eye, EyeOff } from "lucide-react";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isSignup, setIsSignup] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, signup } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
     setLoading(true);
 
-    setTimeout(() => {
-      const success = login(email, password);
-      if (success) {
-        navigate("/dashboard");
+    if (isSignup) {
+      const { error } = await signup(email, password, name);
+      if (error) {
+        setError(error);
       } else {
-        setError("Invalid credentials. Please try again.");
+        setSuccess("Account created! Check your email to verify, then sign in.");
+        setIsSignup(false);
       }
-      setLoading(false);
-    }, 800);
+    } else {
+      const { error } = await login(email, password);
+      if (error) {
+        setError(error);
+      } else {
+        navigate("/dashboard");
+      }
+    }
+    setLoading(false);
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      {/* Ambient glow */}
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md relative">
-        {/* Logo */}
         <div className="text-center mb-8 animate-fade-in">
           <div className="w-16 h-16 rounded-2xl bg-primary mx-auto mb-4 flex items-center justify-center btn-glow">
             <Zap className="w-8 h-8 text-primary-foreground" />
           </div>
           <h1 className="text-2xl font-bold text-foreground">KKTech Reseller</h1>
-          <p className="text-muted-foreground text-sm mt-1">Sign in to your reseller dashboard</p>
+          <p className="text-muted-foreground text-sm mt-1">
+            {isSignup ? "Create your reseller account" : "Sign in to your reseller dashboard"}
+          </p>
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="glass-card p-8 space-y-5 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+          {isSignup && (
+            <div className="space-y-2">
+              <Label htmlFor="name" className="text-sm text-muted-foreground">Full Name</Label>
+              <Input
+                id="name"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="bg-muted/50 border-border focus:border-primary"
+              />
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="email" className="text-sm text-muted-foreground">Email Address</Label>
             <Input
@@ -71,6 +96,7 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={6}
                 className="bg-muted/50 border-border focus:border-primary pr-10"
               />
               <button
@@ -83,23 +109,22 @@ export default function Login() {
             </div>
           </div>
 
-          {error && (
-            <p className="text-destructive text-sm text-center">{error}</p>
-          )}
+          {error && <p className="text-destructive text-sm text-center">{error}</p>}
+          {success && <p className="text-success text-sm text-center">{success}</p>}
 
-          <Button
-            type="submit"
-            className="w-full btn-glow font-semibold"
-            disabled={loading}
-          >
-            {loading ? "Signing in..." : "Sign In"}
+          <Button type="submit" className="w-full btn-glow font-semibold" disabled={loading}>
+            {loading ? "Please wait..." : isSignup ? "Create Account" : "Sign In"}
           </Button>
 
-          <p className="text-center text-xs text-muted-foreground">
-            Need a reseller account? Contact{" "}
-            <a href="https://kktech.shop" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">
-              kktech.shop
-            </a>
+          <p className="text-center text-sm text-muted-foreground">
+            {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+            <button
+              type="button"
+              onClick={() => { setIsSignup(!isSignup); setError(""); setSuccess(""); }}
+              className="text-primary hover:underline"
+            >
+              {isSignup ? "Sign In" : "Sign Up"}
+            </button>
           </p>
         </form>
       </div>

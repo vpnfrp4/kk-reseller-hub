@@ -1,5 +1,6 @@
 import { useAuth } from "@/contexts/AuthContext";
-import { mockTransactions, mockOrders } from "@/data/mock-data";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import {
   Wallet,
   TrendingUp,
@@ -10,53 +11,68 @@ import {
 import { Link } from "react-router-dom";
 
 export default function DashboardHome() {
-  const { user } = useAuth();
+  const { profile } = useAuth();
+
+  const { data: transactions } = useQuery({
+    queryKey: ["recent-transactions"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("wallet_transactions")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(4);
+      return data || [];
+    },
+  });
+
+  const { data: orders } = useQuery({
+    queryKey: ["recent-orders"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(3);
+      return data || [];
+    },
+  });
 
   const stats = [
     {
       label: "Wallet Balance",
-      value: `${user?.balance?.toLocaleString()} MMK`,
+      value: `${(profile?.balance || 0).toLocaleString()} MMK`,
       icon: Wallet,
-      change: "+12%",
+      change: "Available",
       positive: true,
     },
     {
       label: "Total Spent",
-      value: `${user?.totalSpent?.toLocaleString()} MMK`,
+      value: `${(profile?.total_spent || 0).toLocaleString()} MMK`,
       icon: TrendingUp,
-      change: "This month",
+      change: "All time",
       positive: true,
     },
     {
       label: "Total Orders",
-      value: user?.totalOrders?.toString() || "0",
+      value: (profile?.total_orders || 0).toString(),
       icon: ShoppingCart,
-      change: "+5 this week",
+      change: "Completed",
       positive: true,
     },
   ];
 
-  const recentTransactions = mockTransactions.slice(0, 4);
-  const recentOrders = mockOrders.slice(0, 3);
-
   return (
     <div className="space-y-8">
-      {/* Greeting */}
       <div className="animate-fade-in">
         <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
-          Welcome back, <span className="text-primary glow-text">{user?.name}</span>
+          Welcome back, <span className="text-primary glow-text">{profile?.name || "Reseller"}</span>
         </h1>
         <p className="text-muted-foreground mt-1">Here's your reseller overview</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map((stat, i) => (
-          <div
-            key={stat.label}
-            className="stat-card animate-fade-in"
-            style={{ animationDelay: `${i * 0.1}s` }}
-          >
+          <div key={stat.label} className="stat-card animate-fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
             <div className="flex items-start justify-between mb-4">
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <stat.icon className="w-5 h-5 text-primary" />
@@ -72,54 +88,53 @@ export default function DashboardHome() {
         ))}
       </div>
 
-      {/* Quick sections */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Transactions */}
         <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.3s" }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground">Recent Transactions</h3>
             <Link to="/dashboard/wallet" className="text-xs text-primary hover:underline">View all</Link>
           </div>
           <div className="space-y-3">
-            {recentTransactions.map((tx) => (
+            {(!transactions || transactions.length === 0) ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No transactions yet</p>
+            ) : transactions.map((tx: any) => (
               <div key={tx.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
                 <div>
                   <p className="text-sm font-medium text-foreground">{tx.description}</p>
-                  <p className="text-xs text-muted-foreground">{tx.date}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</p>
                 </div>
                 <div className="text-right">
                   <p className={`text-sm font-mono font-semibold ${tx.type === "topup" ? "text-success" : "text-foreground"}`}>
-                    {tx.type === "topup" ? "+" : ""}{tx.amount.toLocaleString()}
+                    {tx.type === "topup" ? "+" : "-"}{Math.abs(tx.amount).toLocaleString()}
                   </p>
                   <span className={`text-[10px] px-2 py-0.5 rounded-full ${
                     tx.status === "approved" ? "bg-success/10 text-success" :
                     tx.status === "pending" ? "bg-warning/10 text-warning" :
                     "bg-destructive/10 text-destructive"
-                  }`}>
-                    {tx.status}
-                  </span>
+                  }`}>{tx.status}</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Recent Orders */}
         <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.4s" }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground">Recent Orders</h3>
             <Link to="/dashboard/orders" className="text-xs text-primary hover:underline">View all</Link>
           </div>
           <div className="space-y-3">
-            {recentOrders.map((order) => (
+            {(!orders || orders.length === 0) ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No orders yet</p>
+            ) : orders.map((order: any) => (
               <div key={order.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
                 <div>
-                  <p className="text-sm font-medium text-foreground">{order.productName}</p>
+                  <p className="text-sm font-medium text-foreground">{order.product_name}</p>
                   <p className="text-xs text-muted-foreground font-mono">{order.credentials}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-mono font-semibold text-foreground">{order.price.toLocaleString()} MMK</p>
-                  <p className="text-xs text-muted-foreground">{order.date}</p>
+                  <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
                 </div>
               </div>
             ))}
