@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart, Package, Copy, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -115,14 +116,16 @@ export default function ProductsPage() {
             className="glass-card p-6 flex flex-col animate-fade-in hover:border-primary/30 transition-colors"
             style={{ animationDelay: `${i * 0.05}s` }}
           >
-            <div className="flex items-start justify-between mb-4">
+            <Link to={`/dashboard/products/${product.id}`} className="flex items-start justify-between mb-4">
               <div className="text-3xl">{product.icon}</div>
               <span className="text-[10px] uppercase tracking-wider bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
                 {product.category}
               </span>
-            </div>
+            </Link>
 
-            <h3 className="font-semibold text-foreground text-lg">{product.name}</h3>
+            <Link to={`/dashboard/products/${product.id}`}>
+              <h3 className="font-semibold text-foreground text-lg hover:text-primary transition-colors">{product.name}</h3>
+            </Link>
             <p className="text-sm text-muted-foreground mb-4">{product.duration}</p>
 
             <div className="mt-auto space-y-3">
