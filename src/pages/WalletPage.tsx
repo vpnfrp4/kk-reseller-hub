@@ -213,7 +213,7 @@ export default function WalletPage() {
               <Wallet className="w-5 h-5 text-primary" />
               <span className="text-sm text-muted-foreground">Available Balance</span>
             </div>
-            <p className="text-4xl font-bold font-mono gold-text glow-text">
+            <p className="text-4xl font-bold font-mono gold-shimmer glow-text">
               {(profile?.balance || 0).toLocaleString()}
             </p>
             <p className="text-xs text-muted-foreground mt-1">MMK</p>
