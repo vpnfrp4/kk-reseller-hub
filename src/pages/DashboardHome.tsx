@@ -170,13 +170,21 @@ export default function DashboardHome() {
       {/* Wallet Hero Card */}
       <div className="wallet-hero p-6 lg:p-8 animate-fade-in" style={{ animationDelay: "0.05s" }}>
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div>
-            <p className="text-sm text-muted-foreground mb-1">Available Balance</p>
-            <p className="text-4xl lg:text-5xl font-bold font-mono gold-shimmer glow-text">
-              {displayBalance.toLocaleString()}
-            </p>
-            <p className="text-sm text-muted-foreground mt-1">MMK</p>
-          </div>
+          {!profile ? (
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28 rounded" />
+              <Skeleton className="h-12 w-48 rounded" />
+              <Skeleton className="h-4 w-12 rounded" />
+            </div>
+          ) : (
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Available Balance</p>
+              <p className="text-4xl lg:text-5xl font-bold font-mono gold-shimmer glow-text">
+                {displayBalance.toLocaleString()}
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">MMK</p>
+            </div>
+          )}
           <Link to="/dashboard/wallet">
             <button className="btn-glow px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2">
               <Wallet className="w-4 h-4" />
@@ -223,44 +231,60 @@ export default function DashboardHome() {
         <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.3s" }}>
           <h3 className="font-semibold text-foreground mb-4">Spending (Last 30 Days)</h3>
           <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px", color: "hsl(var(--foreground))" }}
-                  formatter={(value: number) => [`${value.toLocaleString()} MMK`, "Spent"]}
-                  labelStyle={{ color: "hsl(var(--muted-foreground))" }}
-                />
-                <Area type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#spendGradient)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {!spendingData ? (
+              <div className="flex flex-col justify-between h-full py-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Skeleton key={i} className="h-3 rounded" style={{ width: `${60 + Math.random() * 40}%` }} />
+                ))}
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px", color: "hsl(var(--foreground))" }}
+                    formatter={(value: number) => [`${value.toLocaleString()} MMK`, "Spent"]}
+                    labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+                  />
+                  <Area type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#spendGradient)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
         <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.35s" }}>
           <h3 className="font-semibold text-foreground mb-4">Top-ups (Last 30 Days)</h3>
           <div className="h-[200px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topupChartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px", color: "hsl(var(--foreground))" }}
-                  formatter={(value: number) => [`${value.toLocaleString()} MMK`, "Deposited"]}
-                  labelStyle={{ color: "hsl(var(--muted-foreground))" }}
-                />
-                <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} opacity={0.8} />
-              </BarChart>
-            </ResponsiveContainer>
+            {!topupData ? (
+              <div className="flex items-end gap-2 h-full pb-2">
+                {Array.from({ length: 8 }).map((_, i) => (
+                  <Skeleton key={i} className="flex-1 rounded-t" style={{ height: `${20 + Math.random() * 70}%` }} />
+                ))}
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topupChartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: "12px", color: "hsl(var(--foreground))" }}
+                    formatter={(value: number) => [`${value.toLocaleString()} MMK`, "Deposited"]}
+                    labelStyle={{ color: "hsl(var(--muted-foreground))" }}
+                  />
+                  <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} opacity={0.8} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>
