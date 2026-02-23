@@ -53,7 +53,6 @@ export default function WalletPage() {
     setUploading(true);
 
     try {
-      // Upload screenshot
       const fileExt = screenshot.name.split(".").pop();
       const filePath = `${user.id}/${Date.now()}.${fileExt}`;
       const { error: uploadError } = await supabase.storage
@@ -62,7 +61,6 @@ export default function WalletPage() {
 
       if (uploadError) throw uploadError;
 
-      // Create transaction
       await supabase.from("wallet_transactions").insert({
         user_id: user.id,
         type: "topup",
@@ -95,7 +93,6 @@ export default function WalletPage() {
     return <XCircle className="w-4 h-4 text-destructive" />;
   };
 
-  // Compute totals from transactions
   const totalDeposited = (transactions || [])
     .filter((t: any) => t.type === "topup" && t.status === "approved")
     .reduce((sum: number, t: any) => sum + t.amount, 0);
@@ -114,7 +111,7 @@ export default function WalletPage() {
               Top Up
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-card border-border max-w-md">
+          <DialogContent className="bg-card border-border/50 max-w-md">
             <DialogHeader>
               <DialogTitle className="text-foreground">Top Up Wallet</DialogTitle>
             </DialogHeader>
@@ -144,9 +141,9 @@ export default function WalletPage() {
                         key={amt}
                         type="button"
                         onClick={() => setTopupAmount(amt.toString())}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
                           topupAmount === amt.toString()
-                            ? "bg-primary text-primary-foreground"
+                            ? "btn-glow"
                             : "bg-muted text-muted-foreground hover:text-foreground"
                         }`}
                       >
@@ -164,7 +161,7 @@ export default function WalletPage() {
                         key={method}
                         type="button"
                         onClick={() => setPaymentMethod(method)}
-                        className={`p-3 rounded-lg border text-center text-sm font-medium transition-all ${
+                        className={`p-3 rounded-lg border text-center text-sm font-medium transition-all duration-200 ${
                           paymentMethod === method
                             ? "border-primary bg-primary/10 text-primary"
                             : "border-border bg-muted/30 text-muted-foreground hover:border-muted-foreground"
@@ -178,7 +175,7 @@ export default function WalletPage() {
 
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Payment Screenshot</Label>
-                  <label className="flex flex-col items-center gap-2 p-6 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors bg-muted/20">
+                  <label className="flex flex-col items-center gap-2 p-6 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors duration-200 bg-muted/20">
                     {screenshot ? (
                       <>
                         <ImageIcon className="w-8 h-8 text-success" />
@@ -208,48 +205,52 @@ export default function WalletPage() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="stat-card animate-fade-in">
-          <div className="flex items-center gap-2 mb-3">
-            <Wallet className="w-5 h-5 text-primary" />
-            <span className="text-sm text-muted-foreground">Available Balance</span>
+      {/* Wallet Hero */}
+      <div className="wallet-hero p-6 lg:p-8 animate-fade-in" style={{ animationDelay: "0.05s" }}>
+        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Wallet className="w-5 h-5 text-primary" />
+              <span className="text-sm text-muted-foreground">Available Balance</span>
+            </div>
+            <p className="text-4xl font-bold font-mono gold-text glow-text">
+              {(profile?.balance || 0).toLocaleString()}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">MMK</p>
           </div>
-          <p className="text-3xl font-bold font-mono text-foreground glow-text">
-            {(profile?.balance || 0).toLocaleString()}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">MMK</p>
-        </div>
 
-        <div className="stat-card animate-fade-in" style={{ animationDelay: "0.1s" }}>
-          <div className="flex items-center gap-2 mb-3">
-            <ArrowUpRight className="w-5 h-5 text-success" />
-            <span className="text-sm text-muted-foreground">Total Deposited</span>
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <ArrowUpRight className="w-5 h-5 text-success" />
+              <span className="text-sm text-muted-foreground">Total Deposited</span>
+            </div>
+            <p className="text-3xl font-bold font-mono text-foreground">{totalDeposited.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground mt-1">MMK</p>
           </div>
-          <p className="text-3xl font-bold font-mono text-foreground">{totalDeposited.toLocaleString()}</p>
-          <p className="text-xs text-muted-foreground mt-1">MMK</p>
-        </div>
 
-        <div className="stat-card animate-fade-in" style={{ animationDelay: "0.2s" }}>
-          <div className="flex items-center gap-2 mb-3">
-            <ArrowDownRight className="w-5 h-5 text-warning" />
-            <span className="text-sm text-muted-foreground">Total Spent</span>
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <ArrowDownRight className="w-5 h-5 text-ice" />
+              <span className="text-sm text-muted-foreground">Total Spent</span>
+            </div>
+            <p className="text-3xl font-bold font-mono text-foreground">
+              {(profile?.total_spent || 0).toLocaleString()}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">MMK</p>
           </div>
-          <p className="text-3xl font-bold font-mono text-foreground">
-            {(profile?.total_spent || 0).toLocaleString()}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">MMK</p>
         </div>
       </div>
 
-      <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.3s" }}>
-        <div className="p-6 border-b border-border">
+      {/* Transaction History */}
+      <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.15s" }}>
+        <div className="p-6 border-b border-border/50">
           <h3 className="font-semibold text-foreground">Transaction History</h3>
         </div>
 
         <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-border">
+              <tr className="border-b border-border/50">
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Date</th>
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Description</th>
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Method</th>
@@ -261,7 +262,7 @@ export default function WalletPage() {
               {(!transactions || transactions.length === 0) ? (
                 <tr><td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">No transactions yet</td></tr>
               ) : transactions.map((tx: any) => (
-                <tr key={tx.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                <tr key={tx.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors duration-200">
                   <td className="p-4 text-sm text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</td>
                   <td className="p-4 text-sm font-medium text-foreground">{tx.description}</td>
                   <td className="p-4 text-sm text-muted-foreground">{tx.method || "—"}</td>
@@ -280,7 +281,7 @@ export default function WalletPage() {
           </table>
         </div>
 
-        <div className="md:hidden divide-y divide-border/50">
+        <div className="md:hidden divide-y divide-border/30">
           {(!transactions || transactions.length === 0) ? (
             <p className="p-8 text-center text-sm text-muted-foreground">No transactions yet</p>
           ) : transactions.map((tx: any) => (

@@ -13,12 +13,11 @@ import {
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { format, subDays, startOfDay } from "date-fns";
+import { format, subDays } from "date-fns";
 
 export default function DashboardHome() {
   const { profile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
-
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -60,10 +59,8 @@ export default function DashboardHome() {
       .subscribe();
 
     setTimeout(() => { initialized.current = true; }, 2000);
-
     return () => { supabase.removeChannel(channel); initialized.current = false; };
   }, [queryClient, refreshProfile]);
-
 
   const { data: transactions } = useQuery({
     queryKey: ["recent-transactions"],
@@ -89,7 +86,6 @@ export default function DashboardHome() {
     },
   });
 
-  // Spending chart data (last 30 days of purchases)
   const { data: spendingData } = useQuery({
     queryKey: ["spending-chart"],
     queryFn: async () => {
@@ -103,7 +99,6 @@ export default function DashboardHome() {
     },
   });
 
-  // Top-up chart data (last 30 days of approved top-ups)
   const { data: topupData } = useQuery({
     queryKey: ["topup-chart"],
     queryFn: async () => {
@@ -140,42 +135,63 @@ export default function DashboardHome() {
       value: `${(profile?.balance || 0).toLocaleString()} MMK`,
       icon: Wallet,
       change: "Available",
-      positive: true,
+      color: "text-primary",
     },
     {
       label: "Total Spent",
       value: `${(profile?.total_spent || 0).toLocaleString()} MMK`,
       icon: TrendingUp,
       change: "All time",
-      positive: true,
+      color: "text-ice",
     },
     {
       label: "Total Orders",
       value: (profile?.total_orders || 0).toString(),
       icon: ShoppingCart,
       change: "Completed",
-      positive: true,
+      color: "text-success",
     },
   ];
 
   return (
     <div className="space-y-8">
+      {/* Welcome Hero */}
       <div className="animate-fade-in">
         <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
-          Welcome back, <span className="text-primary glow-text">{profile?.name || "Reseller"}</span>
+          Welcome back, <span className="gold-text font-display">{profile?.name || "Reseller"}</span>
         </h1>
         <p className="text-muted-foreground mt-1">Here's your reseller overview</p>
       </div>
 
+      {/* Wallet Hero Card */}
+      <div className="wallet-hero p-6 lg:p-8 animate-fade-in" style={{ animationDelay: "0.05s" }}>
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-sm text-muted-foreground mb-1">Available Balance</p>
+            <p className="text-4xl lg:text-5xl font-bold font-mono gold-text glow-text">
+              {(profile?.balance || 0).toLocaleString()}
+            </p>
+            <p className="text-sm text-muted-foreground mt-1">MMK</p>
+          </div>
+          <Link to="/dashboard/wallet">
+            <button className="btn-glow px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2">
+              <Wallet className="w-4 h-4" />
+              Top Up Wallet
+            </button>
+          </Link>
+        </div>
+      </div>
+
+      {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {stats.map((stat, i) => (
-          <div key={stat.label} className="stat-card animate-fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
+          <div key={stat.label} className="stat-card hover-lift animate-fade-in" style={{ animationDelay: `${(i + 1) * 0.08}s` }}>
             <div className="flex items-start justify-between mb-4">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <stat.icon className="w-5 h-5 text-primary" />
+              <div className={`w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center`}>
+                <stat.icon className={`w-5 h-5 ${stat.color}`} />
               </div>
-              <span className="flex items-center gap-1 text-xs text-success">
-                {stat.positive ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <ArrowUpRight className="w-3 h-3 text-success" />
                 {stat.change}
               </span>
             </div>
@@ -187,8 +203,7 @@ export default function DashboardHome() {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Spending Chart */}
-        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.25s" }}>
+        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.3s" }}>
           <h3 className="font-semibold text-foreground mb-4">Spending (Last 30 Days)</h3>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -213,8 +228,7 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        {/* Top-up Chart */}
-        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.35s" }}>
           <h3 className="font-semibold text-foreground mb-4">Top-ups (Last 30 Days)</h3>
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -234,8 +248,9 @@ export default function DashboardHome() {
         </div>
       </div>
 
+      {/* Recent Activity */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.3s" }}>
+        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.4s" }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground">Recent Transactions</h3>
             <Link to="/dashboard/wallet" className="text-xs text-primary hover:underline">View all</Link>
@@ -264,7 +279,7 @@ export default function DashboardHome() {
           </div>
         </div>
 
-        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.4s" }}>
+        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.45s" }}>
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-semibold text-foreground">Recent Orders</h3>
             <Link to="/dashboard/orders" className="text-xs text-primary hover:underline">View all</Link>

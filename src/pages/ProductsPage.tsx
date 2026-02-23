@@ -68,7 +68,6 @@ export default function ProductsPage() {
 
   const handleBuy = async (product: any) => {
     setConfirmProduct(null);
-
     setPurchasing(product.id);
 
     try {
@@ -109,15 +108,16 @@ export default function ProductsPage() {
         <p className="text-muted-foreground text-sm">Browse digital services at wholesale prices</p>
       </div>
 
-      <div className="flex gap-2 animate-fade-in">
+      {/* Category Pills */}
+      <div className="flex gap-2 flex-wrap animate-fade-in">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
               activeCategory === cat
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:text-foreground"
+                ? "btn-glow"
+                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
             }`}
           >
             {cat}
@@ -125,24 +125,25 @@ export default function ProductsPage() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Product Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {(products || [])
           .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
           .map((product: any, i: number) => (
           <div
             key={product.id}
-            className="glass-card p-6 flex flex-col animate-fade-in hover:border-primary/30 transition-colors"
+            className="glass-card p-6 flex flex-col animate-fade-in hover-lift hover:border-primary/30 transition-all duration-250"
             style={{ animationDelay: `${i * 0.05}s` }}
           >
             <Link to={`/dashboard/products/${product.id}`} className="flex items-start justify-between mb-4">
               <div className="text-3xl">{product.icon}</div>
-              <span className="text-[10px] uppercase tracking-wider bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
+              <span className="text-[10px] uppercase tracking-widest gold-text font-semibold px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
                 {product.category}
               </span>
             </Link>
 
             <Link to={`/dashboard/products/${product.id}`}>
-              <h3 className="font-semibold text-foreground text-lg hover:text-primary transition-colors">{product.name}</h3>
+              <h3 className="font-semibold text-foreground text-lg hover:text-primary transition-colors duration-200">{product.name}</h3>
             </Link>
             <p className="text-sm text-muted-foreground mb-4">{product.duration}</p>
 
@@ -150,11 +151,11 @@ export default function ProductsPage() {
               <div className="flex items-end justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground line-through">{product.retail_price.toLocaleString()} MMK</p>
-                  <p className="text-xl font-bold font-mono text-primary">
+                  <p className="text-xl font-bold font-mono gold-text">
                     {product.wholesale_price.toLocaleString()} <span className="text-xs text-muted-foreground">MMK</span>
                   </p>
                 </div>
-                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <div className={`flex items-center gap-1 text-xs ${product.stock <= 5 ? "stock-low font-semibold" : "text-muted-foreground"}`}>
                   <Package className="w-3 h-3" />
                   {product.stock} left
                 </div>
@@ -184,7 +185,7 @@ export default function ProductsPage() {
 
       {/* Purchase Confirmation Modal */}
       <AlertDialog open={!!confirmProduct} onOpenChange={(open) => { if (!open) setConfirmProduct(null); }}>
-        <AlertDialogContent className="bg-card border-border max-w-md">
+        <AlertDialogContent className="bg-card border-border/50 max-w-md">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-foreground flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-warning" />
@@ -207,7 +208,7 @@ export default function ProductsPage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Deduct from Wallet</span>
-                  <span className="font-mono font-bold text-primary">{confirmProduct.wholesale_price.toLocaleString()} MMK</span>
+                  <span className="font-mono font-bold gold-text">{confirmProduct.wholesale_price.toLocaleString()} MMK</span>
                 </div>
               </div>
 
@@ -232,7 +233,7 @@ export default function ProductsPage() {
             <AlertDialogAction
               disabled={!agreedTerms}
               onClick={() => confirmProduct && handleBuy(confirmProduct)}
-              className="bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+              className="btn-glow disabled:opacity-50"
             >
               Confirm
             </AlertDialogAction>
@@ -242,7 +243,7 @@ export default function ProductsPage() {
 
       {/* Instant Delivery Dialog */}
       <Dialog open={!!result} onOpenChange={() => setResult(null)}>
-        <DialogContent className="bg-card border-border max-w-md">
+        <DialogContent className="bg-card border-border/50 max-w-md">
           <DialogHeader>
             <DialogTitle className="text-foreground flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-success" />
@@ -265,7 +266,7 @@ export default function ProductsPage() {
                   </code>
                   <button
                     onClick={() => copyCredentials(result.credentials)}
-                    className="p-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+                    className="p-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors duration-200"
                   >
                     {copied ? <CheckCircle2 className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
                   </button>
