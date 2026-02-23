@@ -2,7 +2,7 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, Loader2 } from "lucide-react";
+import { Package, Loader2, ArrowUp } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect, useRef, useCallback } from "react";
 import ProductFilters from "@/components/products/ProductFilters";
@@ -32,6 +32,15 @@ export default function ProductsPage() {
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
@@ -126,6 +135,7 @@ export default function ProductsPage() {
   };
 
   return (
+    <>
     <div className="space-y-8">
       <Breadcrumb items={[
         { label: "Dashboard", path: "/dashboard" },
@@ -197,5 +207,17 @@ export default function ProductsPage() {
         onClose={() => setResult(null)}
       />
     </div>
+
+    {/* Scroll to top button */}
+    <button
+      onClick={scrollToTop}
+      className={`fixed bottom-6 right-6 z-50 p-3 rounded-full btn-glow shadow-lg transition-all duration-300 ${
+        showScrollTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+      }`}
+      aria-label="Scroll to top"
+    >
+      <ArrowUp className="w-5 h-5" />
+    </button>
+    </>
   );
 }
