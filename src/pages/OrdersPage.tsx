@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Copy, CheckCircle2, Download, ChevronLeft, ChevronRight, Search, CalendarIcon, X } from "lucide-react";
@@ -108,13 +108,10 @@ export default function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-1.5 text-sm animate-fade-in">
-        <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors duration-200">
-          Dashboard
-        </Link>
-        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />
-        <span className="text-foreground font-medium">Orders</span>
-      </nav>
+      <Breadcrumb items={[
+        { label: "Dashboard", path: "/dashboard" },
+        { label: "Orders" },
+      ]} />
 
       <div className="animate-fade-in">
         <div className="flex items-center justify-between">
