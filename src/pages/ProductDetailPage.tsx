@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Package, ShoppingCart, Copy, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Package, ShoppingCart, Copy, CheckCircle2, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import {
@@ -107,15 +107,17 @@ export default function ProductDetailPage() {
 
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
-      <div className="animate-fade-in">
-        <Link
-          to="/dashboard/products"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-primary transition-colors duration-200 mb-4"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Products
+      <nav className="flex items-center gap-1.5 text-sm animate-fade-in">
+        <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors duration-200">
+          Dashboard
         </Link>
-      </div>
+        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />
+        <Link to="/dashboard/products" className="text-muted-foreground hover:text-primary transition-colors duration-200">
+          Products
+        </Link>
+        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />
+        <span className="text-foreground font-medium truncate max-w-[200px]">{product.name}</span>
+      </nav>
 
       {/* Product Info Card */}
       <div className="glass-card p-6 lg:p-8 animate-fade-in" style={{ animationDelay: "0.05s" }}>
