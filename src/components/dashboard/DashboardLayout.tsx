@@ -10,7 +10,7 @@ import {
   Settings,
   LogOut,
   Menu,
-  Zap,
+  Crown,
   ShieldCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -52,18 +52,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       )}
 
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex flex-col transition-transform duration-300 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card/90 backdrop-blur-xl border-r border-border/50 flex flex-col transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="p-6 border-b border-border">
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
-              <Zap className="w-5 h-5 text-primary-foreground" />
+        <div className="p-6 border-b border-border/50">
+          <Link to="/dashboard" className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center btn-glow">
+              <Crown className="w-5 h-5 text-primary-foreground" />
             </div>
             <div>
               <span className="text-lg font-bold text-foreground tracking-tight">KKTech</span>
-              <span className="text-xs block text-muted-foreground -mt-1">Reseller Panel</span>
+              <span className="text-[10px] block text-primary font-medium uppercase tracking-widest">Reseller</span>
             </div>
           </Link>
         </div>
@@ -76,13 +76,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                   active
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                    ? "bg-primary/10 text-primary nav-active-indicator"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 }`}
               >
-                <item.icon className="w-5 h-5" />
+                <item.icon className={`w-5 h-5 ${active ? "text-primary" : ""}`} />
                 {item.label}
                 {active && (
                   <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary animate-pulse-glow" />
@@ -97,7 +97,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link
               to="/admin"
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors"
+              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors duration-200"
             >
               <ShieldCheck className="w-5 h-5" />
               Admin Panel
@@ -105,9 +105,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         )}
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border/50">
           <div className="flex items-center gap-3 px-3 py-2 mb-2">
-            <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center text-primary font-semibold text-sm">
+            <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold btn-glow">
               {profile?.name?.charAt(0) || "R"}
             </div>
             <div className="flex-1 min-w-0">
@@ -127,7 +127,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-border flex items-center justify-between px-4 lg:px-8 bg-card/50 backdrop-blur-sm sticky top-0 z-30">
+        <header className="h-16 border-b border-border/50 flex items-center justify-between px-4 lg:px-8 bg-card/50 backdrop-blur-xl sticky top-0 z-30">
           <button
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -141,13 +141,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </h2>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <ThemeToggle />
             <NotificationSettings />
-            <div className="stat-card !p-2 !px-4 flex items-center gap-2">
+            <div className="glass-card !p-2 !px-4 flex items-center gap-2 !rounded-full">
               <Wallet className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold font-mono text-foreground">
-                {(profile?.balance || 0).toLocaleString()} <span className="text-xs text-muted-foreground">MMK</span>
+                {(profile?.balance || 0).toLocaleString()} <span className="text-xs text-primary">MMK</span>
               </span>
             </div>
           </div>
@@ -157,8 +157,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {children}
         </main>
 
-        <footer className="border-t border-border px-4 lg:px-8 py-3 text-center">
-          <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+        <footer className="border-t border-border/50 px-4 lg:px-8 py-3 text-center">
+          <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors duration-200">
             Terms and Conditions
           </Link>
         </footer>

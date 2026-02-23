@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Zap, Eye, EyeOff } from "lucide-react";
+import { Crown, Eye, EyeOff } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -59,16 +59,18 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Background orbs */}
+      <div className="fixed top-1/4 left-1/3 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="fixed bottom-1/4 right-1/4 w-[400px] h-[400px] bg-secondary/10 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="w-full max-w-md relative">
         <div className="text-center mb-8 animate-fade-in">
-          <div className="w-16 h-16 rounded-2xl bg-primary mx-auto mb-4 flex items-center justify-center btn-glow">
-            <Zap className="w-8 h-8 text-primary-foreground" />
+          <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center btn-glow">
+            <Crown className="w-8 h-8 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">KKTech Reseller</h1>
-          <p className="text-muted-foreground text-sm mt-1">
+          <h1 className="text-2xl font-bold text-foreground font-display">KKTech Reseller</h1>
+          <p className="text-muted-foreground text-sm mt-2">
             {isForgot ? "Enter your email to reset your password" : isSignup ? "Create your reseller account" : "Sign in to your reseller dashboard"}
           </p>
         </div>
@@ -83,7 +85,7 @@ export default function Login() {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
-                className="bg-muted/50 border-border focus:border-primary"
+                className="bg-muted/50 border-border focus:border-primary transition-colors duration-200"
               />
             </div>
           )}
@@ -97,7 +99,7 @@ export default function Login() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="bg-muted/50 border-border focus:border-primary"
+              className="bg-muted/50 border-border focus:border-primary transition-colors duration-200"
             />
           </div>
 
@@ -124,12 +126,12 @@ export default function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="bg-muted/50 border-border focus:border-primary pr-10"
+                  className="bg-muted/50 border-border focus:border-primary pr-10 transition-colors duration-200"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-200"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -159,7 +161,7 @@ export default function Login() {
                 <button
                   type="button"
                   onClick={() => { setIsSignup(!isSignup); setError(""); setSuccess(""); }}
-                  className="text-primary hover:underline"
+                  className="text-primary hover:underline font-medium"
                 >
                   {isSignup ? "Sign In" : "Sign Up"}
                 </button>
