@@ -1,4 +1,5 @@
-import { useEffect, useRef, useMemo, useState, useCallback } from "react";
+import { useEffect, useRef, useMemo } from "react";
+import { useCountUp } from "@/hooks/use-count-up";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
 import { useAuth } from "@/contexts/AuthContext";
@@ -129,29 +130,7 @@ export default function DashboardHome() {
   const chartData = useMemo(() => buildChartDays(spendingData, "price"), [spendingData]);
   const topupChartData = useMemo(() => buildChartDays(topupData, "amount"), [topupData]);
 
-  // Count-up animation for hero balance
-  const [displayBalance, setDisplayBalance] = useState(0);
-  const targetBalance = profile?.balance || 0;
-  const countUpRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    const duration = 1200;
-    const startTime = performance.now();
-    const startValue = displayBalance;
-
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3); // ease-out cubic
-      setDisplayBalance(Math.round(startValue + (targetBalance - startValue) * eased));
-      if (progress < 1) {
-        countUpRef.current = requestAnimationFrame(step);
-      }
-    };
-
-    countUpRef.current = requestAnimationFrame(step);
-    return () => { if (countUpRef.current) cancelAnimationFrame(countUpRef.current); };
-  }, [targetBalance]);
+  const displayBalance = useCountUp(profile?.balance || 0);
 
   const stats = [
     {
