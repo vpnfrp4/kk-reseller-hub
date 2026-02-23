@@ -7,6 +7,7 @@ import {
   Wallet,
   ShoppingBag,
   ClipboardList,
+  Settings,
   LogOut,
   Menu,
   Zap,
@@ -20,6 +21,7 @@ const navItems = [
   { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
   { label: "Products", icon: ShoppingBag, path: "/dashboard/products" },
   { label: "Orders", icon: ClipboardList, path: "/dashboard/orders" },
+  { label: "Settings", icon: Settings, path: "/dashboard/settings" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
