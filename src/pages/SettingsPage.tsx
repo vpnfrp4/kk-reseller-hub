@@ -78,9 +78,9 @@ export default function SettingsPage() {
 
       {/* Profile Section */}
       <div className="glass-card p-6 space-y-4 animate-fade-in" style={{ animationDelay: "0.05s" }}>
-        <div className="flex items-center gap-2 text-foreground font-semibold">
+        <div className="flex items-center gap-2 font-semibold">
           <User className="w-5 h-5 text-primary" />
-          Profile
+          <span className="gold-text">Profile</span>
         </div>
         <form onSubmit={handleUpdateName} className="space-y-4">
           <div className="space-y-1.5">
@@ -105,9 +105,9 @@ export default function SettingsPage() {
 
       {/* Password Section */}
       <div className="glass-card p-6 space-y-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-        <div className="flex items-center gap-2 text-foreground font-semibold">
+        <div className="flex items-center gap-2 font-semibold">
           <Lock className="w-5 h-5 text-primary" />
-          Change Password
+          <span className="gold-text">Change Password</span>
         </div>
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div className="space-y-1.5">
