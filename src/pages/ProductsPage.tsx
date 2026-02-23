@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Package, Copy, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ShoppingCart, Package, Copy, CheckCircle2, AlertTriangle, Search } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -40,6 +40,7 @@ export default function ProductsPage() {
   const [result, setResult] = useState<PurchaseResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState("");
   const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
   const [agreedTerms, setAgreedTerms] = useState(false);
 
@@ -114,27 +115,40 @@ export default function ProductsPage() {
         <p className="text-muted-foreground text-sm">Browse digital services at wholesale prices</p>
       </div>
 
-      {/* Category Pills */}
-      <div className="flex gap-2 flex-wrap animate-fade-in">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-              activeCategory === cat
-                ? "btn-glow"
-                : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
+      {/* Search & Category Filters */}
+      <div className="glass-card p-4 animate-fade-in flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-2 rounded-lg bg-muted/50 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/50 focus:border-primary/50 transition-colors duration-200"
+          />
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
+                activeCategory === cat
+                  ? "btn-glow"
+                  : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Product Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {(products || [])
           .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
+          .filter((p: any) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
           .map((product: any, i: number) => (
           <div
             key={product.id}
