@@ -137,19 +137,31 @@ export default function ProductsPage() {
           )}
         </div>
         <div className="flex gap-2 flex-wrap">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 ${
-                activeCategory === cat
-                  ? "btn-glow"
-                  : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+          {CATEGORIES.map((cat) => {
+            const count = cat === "All"
+              ? (products || []).length
+              : (products || []).filter((p: any) => p.category === cat).length;
+            return (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={`px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
+                  activeCategory === cat
+                    ? "btn-glow"
+                    : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
+                }`}
+              >
+                {cat}
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                  activeCategory === cat
+                    ? "bg-primary-foreground/20"
+                    : "bg-border/80"
+                }`}>
+                  {count}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
