@@ -3,7 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Package, Copy, CheckCircle2, AlertTriangle, Search, X } from "lucide-react";
+import { ShoppingCart, Package, Copy, CheckCircle2, AlertTriangle, Search, X, ArrowUpDown } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -42,6 +49,7 @@ export default function ProductsPage() {
   const [copied, setCopied] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<string>("name");
   const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
   const [agreedTerms, setAgreedTerms] = useState(false);
 
@@ -136,6 +144,17 @@ export default function ProductsPage() {
             </button>
           )}
         </div>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-[160px] bg-muted/50 border-border text-sm">
+            <ArrowUpDown className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="name">Name</SelectItem>
+            <SelectItem value="price-low">Price: Low → High</SelectItem>
+            <SelectItem value="price-high">Price: High → Low</SelectItem>
+          </SelectContent>
+        </Select>
         <div className="flex gap-2 flex-wrap">
           {CATEGORIES.map((cat) => {
             const count = cat === "All"
@@ -191,7 +210,12 @@ export default function ProductsPage() {
         ) : (() => {
           const filtered = (products || [])
             .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
-            .filter((p: any) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()));
+            .filter((p: any) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+            .sort((a: any, b: any) => {
+              if (sortBy === "price-low") return a.wholesale_price - b.wholesale_price;
+              if (sortBy === "price-high") return b.wholesale_price - a.wholesale_price;
+              return a.name.localeCompare(b.name);
+            });
 
           if (filtered.length === 0) {
             return (
