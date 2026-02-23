@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { User, Lock } from "lucide-react";
+import { User, Lock, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function SettingsPage() {
   const { profile, refreshProfile } = useAuth();
@@ -71,6 +72,14 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-8 max-w-lg">
+      <nav className="flex items-center gap-1.5 text-sm animate-fade-in">
+        <Link to="/dashboard" className="text-muted-foreground hover:text-primary transition-colors duration-200">
+          Dashboard
+        </Link>
+        <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/50" />
+        <span className="text-foreground font-medium">Settings</span>
+      </nav>
+
       <div className="animate-fade-in">
         <h1 className="text-2xl font-bold text-foreground">Settings</h1>
         <p className="text-muted-foreground text-sm">Manage your account preferences</p>
