@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, KeyRound } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
 const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
@@ -23,9 +23,13 @@ export default function AdminProducts() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [activeCategory, setActiveCategory] = useState<string>("All");
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: "", icon: "📦", category: "General", description: "",
     retail_price: "", wholesale_price: "", duration: "", stock: "",
+    image_url: "",
   });
 
   const { data: products } = useQuery({
@@ -53,8 +57,9 @@ export default function AdminProducts() {
   });
 
   const resetForm = () => {
-    setForm({ name: "", icon: "📦", category: "General", description: "", retail_price: "", wholesale_price: "", duration: "", stock: "" });
+    setForm({ name: "", icon: "📦", category: "General", description: "", retail_price: "", wholesale_price: "", duration: "", stock: "", image_url: "" });
     setEditing(null);
+    setImagePreview(null);
   };
 
   const openEdit = (p: any) => {
@@ -62,18 +67,64 @@ export default function AdminProducts() {
     setForm({
       name: p.name, icon: p.icon, category: p.category, description: p.description || "",
       retail_price: p.retail_price.toString(), wholesale_price: p.wholesale_price.toString(),
-      duration: p.duration, stock: p.stock.toString(),
+      duration: p.duration, stock: p.stock.toString(), image_url: p.image_url || "",
     });
+    setImagePreview(p.image_url || null);
     setDialogOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+
+    setUploading(true);
+    const ext = file.name.split(".").pop();
+    const fileName = `${crypto.randomUUID()}.${ext}`;
+
+    try {
+      const { error: uploadError } = await supabase.storage
+        .from("product-images")
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("product-images")
+        .getPublicUrl(fileName);
+
+      setForm((prev) => ({ ...prev, image_url: urlData.publicUrl }));
+      setImagePreview(urlData.publicUrl);
+      toast.success("Image uploaded");
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const removeImage = () => {
+    setForm((prev) => ({ ...prev, image_url: "" }));
+    setImagePreview(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = {
+    const payload: any = {
       name: form.name.trim(), icon: form.icon, category: form.category.trim(),
       description: form.description.trim(),
       retail_price: parseInt(form.retail_price), wholesale_price: parseInt(form.wholesale_price),
       duration: form.duration.trim(), stock: parseInt(form.stock),
+      image_url: form.image_url || null,
     };
 
     if (editing) {
@@ -87,6 +138,7 @@ export default function AdminProducts() {
     }
 
     queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    queryClient.invalidateQueries({ queryKey: ["products"] });
     setDialogOpen(false);
     resetForm();
   };
@@ -110,11 +162,49 @@ export default function AdminProducts() {
           <DialogTrigger asChild>
             <Button className="btn-glow gap-2"><Plus className="w-4 h-4" />Add Product</Button>
           </DialogTrigger>
-          <DialogContent className="bg-card border-border max-w-md">
+          <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-foreground">{editing ? "Edit" : "New"} Product</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Image Upload */}
+              <div className="space-y-1">
+                <Label className="text-muted-foreground text-xs">Product Image</Label>
+                {imagePreview ? (
+                  <div className="relative rounded-lg overflow-hidden border border-border bg-muted/30">
+                    <img src={imagePreview} alt="Preview" className="w-full aspect-[16/9] object-cover" />
+                    <button
+                      type="button"
+                      onClick={removeImage}
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-destructive border border-border/50 transition-colors"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="w-full flex flex-col items-center justify-center gap-2 py-6 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-muted/30 hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all duration-200"
+                  >
+                    {uploading ? (
+                      <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Upload className="w-5 h-5" />
+                    )}
+                    <span className="text-xs">{uploading ? "Uploading..." : "Click to upload image"}</span>
+                  </button>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-muted-foreground text-xs">Name</Label>
@@ -204,7 +294,16 @@ export default function AdminProducts() {
                 const cc = credentialCounts?.[p.id];
                 return (
                 <tr key={p.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                  <td className="p-4 text-sm font-medium text-foreground">{p.icon} {p.name}</td>
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      {p.image_url ? (
+                        <img src={p.image_url} alt={p.name} className="w-9 h-9 rounded-lg object-cover border border-border/50" />
+                      ) : (
+                        <span className="text-lg">{p.icon}</span>
+                      )}
+                      <span className="text-sm font-medium text-foreground">{p.name}</span>
+                    </div>
+                  </td>
                   <td className="p-4 text-sm text-muted-foreground">{p.category}</td>
                   <td className="p-4 text-sm text-muted-foreground">{p.duration}</td>
                   <td className="p-4 text-sm font-mono text-right text-muted-foreground">{p.retail_price.toLocaleString()}</td>
