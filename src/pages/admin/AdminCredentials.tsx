@@ -23,6 +23,7 @@ export default function AdminCredentials() {
   const [filterProduct, setFilterProduct] = useState(searchParams.get("product") || "");
   const [selectedProduct, setSelectedProduct] = useState("");
   const [bulkCredentials, setBulkCredentials] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "available" | "sold">("all");
 
   useEffect(() => {
     const p = searchParams.get("product");
@@ -151,6 +152,18 @@ export default function AdminCredentials() {
         ))}
       </div>
 
+      <div className="flex gap-2 animate-fade-in">
+        {(["all", "available", "sold"] as const).map((s) => (
+          <button
+            key={s}
+            onClick={() => setStatusFilter(s)}
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              statusFilter === s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >{s === "all" ? "All Status" : s === "available" ? "Available" : "Sold"}</button>
+        ))}
+      </div>
+
       <div className="glass-card overflow-hidden animate-fade-in">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -165,7 +178,10 @@ export default function AdminCredentials() {
             </thead>
             <tbody>
               {(() => {
-                const filtered = (credentials || []).filter((c: any) => !filterProduct || c.product_id === filterProduct);
+                const filtered = (credentials || []).filter((c: any) =>
+                  (!filterProduct || c.product_id === filterProduct) &&
+                  (statusFilter === "all" || (statusFilter === "available" ? !c.is_sold : c.is_sold))
+                );
                 return filtered.length === 0 ? (
                 <tr><td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">No credentials found</td></tr>
               ) : filtered.map((c: any) => (
