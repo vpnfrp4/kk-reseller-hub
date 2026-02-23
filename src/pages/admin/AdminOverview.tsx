@@ -1,17 +1,32 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, KeyRound, Wallet, Users, ShoppingCart, AlertTriangle } from "lucide-react";
+import { Package, KeyRound, Wallet, Users, ShoppingCart, AlertTriangle, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
 import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
 import { Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
-const LOW_BALANCE_THRESHOLD = 5000;
+const THRESHOLD_KEY = "admin-low-balance-threshold";
+const DEFAULT_THRESHOLD = 5000;
+
+function getStoredThreshold(): number {
+  try {
+    const v = localStorage.getItem(THRESHOLD_KEY);
+    if (v) return Math.max(0, Number(v));
+  } catch {}
+  return DEFAULT_THRESHOLD;
+}
 
 export default function AdminOverview() {
   const queryClient = useQueryClient();
   const initialized = useRef(false);
+  const [threshold, setThreshold] = useState(getStoredThreshold);
+  const [thresholdInput, setThresholdInput] = useState(String(getStoredThreshold()));
+  const thresholdRef = useRef(threshold);
 
   useEffect(() => {
     requestNotificationPermission();
@@ -59,7 +74,7 @@ export default function AdminOverview() {
         { event: "UPDATE", schema: "public", table: "profiles" },
         (payload: any) => {
           queryClient.invalidateQueries({ queryKey: ["admin-low-balance"] });
-          if (initialized.current && payload.new?.balance < LOW_BALANCE_THRESHOLD) {
+          if (initialized.current && payload.new?.balance < thresholdRef.current) {
             const name = payload.new.name || payload.new.email || "A reseller";
             const msg = `⚠️ ${name}'s balance dropped to ${Number(payload.new.balance).toLocaleString()} MMK`;
             toast.warning(msg);
@@ -116,12 +131,12 @@ export default function AdminOverview() {
   });
 
   const { data: lowBalanceResellers } = useQuery({
-    queryKey: ["admin-low-balance"],
+    queryKey: ["admin-low-balance", threshold],
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
         .select("user_id, name, email, balance")
-        .lt("balance", LOW_BALANCE_THRESHOLD)
+        .lt("balance", threshold)
         .order("balance", { ascending: true });
       return data || [];
     },
@@ -146,20 +161,58 @@ export default function AdminOverview() {
       </div>
 
       {/* Low Balance Warning */}
-      {lowBalanceResellers && lowBalanceResellers.length > 0 && (
-        <div className="glass-card border-warning/30 p-5 animate-fade-in">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertTriangle className="w-5 h-5 text-warning" />
-            <h2 className="text-sm font-semibold text-foreground">
-              Low Balance Alert
-              <span className="ml-2 text-xs font-normal text-muted-foreground">
-                ({lowBalanceResellers.length} reseller{lowBalanceResellers.length !== 1 ? "s" : ""} below {LOW_BALANCE_THRESHOLD.toLocaleString()} MMK)
-              </span>
-            </h2>
-            <Link to="/admin/resellers" className="text-xs text-primary hover:underline ml-auto">
+      <div className="glass-card border-warning/30 p-5 animate-fade-in">
+        <div className="flex items-center gap-2 mb-3">
+          <AlertTriangle className="w-5 h-5 text-warning" />
+          <h2 className="text-sm font-semibold text-foreground">
+            Low Balance Alert
+            <span className="ml-2 text-xs font-normal text-muted-foreground">
+              ({lowBalanceResellers?.length || 0} reseller{(lowBalanceResellers?.length || 0) !== 1 ? "s" : ""} below {threshold.toLocaleString()} MMK)
+            </span>
+          </h2>
+          <div className="flex items-center gap-2 ml-auto">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-7 w-7">
+                  <Settings2 className="w-4 h-4 text-muted-foreground" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-4" align="end">
+                <p className="text-sm font-medium text-foreground mb-2">Alert Threshold</p>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    value={thresholdInput}
+                    onChange={(e) => setThresholdInput(e.target.value)}
+                    className="h-8 text-sm bg-muted/30 border-border"
+                    min={0}
+                    placeholder="Amount in MMK"
+                  />
+                  <Button
+                    size="sm"
+                    className="h-8 text-xs shrink-0"
+                    onClick={() => {
+                      const val = Math.max(0, Math.round(Number(thresholdInput)));
+                      setThreshold(val);
+                      thresholdRef.current = val;
+                      localStorage.setItem(THRESHOLD_KEY, String(val));
+                      setThresholdInput(String(val));
+                      queryClient.invalidateQueries({ queryKey: ["admin-low-balance"] });
+                      toast.success(`Threshold set to ${val.toLocaleString()} MMK`);
+                    }}
+                  >
+                    Save
+                  </Button>
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-2">Resellers below this balance will trigger alerts</p>
+              </PopoverContent>
+            </Popover>
+            <Link to="/admin/resellers" className="text-xs text-primary hover:underline">
               View all
             </Link>
           </div>
+        </div>
+        {lowBalanceResellers && lowBalanceResellers.length > 0 ? (
           <div className="space-y-2">
             {lowBalanceResellers.slice(0, 5).map((r: any) => (
               <div key={r.user_id} className="flex items-center justify-between p-2.5 rounded-lg bg-warning/5 border border-warning/10">
@@ -176,8 +229,10 @@ export default function AdminOverview() {
               </p>
             )}
           </div>
-        </div>
-      )}
+        ) : (
+          <p className="text-sm text-muted-foreground text-center py-3">No resellers below threshold</p>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card, i) => (
