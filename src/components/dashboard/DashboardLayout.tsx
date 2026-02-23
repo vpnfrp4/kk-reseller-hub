@@ -156,6 +156,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <main className="flex-1 p-4 lg:p-8 overflow-auto">
           {children}
         </main>
+
+        <footer className="border-t border-border px-4 lg:px-8 py-3 text-center">
+          <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+            Terms and Conditions
+          </Link>
+        </footer>
       </div>
     </div>
   );
