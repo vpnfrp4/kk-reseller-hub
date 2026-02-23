@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Filter, ShoppingCart } from "lucide-react";
+import { Search, Filter, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,12 +14,15 @@ import {
 import { toast } from "sonner";
 
 const STATUS_OPTIONS = ["all", "delivered", "pending", "cancelled"] as const;
+const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 
 export default function AdminOrders() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<number>(25);
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-all-orders"],
@@ -64,6 +67,16 @@ export default function AdminOrders() {
     });
   }, [orders, search, statusFilter]);
 
+  // Reset to page 1 when filters change
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  if (safePage !== page) setPage(safePage);
+
+  const paginatedOrders = useMemo(() => {
+    const start = (safePage - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }, [filtered, safePage, pageSize]);
+
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
     const { error } = await supabase
@@ -107,11 +120,11 @@ export default function AdminOrders() {
           <Input
             placeholder="Search by product, order ID, or user..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="pl-9 bg-card border-border"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
           <SelectTrigger className="w-full sm:w-[160px] bg-card border-border">
             <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
             <SelectValue placeholder="Status" />
@@ -154,14 +167,14 @@ export default function AdminOrders() {
                     <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
                   </td>
                 </tr>
-              ) : filtered.length === 0 ? (
+              ) : paginatedOrders.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="p-8 text-center text-sm text-muted-foreground">
                     No orders found
                   </td>
                 </tr>
               ) : (
-                filtered.map((o: any) => (
+                paginatedOrders.map((o: any) => (
                   <tr key={o.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                     <td className="p-4 text-xs font-mono text-muted-foreground">{o.id.slice(0, 8)}…</td>
                     <td className="p-4 text-sm font-medium text-foreground">{o.product_name}</td>
@@ -197,6 +210,47 @@ export default function AdminOrders() {
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between border-t border-border px-4 py-3">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Rows per page:</span>
+            <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
+              <SelectTrigger className="w-[70px] h-8 text-xs bg-card border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PAGE_SIZE_OPTIONS.map((size) => (
+                  <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {filtered.length === 0 ? "0" : `${(safePage - 1) * pageSize + 1}–${Math.min(safePage * pageSize, filtered.length)}`} of {filtered.length}
+            </span>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              disabled={safePage <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              disabled={safePage >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
