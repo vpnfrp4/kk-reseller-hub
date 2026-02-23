@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import OrderDetailModal from "@/components/admin/OrderDetailModal";
 
 const STATUS_OPTIONS = ["all", "delivered", "pending", "cancelled"] as const;
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
@@ -26,6 +27,7 @@ export default function AdminOrders() {
   const [pageSize, setPageSize] = useState<number>(25);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [detailOrder, setDetailOrder] = useState<any>(null);
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-all-orders"],
@@ -257,7 +259,7 @@ export default function AdminOrders() {
                         onCheckedChange={() => toggleSelect(o.id)}
                       />
                     </td>
-                    <td className="p-4 text-xs font-mono text-muted-foreground">{o.id.slice(0, 8)}…</td>
+                    <td className="p-4 text-xs font-mono text-muted-foreground cursor-pointer hover:text-primary" onClick={() => setDetailOrder(o)}>{o.id.slice(0, 8)}…</td>
                     <td className="p-4 text-sm font-medium text-foreground">{o.product_name}</td>
                     <td className="p-4">
                       <p className="text-sm text-foreground">{o.profile?.name || "—"}</p>
@@ -271,20 +273,30 @@ export default function AdminOrders() {
                       {new Date(o.created_at).toLocaleDateString()}
                     </td>
                     <td className="p-4 text-center">
-                      <Select
-                        value={o.status}
-                        onValueChange={(val) => handleStatusChange(o.id, val)}
-                        disabled={updatingId === o.id}
-                      >
-                        <SelectTrigger className="w-[120px] h-8 text-xs bg-card border-border mx-auto">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="delivered">Delivered</SelectItem>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="flex items-center justify-center gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 text-xs px-2"
+                          onClick={() => setDetailOrder(o)}
+                        >
+                          View
+                        </Button>
+                        <Select
+                          value={o.status}
+                          onValueChange={(val) => handleStatusChange(o.id, val)}
+                          disabled={updatingId === o.id}
+                        >
+                          <SelectTrigger className="w-[100px] h-8 text-xs bg-card border-border">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="delivered">Delivered</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -334,6 +346,11 @@ export default function AdminOrders() {
           </div>
         </div>
       </div>
+      <OrderDetailModal
+        order={detailOrder}
+        open={!!detailOrder}
+        onOpenChange={(open) => { if (!open) setDetailOrder(null); }}
+      />
     </div>
   );
 }
