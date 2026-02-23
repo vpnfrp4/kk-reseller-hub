@@ -20,24 +20,24 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Create a client with the user's token to get their identity
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
-    if (claimsError || !claimsData?.claims) {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const adminId = claimsData.claims.sub;
+    const adminId = user.id;
 
-    // Verify admin role
+    // Verify admin role using service client
     const serviceClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -80,14 +80,7 @@ Deno.serve(async (req) => {
     }
 
     if (action === "approve") {
-      // Credit user balance
-      const { error: profileError } = await serviceClient
-        .from("profiles")
-        .update({ balance: serviceClient.rpc ? undefined : undefined })
-        .eq("user_id", tx.user_id);
-
-      // Use raw SQL via RPC for atomic increment
-      // Actually, let's do it step by step
+      // Get current balance
       const { data: profile } = await serviceClient
         .from("profiles")
         .select("balance")
@@ -101,16 +94,25 @@ Deno.serve(async (req) => {
         });
       }
 
-      await serviceClient
+      // Credit user balance
+      const { error: updateError } = await serviceClient
         .from("profiles")
         .update({ balance: profile.balance + tx.amount })
         .eq("user_id", tx.user_id);
+
+      if (updateError) {
+        return new Response(JSON.stringify({ error: "Failed to update balance" }), {
+          status: 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
     }
 
     // Update transaction status
+    const newStatus = action === "approve" ? "approved" : "rejected";
     await serviceClient
       .from("wallet_transactions")
-      .update({ status: action === "approve" ? "approved" : "rejected" })
+      .update({ status: newStatus })
       .eq("id", transaction_id);
 
     return new Response(
