@@ -34,6 +34,22 @@ export default function AdminProducts() {
     },
   });
 
+  const { data: credentialCounts } = useQuery({
+    queryKey: ["admin-credential-counts"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("product_credentials")
+        .select("product_id, is_sold");
+      const counts: Record<string, { available: number; total: number }> = {};
+      (data || []).forEach((c: any) => {
+        if (!counts[c.product_id]) counts[c.product_id] = { available: 0, total: 0 };
+        counts[c.product_id].total++;
+        if (!c.is_sold) counts[c.product_id].available++;
+      });
+      return counts;
+    },
+  });
+
   const resetForm = () => {
     setForm({ name: "", icon: "📦", category: "General", retail_price: "", wholesale_price: "", duration: "", stock: "" });
     setEditing(null);
@@ -163,13 +179,16 @@ export default function AdminProducts() {
                 <th className="text-right text-xs font-medium text-muted-foreground p-4">Retail</th>
                 <th className="text-right text-xs font-medium text-muted-foreground p-4">Wholesale</th>
                 <th className="text-center text-xs font-medium text-muted-foreground p-4">Stock</th>
+                <th className="text-center text-xs font-medium text-muted-foreground p-4">Credentials</th>
                 <th className="text-center text-xs font-medium text-muted-foreground p-4">Actions</th>
               </tr>
             </thead>
             <tbody>
               {(products || [])
                 .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
-                .map((p: any) => (
+                .map((p: any) => {
+                const cc = credentialCounts?.[p.id];
+                return (
                 <tr key={p.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                   <td className="p-4 text-sm font-medium text-foreground">{p.icon} {p.name}</td>
                   <td className="p-4 text-sm text-muted-foreground">{p.category}</td>
@@ -177,6 +196,13 @@ export default function AdminProducts() {
                   <td className="p-4 text-sm font-mono text-right text-muted-foreground">{p.retail_price.toLocaleString()}</td>
                   <td className="p-4 text-sm font-mono text-right text-foreground">{p.wholesale_price.toLocaleString()}</td>
                   <td className="p-4 text-sm font-mono text-center text-foreground">{p.stock}</td>
+                  <td className="p-4 text-center">
+                    <span className={`text-xs font-mono px-2 py-1 rounded-full ${
+                      cc && cc.available > 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
+                    }`}>
+                      {cc ? `${cc.available}/${cc.total}` : "0/0"}
+                    </span>
+                  </td>
                   <td className="p-4">
                     <div className="flex items-center justify-center gap-2">
                       <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
@@ -188,7 +214,9 @@ export default function AdminProducts() {
                     </div>
                   </td>
                 </tr>
-              ))}
+                );
+              })}
+
             </tbody>
           </table>
         </div>
