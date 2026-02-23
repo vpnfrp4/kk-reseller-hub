@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { toast } from "sonner";
 
 export default function AdminCredentials() {
@@ -26,6 +26,7 @@ export default function AdminCredentials() {
   const [statusFilter, setStatusFilter] = useState<"all" | "available" | "sold">("all");
   const [page, setPage] = useState(1);
   const perPage = 20;
+  const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
     const p = searchParams.get("product");
@@ -166,6 +167,16 @@ export default function AdminCredentials() {
         ))}
       </div>
 
+      <div className="relative animate-fade-in">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Input
+          value={searchQuery}
+          onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
+          placeholder="Search credentials..."
+          className="pl-9 bg-muted/50 border-border font-mono text-sm"
+        />
+      </div>
+
       <div className="glass-card overflow-hidden animate-fade-in">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -180,9 +191,11 @@ export default function AdminCredentials() {
             </thead>
             <tbody>
               {(() => {
+                const q = searchQuery.toLowerCase();
                 const filtered = (credentials || []).filter((c: any) =>
                   (!filterProduct || c.product_id === filterProduct) &&
-                  (statusFilter === "all" || (statusFilter === "available" ? !c.is_sold : c.is_sold))
+                  (statusFilter === "all" || (statusFilter === "available" ? !c.is_sold : c.is_sold)) &&
+                  (!q || c.credentials.toLowerCase().includes(q))
                 );
                 const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
                 const currentPage = Math.min(page, totalPages);
@@ -217,9 +230,11 @@ export default function AdminCredentials() {
           </table>
         </div>
         {(() => {
+          const q = searchQuery.toLowerCase();
           const filtered = (credentials || []).filter((c: any) =>
             (!filterProduct || c.product_id === filterProduct) &&
-            (statusFilter === "all" || (statusFilter === "available" ? !c.is_sold : c.is_sold))
+            (statusFilter === "all" || (statusFilter === "available" ? !c.is_sold : c.is_sold)) &&
+            (!q || c.credentials.toLowerCase().includes(q))
           );
           const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
           if (totalPages <= 1) return null;
