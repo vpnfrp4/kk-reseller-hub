@@ -1,12 +1,30 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Package } from "lucide-react";
+import { ShoppingCart, Package, Copy, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+
+interface PurchaseResult {
+  order_id: string;
+  credentials: string;
+  product_name: string;
+  price: number;
+}
 
 export default function ProductsPage() {
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
+  const queryClient = useQueryClient();
+  const [purchasing, setPurchasing] = useState<string | null>(null);
+  const [result, setResult] = useState<PurchaseResult | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const { data: products } = useQuery({
     queryKey: ["products"],
@@ -19,7 +37,7 @@ export default function ProductsPage() {
     },
   });
 
-  const handleBuy = (product: any) => {
+  const handleBuy = async (product: any) => {
     if ((profile?.balance || 0) < product.wholesale_price) {
       toast.error("Insufficient balance. Please top up your wallet.");
       return;
@@ -28,8 +46,38 @@ export default function ProductsPage() {
       toast.error("This product is currently out of stock.");
       return;
     }
-    // In a real app, this would go through an edge function for atomic purchase
-    toast.info("Purchase flow coming soon — connect product credentials in the database to enable instant delivery.");
+
+    setPurchasing(product.id);
+
+    try {
+      const { data, error } = await supabase.functions.invoke("purchase", {
+        body: { product_id: product.id },
+      });
+
+      if (error) throw new Error(error.message);
+      if (data?.error) {
+        toast.error(data.error);
+        return;
+      }
+
+      setResult(data as PurchaseResult);
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
+      refreshProfile();
+    } catch (err: any) {
+      toast.error(err.message || "Purchase failed. Please try again.");
+    } finally {
+      setPurchasing(null);
+    }
+  };
+
+  const copyCredentials = (creds: string) => {
+    navigator.clipboard.writeText(creds);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   return (
@@ -73,15 +121,69 @@ export default function ProductsPage() {
               <Button
                 className="w-full btn-glow gap-2"
                 onClick={() => handleBuy(product)}
-                disabled={product.stock === 0}
+                disabled={product.stock === 0 || purchasing === product.id}
               >
-                <ShoppingCart className="w-4 h-4" />
-                Buy Now
+                {purchasing === product.id ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <ShoppingCart className="w-4 h-4" />
+                    Buy Now
+                  </>
+                )}
               </Button>
             </div>
           </div>
         ))}
       </div>
+
+      {/* Instant Delivery Dialog */}
+      <Dialog open={!!result} onOpenChange={() => setResult(null)}>
+        <DialogContent className="bg-card border-border max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-success" />
+              Purchase Successful!
+            </DialogTitle>
+          </DialogHeader>
+
+          {result && (
+            <div className="space-y-4">
+              <div className="stat-card">
+                <p className="text-sm text-muted-foreground mb-1">Product</p>
+                <p className="text-foreground font-semibold">{result.product_name}</p>
+              </div>
+
+              <div className="stat-card">
+                <p className="text-sm text-muted-foreground mb-2">Account Credentials</p>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 text-sm font-mono text-primary bg-primary/10 px-3 py-2 rounded-lg break-all">
+                    {result.credentials}
+                  </code>
+                  <button
+                    onClick={() => copyCredentials(result.credentials)}
+                    className="p-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {copied ? <CheckCircle2 className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Amount Charged</span>
+                <span className="font-mono font-semibold text-foreground">{result.price.toLocaleString()} MMK</span>
+              </div>
+
+              <p className="text-xs text-muted-foreground text-center">
+                These credentials are also saved in your Order History.
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
