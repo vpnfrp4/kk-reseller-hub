@@ -14,10 +14,13 @@ import {
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
+
 export default function AdminProducts() {
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("All");
   const [form, setForm] = useState({
     name: "", icon: "📦", category: "General",
     retail_price: "", wholesale_price: "", duration: "", stock: "",
@@ -133,6 +136,22 @@ export default function AdminProducts() {
         </Dialog>
       </div>
 
+      <div className="flex gap-2 animate-fade-in">
+        {CATEGORIES.map((cat) => (
+          <button
+            key={cat}
+            onClick={() => setActiveCategory(cat)}
+            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
+              activeCategory === cat
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
       <div className="glass-card overflow-hidden animate-fade-in">
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -148,7 +167,9 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody>
-              {(products || []).map((p: any) => (
+              {(products || [])
+                .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
+                .map((p: any) => (
                 <tr key={p.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
                   <td className="p-4 text-sm font-medium text-foreground">{p.icon} {p.name}</td>
                   <td className="p-4 text-sm text-muted-foreground">{p.category}</td>
