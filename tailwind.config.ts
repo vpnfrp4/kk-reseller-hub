@@ -14,9 +14,26 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
+        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
-        display: ["Playfair Display", "serif"],
+      },
+      /* ─── Unified 8pt Spacing Scale ─── */
+      spacing: {
+        "micro": "4px",
+        "tight": "8px",
+        "compact": "12px",
+        "default": "16px",
+        "card": "24px",
+        "section": "32px",
+        "page": "48px",
+      },
+      /* ─── Unified Typography Scale ─── */
+      fontSize: {
+        "h1": ["28px", { lineHeight: "1.2", fontWeight: "700" }],
+        "h2": ["22px", { lineHeight: "1.3", fontWeight: "600" }],
+        "h3": ["18px", { lineHeight: "1.3", fontWeight: "600" }],
+        "body": ["15px", { lineHeight: "1.6", fontWeight: "400" }],
+        "caption": ["12px", { lineHeight: "1.4", fontWeight: "400" }],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -76,10 +93,15 @@ export default {
           ring: "hsl(var(--sidebar-ring))",
         },
       },
+      /* ─── Unified Border Radius ─── */
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        btn: "var(--radius-btn, 12px)",
+        card: "var(--radius-card, 16px)",
+        modal: "var(--radius-modal, 20px)",
+        input: "var(--radius-input, 12px)",
       },
       keyframes: {
         "accordion-down": {

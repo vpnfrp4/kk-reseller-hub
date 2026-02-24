@@ -2,14 +2,39 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Playfair+Display:wght@500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* ═══════════════════════════════════════════════════════
+   KK UNIFIED DESIGN SYSTEM
+   Two panels, one brand DNA.
+   ═══════════════════════════════════════════════════════ */
 
 @layer base {
-  /* ═══════════════════════════════════════════
-     RESELLER PANEL — Light Financial SaaS
-     Clean, calm, professional green accent
-     ═══════════════════════════════════════════ */
+  /* ─── SHARED DESIGN TOKENS ─── */
   :root {
+    /* Border Radius — consistent across both panels */
+    --radius: 0.75rem;
+    --radius-btn: 12px;
+    --radius-card: 16px;
+    --radius-modal: 20px;
+    --radius-input: 12px;
+
+    /* Spacing Scale (8pt grid) */
+    --space-micro: 4px;
+    --space-tight: 8px;
+    --space-compact: 12px;
+    --space-default: 16px;
+    --space-card: 24px;
+    --space-section: 32px;
+    --space-page: 48px;
+
+    /* Transition */
+    --transition-fast: 200ms ease-in-out;
+    --transition-base: 200ms ease-in-out;
+
+    /* ═══════════════════════════════════════
+       RESELLER — Light Financial Professional
+       ═══════════════════════════════════════ */
     --background: 210 20% 98%;
     --foreground: 222 47% 11%;
 
@@ -40,8 +65,6 @@
     --input: 220 13% 90%;
     --ring: 142 72% 37%;
 
-    --radius: 0.75rem;
-
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 215 16% 47%;
     --sidebar-primary: 142 72% 37%;
@@ -55,21 +78,17 @@
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 0%;
-
     --ice: 199 89% 48%;
     --ice-foreground: 0 0% 100%;
 
-    /* Clean Design Tokens */
-    --gradient-gold: linear-gradient(135deg, hsl(142 72% 37%), hsl(142 72% 42%));
-    --gradient-gold-subtle: linear-gradient(135deg, hsl(142 72% 37% / 0.08), hsl(142 72% 42% / 0.04));
-    --gradient-navy: linear-gradient(135deg, hsl(215 28% 17%), hsl(215 25% 27%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 20% 97%));
-    --gradient-glow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    /* Surface tokens */
     --shadow-luxury: 0 2px 8px rgba(0, 0, 0, 0.06);
     --shadow-elevated: 0 4px 16px -4px rgba(0, 0, 0, 0.1);
     --shadow-header: 0 1px 0 hsl(220 13% 92%), 0 2px 8px -2px rgba(0, 0, 0, 0.06);
+    --gradient-navy: linear-gradient(135deg, hsl(215 28% 17%), hsl(215 25% 27%));
   }
 
+  /* Keep .dark identical to :root for reseller (no dark mode toggle) */
   .dark {
     --background: 210 20% 98%;
     --foreground: 222 47% 11%;
@@ -105,20 +124,15 @@
     --warning-foreground: 0 0% 0%;
     --ice: 199 89% 48%;
     --ice-foreground: 0 0% 100%;
-    --gradient-gold: linear-gradient(135deg, hsl(142 72% 37%), hsl(142 72% 42%));
-    --gradient-gold-subtle: linear-gradient(135deg, hsl(142 72% 37% / 0.08), hsl(142 72% 42% / 0.04));
-    --gradient-navy: linear-gradient(135deg, hsl(215 28% 17%), hsl(215 25% 27%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 20% 97%));
-    --gradient-glow: 0 2px 8px rgba(0, 0, 0, 0.06);
     --shadow-luxury: 0 2px 8px rgba(0, 0, 0, 0.06);
     --shadow-elevated: 0 4px 16px -4px rgba(0, 0, 0, 0.1);
     --shadow-header: 0 1px 0 hsl(220 13% 92%), 0 2px 8px -2px rgba(0, 0, 0, 0.06);
+    --gradient-navy: linear-gradient(135deg, hsl(215 28% 17%), hsl(215 25% 27%));
   }
 
-  /* ═══════════════════════════════════════════
-     ADMIN PANEL — Dark Cyber Authority
-     Deep dark, neon green accent, controlled glow
-     ═══════════════════════════════════════════ */
+  /* ═══════════════════════════════════════
+     ADMIN — Dark Cyber Authority
+     ═══════════════════════════════════════ */
   .admin-theme {
     --background: 216 28% 5%;
     --foreground: 210 20% 90%;
@@ -163,18 +177,13 @@
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 0%;
-
     --ice: 199 89% 60%;
     --ice-foreground: 216 28% 5%;
 
-    --gradient-gold: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 50%));
-    --gradient-gold-subtle: linear-gradient(135deg, hsl(142 71% 45% / 0.1), hsl(142 71% 50% / 0.05));
-    --gradient-navy: linear-gradient(135deg, hsl(216 28% 5%), hsl(216 30% 10%));
-    --gradient-card: linear-gradient(180deg, hsl(217 33% 11%), hsl(217 33% 8%));
-    --gradient-glow: 0 1px 3px rgba(0, 0, 0, 0.3);
     --shadow-luxury: 0 4px 16px -4px rgba(0, 0, 0, 0.4);
     --shadow-elevated: 0 8px 32px -8px rgba(0, 0, 0, 0.5);
     --shadow-header: 0 1px 0 hsl(217 20% 14%), 0 4px 12px -4px rgba(0, 0, 0, 0.4);
+    --gradient-navy: linear-gradient(135deg, hsl(216 28% 5%), hsl(216 30% 10%));
   }
 }
 
@@ -184,65 +193,38 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  /* ─── Unified Typography Scale ─── */
+  h1 { @apply text-[28px] font-bold leading-tight tracking-tight; }
+  h2 { @apply text-[22px] font-semibold leading-snug tracking-tight; }
+  h3 { @apply text-[18px] font-semibold leading-snug; }
 
   /* Smooth theme transition */
   html.theme-transition,
   html.theme-transition *,
   html.theme-transition *::before,
   html.theme-transition *::after {
-    transition: background-color 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.4s ease, fill 0.3s ease, stroke 0.3s ease !important;
+    transition: background-color 0.4s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.4s ease !important;
   }
 
   .font-mono {
     font-family: 'JetBrains Mono', monospace;
   }
 
-  .font-display {
-    font-family: 'Playfair Display', serif;
-  }
   @keyframes slideUpFade {
-    from {
-      opacity: 0;
-      transform: translateY(16px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-  @keyframes savings-shimmer {
-    0%, 100% {
-      background-position: -100% center;
-    }
-    50% {
-      background-position: 200% center;
-    }
-  }
-
-  @keyframes savings-pulse {
-    0%, 100% {
-      box-shadow: 0 0 0 0 hsl(var(--success) / 0.4);
-    }
-    50% {
-      box-shadow: 0 0 8px 2px hsl(var(--success) / 0.2);
-    }
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes confetti-fall {
-    0% {
-      transform: translateY(0) translateX(0);
-      opacity: 1;
-    }
-    75% {
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(400px) translateX(var(--confetti-drift, 0px));
-      opacity: 0;
-    }
+    0% { transform: translateY(0) translateX(0); opacity: 1; }
+    75% { opacity: 1; }
+    100% { transform: translateY(400px) translateX(var(--confetti-drift, 0px)); opacity: 0; }
   }
 
   @keyframes confetti-spin {
@@ -251,15 +233,22 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════
+   UNIFIED COMPONENT SYSTEM
+   Shared interaction patterns, different surface colors
+   ═══════════════════════════════════════════════════════ */
+
 @layer components {
-  /* ─── Reseller Panel Styles ─── */
+  /* ─── Cards ─── */
   .glass-card {
-    @apply bg-card border border-border rounded-xl;
-    box-shadow: var(--gradient-glow);
+    @apply bg-card border border-border;
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-luxury);
   }
 
   .stat-card {
-    @apply glass-card p-6 relative overflow-hidden;
+    @apply glass-card relative overflow-hidden;
+    padding: var(--space-card);
   }
 
   .stat-card::before {
@@ -272,7 +261,12 @@
     background: hsl(var(--primary));
   }
 
-  /* Clean green gradient text */
+  .card-elevated {
+    @apply glass-card;
+    box-shadow: var(--shadow-elevated);
+  }
+
+  /* ─── Typography Utilities ─── */
   .gold-text {
     color: hsl(var(--primary));
     font-weight: 700;
@@ -291,13 +285,20 @@
     background: hsl(var(--primary) / 0.08);
   }
 
-  /* Button – solid green, no gradient */
+  /* Financial number styling */
+  .financial-number {
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  /* ─── Buttons ─── */
   .btn-glow {
     background: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
     font-weight: 600;
-    border-radius: 12px;
-    transition: all 0.2s ease-out;
+    border-radius: var(--radius-btn);
+    transition: all var(--transition-base);
   }
 
   .btn-glow:hover {
@@ -309,13 +310,29 @@
     transform: translateY(0);
   }
 
-  /* Card styles */
-  .card-elevated {
-    @apply glass-card;
-    box-shadow: var(--shadow-elevated);
+  .btn-glass {
+    @apply bg-muted/40 backdrop-blur-md border border-border/50 text-foreground;
+    border-radius: var(--radius-btn);
+    transition: all var(--transition-base);
   }
 
-  /* Sidebar active indicator – 3px left accent line */
+  .btn-glass:hover {
+    @apply bg-muted/60 border-border;
+    transform: translateY(-1px);
+  }
+
+  .btn-danger {
+    @apply bg-destructive/80 text-destructive-foreground font-semibold;
+    border-radius: var(--radius-btn);
+    transition: all var(--transition-base);
+  }
+
+  .btn-danger:hover {
+    @apply bg-destructive;
+    transform: translateY(-1px);
+  }
+
+  /* ─── Sidebar ─── */
   .nav-active-indicator {
     position: relative;
   }
@@ -331,7 +348,6 @@
     background: hsl(var(--primary));
   }
 
-  /* Nav ripple effect */
   .nav-ripple {
     position: relative;
     overflow: hidden;
@@ -353,11 +369,11 @@
     transition: opacity 0.4s ease-out, transform 0.5s ease-out;
   }
 
-  /* Wallet hero card – clean dark gradient */
+  /* ─── Wallet Hero ─── */
   .wallet-hero {
     background: var(--gradient-navy);
     border: 1px solid hsl(var(--primary) / 0.15);
-    border-radius: 1rem;
+    border-radius: var(--radius-card);
     position: relative;
     overflow: hidden;
   }
@@ -386,55 +402,19 @@
     pointer-events: none;
   }
 
-  /* Low stock */
-  .stock-low {
-    @apply text-destructive;
-  }
-
-  /* Hover lift for cards */
-  .hover-lift {
-    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-  }
-
-  .hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-luxury);
-  }
-
   /* ─── Status Badges ─── */
-  .badge-available {
-    @apply text-success font-medium;
-    background: hsl(var(--success) / 0.1);
-  }
-
-  .badge-sold {
-    @apply text-destructive font-medium;
-    background: hsl(var(--destructive) / 0.1);
-  }
-
-  .badge-expiring {
-    @apply text-warning font-medium;
-    background: hsl(var(--warning) / 0.1);
-  }
-
-  .badge-pending {
-    @apply text-warning font-medium;
-    background: hsl(var(--warning) / 0.1);
-  }
-
-  .badge-delivered {
-    @apply text-success font-medium;
-    background: hsl(var(--success) / 0.1);
-  }
-
-  .badge-cancelled {
-    @apply text-destructive font-medium;
-    background: hsl(var(--destructive) / 0.1);
-  }
+  .badge-available  { @apply text-success font-medium; background: hsl(var(--success) / 0.1); }
+  .badge-sold       { @apply text-destructive font-medium; background: hsl(var(--destructive) / 0.1); }
+  .badge-expiring   { @apply text-warning font-medium; background: hsl(var(--warning) / 0.1); }
+  .badge-pending    { @apply text-warning font-medium; background: hsl(var(--warning) / 0.1); }
+  .badge-delivered  { @apply text-success font-medium; background: hsl(var(--success) / 0.1); }
+  .badge-cancelled  { @apply text-destructive font-medium; background: hsl(var(--destructive) / 0.1); }
 
   /* ─── Filter Pills ─── */
   .filter-pill {
-    @apply px-4 py-1.5 rounded-full text-xs font-medium transition-all duration-200;
+    @apply px-4 py-1.5 text-xs font-medium transition-all;
+    border-radius: 9999px;
+    transition-duration: var(--transition-base);
   }
 
   .filter-pill-active {
@@ -462,49 +442,50 @@
   }
 
   .premium-table thead th {
-    @apply text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground p-4;
+    @apply text-left text-[11px] font-semibold uppercase tracking-wider text-muted-foreground;
+    padding: var(--space-default);
     letter-spacing: 0.05em;
   }
 
   .premium-table tbody tr {
-    @apply border-b border-border/30 transition-all duration-200;
+    @apply border-b border-border/30;
+    transition: background var(--transition-base);
   }
 
   .premium-table tbody tr:hover {
     background: hsl(var(--muted) / 0.4);
   }
 
-  /* ─── Header Shadow ─── */
+  /* ─── Headers ─── */
   .admin-header {
     box-shadow: var(--shadow-header);
   }
 
-  /* ─── Admin Badge ─── */
   .admin-badge {
     background: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
     font-weight: 700;
   }
 
-  /* ─── Glass Button ─── */
-  .btn-glass {
-    @apply bg-muted/40 backdrop-blur-md border border-border/50 text-foreground;
-    transition: all 0.2s ease-out;
+  /* ─── Hover Lift ─── */
+  .hover-lift {
+    transition: transform var(--transition-base), box-shadow var(--transition-base);
   }
 
-  .btn-glass:hover {
-    @apply bg-muted/60 border-border;
-    transform: translateY(-1px);
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-luxury);
   }
 
-  /* ─── Danger Button ─── */
-  .btn-danger {
-    @apply bg-destructive/80 text-destructive-foreground font-semibold;
-    transition: all 0.2s ease-out;
+  /* ─── Stock ─── */
+  .stock-low {
+    @apply text-destructive;
   }
+}
 
-  .btn-danger:hover {
-    @apply bg-destructive;
-    transform: translateY(-1px);
+/* ─── Tabular Nums Utility ─── */
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
   }
 }
