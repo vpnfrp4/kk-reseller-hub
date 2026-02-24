@@ -18,6 +18,7 @@ import {
 import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download, Upload, AlertTriangle, Pencil, X, Check, ArrowRightLeft, CheckCheck, SearchX } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { DataCard } from "@/components/shared";
 
 const EXPIRY_WARNING_DAYS = 7;
 
@@ -302,11 +303,11 @@ export default function AdminCredentials() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <div className="flex items-center justify-between animate-fade-in">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Credentials</h1>
-          <p className="text-muted-foreground text-sm">Manage pre-loaded account credentials</p>
+          <h1 className="text-h1 text-foreground">Credentials</h1>
+          <p className="text-caption text-muted-foreground">Manage pre-loaded account credentials</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -447,7 +448,7 @@ export default function AdminCredentials() {
         )}
       </div>
 
-      <div className="glass-card overflow-hidden animate-fade-in">
+      <DataCard noPadding className="animate-fade-in">
         <div className="overflow-x-auto">
           <table className="premium-table">
             <thead>
@@ -592,7 +593,7 @@ export default function AdminCredentials() {
             </div>
           );
         })()}
-      </div>
+      </DataCard>
 
       <Dialog open={bulkDeleteOpen} onOpenChange={setBulkDeleteOpen}>
         <DialogContent className="bg-card border-border max-w-sm">
