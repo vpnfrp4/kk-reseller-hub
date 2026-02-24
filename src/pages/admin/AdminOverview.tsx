@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, KeyRound, Wallet, Users, ShoppingCart, AlertTriangle, Settings2, TrendingUp, TrendingDown, Clock } from "lucide-react";
+import { Package, KeyRound, Wallet, Users, ShoppingCart, AlertTriangle, Settings2, TrendingUp, TrendingDown, Clock, Plus, CheckCircle2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
 import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
@@ -291,9 +291,29 @@ export default function AdminOverview() {
 
   return (
     <div className="space-y-8">
-      <div className="animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Admin Overview</h1>
-        <p className="text-muted-foreground text-sm">Manage your reseller platform</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Admin Overview</h1>
+          <p className="text-muted-foreground text-sm">Manage your reseller platform</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link to="/admin/credentials">
+            <Button size="sm" className="btn-glow gap-1.5 h-8 text-xs">
+              <Plus className="w-3.5 h-3.5" />Add Credentials
+            </Button>
+          </Link>
+          <Link to="/admin/topups">
+            <Button size="sm" variant="outline" className="btn-glass gap-1.5 h-8 text-xs">
+              <CheckCircle2 className="w-3.5 h-3.5" />Approve Top-ups
+            </Button>
+          </Link>
+          <Link to="/admin/orders">
+            <Button size="sm" variant="outline" className="btn-glass gap-1.5 h-8 text-xs">
+              <ShoppingCart className="w-3.5 h-3.5" />Orders
+              <ArrowRight className="w-3 h-3" />
+            </Button>
+          </Link>
+        </div>
       </div>
 
       {/* Premium KPI Cards */}
