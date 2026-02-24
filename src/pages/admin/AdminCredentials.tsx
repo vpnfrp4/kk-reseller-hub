@@ -284,13 +284,23 @@ export default function AdminCredentials() {
             <Download className="w-4 h-4" />Export CSV
           </Button>
           {selectedIds.size > 0 && (
-            <Button
-              variant="outline"
-              className="gap-2"
-              onClick={() => setBulkExpiryOpen(true)}
-            >
-              <Pencil className="w-4 h-4" />Set Expiry ({selectedIds.size})
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                className="gap-2"
+                onClick={() => setBulkExpiryOpen(true)}
+              >
+                <Pencil className="w-4 h-4" />Set Expiry ({selectedIds.size})
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 text-muted-foreground"
+                onClick={() => setSelectedIds(new Set())}
+              >
+                <X className="w-3.5 h-3.5" />Clear Selection
+              </Button>
+            </>
           )}
           <Button
             variant="outline"
