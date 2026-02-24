@@ -115,6 +115,21 @@ Deno.serve(async (req) => {
       .update({ status: newStatus })
       .eq("id", transaction_id);
 
+    // Send notification to user
+    const notifTitle = action === "approve"
+      ? "Top-Up Approved! 🎉"
+      : "Top-Up Request Rejected";
+    const notifBody = action === "approve"
+      ? `${Number(tx.amount).toLocaleString()} MMK has been credited to your wallet.`
+      : `Your top-up request for ${Number(tx.amount).toLocaleString()} MMK was not approved. Please verify your payment details.`;
+
+    await serviceClient.from("notifications").insert({
+      user_id: tx.user_id,
+      title: notifTitle,
+      body: notifBody,
+      type: action === "approve" ? "success" : "warning",
+    });
+
     return new Response(
       JSON.stringify({ success: true, action, transaction_id }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }

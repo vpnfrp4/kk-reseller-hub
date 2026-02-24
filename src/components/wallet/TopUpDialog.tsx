@@ -40,6 +40,8 @@ interface TopUpDialogProps {
   onOpenChange?: (open: boolean) => void;
   /** Hide the trigger button (when opened programmatically) */
   hideTrigger?: boolean;
+  /** Called after successful submission with transaction ID */
+  onSubmitted?: (transactionId: string) => void;
 }
 
 type PaymentAccount = {
@@ -72,6 +74,7 @@ export default function TopUpDialog({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
   hideTrigger = false,
+  onSubmitted,
 }: TopUpDialogProps) {
   const queryClient = useQueryClient();
   const [topupAmount, setTopupAmount] = useState("");
@@ -142,7 +145,7 @@ export default function TopUpDialog({
       if (uploadError) throw uploadError;
 
       const account = ACCOUNTS.find((a) => a.id === selectedAccount)!;
-      await supabase.from("wallet_transactions").insert({
+      const { data: insertedTx, error: insertError } = await supabase.from("wallet_transactions").insert({
         user_id: userId,
         type: "topup",
         amount: parsedAmount,
@@ -150,10 +153,18 @@ export default function TopUpDialog({
         method: account.provider,
         description: `Wallet Top-up via ${account.provider}`,
         screenshot_url: filePath,
-      });
+      }).select("id").single();
+
+      if (insertError) throw insertError;
 
       setSubmissionState("submitted");
       queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] });
+
+      // Navigate to status page if callback provided
+      if (insertedTx?.id && onSubmitted) {
+        resetOnClose(false);
+        onSubmitted(insertedTx.id);
+      }
     } catch (err) {
       console.error("Top-up error:", err);
       toast({ title: "Error", description: "Failed to submit top-up request.", variant: "destructive" });

@@ -12,6 +12,7 @@ import OrdersPage from "./pages/OrdersPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import SettingsPage from "./pages/SettingsPage";
 import NotificationsPage from "./pages/NotificationsPage";
+import TopUpStatusPage from "./pages/TopUpStatusPage";
 import ResetPassword from "./pages/ResetPassword";
 import TermsPage from "./pages/TermsPage";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
@@ -71,6 +72,7 @@ function AppRoutes() {
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
       <Route path="/dashboard/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
+      <Route path="/dashboard/wallet/topup-status" element={<ProtectedRoute><TopUpStatusPage /></ProtectedRoute>} />
       <Route path="/dashboard/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
       <Route path="/dashboard/products/:id" element={<ProtectedRoute><ProductDetailPage /></ProtectedRoute>} />
       <Route path="/dashboard/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
