@@ -182,6 +182,28 @@ export default function WalletPage() {
                   </div>
                 </div>
 
+                {/* Payment Account Info */}
+                <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-2">
+                  <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
+                    💰 {paymentMethod === "kpay" ? "KBZ Pay" : "Wave Pay"} — Send to:
+                  </p>
+                  <div className="space-y-1.5 text-sm">
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Pay ID:</span>
+                      <span className="font-mono font-semibold text-foreground">
+                        {paymentMethod === "kpay" ? "09787313137" : "09777818691"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">Name:</span>
+                      <span className="font-medium text-foreground">
+                        {paymentMethod === "kpay" ? "Htun Arkar Kyaw" : "Hnin Thet Wai"}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1">✅ Official Account Only</p>
+                </div>
+
                 <div className="space-y-2">
                   <Label className="text-muted-foreground">Payment Screenshot</Label>
                   <label className="flex flex-col items-center gap-2 p-6 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors duration-200 bg-muted/20">
