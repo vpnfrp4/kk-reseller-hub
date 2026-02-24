@@ -244,6 +244,26 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* ═══════════ TRUST NOTICE ═══════════ */}
+        <section className="bg-background pb-16">
+          <div className="mx-auto max-w-3xl px-5 sm:px-8">
+            <div className="flex gap-4 rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-5 dark:border-emerald-500/15 dark:bg-emerald-950/20 sm:p-6">
+              <div className="flex-shrink-0 border-l-[3px] border-emerald-400 dark:border-emerald-500" />
+              <div className="flex gap-3">
+                <Shield className="mt-0.5 h-[18px] w-[18px] flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
+                <div>
+                  <p className="text-[13px] font-semibold text-emerald-800 dark:text-emerald-300">
+                    Verified Wholesale Platform
+                  </p>
+                  <p className="mt-1.5 text-[13px] leading-relaxed text-emerald-700/80 dark:text-emerald-400/70">
+                    KKTech is trusted by 500+ active resellers across Myanmar. All transactions are secured with wallet-based fraud protection, and every order generates a verifiable receipt. We process thousands of unlock requests monthly with a 99.2% success rate.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* ═══════════ SERVICES ═══════════ */}
         <section id="services" className="border-t border-border/40 bg-muted/20 py-20 sm:py-28">
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
