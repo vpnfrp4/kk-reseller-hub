@@ -4,6 +4,8 @@
  * Financial numbers remain dominant. Status words are simple Burmese.
  */
 
+import { useLang, type Lang } from "@/contexts/LangContext";
+
 /* ─── Bilingual Label helper ─── */
 export interface BiLabel {
   mm: string;
@@ -230,12 +232,13 @@ export const t = {
   },
 } as const;
 
-/** Render a bilingual label: Burmese large, English small */
-export function BiLabel({ label, className = "" }: { label: BiLabel; className?: string }) {
-  return null; // Use the inline pattern instead
+/** Hook: returns a function that picks the active language from a BiLabel */
+export function useT() {
+  const { lang } = useLang();
+  return (label: BiLabel) => label[lang];
 }
 
-/** Get status label in Burmese with English fallback */
+/** Get status label with fallback */
 export function statusLabel(status: string): { mm: string; en: string } {
   const map = t.status as Record<string, { mm: string; en: string }>;
   return map[status] || { mm: status, en: status };

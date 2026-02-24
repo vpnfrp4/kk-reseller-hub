@@ -25,7 +25,7 @@ import {
   playSound,
   type NotificationPrefs,
 } from "@/lib/notifications";
-import { t } from "@/lib/i18n";
+import { t, useT } from "@/lib/i18n";
 import MmLabel from "@/components/shared/MmLabel";
 
 export default function SettingsPage() {
@@ -39,6 +39,7 @@ export default function SettingsPage() {
   const [changingPassword, setChangingPassword] = useState(false);
 
   const [notifPrefs, setNotifPrefs] = useState<NotificationPrefs>(getNotificationPrefs);
+  const l = useT();
 
   useEffect(() => {
     const handler = (e: Event) => setNotifPrefs((e as CustomEvent).detail);
@@ -121,15 +122,15 @@ export default function SettingsPage() {
   return (
     <div className="space-y-8 max-w-lg">
       <Breadcrumb items={[
-        { label: t.nav.dashboard.mm, path: "/dashboard" },
-        { label: t.nav.settings.mm },
+        { label: l(t.nav.dashboard), path: "/dashboard" },
+        { label: l(t.nav.settings) },
       ]} />
 
       <div className="animate-fade-in">
         <h1 className="text-2xl font-bold text-foreground">
           <MmLabel mm={t.settings.title.mm} en={t.settings.title.en} />
         </h1>
-        <p className="text-muted-foreground text-sm">{t.settings.subtitle.mm}</p>
+        <p className="text-muted-foreground text-sm">{l(t.settings.subtitle)}</p>
       </div>
 
       {/* Profile Section */}
@@ -140,11 +141,11 @@ export default function SettingsPage() {
         </div>
         <form onSubmit={handleUpdateName} className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">{t.settings.email.mm}</Label>
+            <Label className="text-muted-foreground text-xs">{l(t.settings.email)}</Label>
             <Input value={profile?.email || ""} disabled className="bg-muted/50 border-border opacity-60" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">{t.settings.displayName.mm}</Label>
+            <Label className="text-muted-foreground text-xs">{l(t.settings.displayName)}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -154,7 +155,7 @@ export default function SettingsPage() {
             />
           </div>
           <Button type="submit" disabled={saving} className="btn-glow">
-            {saving ? t.settings.saving.mm : t.settings.updateName.mm}
+            {saving ? l(t.settings.saving) : l(t.settings.updateName)}
           </Button>
         </form>
       </div>
@@ -167,7 +168,7 @@ export default function SettingsPage() {
         </div>
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">{t.settings.currentPw.mm}</Label>
+            <Label className="text-muted-foreground text-xs">{l(t.settings.currentPw)}</Label>
             <Input
               type="password"
               value={currentPassword}
@@ -177,7 +178,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">{t.settings.newPw.mm}</Label>
+            <Label className="text-muted-foreground text-xs">{l(t.settings.newPw)}</Label>
             <Input
               type="password"
               value={newPassword}
@@ -188,7 +189,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">{t.settings.confirmPw.mm}</Label>
+            <Label className="text-muted-foreground text-xs">{l(t.settings.confirmPw)}</Label>
             <Input
               type="password"
               value={confirmPassword}
@@ -199,7 +200,7 @@ export default function SettingsPage() {
             />
           </div>
           <Button type="submit" disabled={changingPassword} className="btn-glow">
-            {changingPassword ? t.settings.changing.mm : t.settings.changePwBtn.mm}
+            {changingPassword ? l(t.settings.changing) : l(t.settings.changePwBtn)}
           </Button>
         </form>
       </div>
@@ -213,14 +214,14 @@ export default function SettingsPage() {
 
         {/* Delivery Methods */}
         <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.settings.deliveryMethods.mm}</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{l(t.settings.deliveryMethods)}</p>
           <div className="space-y-3 mt-3">
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
               <div className="flex items-center gap-3">
                 <Volume2 className={`w-4 h-4 ${notifPrefs.soundEnabled ? "text-primary" : "text-muted-foreground"}`} />
                 <div>
-                  <p className="text-sm font-medium text-foreground">{t.settings.soundEffects.mm}</p>
-                  <p className="text-xs text-muted-foreground">{t.settings.soundDesc.mm}</p>
+                  <p className="text-sm font-medium text-foreground">{l(t.settings.soundEffects)}</p>
+                  <p className="text-xs text-muted-foreground">{l(t.settings.soundDesc)}</p>
                 </div>
               </div>
               <Switch checked={notifPrefs.soundEnabled} onCheckedChange={handleSoundToggle} />
@@ -230,8 +231,8 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 <Globe className={`w-4 h-4 ${notifPrefs.browserNotificationsEnabled ? "text-primary" : "text-muted-foreground"}`} />
                 <div>
-                  <p className="text-sm font-medium text-foreground">{t.settings.browserNotifs.mm}</p>
-                  <p className="text-xs text-muted-foreground">{t.settings.browserDesc.mm}</p>
+                  <p className="text-sm font-medium text-foreground">{l(t.settings.browserNotifs)}</p>
+                  <p className="text-xs text-muted-foreground">{l(t.settings.browserDesc)}</p>
                 </div>
               </div>
               <Switch checked={notifPrefs.browserNotificationsEnabled} onCheckedChange={handleBrowserToggle} />
@@ -247,14 +248,14 @@ export default function SettingsPage() {
 
         {/* Alert Types */}
         <div className="space-y-1 pt-2 border-t border-border/30">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.settings.alertTypes.mm}</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{l(t.settings.alertTypes)}</p>
           <div className="space-y-3 mt-3">
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
               <div className="flex items-center gap-3">
                 <Wallet className={`w-4 h-4 ${notifPrefs.topupApproved ? "text-success" : "text-muted-foreground"}`} />
                 <div>
-                  <p className="text-sm font-medium text-foreground">{t.settings.topupApproved.mm}</p>
-                  <p className="text-xs text-muted-foreground">{t.settings.topupApprovedDesc.mm}</p>
+                  <p className="text-sm font-medium text-foreground">{l(t.settings.topupApproved)}</p>
+                  <p className="text-xs text-muted-foreground">{l(t.settings.topupApprovedDesc)}</p>
                 </div>
               </div>
               <Switch checked={notifPrefs.topupApproved} onCheckedChange={(v) => updateNotifPref("topupApproved", v)} />
@@ -264,8 +265,8 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 <ShoppingBag className={`w-4 h-4 ${notifPrefs.purchaseComplete ? "text-primary" : "text-muted-foreground"}`} />
                 <div>
-                  <p className="text-sm font-medium text-foreground">{t.settings.purchaseComplete.mm}</p>
-                  <p className="text-xs text-muted-foreground">{t.settings.purchaseCompleteDesc.mm}</p>
+                  <p className="text-sm font-medium text-foreground">{l(t.settings.purchaseComplete)}</p>
+                  <p className="text-xs text-muted-foreground">{l(t.settings.purchaseCompleteDesc)}</p>
                 </div>
               </div>
               <Switch checked={notifPrefs.purchaseComplete} onCheckedChange={(v) => updateNotifPref("purchaseComplete", v)} />
@@ -276,8 +277,8 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-3">
                   <AlertTriangle className={`w-4 h-4 ${notifPrefs.lowBalance ? "text-warning" : "text-muted-foreground"}`} />
                   <div>
-                    <p className="text-sm font-medium text-foreground">{t.settings.lowBalanceWarning.mm}</p>
-                    <p className="text-xs text-muted-foreground">{t.settings.lowBalanceDesc.mm}</p>
+                    <p className="text-sm font-medium text-foreground">{l(t.settings.lowBalanceWarning)}</p>
+                    <p className="text-xs text-muted-foreground">{l(t.settings.lowBalanceDesc)}</p>
                   </div>
                 </div>
                 <Switch checked={notifPrefs.lowBalance} onCheckedChange={(v) => updateNotifPref("lowBalance", v)} />
@@ -285,7 +286,7 @@ export default function SettingsPage() {
               {notifPrefs.lowBalance && (
                 <div className="px-3 pb-3 pt-0">
                   <div className="flex items-center gap-2 p-2.5 rounded-lg bg-background/50 border border-border/20">
-                    <Label className="text-xs text-muted-foreground whitespace-nowrap">{t.settings.alertBelow.mm}</Label>
+                    <Label className="text-xs text-muted-foreground whitespace-nowrap">{l(t.settings.alertBelow)}</Label>
                     <Input
                       type="number"
                       min={1000}
@@ -313,8 +314,8 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 <ClipboardList className={`w-4 h-4 ${notifPrefs.orderUpdates ? "text-ice" : "text-muted-foreground"}`} />
                 <div>
-                  <p className="text-sm font-medium text-foreground">{t.settings.orderUpdates.mm}</p>
-                  <p className="text-xs text-muted-foreground">{t.settings.orderUpdatesDesc.mm}</p>
+                  <p className="text-sm font-medium text-foreground">{l(t.settings.orderUpdates)}</p>
+                  <p className="text-xs text-muted-foreground">{l(t.settings.orderUpdatesDesc)}</p>
                 </div>
               </div>
               <Switch checked={notifPrefs.orderUpdates} onCheckedChange={(v) => updateNotifPref("orderUpdates", v)} />

@@ -16,7 +16,7 @@ import { downloadReceipt } from "@/lib/receipt";
 import { Button } from "@/components/ui/button";
 import { DataCard, Money, ResponsiveTable } from "@/components/shared";
 import type { Column } from "@/components/shared";
-import { t } from "@/lib/i18n";
+import { t, useT } from "@/lib/i18n";
 import MmLabel, { MmStatus } from "@/components/shared/MmLabel";
 
 export default function WalletPage() {
@@ -24,6 +24,7 @@ export default function WalletPage() {
   const navigate = useNavigate();
   const [balanceFlash, setBalanceFlash] = useState(false);
   const prevBalanceRef = useRef<number | null>(null);
+  const l = useT();
 
   const { data: transactions, refetch: refetchTransactions } = useQuery({
     queryKey: ["wallet-transactions"],
@@ -78,24 +79,24 @@ export default function WalletPage() {
   const txColumns: Column<any>[] = [
     {
       key: "created_at",
-      label: t.orders.date.mm,
+      label: l(t.orders.date),
       hideOnMobile: true,
       render: (row) => <span className="text-muted-foreground">{new Date(row.created_at).toLocaleDateString()}</span>,
     },
     {
       key: "description",
-      label: t.detail.description.mm,
+      label: l(t.detail.description),
       priority: true,
     },
     {
       key: "method",
-      label: t.topup.paymentMethods.mm,
+      label: l(t.topup.paymentMethods),
       hideOnMobile: true,
       render: (row) => <span className="text-muted-foreground">{row.method || "—"}</span>,
     },
     {
       key: "amount",
-      label: t.topup.amount.mm,
+      label: l(t.topup.amount),
       align: "right" as const,
       render: (row) => (
         <span className={`font-mono font-semibold ${row.type === "topup" ? "text-success" : "text-foreground"}`}>
@@ -106,7 +107,7 @@ export default function WalletPage() {
     },
     {
       key: "status",
-      label: t.orders.date.en === "Date" ? "Status" : "Status",
+      label: "Status",
       align: "center" as const,
       render: (row) => <MmStatus status={row.status} />,
     },
@@ -132,8 +133,8 @@ export default function WalletPage() {
   return (
     <div className="space-y-section">
       <Breadcrumb items={[
-        { label: t.nav.dashboard.mm, path: "/dashboard" },
-        { label: t.nav.wallet.mm },
+        { label: l(t.nav.dashboard), path: "/dashboard" },
+        { label: l(t.nav.wallet) },
       ]} />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-default animate-fade-in">
@@ -141,7 +142,7 @@ export default function WalletPage() {
           <h1 className="text-h1 text-foreground">
             <MmLabel mm={t.wallet.title.mm} en={t.wallet.title.en} />
           </h1>
-          <p className="text-caption text-muted-foreground">{t.wallet.subtitle.mm}</p>
+          <p className="text-caption text-muted-foreground">{l(t.wallet.subtitle)}</p>
         </div>
         <TopUpDialog
           userId={user?.id}
@@ -188,12 +189,12 @@ export default function WalletPage() {
       </div>
 
       {/* Transaction History */}
-      <DataCard title={t.wallet.txHistory.mm} noPadding className="animate-fade-in">
+      <DataCard title={l(t.wallet.txHistory)} noPadding className="animate-fade-in">
         <ResponsiveTable
           columns={txColumns}
           data={transactions || []}
           keyExtractor={(row) => row.id}
-          emptyMessage={t.wallet.noTx.mm}
+          emptyMessage={l(t.wallet.noTx)}
         />
       </DataCard>
     </div>
