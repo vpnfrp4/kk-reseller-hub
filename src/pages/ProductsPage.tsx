@@ -48,7 +48,8 @@ export default function ProductsPage() {
       const { data } = await supabase
         .from("products")
         .select("*")
-        .order("sort_order", { ascending: true });
+        .order("sort_order", { ascending: true })
+        .order("name", { ascending: true });
       return data || [];
     },
   });
