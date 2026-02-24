@@ -157,7 +157,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <NotificationSettings />
-            <div className="glass-card !p-2 !px-4 flex items-center gap-2 !rounded-full">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/40 backdrop-blur-xl border border-primary/15 shadow-sm" style={{ boxShadow: "0 0 20px hsl(43 76% 47% / 0.08), inset 0 1px 0 hsl(0 0% 100% / 0.04)" }}>
               <Wallet className="w-4 h-4 text-primary" />
               <span className="text-sm font-semibold font-mono gold-shimmer">
                 {(profile?.balance || 0).toLocaleString()} <span className="text-xs">MMK</span>
