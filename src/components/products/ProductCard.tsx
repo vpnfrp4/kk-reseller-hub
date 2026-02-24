@@ -50,7 +50,10 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
               {product.category}
             </span>
             {maxDiscountPct > 0 && (
-              <span className="absolute top-2.5 left-2.5 text-[10px] font-bold px-2 py-1 rounded-full bg-success text-success-foreground shadow-sm">
+              <span
+                className="absolute top-2.5 left-2.5 text-[10px] font-bold px-2 py-1 rounded-full bg-success text-success-foreground shadow-sm"
+                style={{ animation: 'savings-pulse 2.5s ease-in-out infinite' }}
+              >
                 Save up to {maxDiscountPct}%
               </span>
             )}
@@ -60,7 +63,10 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
             <div className="flex items-center gap-2">
               <div className="text-3xl">{product.icon}</div>
               {maxDiscountPct > 0 && (
-                <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-success text-success-foreground">
+                <span
+                  className="text-[10px] font-bold px-2 py-1 rounded-full bg-success text-success-foreground"
+                  style={{ animation: 'savings-pulse 2.5s ease-in-out infinite' }}
+                >
                   Save up to {maxDiscountPct}%
                 </span>
               )}
