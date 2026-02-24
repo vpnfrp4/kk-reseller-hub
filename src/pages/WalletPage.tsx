@@ -24,6 +24,7 @@ import {
   CheckCircle2,
   XCircle,
   Image as ImageIcon,
+  Copy,
 } from "lucide-react";
 
 export default function WalletPage() {
@@ -35,6 +36,7 @@ export default function WalletPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const presetAmounts = [10000, 30000, 50000, 100000];
 
@@ -190,9 +192,20 @@ export default function WalletPage() {
                   <div className="space-y-1.5 text-sm">
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Pay ID:</span>
-                      <span className="font-mono font-semibold text-foreground">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const id = paymentMethod === "kpay" ? "09787313137" : "09777818691";
+                          navigator.clipboard.writeText(id);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 1500);
+                        }}
+                        className="flex items-center gap-1.5 font-mono font-semibold text-foreground hover:text-primary transition-colors"
+                        title="Copy to clipboard"
+                      >
                         {paymentMethod === "kpay" ? "09787313137" : "09777818691"}
-                      </span>
+                        {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
+                      </button>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Name:</span>
