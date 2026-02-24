@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { AlertTriangle, Minus, Plus, TrendingDown } from "lucide-react";
+import { AlertTriangle, Minus, Plus, TrendingDown, BadgePercent } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -189,19 +189,52 @@ export default function PurchaseConfirmModal({
                 </div>
               )}
 
+              {/* Savings comparison banner */}
+              {quantity > 1 && totalSavings > 0 && (
+                <div className="rounded-lg bg-success/10 border border-success/20 p-3 space-y-2">
+                  <div className="flex items-center gap-1.5">
+                    <BadgePercent className="w-4 h-4 text-success" />
+                    <span className="text-xs font-semibold text-success">
+                      You save {Math.round(((baseTierPrice - unitPrice) / baseTierPrice) * 100)}% with bulk pricing
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px]">
+                    <div className="flex-1 space-y-1">
+                      <div className="flex justify-between text-muted-foreground">
+                        <span>Individual ({quantity} × {baseTierPrice.toLocaleString()})</span>
+                        <span className="font-mono line-through">{(baseTierPrice * quantity).toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between text-success font-medium">
+                        <span>Bulk ({quantity} × {unitPrice.toLocaleString()})</span>
+                        <span className="font-mono">{totalPrice.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Visual savings bar */}
+                  <div className="relative h-2 rounded-full bg-muted/50 overflow-hidden">
+                    <div
+                      className="absolute inset-y-0 left-0 rounded-full bg-success/60 transition-all duration-500"
+                      style={{ width: `${100 - Math.round(((baseTierPrice - unitPrice) / baseTierPrice) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-center text-xs font-mono font-bold text-success">
+                    -{totalSavings.toLocaleString()} MMK saved
+                  </p>
+                </div>
+              )}
+
               <div className="border-t border-border/30 pt-3 space-y-1.5">
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Unit Price</span>
-                  <span className="font-mono font-semibold text-foreground">{unitPrice.toLocaleString()} MMK</span>
-                </div>
-                {totalSavings > 0 && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-success text-xs">Total Savings</span>
-                    <span className="font-mono font-semibold text-success text-xs">
-                      -{totalSavings.toLocaleString()} MMK
-                    </span>
+                  <div className="flex items-center gap-2">
+                    {quantity > 1 && totalSavings > 0 && (
+                      <span className="font-mono text-xs text-muted-foreground line-through">
+                        {baseTierPrice.toLocaleString()}
+                      </span>
+                    )}
+                    <span className="font-mono font-semibold text-foreground">{unitPrice.toLocaleString()} MMK</span>
                   </div>
-                )}
+                </div>
                 <div className="flex justify-between text-sm pt-1">
                   <span className="text-muted-foreground font-medium">Deduct from Wallet</span>
                   <span className="font-mono font-bold gold-text text-lg">{totalPrice.toLocaleString()} MMK</span>
