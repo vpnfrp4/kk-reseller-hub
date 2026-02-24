@@ -15,11 +15,24 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download, Upload, AlertTriangle, Pencil, X, Check, ArrowRightLeft, CheckCheck } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download, Upload, AlertTriangle, Pencil, X, Check, ArrowRightLeft, CheckCheck, SearchX } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
 const EXPIRY_WARNING_DAYS = 7;
+
+function highlightMatch(text: string, query: string) {
+  if (!query) return text;
+  const idx = text.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return text;
+  return (
+    <>
+      {text.slice(0, idx)}
+      <mark className="bg-primary/30 text-primary rounded-sm px-0.5">{text.slice(idx, idx + query.length)}</mark>
+      {text.slice(idx + query.length)}
+    </>
+  );
+}
 
 function isNearExpiry(expiresAt: string | null): boolean {
   if (!expiresAt) return false;
@@ -417,13 +430,21 @@ export default function AdminCredentials() {
       </div>
 
       <div className="relative animate-fade-in">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none transition-colors" />
         <Input
           value={searchQuery}
           onChange={(e) => { setSearchQuery(e.target.value); setPage(1); }}
           placeholder="Search credentials..."
-          className="pl-9 bg-muted/50 border-border font-mono text-sm"
+          className="pl-9 bg-muted/30 backdrop-blur-sm border-border/50 font-mono text-sm transition-all duration-300 focus:border-primary/50 focus:bg-muted/50 focus:shadow-[0_0_20px_hsl(43_76%_47%/0.15)]"
         />
+        {searchQuery && (
+          <button
+            onClick={() => { setSearchQuery(""); setPage(1); }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       <div className="glass-card overflow-hidden animate-fade-in">
@@ -461,9 +482,19 @@ export default function AdminCredentials() {
                 const currentPage = Math.min(page, totalPages);
                 const paginated = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
                 return paginated.length === 0 ? (
-                <tr><td colSpan={7} className="p-8 text-center text-sm text-muted-foreground">No credentials found</td></tr>
+                <tr><td colSpan={7} className="p-12 text-center">
+                  <div className="flex flex-col items-center gap-3 animate-fade-in">
+                    <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center">
+                      <SearchX className="w-6 h-6 text-muted-foreground/50" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-muted-foreground">No credentials found</p>
+                      {searchQuery && <p className="text-xs text-muted-foreground/60 mt-1">Try a different search term</p>}
+                    </div>
+                  </div>
+                </td></tr>
               ) : paginated.map((c: any) => (
-                <tr key={c.id} className={`border-b border-border/50 hover:bg-muted/30 transition-colors ${getRowHighlight(c)}`}>
+                <tr key={c.id} className={`border-b border-border/30 hover:bg-muted/30 transition-all duration-200 ${getRowHighlight(c)}`}>
                   <td className="w-10 p-4">
                     {!c.is_sold && (
                       <input
@@ -478,7 +509,9 @@ export default function AdminCredentials() {
                     {(c.products as any)?.name || "Unknown"} - {(c.products as any)?.duration || ""}
                   </td>
                   <td className="p-4">
-                    <code className="text-xs font-mono text-primary/80 bg-primary/5 px-2.5 py-1 rounded-md border border-primary/10">{c.credentials}</code>
+                    <code className="text-xs font-mono text-primary/80 bg-primary/5 px-2.5 py-1 rounded-md border border-primary/10">
+                      {searchQuery ? highlightMatch(c.credentials, searchQuery) : c.credentials}
+                    </code>
                   </td>
                   <td className="p-4 text-center">
                     <span className={`text-[11px] px-2.5 py-1 rounded-full ${c.is_sold ? "badge-sold" : "badge-available"}`}>

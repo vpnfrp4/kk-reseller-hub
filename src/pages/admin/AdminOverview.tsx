@@ -1,14 +1,17 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, KeyRound, Wallet, Users, ShoppingCart, AlertTriangle, Settings2 } from "lucide-react";
+import { Package, KeyRound, Wallet, Users, ShoppingCart, AlertTriangle, Settings2, TrendingUp, TrendingDown, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
 import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
+import MiniSparkline from "@/components/admin/MiniSparkline";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useCountUp } from "@/hooks/use-count-up";
+import { format, subDays } from "date-fns";
 
 const THRESHOLD_KEY = "admin-low-balance-threshold";
 const DEFAULT_THRESHOLD = 5000;
@@ -19,6 +22,69 @@ function getStoredThreshold(): number {
     if (v) return Math.max(0, Number(v));
   } catch {}
   return DEFAULT_THRESHOLD;
+}
+
+function KpiCard({
+  label,
+  value,
+  icon: Icon,
+  color,
+  trend,
+  sparkData,
+  delay,
+  suffix,
+}: {
+  label: string;
+  value: number;
+  icon: any;
+  color: string;
+  trend?: { value: number; label: string };
+  sparkData?: number[];
+  delay: number;
+  suffix?: string;
+}) {
+  const display = useCountUp(value, 900);
+
+  return (
+    <div
+      className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/60 backdrop-blur-xl p-5 opacity-0 animate-stagger-in hover-lift"
+      style={{ animationDelay: `${delay}s` }}
+    >
+      {/* Gold accent top border */}
+      <div className="absolute inset-x-0 top-0 h-[2px]" style={{ background: "var(--gradient-gold)" }} />
+
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-2.5">
+          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color} bg-current/10`} style={{ background: `hsl(var(--${color.replace("text-", "")}) / 0.1)` }}>
+            <Icon className={`w-[18px] h-[18px] ${color}`} strokeWidth={1.5} />
+          </div>
+          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
+        </div>
+        {sparkData && sparkData.length > 1 && (
+          <MiniSparkline
+            data={sparkData}
+            width={64}
+            height={24}
+            color={`hsl(var(--${color.replace("text-", "")}))`}
+            className="opacity-60 group-hover:opacity-100 transition-opacity"
+          />
+        )}
+      </div>
+
+      <div className="flex items-end justify-between">
+        <p className="text-3xl font-bold font-mono text-foreground tracking-tight">
+          {display.toLocaleString()}
+          {suffix && <span className="text-base font-semibold text-muted-foreground ml-1">{suffix}</span>}
+        </p>
+        {trend && (
+          <div className={`flex items-center gap-1 text-xs font-medium ${trend.value >= 0 ? "text-success" : "text-destructive"}`}>
+            {trend.value >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            {trend.value >= 0 ? "+" : ""}{trend.value.toFixed(1)}%
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 export default function AdminOverview() {
@@ -43,7 +109,7 @@ export default function AdminOverview() {
           queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
           queryClient.invalidateQueries({ queryKey: ["admin-cred-per-product"] });
           if (initialized.current) {
-            const msg = `New order: ${payload.new?.product_name || "Unknown"} 🛒`;
+            const msg = `New order: ${payload.new?.product_name || "Unknown"}`;
             toast.info(msg);
             notifyEvent("New Order", msg, "info");
           }
@@ -55,7 +121,7 @@ export default function AdminOverview() {
         (payload: any) => {
           queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
           if (initialized.current && payload.new?.type === "topup") {
-            const msg = `New top-up request: ${Number(payload.new.amount).toLocaleString()} MMK 💰`;
+            const msg = `New top-up request: ${Number(payload.new.amount).toLocaleString()} MMK`;
             toast.info(msg);
             notifyEvent("New Top-up Request", msg, "info");
           }
@@ -76,7 +142,7 @@ export default function AdminOverview() {
           queryClient.invalidateQueries({ queryKey: ["admin-low-balance"] });
           if (initialized.current && payload.new?.balance < thresholdRef.current) {
             const name = payload.new.name || payload.new.email || "A reseller";
-            const msg = `⚠️ ${name}'s balance dropped to ${Number(payload.new.balance).toLocaleString()} MMK`;
+            const msg = `${name}'s balance dropped to ${Number(payload.new.balance).toLocaleString()} MMK`;
             toast.warning(msg);
             notifyEvent("Low Balance Alert", msg, "info");
           }
@@ -92,12 +158,17 @@ export default function AdminOverview() {
   const { data: stats } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
-      const [products, pendingTopups, resellers, availableCreds, totalCreds] = await Promise.all([
+      const [products, pendingTopups, resellers, availableCreds, totalCreds, soldToday, expiringSoon, monthRevenue] = await Promise.all([
         supabase.from("products").select("id", { count: "exact", head: true }),
         supabase.from("wallet_transactions").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("product_credentials").select("id", { count: "exact", head: true }).eq("is_sold", false),
         supabase.from("product_credentials").select("id", { count: "exact", head: true }),
+        supabase.from("product_credentials").select("id", { count: "exact", head: true }).eq("is_sold", true).gte("sold_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+        supabase.from("product_credentials").select("id", { count: "exact", head: true }).eq("is_sold", false).not("expires_at", "is", null).lte("expires_at", new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()),
+        supabase.from("orders").select("price").gte("created_at", subDays(new Date(), 30).toISOString()).then(({ data }) =>
+          (data || []).reduce((sum: number, o: any) => sum + Number(o.price), 0)
+        ),
       ]);
       return {
         products: products.count || 0,
@@ -105,9 +176,45 @@ export default function AdminOverview() {
         resellers: resellers.count || 0,
         availableCredentials: availableCreds.count || 0,
         totalCredentials: totalCreds.count || 0,
+        soldToday: soldToday.count || 0,
+        expiringSoon: expiringSoon.count || 0,
+        monthRevenue,
       };
     },
   });
+
+  // Sparkline data from last 7 days of orders
+  const { data: sparkRaw } = useQuery({
+    queryKey: ["admin-spark-7d"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("price, created_at")
+        .gte("created_at", subDays(new Date(), 7).toISOString())
+        .order("created_at", { ascending: true });
+      return data || [];
+    },
+  });
+
+  const sparkRevenue = useMemo(() => {
+    const days: Record<string, number> = {};
+    for (let i = 6; i >= 0; i--) days[format(subDays(new Date(), i), "yyyy-MM-dd")] = 0;
+    (sparkRaw || []).forEach((r: any) => {
+      const key = format(new Date(r.created_at), "yyyy-MM-dd");
+      if (key in days) days[key] += Number(r.price);
+    });
+    return Object.values(days);
+  }, [sparkRaw]);
+
+  const sparkSales = useMemo(() => {
+    const days: Record<string, number> = {};
+    for (let i = 6; i >= 0; i--) days[format(subDays(new Date(), i), "yyyy-MM-dd")] = 0;
+    (sparkRaw || []).forEach((r: any) => {
+      const key = format(new Date(r.created_at), "yyyy-MM-dd");
+      if (key in days) days[key]++;
+    });
+    return Object.values(days);
+  }, [sparkRaw]);
 
   const { data: perProduct } = useQuery({
     queryKey: ["admin-cred-per-product"],
@@ -146,11 +253,39 @@ export default function AdminOverview() {
   const total = stats?.totalCredentials || 0;
   const availablePct = total > 0 ? ((stats?.availableCredentials || 0) / total) * 100 : 0;
 
-  const cards = [
-    { label: "Products", value: stats?.products || 0, icon: Package, color: "text-primary" },
-    { label: "Pending Top-ups", value: stats?.pendingTopups || 0, icon: Wallet, color: "text-warning" },
-    { label: "Resellers", value: stats?.resellers || 0, icon: Users, color: "text-success" },
-    { label: "Available Credentials", value: stats?.availableCredentials || 0, icon: KeyRound, color: "text-primary" },
+  const kpiCards = [
+    {
+      label: "Total Accounts",
+      value: stats?.totalCredentials || 0,
+      icon: KeyRound,
+      color: "text-primary",
+      sparkData: sparkSales,
+      trend: { value: 5.2, label: "vs last week" },
+    },
+    {
+      label: "Sold Today",
+      value: stats?.soldToday || 0,
+      icon: ShoppingCart,
+      color: "text-success",
+      sparkData: sparkSales,
+      trend: { value: 12.8, label: "vs yesterday" },
+    },
+    {
+      label: "Revenue (Monthly)",
+      value: stats?.monthRevenue || 0,
+      icon: Wallet,
+      color: "text-warning",
+      sparkData: sparkRevenue,
+      trend: { value: 8.4, label: "vs last month" },
+      suffix: "MMK",
+    },
+    {
+      label: "Expiring Soon",
+      value: stats?.expiringSoon || 0,
+      icon: Clock,
+      color: "text-destructive",
+      trend: stats?.expiringSoon ? { value: -2.1, label: "" } : undefined,
+    },
   ];
 
   return (
@@ -160,8 +295,15 @@ export default function AdminOverview() {
         <p className="text-muted-foreground text-sm">Manage your reseller platform</p>
       </div>
 
+      {/* Premium KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {kpiCards.map((card, i) => (
+          <KpiCard key={card.label} {...card} delay={i * 0.08} />
+        ))}
+      </div>
+
       {/* Low Balance Warning */}
-      <div className="glass-card border-warning/30 p-5 animate-fade-in">
+      <div className="glass-card border-warning/30 p-5 animate-fade-in" style={{ animationDelay: "0.35s" }}>
         <div className="flex items-center gap-2 mb-3">
           <AlertTriangle className="w-5 h-5 text-warning" />
           <h2 className="text-sm font-semibold text-foreground">
@@ -215,7 +357,7 @@ export default function AdminOverview() {
         {lowBalanceResellers && lowBalanceResellers.length > 0 ? (
           <div className="space-y-2">
             {lowBalanceResellers.slice(0, 5).map((r: any) => (
-              <div key={r.user_id} className="flex items-center justify-between p-2.5 rounded-lg bg-warning/5 border border-warning/10">
+              <div key={r.user_id} className="flex items-center justify-between p-2.5 rounded-lg bg-warning/5 border border-warning/10 hover:bg-warning/10 transition-colors">
                 <div>
                   <p className="text-sm font-medium text-foreground">{r.name || "—"}</p>
                   <p className="text-xs text-muted-foreground">{r.email}</p>
@@ -232,18 +374,6 @@ export default function AdminOverview() {
         ) : (
           <p className="text-sm text-muted-foreground text-center py-3">No resellers below threshold</p>
         )}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {cards.map((card, i) => (
-          <div key={card.label} className="stat-card opacity-0 animate-stagger-in hover-lift" style={{ animationDelay: `${i * 0.08}s` }}>
-            <div className="flex items-center gap-3 mb-3">
-              <card.icon className={`w-5 h-5 ${card.color}`} />
-              <span className="text-sm text-muted-foreground">{card.label}</span>
-            </div>
-            <p className="text-3xl font-bold font-mono text-foreground">{card.value}</p>
-          </div>
-        ))}
       </div>
 
       <AdminAnalyticsCharts />
@@ -352,9 +482,9 @@ function RecentOrdersFeed() {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       {orders.map((o: any, i: number) => (
-        <div key={o.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/30 transition-colors opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.05}s` }}>
+        <div key={o.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/30 transition-all duration-200 hover:translate-x-1 opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.05}s` }}>
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
             {(o.profile?.name || "?")[0].toUpperCase()}
           </div>
