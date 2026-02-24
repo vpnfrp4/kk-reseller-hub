@@ -23,6 +23,7 @@ import AdminCredentials from "./pages/admin/AdminCredentials";
 import AdminTopups from "./pages/admin/AdminTopups";
 import AdminResellers from "./pages/admin/AdminResellers";
 import AdminOrders from "./pages/admin/AdminOrders";
+import LandingPage from "./pages/LandingPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -66,7 +67,7 @@ function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/terms" element={<TermsPage />} />
