@@ -659,6 +659,15 @@ export default function AdminCredentials() {
                     </span>
                   )}
                 </span>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1.5 text-muted-foreground"
+                  onClick={() => setSelectedIds(new Set())}
+                >
+                  <X className="w-3.5 h-3.5" />
+                  Clear
+                </Button>
                 <div className="w-px h-5 bg-border" />
                 <Button
                   size="sm"
