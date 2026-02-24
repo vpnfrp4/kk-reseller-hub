@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, KeyRound, Upload, X, ImageIcon, GripVertical, RotateCcw } from "lucide-react";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
+import BulkTierDialog from "@/components/admin/BulkTierDialog";
 import { Progress } from "@/components/ui/progress";
 import BulkImageUpload from "@/components/admin/BulkImageUpload";
 import { toast } from "sonner";
@@ -293,6 +294,7 @@ export default function AdminProducts() {
           <p className="text-muted-foreground text-sm">Manage digital service products</p>
         </div>
         <div className="flex gap-2">
+          <BulkTierDialog />
           <BulkImageUpload products={(products || []).map((p: any) => ({ id: p.id, name: p.name, icon: p.icon, image_url: p.image_url }))} />
           <Dialog open={dialogOpen} onOpenChange={(v) => { setDialogOpen(v); if (!v) resetForm(); }}>
             <DialogTrigger asChild>
