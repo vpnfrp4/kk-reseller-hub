@@ -210,6 +210,20 @@
     animation: shimmer 3s ease-in-out infinite;
   }
 
+  /* Gold shimmer overlay for logo hover */
+  .gold-shimmer-bg {
+    background: linear-gradient(
+      110deg,
+      transparent 20%,
+      hsl(48 100% 50% / 0.4) 45%,
+      hsl(43 76% 47% / 0.6) 50%,
+      hsl(48 100% 50% / 0.4) 55%,
+      transparent 80%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+
   /* Button glow – gold */
   .btn-glow {
     background: var(--gradient-gold);

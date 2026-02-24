@@ -62,13 +62,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="p-6 border-b border-border/30">
           <Link to="/dashboard" className="flex items-center gap-3 group">
             <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden"
+              className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:shadow-luxury group-hover:scale-105"
               style={{ background: "var(--gradient-gold)" }}
             >
-              <Crown className="w-5 h-5 text-primary-foreground relative z-10" />
+              <Crown className="w-5 h-5 text-primary-foreground relative z-10 transition-transform duration-300 group-hover:rotate-12" />
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 gold-shimmer-bg" />
             </div>
             <div>
-              <span className="text-lg font-bold text-foreground tracking-tight">KKTech</span>
+              <span className="text-lg font-bold text-foreground tracking-tight transition-colors duration-300 group-hover:gold-text">KKTech</span>
               <span className="text-[10px] block gold-text font-bold uppercase tracking-[0.2em]">Reseller</span>
             </div>
           </Link>
