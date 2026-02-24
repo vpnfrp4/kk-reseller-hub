@@ -166,6 +166,23 @@
       transform: translateY(0);
     }
   }
+  @keyframes savings-shimmer {
+    0%, 100% {
+      background-position: -100% center;
+    }
+    50% {
+      background-position: 200% center;
+    }
+  }
+
+  @keyframes savings-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 0 hsl(var(--success) / 0.4);
+    }
+    50% {
+      box-shadow: 0 0 8px 2px hsl(var(--success) / 0.2);
+    }
+  }
 }
 
 @layer components {

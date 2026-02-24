@@ -160,7 +160,10 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-2xl font-bold text-foreground">{product.name}</h1>
               {maxBulkDiscountPct > 0 && (
-                <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-success text-success-foreground">
+                <span
+                  className="text-[10px] font-bold px-2 py-1 rounded-full bg-success text-success-foreground"
+                  style={{ animation: 'savings-pulse 2.5s ease-in-out infinite' }}
+                >
                   Save up to {maxBulkDiscountPct}%
                 </span>
               )}
