@@ -94,7 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               notifyEvent(
                 "💰 Top-Up Approved!",
                 `${added.toLocaleString()} MMK has been added to your wallet.`,
-                "success"
+                "success",
+                "topupApproved"
               );
               // Persist notification to database
               supabase.from("notifications").insert({

@@ -1,12 +1,30 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { User, Lock } from "lucide-react";
+import {
+  User,
+  Lock,
+  Bell,
+  Volume2,
+  Wallet,
+  ShoppingBag,
+  AlertTriangle,
+  ClipboardList,
+  Globe,
+} from "lucide-react";
 import Breadcrumb from "@/components/Breadcrumb";
+import {
+  getNotificationPrefs,
+  setNotificationPrefs,
+  requestNotificationPermission,
+  playSound,
+  type NotificationPrefs,
+} from "@/lib/notifications";
 
 export default function SettingsPage() {
   const { profile, refreshProfile } = useAuth();
@@ -17,6 +35,35 @@ export default function SettingsPage() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
+
+  const [notifPrefs, setNotifPrefs] = useState<NotificationPrefs>(getNotificationPrefs);
+
+  useEffect(() => {
+    const handler = (e: Event) => setNotifPrefs((e as CustomEvent).detail);
+    window.addEventListener("notification-prefs-changed", handler);
+    return () => window.removeEventListener("notification-prefs-changed", handler);
+  }, []);
+
+  const updateNotifPref = (key: keyof NotificationPrefs, value: boolean) => {
+    setNotificationPrefs({ [key]: value });
+    setNotifPrefs((p) => ({ ...p, [key]: value }));
+  };
+
+  const handleSoundToggle = (enabled: boolean) => {
+    updateNotifPref("soundEnabled", enabled);
+    if (enabled) playSound("info");
+  };
+
+  const handleBrowserToggle = async (enabled: boolean) => {
+    if (enabled) {
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        toast.error("Browser notifications blocked. Enable in browser settings.");
+        return;
+      }
+    }
+    updateNotifPref("browserNotificationsEnabled", enabled);
+  };
 
   const handleUpdateName = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,6 +199,98 @@ export default function SettingsPage() {
             {changingPassword ? "Changing..." : "Change Password"}
           </Button>
         </form>
+      </div>
+
+      {/* Notification Preferences */}
+      <div className="glass-card p-6 space-y-5 animate-fade-in" style={{ animationDelay: "0.15s" }}>
+        <div className="flex items-center gap-2 font-semibold">
+          <Bell className="w-5 h-5 text-primary" />
+          <span className="gold-text">Notification Preferences</span>
+        </div>
+
+        {/* Delivery Methods */}
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Delivery Methods</p>
+          <div className="space-y-3 mt-3">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
+              <div className="flex items-center gap-3">
+                <Volume2 className={`w-4 h-4 ${notifPrefs.soundEnabled ? "text-primary" : "text-muted-foreground"}`} />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Sound Effects</p>
+                  <p className="text-xs text-muted-foreground">Play audio chime for alerts</p>
+                </div>
+              </div>
+              <Switch checked={notifPrefs.soundEnabled} onCheckedChange={handleSoundToggle} />
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
+              <div className="flex items-center gap-3">
+                <Globe className={`w-4 h-4 ${notifPrefs.browserNotificationsEnabled ? "text-primary" : "text-muted-foreground"}`} />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Browser Notifications</p>
+                  <p className="text-xs text-muted-foreground">Show desktop alerts when tab is unfocused</p>
+                </div>
+              </div>
+              <Switch checked={notifPrefs.browserNotificationsEnabled} onCheckedChange={handleBrowserToggle} />
+            </div>
+          </div>
+
+          {"Notification" in window && Notification.permission === "denied" && notifPrefs.browserNotificationsEnabled && (
+            <p className="text-[11px] text-destructive mt-2 px-1">
+              Browser notifications are blocked. Enable them in your browser settings.
+            </p>
+          )}
+        </div>
+
+        {/* Alert Types */}
+        <div className="space-y-1 pt-2 border-t border-border/30">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Alert Types</p>
+          <div className="space-y-3 mt-3">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
+              <div className="flex items-center gap-3">
+                <Wallet className={`w-4 h-4 ${notifPrefs.topupApproved ? "text-success" : "text-muted-foreground"}`} />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Top-Up Approved</p>
+                  <p className="text-xs text-muted-foreground">When your wallet top-up is approved</p>
+                </div>
+              </div>
+              <Switch checked={notifPrefs.topupApproved} onCheckedChange={(v) => updateNotifPref("topupApproved", v)} />
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
+              <div className="flex items-center gap-3">
+                <ShoppingBag className={`w-4 h-4 ${notifPrefs.purchaseComplete ? "text-primary" : "text-muted-foreground"}`} />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Purchase Complete</p>
+                  <p className="text-xs text-muted-foreground">When a product purchase is completed</p>
+                </div>
+              </div>
+              <Switch checked={notifPrefs.purchaseComplete} onCheckedChange={(v) => updateNotifPref("purchaseComplete", v)} />
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className={`w-4 h-4 ${notifPrefs.lowBalance ? "text-warning" : "text-muted-foreground"}`} />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Low Balance Warning</p>
+                  <p className="text-xs text-muted-foreground">When your balance drops below threshold</p>
+                </div>
+              </div>
+              <Switch checked={notifPrefs.lowBalance} onCheckedChange={(v) => updateNotifPref("lowBalance", v)} />
+            </div>
+
+            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
+              <div className="flex items-center gap-3">
+                <ClipboardList className={`w-4 h-4 ${notifPrefs.orderUpdates ? "text-ice" : "text-muted-foreground"}`} />
+                <div>
+                  <p className="text-sm font-medium text-foreground">Order Updates</p>
+                  <p className="text-xs text-muted-foreground">When your order status changes</p>
+                </div>
+              </div>
+              <Switch checked={notifPrefs.orderUpdates} onCheckedChange={(v) => updateNotifPref("orderUpdates", v)} />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

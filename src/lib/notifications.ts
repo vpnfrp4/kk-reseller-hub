@@ -3,11 +3,20 @@ const PREFS_KEY = "notification-preferences";
 export interface NotificationPrefs {
   soundEnabled: boolean;
   browserNotificationsEnabled: boolean;
+  // Granular alert type controls
+  topupApproved: boolean;
+  purchaseComplete: boolean;
+  lowBalance: boolean;
+  orderUpdates: boolean;
 }
 
 const defaultPrefs: NotificationPrefs = {
   soundEnabled: true,
   browserNotificationsEnabled: true,
+  topupApproved: true,
+  purchaseComplete: true,
+  lowBalance: true,
+  orderUpdates: true,
 };
 
 export function getNotificationPrefs(): NotificationPrefs {
@@ -88,11 +97,19 @@ export function sendBrowserNotification(title: string, body: string, icon?: stri
   } catch {}
 }
 
+export type AlertCategory = "topupApproved" | "purchaseComplete" | "lowBalance" | "orderUpdates";
+
 export function notifyEvent(
   title: string,
   body: string,
-  sound: "success" | "info" | "error" = "info"
+  sound: "success" | "info" | "error" = "info",
+  category?: AlertCategory
 ) {
+  // If a category is specified, check if it's enabled
+  if (category) {
+    const prefs = getNotificationPrefs();
+    if (!prefs[category]) return;
+  }
   playSound(sound);
   sendBrowserNotification(title, body);
 }
