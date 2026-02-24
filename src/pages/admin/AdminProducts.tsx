@@ -6,6 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -23,6 +31,17 @@ import { Separator } from "@/components/ui/separator";
 import FulfillmentConfig, { DEFAULT_DELIVERY_TIMES } from "@/components/admin/FulfillmentConfig";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { DataCard, Money } from "@/components/shared";
+
+interface CustomField {
+  id?: string;
+  field_name: string;
+  field_type: string;
+  required: boolean;
+  min_length: number | null;
+  max_length: number | null;
+  linked_mode: string;
+  sort_order: number;
+}
 
 const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
 
@@ -82,6 +101,7 @@ export default function AdminProducts() {
   });
   const [fulfillmentModes, setFulfillmentModes] = useState<string[]>(["instant"]);
   const [deliveryTimeConfig, setDeliveryTimeConfig] = useState<Record<string, string>>(DEFAULT_DELIVERY_TIMES);
+  const [customFields, setCustomFields] = useState<CustomField[]>([]);
 
   const { data: products } = useQuery({
     queryKey: ["admin-products"],
@@ -113,6 +133,25 @@ export default function AdminProducts() {
     setImagePreview(null);
     setFulfillmentModes(["instant"]);
     setDeliveryTimeConfig(DEFAULT_DELIVERY_TIMES);
+    setCustomFields([]);
+  };
+
+  const loadCustomFields = async (productId: string) => {
+    const { data } = await supabase
+      .from("product_custom_fields")
+      .select("*")
+      .eq("product_id", productId)
+      .order("sort_order", { ascending: true });
+    setCustomFields((data || []).map((f: any) => ({
+      id: f.id,
+      field_name: f.field_name,
+      field_type: f.field_type,
+      required: f.required,
+      min_length: f.min_length,
+      max_length: f.max_length,
+      linked_mode: f.linked_mode,
+      sort_order: f.sort_order,
+    })));
   };
 
   const openEdit = (p: any) => {
@@ -125,6 +164,7 @@ export default function AdminProducts() {
     setImagePreview(p.image_url || null);
     setFulfillmentModes(Array.isArray(p.fulfillment_modes) ? p.fulfillment_modes : ["instant"]);
     setDeliveryTimeConfig(p.delivery_time_config && typeof p.delivery_time_config === "object" ? p.delivery_time_config : DEFAULT_DELIVERY_TIMES);
+    loadCustomFields(p.id);
     setDialogOpen(true);
   };
 
@@ -238,6 +278,26 @@ export default function AdminProducts() {
     setImagePreview(null);
   };
 
+  const saveCustomFields = async (productId: string) => {
+    // Delete existing fields for this product
+    await supabase.from("product_custom_fields").delete().eq("product_id", productId);
+    // Insert new fields
+    if (customFields.length > 0) {
+      const rows = customFields.map((f, i) => ({
+        product_id: productId,
+        field_name: f.field_name,
+        field_type: f.field_type,
+        required: f.required,
+        min_length: f.min_length,
+        max_length: f.max_length,
+        linked_mode: f.linked_mode,
+        sort_order: i,
+      }));
+      const { error } = await supabase.from("product_custom_fields").insert(rows);
+      if (error) toast.error("Failed to save custom fields: " + error.message);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload: any = {
@@ -253,10 +313,12 @@ export default function AdminProducts() {
     if (editing) {
       const { error } = await supabase.from("products").update(payload).eq("id", editing.id);
       if (error) { toast.error(error.message); return; }
+      await saveCustomFields(editing.id);
       toast.success("Product updated");
     } else {
-      const { error } = await supabase.from("products").insert(payload);
+      const { data, error } = await supabase.from("products").insert(payload).select("id").single();
       if (error) { toast.error(error.message); return; }
+      if (data) await saveCustomFields(data.id);
       toast.success("Product created");
     }
 
@@ -427,6 +489,149 @@ export default function AdminProducts() {
                 onModesChange={setFulfillmentModes}
                 onDeliveryTimeChange={setDeliveryTimeConfig}
               />
+
+              <Separator />
+
+              {/* Custom Fields */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-muted-foreground text-xs font-medium">Custom Fields</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1"
+                    onClick={() => setCustomFields([...customFields, {
+                      field_name: "",
+                      field_type: "text",
+                      required: true,
+                      min_length: null,
+                      max_length: null,
+                      linked_mode: fulfillmentModes[0] || "instant",
+                      sort_order: customFields.length,
+                    }])}
+                  >
+                    <Plus className="w-3 h-3" /> Add Field
+                  </Button>
+                </div>
+
+                {customFields.length === 0 && (
+                  <p className="text-xs text-muted-foreground/60 text-center py-3 border border-dashed border-border rounded-lg">
+                    No custom fields configured
+                  </p>
+                )}
+
+                {customFields.map((field, idx) => (
+                  <div key={idx} className="space-y-2 p-3 rounded-lg border border-border bg-muted/20">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-muted-foreground">Field {idx + 1}</span>
+                      <button
+                        type="button"
+                        onClick={() => setCustomFields(customFields.filter((_, i) => i !== idx))}
+                        className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-muted-foreground text-[10px]">Field Name</Label>
+                        <Input
+                          value={field.field_name}
+                          onChange={(e) => {
+                            const updated = [...customFields];
+                            updated[idx] = { ...updated[idx], field_name: e.target.value };
+                            setCustomFields(updated);
+                          }}
+                          placeholder="e.g. Username"
+                          className="bg-muted/50 border-border h-8 text-xs"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-muted-foreground text-[10px]">Field Type</Label>
+                        <Select
+                          value={field.field_type}
+                          onValueChange={(val) => {
+                            const updated = [...customFields];
+                            updated[idx] = { ...updated[idx], field_type: val };
+                            setCustomFields(updated);
+                          }}
+                        >
+                          <SelectTrigger className="bg-muted/50 border-border h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="text">Text</SelectItem>
+                            <SelectItem value="email">Email</SelectItem>
+                            <SelectItem value="number">Number</SelectItem>
+                            <SelectItem value="select">Select</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-muted-foreground text-[10px]">Min Length</Label>
+                        <Input
+                          type="number"
+                          value={field.min_length ?? ""}
+                          onChange={(e) => {
+                            const updated = [...customFields];
+                            updated[idx] = { ...updated[idx], min_length: e.target.value ? parseInt(e.target.value) : null };
+                            setCustomFields(updated);
+                          }}
+                          className="bg-muted/50 border-border h-8 text-xs font-mono"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-muted-foreground text-[10px]">Max Length</Label>
+                        <Input
+                          type="number"
+                          value={field.max_length ?? ""}
+                          onChange={(e) => {
+                            const updated = [...customFields];
+                            updated[idx] = { ...updated[idx], max_length: e.target.value ? parseInt(e.target.value) : null };
+                            setCustomFields(updated);
+                          }}
+                          className="bg-muted/50 border-border h-8 text-xs font-mono"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-muted-foreground text-[10px]">Linked Mode</Label>
+                        <Select
+                          value={field.linked_mode}
+                          onValueChange={(val) => {
+                            const updated = [...customFields];
+                            updated[idx] = { ...updated[idx], linked_mode: val };
+                            setCustomFields(updated);
+                          }}
+                        >
+                          <SelectTrigger className="bg-muted/50 border-border h-8 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {fulfillmentModes.map((m) => (
+                              <SelectItem key={m} value={m}>{m}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={field.required}
+                        onCheckedChange={(checked) => {
+                          const updated = [...customFields];
+                          updated[idx] = { ...updated[idx], required: checked };
+                          setCustomFields(updated);
+                        }}
+                        className="scale-75"
+                      />
+                      <Label className="text-muted-foreground text-[10px]">Required</Label>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
               <Button type="submit" className="w-full btn-glow">{editing ? "Update" : "Create"} Product</Button>
             </form>
