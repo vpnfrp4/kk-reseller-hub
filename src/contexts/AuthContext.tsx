@@ -49,7 +49,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
         if (currentUser) {
-          // Use setTimeout to avoid Supabase auth deadlock
           setTimeout(() => fetchProfile(currentUser.id), 0);
         } else {
           setProfile(null);
@@ -69,6 +68,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Realtime profile updates (e.g. when admin approves a top-up)
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel('profile-balance')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          setProfile((prev) => prev ? { ...prev, ...payload.new } as Profile : prev);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
