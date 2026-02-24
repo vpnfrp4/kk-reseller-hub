@@ -1,4 +1,4 @@
-import { CheckCircle2, Copy, ArrowLeft } from "lucide-react";
+import { CheckCircle2, Copy, ArrowLeft, History } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -72,17 +72,30 @@ export default function PurchaseSuccessModal({ result, onClose }: PurchaseSucces
               These credentials are also saved in your Order History.
             </p>
 
-            <Button
-              variant="outline"
-              className="w-full gap-2"
-              onClick={() => {
-                onClose();
-                navigate("/dashboard/products");
-              }}
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to Products
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 gap-2"
+                onClick={() => {
+                  onClose();
+                  navigate("/dashboard/products");
+                }}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Products
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1 gap-2"
+                onClick={() => {
+                  onClose();
+                  navigate("/dashboard/orders");
+                }}
+              >
+                <History className="w-4 h-4" />
+                Order History
+              </Button>
+            </div>
           </div>
         )}
       </DialogContent>
