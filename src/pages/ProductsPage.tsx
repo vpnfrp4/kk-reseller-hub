@@ -32,6 +32,7 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState<string>("name");
   const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [lastSavings, setLastSavings] = useState(0);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -126,6 +127,14 @@ export default function ProductsPage() {
   };
 
   const handleBuy = async (product: any, quantity: number = 1) => {
+    // Calculate savings before clearing confirmProduct
+    const tiers = getTiersForProduct(product.id);
+    const highestTierPrice = tiers.length > 0 ? Math.max(...tiers.map((t: any) => t.unit_price)) : product.wholesale_price;
+    const sortedTiers = [...tiers].sort((a: any, b: any) => b.min_qty - a.min_qty);
+    const activeTier = sortedTiers.find((t: any) => quantity >= t.min_qty && (t.max_qty === null || quantity <= t.max_qty));
+    const unitPrice = activeTier ? activeTier.unit_price : product.wholesale_price;
+    const savings = (highestTierPrice - unitPrice) * quantity;
+
     setConfirmProduct(null);
     setPurchasing(product.id);
 
@@ -140,6 +149,7 @@ export default function ProductsPage() {
         return;
       }
 
+      setLastSavings(savings);
       setResult(data as PurchaseResult);
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -225,7 +235,8 @@ export default function ProductsPage() {
 
       <PurchaseSuccessModal
         result={result}
-        onClose={() => setResult(null)}
+        onClose={() => { setResult(null); setLastSavings(0); }}
+        totalSavings={lastSavings}
       />
     </div>
 
