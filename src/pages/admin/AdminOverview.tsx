@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, KeyRound, Wallet, Users, ShoppingCart, AlertTriangle, Settings2, TrendingUp, TrendingDown, Clock, Plus, CheckCircle2, ArrowRight } from "lucide-react";
+import { KeyRound, Wallet, ShoppingCart, AlertTriangle, Settings2, TrendingUp, TrendingDown, Clock, Plus, CheckCircle2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
 import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useCountUp } from "@/hooks/use-count-up";
 import { format, subDays } from "date-fns";
+import { PageContainer, DataCard, Money } from "@/components/shared";
 
 const THRESHOLD_KEY = "admin-low-balance-threshold";
 const DEFAULT_THRESHOLD = 5000;
@@ -25,60 +26,42 @@ function getStoredThreshold(): number {
   return DEFAULT_THRESHOLD;
 }
 
+/* KPI Card with sparkline — admin-specific, extends shared pattern */
 function KpiCard({
-  label,
-  value,
-  icon: Icon,
-  color,
-  trend,
-  sparkData,
-  delay,
-  suffix,
+  label, value, icon: Icon, color, trend, sparkData, delay, suffix,
 }: {
-  label: string;
-  value: number;
-  icon: any;
-  color: string;
-  trend?: { value: number; label: string };
-  sparkData?: number[];
-  delay: number;
-  suffix?: string;
+  label: string; value: number; icon: any; color: string;
+  trend?: { value: number; label: string }; sparkData?: number[];
+  delay: number; suffix?: string;
 }) {
   const display = useCountUp(value, 900);
-
   return (
     <div
-      className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/60 backdrop-blur-xl p-5 opacity-0 animate-stagger-in hover-lift"
+      className="group stat-card hover-lift opacity-0 animate-stagger-in"
       style={{ animationDelay: `${delay}s` }}
     >
-      {/* Gold accent top border */}
-      <div className="absolute inset-x-0 top-0 h-[2px]" style={{ background: "var(--gradient-gold)" }} />
-
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2.5">
-          <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${color} bg-current/10`} style={{ background: `hsl(var(--${color.replace("text-", "")}) / 0.1)` }}>
+      <div className="flex items-start justify-between mb-compact">
+        <div className="flex items-center gap-compact">
+          <div className="w-9 h-9 rounded-btn flex items-center justify-center" style={{ background: `hsl(var(--${color.replace("text-", "")}) / 0.1)` }}>
             <Icon className={`w-[18px] h-[18px] ${color}`} strokeWidth={1.5} />
           </div>
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
+          <span className="text-caption font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
         </div>
         {sparkData && sparkData.length > 1 && (
           <MiniSparkline
-            data={sparkData}
-            width={64}
-            height={24}
+            data={sparkData} width={64} height={24}
             color={`hsl(var(--${color.replace("text-", "")}))`}
             className="opacity-60 group-hover:opacity-100 transition-opacity"
           />
         )}
       </div>
-
       <div className="flex items-end justify-between">
-        <p className="text-3xl font-bold font-mono text-foreground tracking-tight">
+        <p className="text-3xl font-bold font-mono tabular-nums text-foreground tracking-tight">
           {display.toLocaleString()}
           {suffix && <span className="text-base font-semibold text-muted-foreground ml-1">{suffix}</span>}
         </p>
         {trend && (
-          <div className={`flex items-center gap-1 text-xs font-medium ${trend.value >= 0 ? "text-success" : "text-destructive"}`}>
+          <div className={`flex items-center gap-1 text-caption font-medium ${trend.value >= 0 ? "text-success" : "text-destructive"}`}>
             {trend.value >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
             {trend.value >= 0 ? "+" : ""}{trend.value.toFixed(1)}%
           </div>
@@ -184,7 +167,6 @@ export default function AdminOverview() {
     },
   });
 
-  // Sparkline data from last 7 days of orders
   const { data: sparkRaw } = useQuery({
     queryKey: ["admin-spark-7d"],
     queryFn: async () => {
@@ -290,13 +272,14 @@ export default function AdminOverview() {
   ];
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-fade-in">
+    <PageContainer>
+      {/* Header + Quick Actions */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-default animate-fade-in">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Admin Overview</h1>
-          <p className="text-muted-foreground text-sm">Manage your reseller platform</p>
+          <h1 className="text-h1 text-foreground">Admin Overview</h1>
+          <p className="text-muted-foreground text-body">Manage your reseller platform</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-tight">
           <Link to="/admin/credentials">
             <Button size="sm" className="btn-glow gap-1.5 h-8 text-xs">
               <Plus className="w-3.5 h-3.5" />Add Credentials
@@ -307,7 +290,7 @@ export default function AdminOverview() {
               <CheckCircle2 className="w-3.5 h-3.5" />Approve Top-ups
               {(stats?.pendingTopups || 0) > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1 animate-pulse">
-                  {stats.pendingTopups}
+                  {stats!.pendingTopups}
                 </span>
               )}
             </Button>
@@ -321,89 +304,72 @@ export default function AdminOverview() {
         </div>
       </div>
 
-      {/* Premium KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-default">
         {kpiCards.map((card, i) => (
           <KpiCard key={card.label} {...card} delay={i * 0.08} />
         ))}
       </div>
 
       {/* Low Balance Warning */}
-      <div className="glass-card border-warning/30 p-5 animate-fade-in" style={{ animationDelay: "0.35s" }}>
-        <div className="flex items-center gap-2 mb-3">
-          <AlertTriangle className="w-5 h-5 text-warning" />
-          <h2 className="text-sm font-semibold text-foreground">
-            Low Balance Alert
-            <span className="ml-2 text-xs font-normal text-muted-foreground">
-              ({lowBalanceResellers?.length || 0} reseller{(lowBalanceResellers?.length || 0) !== 1 ? "s" : ""} below {threshold.toLocaleString()} MMK)
-            </span>
-          </h2>
-          <div className="flex items-center gap-2 ml-auto">
+      <DataCard
+        title="Low Balance Alert"
+        description={`${lowBalanceResellers?.length || 0} reseller${(lowBalanceResellers?.length || 0) !== 1 ? "s" : ""} below ${threshold.toLocaleString()} MMK`}
+        className="border-warning/30 animate-fade-in [animation-delay:0.35s]"
+        actions={
+          <div className="flex items-center gap-tight">
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="ghost" size="icon" className="h-7 w-7">
                   <Settings2 className="w-4 h-4 text-muted-foreground" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-64 p-4" align="end">
-                <p className="text-sm font-medium text-foreground mb-2">Alert Threshold</p>
-                <div className="flex gap-2">
+              <PopoverContent className="w-64 p-card" align="end">
+                <p className="text-sm font-medium text-foreground mb-tight">Alert Threshold</p>
+                <div className="flex gap-tight">
                   <Input
-                    type="number"
-                    value={thresholdInput}
+                    type="number" value={thresholdInput}
                     onChange={(e) => setThresholdInput(e.target.value)}
-                    className="h-8 text-sm bg-muted/30 border-border"
-                    min={0}
-                    placeholder="Amount in MMK"
+                    className="h-8 text-sm bg-muted/30 border-border" min={0} placeholder="Amount in MMK"
                   />
-                  <Button
-                    size="sm"
-                    className="h-8 text-xs shrink-0"
-                    onClick={() => {
-                      const val = Math.max(0, Math.round(Number(thresholdInput)));
-                      setThreshold(val);
-                      thresholdRef.current = val;
-                      localStorage.setItem(THRESHOLD_KEY, String(val));
-                      setThresholdInput(String(val));
-                      queryClient.invalidateQueries({ queryKey: ["admin-low-balance"] });
-                      toast.success(`Threshold set to ${val.toLocaleString()} MMK`);
-                    }}
-                  >
-                    Save
-                  </Button>
+                  <Button size="sm" className="h-8 text-xs shrink-0" onClick={() => {
+                    const val = Math.max(0, Math.round(Number(thresholdInput)));
+                    setThreshold(val); thresholdRef.current = val;
+                    localStorage.setItem(THRESHOLD_KEY, String(val));
+                    setThresholdInput(String(val));
+                    queryClient.invalidateQueries({ queryKey: ["admin-low-balance"] });
+                    toast.success(`Threshold set to ${val.toLocaleString()} MMK`);
+                  }}>Save</Button>
                 </div>
-                <p className="text-[10px] text-muted-foreground mt-2">Resellers below this balance will trigger alerts</p>
+                <p className="text-caption text-muted-foreground mt-tight">Resellers below this balance will trigger alerts</p>
               </PopoverContent>
             </Popover>
-            <Link to="/admin/resellers" className="text-xs text-primary hover:underline">
-              View all
-            </Link>
+            <Link to="/admin/resellers" className="text-caption text-primary hover:underline">View all</Link>
           </div>
-        </div>
+        }
+      >
         {lowBalanceResellers && lowBalanceResellers.length > 0 ? (
-          <div className="space-y-2">
+          <div className="space-y-tight">
             {lowBalanceResellers.slice(0, 5).map((r: any) => (
-              <div key={r.user_id} className="flex items-center justify-between p-2.5 rounded-lg bg-warning/5 border border-warning/10 hover:bg-warning/10 transition-colors">
+              <div key={r.user_id} className="flex items-center justify-between p-compact rounded-btn bg-warning/5 border border-warning/10 hover:bg-warning/10 transition-colors">
                 <div>
                   <p className="text-sm font-medium text-foreground">{r.name || "—"}</p>
-                  <p className="text-xs text-muted-foreground">{r.email}</p>
+                  <p className="text-caption text-muted-foreground">{r.email}</p>
                 </div>
-                <p className="text-sm font-mono font-semibold text-warning">{r.balance.toLocaleString()} MMK</p>
+                <Money amount={r.balance} className="text-sm font-semibold text-warning" />
               </div>
             ))}
             {lowBalanceResellers.length > 5 && (
-              <p className="text-xs text-muted-foreground text-center pt-1">
-                +{lowBalanceResellers.length - 5} more
-              </p>
+              <p className="text-caption text-muted-foreground text-center pt-micro">+{lowBalanceResellers.length - 5} more</p>
             )}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground text-center py-3">No resellers below threshold</p>
+          <p className="text-body text-muted-foreground text-center py-compact">No resellers below threshold</p>
         )}
-      </div>
+      </DataCard>
 
-      {/* Live Activity Feed + Analytics side by side on large screens */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Live Activity Feed + Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-card">
         <div className="lg:col-span-1">
           <LiveActivityFeed />
         </div>
@@ -412,66 +378,58 @@ export default function AdminOverview() {
         </div>
       </div>
 
-      <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.4s" }}>
-        <h2 className="text-lg font-semibold text-foreground mb-1">Credentials Overview</h2>
-        <p className="text-sm text-muted-foreground mb-4">Available vs Sold across all products</p>
-
-        <div className="flex items-center gap-4 mb-4">
-          <div className="flex items-center gap-2">
+      {/* Credentials Overview */}
+      <DataCard
+        title="Credentials Overview"
+        description="Available vs Sold across all products"
+        className="animate-fade-in [animation-delay:0.4s]"
+      >
+        <div className="flex items-center gap-default mb-default">
+          <div className="flex items-center gap-tight">
             <div className="w-3 h-3 rounded-full bg-success" />
-            <span className="text-xs text-muted-foreground">Available ({stats?.availableCredentials || 0})</span>
+            <span className="text-caption text-muted-foreground">Available ({stats?.availableCredentials || 0})</span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-tight">
             <div className="w-3 h-3 rounded-full bg-destructive" />
-            <span className="text-xs text-muted-foreground">Sold ({sold})</span>
+            <span className="text-caption text-muted-foreground">Sold ({sold})</span>
           </div>
-          <span className="text-xs text-muted-foreground ml-auto font-mono">{total} total</span>
+          <span className="text-caption text-muted-foreground ml-auto font-mono tabular-nums">{total} total</span>
         </div>
 
-        <div className="w-full h-3 rounded-full bg-muted overflow-hidden mb-6">
-          <div
-            className="h-full rounded-full bg-success transition-all duration-500"
-            style={{ width: `${availablePct}%` }}
-          />
+        <div className="w-full h-3 rounded-full bg-muted overflow-hidden mb-card">
+          <div className="h-full rounded-full bg-success transition-all duration-500" style={{ width: `${availablePct}%` }} />
         </div>
 
-        <div className="space-y-3">
+        <div className="space-y-compact">
           {(perProduct || []).map((p) => {
             const pTotal = p.available + p.sold;
             const pAvailPct = pTotal > 0 ? (p.available / pTotal) * 100 : 0;
             return (
-              <div key={p.name} className="flex items-center gap-3">
+              <div key={p.name} className="flex items-center gap-compact">
                 <span className="text-lg w-7 text-center shrink-0">{p.icon}</span>
                 <span className="text-sm text-foreground font-medium min-w-[120px]">{p.name}</span>
                 <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-success transition-all duration-500"
-                    style={{ width: `${pAvailPct}%` }}
-                  />
+                  <div className="h-full rounded-full bg-success transition-all duration-500" style={{ width: `${pAvailPct}%` }} />
                 </div>
-                <span className="text-xs font-mono text-muted-foreground min-w-[60px] text-right">
-                  {p.available}/{pTotal}
-                </span>
+                <span className="text-caption font-mono tabular-nums text-muted-foreground min-w-[60px] text-right">{p.available}/{pTotal}</span>
               </div>
             );
           })}
           {(!perProduct || perProduct.length === 0) && (
-            <p className="text-sm text-muted-foreground text-center py-4">No credentials added yet</p>
+            <p className="text-body text-muted-foreground text-center py-default">No credentials added yet</p>
           )}
         </div>
-      </div>
+      </DataCard>
 
-      <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.5s" }}>
-        <div className="flex items-center gap-3 mb-4">
-          <ShoppingCart className="w-5 h-5 text-primary" />
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">Recent Orders</h2>
-            <p className="text-sm text-muted-foreground">Latest purchases across all resellers</p>
-          </div>
-        </div>
+      {/* Recent Orders */}
+      <DataCard
+        title="Recent Orders"
+        description="Latest purchases across all resellers"
+        className="animate-fade-in [animation-delay:0.5s]"
+      >
         <RecentOrdersFeed />
-      </div>
-    </div>
+      </DataCard>
+    </PageContainer>
   );
 }
 
@@ -501,7 +459,7 @@ function RecentOrdersFeed() {
   });
 
   if (!orders || orders.length === 0) {
-    return <p className="text-sm text-muted-foreground text-center py-6">No orders yet</p>;
+    return <p className="text-body text-muted-foreground text-center py-card">No orders yet</p>;
   }
 
   const timeAgo = (date: string) => {
@@ -511,26 +469,25 @@ function RecentOrdersFeed() {
     if (minutes < 60) return `${minutes}m ago`;
     const hours = Math.floor(minutes / 60);
     if (hours < 24) return `${hours}h ago`;
-    const days = Math.floor(hours / 24);
-    return `${days}d ago`;
+    return `${Math.floor(hours / 24)}d ago`;
   };
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-micro">
       {orders.map((o: any, i: number) => (
-        <div key={o.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/30 transition-all duration-200 hover:translate-x-1 opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.05}s` }}>
-          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
+        <div key={o.id} className="flex items-center gap-default p-compact rounded-btn hover:bg-muted/30 transition-all duration-200 hover:translate-x-1 opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.05}s` }}>
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-caption font-bold text-primary">
             {(o.profile?.name || "?")[0].toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-foreground truncate">{o.product_name}</p>
-            <p className="text-xs text-muted-foreground truncate">
+            <p className="text-caption text-muted-foreground truncate">
               {o.profile?.name || o.profile?.email || "Unknown user"}
             </p>
           </div>
           <div className="text-right shrink-0">
-            <p className="text-sm font-mono font-semibold text-foreground">{o.price.toLocaleString()} MMK</p>
-            <p className="text-[10px] text-muted-foreground">{timeAgo(o.created_at)}</p>
+            <Money amount={o.price} className="text-sm font-semibold text-foreground" />
+            <p className="text-caption text-muted-foreground">{timeAgo(o.created_at)}</p>
           </div>
         </div>
       ))}
