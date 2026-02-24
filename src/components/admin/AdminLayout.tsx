@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
@@ -17,6 +17,8 @@ import {
 import { Button } from "@/components/ui/button";
 import NotificationSettings from "@/components/NotificationSettings";
 import ThemeToggle from "@/components/ThemeToggle";
+import { toast } from "sonner";
+import { notifyEvent } from "@/lib/notifications";
 
 const navItems = [
   { label: "Overview", icon: LayoutDashboard, path: "/admin" },
@@ -46,6 +48,40 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     checkAdmin();
   }, [user]);
 
+  // Check for credentials expiring within 3 days
+  const expiryChecked = useRef(false);
+  useEffect(() => {
+    if (!isAdmin || expiryChecked.current) return;
+    expiryChecked.current = true;
+
+    const checkExpiring = async () => {
+      const threeDaysFromNow = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from("product_credentials")
+        .select("id, credentials, expires_at, products(name)")
+        .eq("is_sold", false)
+        .not("expires_at", "is", null)
+        .lte("expires_at", threeDaysFromNow);
+
+      if (error || !data || data.length === 0) return;
+
+      const expired = data.filter((c: any) => new Date(c.expires_at).getTime() <= Date.now());
+      const expiring = data.filter((c: any) => new Date(c.expires_at).getTime() > Date.now());
+
+      const lines: string[] = [];
+      if (expired.length > 0) lines.push(`${expired.length} expired`);
+      if (expiring.length > 0) lines.push(`${expiring.length} expiring soon`);
+      const message = `⚠️ ${lines.join(" and ")} unsold credential${data.length === 1 ? "" : "s"}`;
+
+      toast.warning(message, {
+        duration: 10000,
+        action: { label: "View", onClick: () => navigate("/admin/credentials?status=expiring") },
+      });
+      notifyEvent("Credential Expiry Alert", message, "error");
+    };
+
+    checkExpiring();
+  }, [isAdmin, navigate]);
   if (loading || isAdmin === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
