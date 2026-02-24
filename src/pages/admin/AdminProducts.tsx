@@ -41,6 +41,7 @@ interface CustomField {
   max_length: number | null;
   linked_mode: string;
   sort_order: number;
+  options: string[];
 }
 
 const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
@@ -151,6 +152,7 @@ export default function AdminProducts() {
       max_length: f.max_length,
       linked_mode: f.linked_mode,
       sort_order: f.sort_order,
+      options: Array.isArray(f.options) ? f.options : [],
     })));
   };
 
@@ -292,6 +294,7 @@ export default function AdminProducts() {
         max_length: f.max_length,
         linked_mode: f.linked_mode,
         sort_order: i,
+        options: f.field_type === "select" && f.options.length > 0 ? f.options : null,
       }));
       const { error } = await supabase.from("product_custom_fields").insert(rows);
       if (error) toast.error("Failed to save custom fields: " + error.message);
@@ -509,6 +512,7 @@ export default function AdminProducts() {
                       max_length: null,
                       linked_mode: fulfillmentModes[0] || "instant",
                       sort_order: customFields.length,
+                      options: [],
                     }])}
                   >
                     <Plus className="w-3 h-3" /> Add Field
@@ -629,6 +633,59 @@ export default function AdminProducts() {
                       />
                       <Label className="text-muted-foreground text-[10px]">Required</Label>
                     </div>
+
+                    {/* Options for select type */}
+                    {field.field_type === "select" && (
+                      <div className="space-y-1.5 pt-1 border-t border-border/50">
+                        <div className="flex items-center justify-between">
+                          <Label className="text-muted-foreground text-[10px]">Dropdown Options</Label>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-5 text-[10px] px-1.5 gap-0.5"
+                            onClick={() => {
+                              const updated = [...customFields];
+                              updated[idx] = { ...updated[idx], options: [...(updated[idx].options || []), ""] };
+                              setCustomFields(updated);
+                            }}
+                          >
+                            <Plus className="w-2.5 h-2.5" /> Add
+                          </Button>
+                        </div>
+                        {(!field.options || field.options.length === 0) && (
+                          <p className="text-[10px] text-muted-foreground/50 text-center py-1.5">No options added</p>
+                        )}
+                        {(field.options || []).map((opt, optIdx) => (
+                          <div key={optIdx} className="flex items-center gap-1.5">
+                            <Input
+                              value={opt}
+                              onChange={(e) => {
+                                const updated = [...customFields];
+                                const newOpts = [...(updated[idx].options || [])];
+                                newOpts[optIdx] = e.target.value;
+                                updated[idx] = { ...updated[idx], options: newOpts };
+                                setCustomFields(updated);
+                              }}
+                              placeholder={`Option ${optIdx + 1}`}
+                              className="bg-muted/50 border-border h-7 text-xs flex-1"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = [...customFields];
+                                const newOpts = (updated[idx].options || []).filter((_, i) => i !== optIdx);
+                                updated[idx] = { ...updated[idx], options: newOpts };
+                                setCustomFields(updated);
+                              }}
+                              className="p-0.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
