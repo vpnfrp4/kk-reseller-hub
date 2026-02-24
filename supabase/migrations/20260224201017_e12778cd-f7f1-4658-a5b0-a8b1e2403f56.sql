@@ -1,0 +1,2 @@
+ALTER TABLE public.wallet_transactions REPLICA IDENTITY FULL;
+ALTER TABLE public.profiles REPLICA IDENTITY FULL;
