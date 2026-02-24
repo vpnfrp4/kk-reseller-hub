@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ShieldCheck,
@@ -36,6 +37,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Badge counts
+  const { data: pendingTopups = 0 } = useQuery({
+    queryKey: ["sidebar-pending-topups"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("wallet_transactions")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "pending");
+      return count || 0;
+    },
+    refetchInterval: 30000,
+  });
+
+  const { data: expiringSoon = 0 } = useQuery({
+    queryKey: ["sidebar-expiring-creds"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("product_credentials")
+        .select("id", { count: "exact", head: true })
+        .eq("is_sold", false)
+        .not("expires_at", "is", null)
+        .lte("expires_at", new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString());
+      return count || 0;
+    },
+    refetchInterval: 30000,
+  });
+
+  const badgeMap: Record<string, number> = {
+    "/admin/topups": pendingTopups,
+    "/admin/credentials": expiringSoon,
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -126,6 +159,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="flex-1 p-3 space-y-0.5 mt-2">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
+            const badge = badgeMap[item.path] || 0;
             return (
               <Link
                 key={item.path}
@@ -138,7 +172,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 }`}
               >
                 <item.icon className={`w-[18px] h-[18px] ${active ? "text-primary" : ""}`} strokeWidth={active ? 2 : 1.5} />
-                {item.label}
+                <span className="flex-1">{item.label}</span>
+                {badge > 0 && (
+                  <span className="min-w-[20px] h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1.5 animate-pulse">
+                    {badge}
+                  </span>
+                )}
               </Link>
             );
           })}
