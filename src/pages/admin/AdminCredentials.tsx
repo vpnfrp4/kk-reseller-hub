@@ -15,7 +15,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download, Upload, AlertTriangle, Pencil, X, Check, ArrowRightLeft } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download, Upload, AlertTriangle, Pencil, X, Check, ArrowRightLeft, CheckCheck } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -641,6 +641,39 @@ export default function AdminCredentials() {
             {selectedIds.size} selected
           </span>
           <div className="w-px h-5 bg-border" />
+          {(() => {
+            const filtered = filterCredentials(credentials || []);
+            const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
+            const currentPage = Math.min(page, totalPages);
+            const paginated = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
+            const unsoldOnPage = paginated.filter((c: any) => !c.is_sold);
+            const allOnPageSelected = unsoldOnPage.length > 0 && unsoldOnPage.every((c: any) => selectedIds.has(c.id));
+            return (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="gap-1.5 text-muted-foreground"
+                onClick={() => {
+                  if (allOnPageSelected) {
+                    setSelectedIds(prev => {
+                      const next = new Set(prev);
+                      unsoldOnPage.forEach((c: any) => next.delete(c.id));
+                      return next;
+                    });
+                  } else {
+                    setSelectedIds(prev => {
+                      const next = new Set(prev);
+                      unsoldOnPage.forEach((c: any) => next.add(c.id));
+                      return next;
+                    });
+                  }
+                }}
+              >
+                <CheckCheck className="w-3.5 h-3.5" />
+                {allOnPageSelected ? "Deselect Page" : "Select Page"}
+              </Button>
+            );
+          })()}
           <Button
             size="sm"
             className="gap-1.5 btn-glow"
