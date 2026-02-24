@@ -129,6 +129,12 @@ export default function ProductDetailPage() {
   const lowestTier = hasTiers
     ? [...pricingTiers].sort((a: any, b: any) => a.unit_price - b.unit_price)[0] as any
     : null;
+  const highestTier = hasTiers
+    ? [...pricingTiers].sort((a: any, b: any) => b.unit_price - a.unit_price)[0] as any
+    : null;
+  const maxBulkDiscountPct = hasTiers && highestTier && lowestTier && highestTier.unit_price > 0
+    ? Math.round(((highestTier.unit_price - lowestTier.unit_price) / highestTier.unit_price) * 100)
+    : 0;
 
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
@@ -151,7 +157,14 @@ export default function ProductDetailPage() {
           </div>
 
           <div className="flex-1 space-y-3">
-            <h1 className="text-2xl font-bold text-foreground">{product.name}</h1>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold text-foreground">{product.name}</h1>
+              {maxBulkDiscountPct > 0 && (
+                <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-success text-success-foreground">
+                  Save up to {maxBulkDiscountPct}%
+                </span>
+              )}
+            </div>
             <p className="text-sm text-primary font-medium">{product.duration}</p>
             {product.description && (
               <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
