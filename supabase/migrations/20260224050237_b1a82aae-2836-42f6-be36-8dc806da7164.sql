@@ -1,0 +1,1 @@
+ALTER TABLE public.product_credentials ADD COLUMN expires_at timestamp with time zone DEFAULT NULL;
