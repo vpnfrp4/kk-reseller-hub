@@ -119,6 +119,35 @@ export default function PurchaseConfirmModal({
                 </div>
               </div>
 
+              {/* Quick-select buttons */}
+              <div className="flex items-center gap-1.5">
+                {[5, 10, 20].filter((q) => q <= maxQty).map((q) => (
+                  <button
+                    key={q}
+                    onClick={() => setQuantity(q)}
+                    className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-all border ${
+                      quantity === q
+                        ? "bg-primary/15 border-primary/40 text-primary"
+                        : "bg-muted/40 border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
+                    }`}
+                  >
+                    ×{q}
+                  </button>
+                ))}
+                {maxQty > 20 && (
+                  <button
+                    onClick={() => setQuantity(maxQty)}
+                    className={`flex-1 py-1.5 rounded-md text-xs font-medium transition-all border ${
+                      quantity === maxQty
+                        ? "bg-primary/15 border-primary/40 text-primary"
+                        : "bg-muted/40 border-border/50 text-muted-foreground hover:text-foreground hover:border-border"
+                    }`}
+                  >
+                    Max
+                  </button>
+                )}
+              </div>
+
               {/* Stock indicator */}
               <p className="text-[11px] text-muted-foreground text-right">
                 {product.stock} available in stock
