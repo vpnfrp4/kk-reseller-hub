@@ -26,6 +26,8 @@ import TopUpDialog from "@/components/wallet/TopUpDialog";
 import { cn } from "@/lib/utils";
 import { Money } from "@/components/shared";
 import FulfillmentModeSelector from "@/components/products/FulfillmentModeSelector";
+import { t } from "@/lib/i18n";
+import MmLabel from "@/components/shared/MmLabel";
 
 interface PurchaseResult {
   order_id: string;
@@ -37,17 +39,17 @@ interface PurchaseResult {
 }
 
 const WHAT_YOU_GET = [
-  { icon: Zap, text: "Instant activation" },
-  { icon: Shield, text: "Official account" },
-  { icon: Clock, text: "24h warranty" },
-  { icon: RefreshCw, text: "Replacement if failed" },
-  { icon: Lock, text: "Secure delivery" },
+  { icon: Zap, mm: "ချက်ချင်းအသက်ဝင်", en: "Instant activation" },
+  { icon: Shield, mm: "တရားဝင်အကောင့်", en: "Official account" },
+  { icon: Clock, mm: "၂၄ နာရီအာမခံ", en: "24h warranty" },
+  { icon: RefreshCw, mm: "ပျက်ပါက အစားထိုးပေး", en: "Replacement if failed" },
+  { icon: Lock, mm: "လုံခြုံစွာပေးပို့", en: "Secure delivery" },
 ];
 
 const NOTICES = [
-  "No refund after delivery",
-  "Incorrect input voids warranty",
-  "Double-check before confirming",
+  { mm: "ပို့ပြီးနောက် ပြန်မအမ်းပါ", en: "No refund after delivery" },
+  { mm: "မှားရိုက်ပါက အာမခံပျက်", en: "Incorrect input voids warranty" },
+  { mm: "အတည်မပြုမီ ပြန်စစ်ပါ", en: "Double-check before confirming" },
 ];
 
 export default function ProductDetailPage() {
@@ -64,11 +66,9 @@ export default function ProductDetailPage() {
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [lastSavings, setLastSavings] = useState(0);
 
-  // Smart top-up state
   const [topUpOpen, setTopUpOpen] = useState(false);
   const [topUpDefaultAmount, setTopUpDefaultAmount] = useState<number | undefined>();
 
-  // Fulfillment mode state
   const [selectedMode, setSelectedMode] = useState<string>("instant");
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -125,7 +125,6 @@ export default function ProductDetailPage() {
   };
 
   const validateCustomFields = (): boolean => {
-    // effectiveMode is computed later, but we need it here too
     const modes: string[] = product ? (Array.isArray(product.fulfillment_modes) ? (product.fulfillment_modes as any[]).map(String) : ["instant"]) : ["instant"];
     const currentMode = modes.includes(selectedMode) ? selectedMode : modes[0];
     const activeFields = customFields.filter((f: any) => f.linked_mode === currentMode);
@@ -133,30 +132,28 @@ export default function ProductDetailPage() {
 
     for (const field of activeFields) {
       const value = (customFieldValues[field.field_name] || "").trim();
-
       if (field.required && !value) {
-        errors[field.field_name] = `${field.field_name} is required`;
+        errors[field.field_name] = `${field.field_name} လိုအပ်ပါသည်`;
         continue;
       }
-
       if (value) {
         if (field.min_length && value.length < field.min_length) {
-          errors[field.field_name] = `Minimum ${field.min_length} characters`;
+          errors[field.field_name] = `အနည်းဆုံး ${field.min_length} လုံး`;
           continue;
         }
         if (field.max_length && value.length > field.max_length) {
-          errors[field.field_name] = `Maximum ${field.max_length} characters`;
+          errors[field.field_name] = `အများဆုံး ${field.max_length} လုံး`;
           continue;
         }
         if (field.field_type === "email") {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(value)) {
-            errors[field.field_name] = "Invalid email address";
+            errors[field.field_name] = "အီးမေးလ် မမှန်ကန်ပါ";
             continue;
           }
         }
         if (field.field_type === "number" && isNaN(Number(value))) {
-          errors[field.field_name] = "Must be a number";
+          errors[field.field_name] = "ဂဏန်းဖြစ်ရမည်";
           continue;
         }
       }
@@ -173,7 +170,7 @@ export default function ProductDetailPage() {
       return;
     }
     if (!validateCustomFields()) {
-      toast.error("Please fill in all required fields correctly");
+      toast.error("လိုအပ်သောအကွက်များ ဖြည့်ပေးပါ");
       return;
     }
     setNoticeProduct(product);
@@ -190,6 +187,13 @@ export default function ProductDetailPage() {
     setTopUpDefaultAmount(amount);
     setTopUpOpen(true);
   };
+
+  // Fulfillment modes
+  const productModes: string[] = product ? (Array.isArray(product.fulfillment_modes) ? (product.fulfillment_modes as any[]).map(String) : ["instant"]) : ["instant"];
+  const deliveryTimeConfig: Record<string, string> = product?.delivery_time_config && typeof product.delivery_time_config === "object"
+    ? product.delivery_time_config as Record<string, string>
+    : {};
+  const effectiveMode = productModes.includes(selectedMode) ? selectedMode : productModes[0];
 
   const handleBuy = async (prod: any, quantity: number = 1) => {
     const highestTierPrice = pricingTiers.length > 0 ? Math.max(...pricingTiers.map((t: any) => t.unit_price)) : prod.wholesale_price;
@@ -241,8 +245,8 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="space-y-4 text-center py-20">
-        <p className="text-muted-foreground">Product not found</p>
-        <Button variant="outline" onClick={() => navigate("/dashboard/products")}>Back to Products</Button>
+        <p className="text-muted-foreground">ထုတ်ကုန်မတွေ့ပါ</p>
+        <Button variant="outline" onClick={() => navigate("/dashboard/products")}>{t.nav.products.mm}သို့ ပြန်သွားမည်</Button>
       </div>
     );
   }
@@ -257,27 +261,18 @@ export default function ProductDetailPage() {
   const balance = profile?.balance || 0;
   const insufficientBalance = balance < product.wholesale_price;
 
-  // Fulfillment modes
-  const productModes: string[] = Array.isArray(product.fulfillment_modes) ? (product.fulfillment_modes as any[]).map(String) : ["instant"];
-  const deliveryTimeConfig: Record<string, string> = product.delivery_time_config && typeof product.delivery_time_config === "object"
-    ? product.delivery_time_config as Record<string, string>
-    : {};
-
-  // Set default mode to first available on load
-  const effectiveMode = productModes.includes(selectedMode) ? selectedMode : productModes[0];
-  const currentDeliveryBadge = deliveryTimeConfig[effectiveMode] || "⚡ Instant Delivery";
+  const currentDeliveryBadge = deliveryTimeConfig[effectiveMode] || "ချက်ချင်းပေးပို့";
 
   return (
     <div className="space-y-default max-w-2xl mx-auto animate-fade-in">
       <Breadcrumb items={[
-        { label: "Dashboard", path: "/dashboard" },
-        { label: "Products", path: "/dashboard/products" },
+        { label: t.nav.dashboard.mm, path: "/dashboard" },
+        { label: t.nav.products.mm, path: "/dashboard/products" },
         { label: product.name },
       ]} />
 
       {/* ═══ ABOVE THE FOLD — Hero Section ═══ */}
       <div className="glass-card p-card lg:p-section space-y-card">
-        {/* Top row: Name + Category */}
         <div className="flex items-start justify-between gap-compact">
           <div className="min-w-0 flex-1">
             <h1 className="text-xl font-bold text-foreground leading-snug">{product.name}</h1>
@@ -296,11 +291,11 @@ export default function ProductDetailPage() {
           </p>
           {hasTiers && lowestTier && lowestTier.unit_price < product.wholesale_price && (
             <p className="text-xs text-muted-foreground">
-              From{" "}
+              {t.products.from.mm}{" "}
               <span className="font-mono font-semibold text-primary">
                 {lowestTier.unit_price.toLocaleString()}
               </span>{" "}
-              MMK at {lowestTier.min_qty}+ qty
+              MMK ({lowestTier.min_qty}+ {t.products.qty.mm})
             </p>
           )}
         </div>
@@ -320,7 +315,7 @@ export default function ProductDetailPage() {
                 isOutOfStock ? "text-destructive" : isLowStock ? "text-warning" : "text-success"
               )}
             >
-              {isOutOfStock ? "Out of stock" : isLowStock ? `Only ${product.stock} left` : `${product.stock} in stock`}
+              {isOutOfStock ? t.products.outOfStock.mm : isLowStock ? `${product.stock} ${t.products.left.mm}` : `${product.stock} ${t.products.inStock.mm}`}
             </span>
           </div>
           <span className="text-border">·</span>
@@ -350,9 +345,9 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-2 min-w-0">
               <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
               <p className="text-xs text-foreground">
-                Insufficient balance.{" "}
+                {t.detail.insufficientBalance.mm}{" "}
                 <span className="text-muted-foreground">
-                  Need {(product.wholesale_price - balance).toLocaleString()} more MMK.
+                  {t.detail.needMore.mm} {(product.wholesale_price - balance).toLocaleString()} MMK
                 </span>
               </p>
             </div>
@@ -360,7 +355,7 @@ export default function ProductDetailPage() {
               onClick={() => handleTopUp(product.wholesale_price - balance)}
               className="btn-glow px-3 py-1 text-[11px] font-semibold shrink-0"
             >
-              Top Up
+              {t.wallet.topUp.mm}
             </button>
           </div>
         )}
@@ -374,18 +369,18 @@ export default function ProductDetailPage() {
           {purchasing ? (
             <>
               <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
-              Processing...
+              {t.products.processing.mm}
             </>
           ) : isOutOfStock ? (
-            "Out of Stock"
+            t.products.outOfStock.mm
           ) : (
-            "Buy Now"
+            t.products.buyNow.mm
           )}
         </Button>
 
         {/* Balance indicator */}
         <p className="text-xs text-muted-foreground text-center">
-          Wallet: <span className="font-mono font-semibold text-foreground">{balance.toLocaleString()} MMK</span>
+          {t.detail.walletLabel.mm}: <span className="font-mono font-semibold text-foreground">{balance.toLocaleString()} MMK</span>
         </p>
       </div>
 
@@ -393,14 +388,14 @@ export default function ProductDetailPage() {
       {profitPerUnit > 0 && (
         <div className="glass-card p-card flex items-center justify-between">
           <div>
-            <p className="text-xs text-muted-foreground">Suggested resell price</p>
+            <p className="text-xs text-muted-foreground">{t.detail.suggestedResell.mm}</p>
             <p className="text-lg font-bold font-mono tabular-nums text-foreground">
               {product.retail_price.toLocaleString()}
               <span className="text-[11px] font-medium text-muted-foreground ml-1">MMK</span>
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs text-muted-foreground">Profit per unit</p>
+            <p className="text-xs text-muted-foreground">{t.detail.profitPerUnit.mm}</p>
             <p className="text-lg font-bold font-mono tabular-nums text-success">
               +{profitPerUnit.toLocaleString()}
               <span className="text-[11px] font-medium text-success/70 ml-1">MMK</span>
@@ -414,7 +409,7 @@ export default function ProductDetailPage() {
         <div className="glass-card p-card space-y-compact">
           <div className="flex items-center gap-2">
             <TrendingDown className="w-4 h-4 text-primary" />
-            <p className="text-sm font-semibold text-foreground">Volume Pricing</p>
+            <p className="text-sm font-semibold text-foreground">{t.detail.volumePricing.mm}</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[...pricingTiers].sort((a: any, b: any) => a.min_qty - b.min_qty).map((tier: any, i: number) => {
@@ -432,13 +427,13 @@ export default function ProductDetailPage() {
                       : "bg-muted/20 border-border"
                   )}
                 >
-                  <p className="text-[11px] text-muted-foreground mb-0.5">{label} qty</p>
+                  <p className="text-[11px] text-muted-foreground mb-0.5">{label} {t.products.qty.mm}</p>
                   <p className={cn("text-lg font-bold font-mono tabular-nums", isLowest ? "text-primary" : "text-foreground")}>
                     {tier.unit_price.toLocaleString()}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">MMK / each</p>
+                  <p className="text-[10px] text-muted-foreground">{t.detail.eachMmk.mm}</p>
                   {isLowest && (
-                    <span className="text-[10px] font-semibold text-primary mt-0.5 inline-block">Best value</span>
+                    <span className="text-[10px] font-semibold text-primary mt-0.5 inline-block">{t.detail.bestValue.mm}</span>
                   )}
                 </div>
               );
@@ -449,12 +444,13 @@ export default function ProductDetailPage() {
 
       {/* ═══ WHAT YOU GET ═══ */}
       <div className="glass-card p-card space-y-compact">
-        <p className="text-sm font-semibold text-foreground">What You Get</p>
+        <p className="text-sm font-semibold text-foreground">{t.detail.whatYouGet.mm}</p>
         <div className="space-y-2">
           {WHAT_YOU_GET.map((item, i) => (
             <div key={i} className="flex items-center gap-2.5">
               <item.icon className="w-4 h-4 text-success shrink-0" />
-              <span className="text-sm text-foreground">{item.text}</span>
+              <span className="text-sm text-foreground">{item.mm}</span>
+              <span className="text-[10px] text-muted-foreground/60">({item.en})</span>
             </div>
           ))}
         </div>
@@ -468,7 +464,7 @@ export default function ProductDetailPage() {
         >
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-4 h-4 text-warning" />
-            <span className="text-sm font-semibold text-foreground">Important Notice</span>
+            <span className="text-sm font-semibold text-foreground">{t.detail.importantNotice.mm}</span>
           </div>
           <ChevronDown
             className={cn(
@@ -482,7 +478,9 @@ export default function ProductDetailPage() {
             {NOTICES.map((notice, i) => (
               <div key={i} className="flex items-start gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-warning/60 mt-1.5 shrink-0" />
-                <span className="text-sm text-muted-foreground">{notice}</span>
+                <span className="text-sm text-muted-foreground">
+                  {notice.mm} <span className="text-[10px] text-muted-foreground/60">({notice.en})</span>
+                </span>
               </div>
             ))}
           </div>
@@ -492,7 +490,7 @@ export default function ProductDetailPage() {
       {/* ═══ DESCRIPTION ═══ */}
       {product.description && (
         <div className="glass-card p-card">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-compact">Description</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-compact">{t.detail.description.mm}</p>
           <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
         </div>
       )}
