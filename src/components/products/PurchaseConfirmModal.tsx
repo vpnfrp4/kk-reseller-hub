@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { TrendingDown, AlertTriangle } from "lucide-react";
+import { TrendingDown, AlertTriangle, Wallet } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { Money, QuantitySelector } from "@/components/shared";
 
 interface PricingTier {
@@ -24,6 +25,10 @@ interface PurchaseConfirmModalProps {
   onConfirm: (product: any, quantity: number) => void;
   onClose: () => void;
   pricingTiers?: PricingTier[];
+  /** Current user balance */
+  userBalance?: number;
+  /** Called when user wants to top up from insufficient balance prompt */
+  onTopUp?: (amount: number) => void;
 }
 
 export default function PurchaseConfirmModal({
@@ -33,6 +38,8 @@ export default function PurchaseConfirmModal({
   onConfirm,
   onClose,
   pricingTiers = [],
+  userBalance = 0,
+  onTopUp,
 }: PurchaseConfirmModalProps) {
   const [quantity, setQuantity] = useState(1);
 
@@ -56,6 +63,12 @@ export default function PurchaseConfirmModal({
     const sorted = [...pricingTiers].sort((a, b) => a.min_qty - b.min_qty);
     return sorted.find((t) => t.min_qty > quantity) || null;
   }, [pricingTiers, quantity]);
+
+  const deficit = totalPrice - userBalance;
+  const hasInsufficientBalance = deficit > 0;
+
+  // Round up deficit to nearest 5000 for a clean top-up suggestion
+  const suggestedTopUp = Math.ceil(deficit / 5000) * 5000;
 
   const handleOpenChange = (open: boolean) => {
     if (!open) {
@@ -185,6 +198,38 @@ export default function PurchaseConfirmModal({
               </div>
             </div>
 
+            {/* ── INSUFFICIENT BALANCE PROMPT ── */}
+            {hasInsufficientBalance && (
+              <div className="rounded-[var(--radius-card)] border border-warning/30 bg-warning/5 p-4 space-y-3 animate-fade-in">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-warning/10 flex items-center justify-center flex-shrink-0">
+                    <Wallet className="w-4 h-4 text-warning" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-foreground">
+                      You need {deficit.toLocaleString()} MMK more to complete this order.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Current balance: {userBalance.toLocaleString()} MMK
+                    </p>
+                  </div>
+                </div>
+                {onTopUp && (
+                  <Button
+                    type="button"
+                    className="w-full h-10 rounded-[var(--radius-btn)] btn-glow text-sm gap-2"
+                    onClick={() => {
+                      onClose();
+                      onTopUp(suggestedTopUp);
+                    }}
+                  >
+                    <Wallet className="w-4 h-4" />
+                    Quick Top-Up {suggestedTopUp.toLocaleString()} MMK
+                  </Button>
+                )}
+              </div>
+            )}
+
             {/* Warning line */}
             <p className="text-caption text-muted-foreground flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0" />
@@ -210,7 +255,7 @@ export default function PurchaseConfirmModal({
 
         <AlertDialogFooter className="flex-col gap-tight sm:flex-col">
           <AlertDialogAction
-            disabled={!agreedTerms}
+            disabled={!agreedTerms || hasInsufficientBalance}
             onClick={() => product && onConfirm(product, quantity)}
             className="w-full h-12 rounded-btn bg-primary text-primary-foreground font-semibold hover:brightness-90 transition-all text-base"
           >

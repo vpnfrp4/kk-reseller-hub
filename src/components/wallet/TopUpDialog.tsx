@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -22,12 +22,24 @@ import {
   X,
   Loader2,
   BadgeCheck,
+  ArrowRight,
+  Wallet,
+  Camera,
+  UserCheck,
+  CreditCard,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
 interface TopUpDialogProps {
   userId: string | undefined;
+  /** Pre-fill amount (e.g. from insufficient balance prompt) */
+  defaultAmount?: number;
+  /** Control open state externally */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Hide the trigger button (when opened programmatically) */
+  hideTrigger?: boolean;
 }
 
 type PaymentAccount = {
@@ -43,24 +55,55 @@ const ACCOUNTS: PaymentAccount[] = [
 ];
 
 const PRESET_AMOUNTS = [10000, 30000, 50000, 100000];
+const MIN_AMOUNT = 5000;
 
-export default function TopUpDialog({ userId }: TopUpDialogProps) {
+const PROCESS_STEPS = [
+  { icon: CreditCard, label: "Transfer funds", description: "Send to an official account" },
+  { icon: Camera, label: "Upload screenshot", description: "Proof of payment" },
+  { icon: UserCheck, label: "Admin verification", description: "5–15 minutes" },
+  { icon: Wallet, label: "Wallet credited", description: "Funds available instantly" },
+];
+
+type SubmissionState = "idle" | "uploading" | "submitted";
+
+export default function TopUpDialog({
+  userId,
+  defaultAmount,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  hideTrigger = false,
+}: TopUpDialogProps) {
   const queryClient = useQueryClient();
   const [topupAmount, setTopupAmount] = useState("");
   const [selectedAccount, setSelectedAccount] = useState<"kpay" | "wavepay">("kpay");
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const [submissionState, setSubmissionState] = useState<SubmissionState>("idle");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleCopy = useCallback((phone: string) => {
+  const isControlled = controlledOpen !== undefined;
+  const dialogOpen = isControlled ? controlledOpen : internalOpen;
+  const setDialogOpen = isControlled
+    ? (open: boolean) => controlledOnOpenChange?.(open)
+    : setInternalOpen;
+
+  // Pre-fill amount when opened with defaultAmount
+  useEffect(() => {
+    if (dialogOpen && defaultAmount && defaultAmount > 0) {
+      setTopupAmount(defaultAmount.toString());
+    }
+  }, [dialogOpen, defaultAmount]);
+
+  const parsedAmount = parseInt(topupAmount) || 0;
+  const isAmountTooLow = topupAmount.length > 0 && parsedAmount < MIN_AMOUNT && parsedAmount > 0;
+
+  const handleCopy = useCallback((phone: string, provider: string) => {
     navigator.clipboard.writeText(phone);
     setCopiedId(phone);
-    toast({ title: "Copied!", description: `${phone} copied to clipboard.` });
+    toast({ title: "Copied!", description: `${provider} number copied successfully.` });
     setTimeout(() => setCopiedId(null), 2000);
   }, []);
 
@@ -87,8 +130,8 @@ export default function TopUpDialog({ userId }: TopUpDialogProps) {
 
   const handleSubmitTopup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!topupAmount || !screenshot || !userId) return;
-    setUploading(true);
+    if (!topupAmount || !screenshot || !userId || parsedAmount < MIN_AMOUNT) return;
+    setSubmissionState("uploading");
 
     try {
       const fileExt = screenshot.name.split(".").pop();
@@ -102,34 +145,26 @@ export default function TopUpDialog({ userId }: TopUpDialogProps) {
       await supabase.from("wallet_transactions").insert({
         user_id: userId,
         type: "topup",
-        amount: parseInt(topupAmount),
+        amount: parsedAmount,
         status: "pending",
         method: account.provider,
         description: `Wallet Top-up via ${account.provider}`,
         screenshot_url: filePath,
       });
 
-      setSubmitted(true);
+      setSubmissionState("submitted");
       queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] });
-
-      setTimeout(() => {
-        setSubmitted(false);
-        setDialogOpen(false);
-        setTopupAmount("");
-        handleRemoveFile();
-      }, 2500);
     } catch (err) {
       console.error("Top-up error:", err);
       toast({ title: "Error", description: "Failed to submit top-up request.", variant: "destructive" });
-    } finally {
-      setUploading(false);
+      setSubmissionState("idle");
     }
   };
 
   const resetOnClose = (open: boolean) => {
     setDialogOpen(open);
     if (!open) {
-      setSubmitted(false);
+      setSubmissionState("idle");
       setTopupAmount("");
       handleRemoveFile();
     }
@@ -137,50 +172,104 @@ export default function TopUpDialog({ userId }: TopUpDialogProps) {
 
   return (
     <Dialog open={dialogOpen} onOpenChange={resetOnClose}>
-      <DialogTrigger asChild>
-        <Button className="btn-glow gap-2">
-          <Plus className="w-4 h-4" />
-          Top Up
-        </Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button className="btn-glow gap-2">
+            <Plus className="w-4 h-4" />
+            Top Up
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="bg-card border-border/30 max-w-lg p-0 overflow-hidden backdrop-blur-xl gap-0 rounded-[var(--radius-modal)]">
         {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-border/40">
+        <div className="px-7 pt-7 pb-5 border-b border-border/40">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold text-foreground flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-[var(--radius-btn)] bg-primary/10 flex items-center justify-center">
                 <Shield className="w-4 h-4 text-primary" />
               </div>
-              Secure Top-Up
+              Secure Wallet Top-Up
             </DialogTitle>
-            <p className="text-sm text-muted-foreground mt-1">Transfer funds and upload payment proof.</p>
+            <p className="text-sm text-muted-foreground mt-1">Transfer funds to an official account and upload proof.</p>
           </DialogHeader>
         </div>
 
-        {submitted ? (
-          <div className="text-center py-12 px-6 space-y-4 animate-fade-in">
-            <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto" style={{ boxShadow: "0 0 30px hsl(var(--success) / 0.2)" }}>
-              <CheckCircle2 className="w-8 h-8 text-success" />
+        {submissionState === "submitted" ? (
+          /* ── STATUS TRACKER ── */
+          <div className="px-7 py-8 space-y-6 animate-fade-in">
+            <div className="text-center space-y-2">
+              <div className="w-14 h-14 rounded-full bg-success/10 flex items-center justify-center mx-auto" style={{ boxShadow: "0 0 30px hsl(var(--success) / 0.15)" }}>
+                <CheckCircle2 className="w-7 h-7 text-success" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground">Top-Up Request Submitted</h3>
+              <p className="text-sm text-muted-foreground">{parsedAmount.toLocaleString()} MMK</p>
             </div>
-            <p className="text-foreground font-semibold text-lg">Request Submitted</p>
-            <p className="text-sm text-muted-foreground max-w-[280px] mx-auto">
-              Your payment will be verified and credited within 5–15 minutes.
-            </p>
+
+            {/* Status Steps */}
+            <div className="space-y-0">
+              {[
+                { label: "Request Submitted", done: true },
+                { label: "Payment Under Review", active: true },
+                { label: "Wallet Credited", done: false },
+              ].map((step, i) => (
+                <div key={i} className="flex items-start gap-3">
+                  <div className="flex flex-col items-center">
+                    <div className={cn(
+                      "w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold",
+                      step.done
+                        ? "bg-success text-success-foreground"
+                        : step.active
+                          ? "bg-primary/10 border-2 border-primary text-primary"
+                          : "bg-muted border border-border text-muted-foreground"
+                    )}>
+                      {step.done ? <CheckCircle2 className="w-4 h-4" /> : i + 1}
+                    </div>
+                    {i < 2 && <div className={cn("w-px h-6", step.done ? "bg-success/30" : "bg-border")} />}
+                  </div>
+                  <div className="pt-1">
+                    <p className={cn("text-sm font-medium", step.done ? "text-foreground" : step.active ? "text-primary" : "text-muted-foreground")}>
+                      {step.label}
+                    </p>
+                    {step.active && (
+                      <p className="text-xs text-muted-foreground mt-0.5">Usually completed within 5–15 minutes</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button
+              className="w-full h-12 rounded-[var(--radius-btn)] btn-glow"
+              onClick={() => resetOnClose(false)}
+            >
+              Done
+            </Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmitTopup} className="px-6 py-5 space-y-6 max-h-[70vh] overflow-y-auto">
-            {/* ── Section 1: Amount ── */}
+          <form onSubmit={handleSubmitTopup} className="px-7 py-6 space-y-6 max-h-[72vh] overflow-y-auto">
+            {/* ── AMOUNT ── */}
             <div className="space-y-3">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount (MMK)</Label>
-              <Input
-                type="number"
-                placeholder="Enter amount"
-                value={topupAmount}
-                onChange={(e) => setTopupAmount(e.target.value)}
-                className="bg-muted/20 border-border/50 font-mono text-lg h-12 rounded-[var(--radius-input)] focus:border-primary/50 focus:ring-primary/20"
-                required
-                min={1000}
-              />
+              <div className="relative">
+                <Input
+                  type="number"
+                  placeholder="Enter amount"
+                  value={topupAmount}
+                  onChange={(e) => setTopupAmount(e.target.value)}
+                  className="bg-muted/20 border-border/50 font-mono text-lg h-12 rounded-[var(--radius-input)] focus:border-primary/50 focus:ring-primary/20 pr-14"
+                  required
+                  min={MIN_AMOUNT}
+                />
+                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">MMK</span>
+              </div>
+
+              {isAmountTooLow && (
+                <p className="text-xs text-warning flex items-center gap-1.5">
+                  <AlertTriangle className="w-3 h-3" />
+                  Minimum top-up amount is {MIN_AMOUNT.toLocaleString()} MMK
+                </p>
+              )}
+
               <div className="flex gap-2 flex-wrap">
                 {PRESET_AMOUNTS.map((amt) => (
                   <button
@@ -198,11 +287,12 @@ export default function TopUpDialog({ userId }: TopUpDialogProps) {
                   </button>
                 ))}
               </div>
+              <p className="text-xs text-muted-foreground/60">Most resellers top up 50,000 MMK</p>
             </div>
 
-            {/* ── Section 2: Payment Methods ── */}
+            {/* ── PAYMENT METHODS ── */}
             <div className="space-y-3">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Send Payment To</Label>
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Official Payment Methods</Label>
               <div className="space-y-3">
                 {ACCOUNTS.map((account) => {
                   const isSelected = selectedAccount === account.id;
@@ -250,7 +340,7 @@ export default function TopUpDialog({ userId }: TopUpDialogProps) {
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleCopy(account.phone);
+                                handleCopy(account.phone, account.provider);
                               }}
                               className={cn(
                                 "p-1.5 rounded-lg transition-all duration-200",
@@ -285,8 +375,25 @@ export default function TopUpDialog({ userId }: TopUpDialogProps) {
               </div>
             </div>
 
-            {/* ── Safety Section ── */}
-            <div className="rounded-[var(--radius-card)] border border-border/40 bg-muted/10 p-4 space-y-2.5">
+            {/* ── PROCESS STEPS ── */}
+            <div className="rounded-[var(--radius-card)] border border-border/40 bg-muted/10 p-4">
+              <div className="grid grid-cols-4 gap-2">
+                {PROCESS_STEPS.map((step, i) => (
+                  <div key={i} className="text-center space-y-1.5">
+                    <div className="w-8 h-8 rounded-full bg-muted/30 flex items-center justify-center mx-auto">
+                      <step.icon className="w-3.5 h-3.5 text-muted-foreground" />
+                    </div>
+                    <p className="text-[10px] font-medium text-foreground leading-tight">{step.label}</p>
+                    {i < PROCESS_STEPS.length - 1 && (
+                      <div className="hidden" />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ── SAFETY ── */}
+            <div className="rounded-[var(--radius-card)] border border-border/40 bg-muted/10 p-4 space-y-2">
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
                 <span>Official verified account</span>
@@ -295,17 +402,13 @@ export default function TopUpDialog({ userId }: TopUpDialogProps) {
                 <Shield className="w-4 h-4 text-success flex-shrink-0" />
                 <span>Manual verification for security</span>
               </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                <Clock className="w-4 h-4 text-success flex-shrink-0" />
-                <span>Funds credited within 5–15 minutes</span>
-              </div>
-              <div className="flex items-center gap-3 text-xs text-muted-foreground/70 pt-1 border-t border-border/30">
+              <div className="flex items-center gap-3 text-xs text-muted-foreground/70 pt-1.5 border-t border-border/30">
                 <AlertTriangle className="w-4 h-4 text-warning/70 flex-shrink-0" />
                 <span>Do not transfer to any other number.</span>
               </div>
             </div>
 
-            {/* ── Upload Section ── */}
+            {/* ── UPLOAD ── */}
             <div className="space-y-3">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Payment Screenshot</Label>
               {screenshotPreview ? (
@@ -372,9 +475,9 @@ export default function TopUpDialog({ userId }: TopUpDialogProps) {
               <Button
                 type="submit"
                 className="w-full h-12 text-sm font-bold rounded-[var(--radius-btn)] btn-glow relative overflow-hidden active:scale-[0.98] transition-transform duration-100"
-                disabled={!topupAmount || !screenshot || uploading}
+                disabled={!topupAmount || !screenshot || parsedAmount < MIN_AMOUNT || submissionState === "uploading"}
               >
-                {uploading ? (
+                {submissionState === "uploading" ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     Processing...
@@ -383,7 +486,7 @@ export default function TopUpDialog({ userId }: TopUpDialogProps) {
                   "Submit Top-Up Request"
                 )}
               </Button>
-              <p className="text-xs text-muted-foreground/60 text-center">Top-up requests are reviewed manually.</p>
+              <p className="text-xs text-muted-foreground/60 text-center">Top-up requests are manually reviewed for security.</p>
             </div>
           </form>
         )}

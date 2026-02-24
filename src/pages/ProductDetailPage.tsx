@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
 import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
+import TopUpDialog from "@/components/wallet/TopUpDialog";
 
 interface PurchaseResult {
   order_id: string;
@@ -21,7 +22,7 @@ interface PurchaseResult {
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [purchasing, setPurchasing] = useState(false);
@@ -30,6 +31,10 @@ export default function ProductDetailPage() {
   const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [lastSavings, setLastSavings] = useState(0);
+
+  // Smart top-up state
+  const [topUpOpen, setTopUpOpen] = useState(false);
+  const [topUpDefaultAmount, setTopUpDefaultAmount] = useState<number | undefined>();
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -79,8 +84,13 @@ export default function ProductDetailPage() {
     setAgreedTerms(false);
   };
 
+  const handleTopUp = (amount: number) => {
+    setConfirmProduct(null);
+    setTopUpDefaultAmount(amount);
+    setTopUpOpen(true);
+  };
+
   const handleBuy = async (prod: any, quantity: number = 1) => {
-    // Calculate savings
     const highestTierPrice = pricingTiers.length > 0 ? Math.max(...pricingTiers.map((t: any) => t.unit_price)) : prod.wholesale_price;
     const sortedTiers = [...pricingTiers].sort((a: any, b: any) => b.min_qty - a.min_qty);
     const activeTier = sortedTiers.find((t: any) => quantity >= t.min_qty && (t.max_qty === null || quantity <= t.max_qty));
@@ -141,9 +151,6 @@ export default function ProductDetailPage() {
   const highestTier = hasTiers
     ? [...pricingTiers].sort((a: any, b: any) => b.unit_price - a.unit_price)[0] as any
     : null;
-  const maxBulkDiscountPct = hasTiers && highestTier && lowestTier && highestTier.unit_price > 0
-    ? Math.round(((highestTier.unit_price - lowestTier.unit_price) / highestTier.unit_price) * 100)
-    : 0;
 
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
@@ -278,12 +285,23 @@ export default function ProductDetailPage() {
         onConfirm={handleBuy}
         onClose={() => setConfirmProduct(null)}
         pricingTiers={pricingTiers as any[]}
+        userBalance={profile?.balance || 0}
+        onTopUp={handleTopUp}
       />
 
       <PurchaseSuccessModal
         result={result}
         onClose={() => { setResult(null); setLastSavings(0); }}
         totalSavings={lastSavings}
+      />
+
+      {/* Hidden TopUpDialog triggered from insufficient balance prompt */}
+      <TopUpDialog
+        userId={user?.id}
+        defaultAmount={topUpDefaultAmount}
+        open={topUpOpen}
+        onOpenChange={setTopUpOpen}
+        hideTrigger
       />
     </div>
   );
