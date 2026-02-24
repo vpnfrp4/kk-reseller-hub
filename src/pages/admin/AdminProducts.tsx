@@ -400,6 +400,7 @@ export default function AdminProducts() {
             }
             queryClient.invalidateQueries({ queryKey: ["products"] });
             toast.success(`Order reset to alphabetical — ${updated.length} product${updated.length === 1 ? "" : "s"} reordered`, {
+              duration: 10000,
               action: {
                 label: "Undo",
                 onClick: async () => {
