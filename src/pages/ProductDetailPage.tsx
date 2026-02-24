@@ -100,6 +100,19 @@ export default function ProductDetailPage() {
     enabled: !!id,
   });
 
+  const { data: customFields = [] } = useQuery({
+    queryKey: ["product-custom-fields", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("product_custom_fields" as any)
+        .select("*")
+        .eq("product_id", id!)
+        .order("sort_order", { ascending: true });
+      return (data || []) as any[];
+    },
+    enabled: !!id,
+  });
+
   const mapErrorMessage = (msg: string): string => {
     const lower = msg.toLowerCase();
     if (lower.includes("out of stock") || lower.includes("no credentials available") || lower.includes("not enough stock")) {
@@ -111,10 +124,56 @@ export default function ProductDetailPage() {
     return msg;
   };
 
+  const validateCustomFields = (): boolean => {
+    // effectiveMode is computed later, but we need it here too
+    const modes: string[] = product ? (Array.isArray(product.fulfillment_modes) ? (product.fulfillment_modes as any[]).map(String) : ["instant"]) : ["instant"];
+    const currentMode = modes.includes(selectedMode) ? selectedMode : modes[0];
+    const activeFields = customFields.filter((f: any) => f.linked_mode === currentMode);
+    const errors: Record<string, string> = {};
+
+    for (const field of activeFields) {
+      const value = (customFieldValues[field.field_name] || "").trim();
+
+      if (field.required && !value) {
+        errors[field.field_name] = `${field.field_name} is required`;
+        continue;
+      }
+
+      if (value) {
+        if (field.min_length && value.length < field.min_length) {
+          errors[field.field_name] = `Minimum ${field.min_length} characters`;
+          continue;
+        }
+        if (field.max_length && value.length > field.max_length) {
+          errors[field.field_name] = `Maximum ${field.max_length} characters`;
+          continue;
+        }
+        if (field.field_type === "email") {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(value)) {
+            errors[field.field_name] = "Invalid email address";
+            continue;
+          }
+        }
+        if (field.field_type === "number" && isNaN(Number(value))) {
+          errors[field.field_name] = "Must be a number";
+          continue;
+        }
+      }
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleBuyClick = () => {
     if (!product) return;
     if (product.stock <= 0) {
       toast.error("လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)");
+      return;
+    }
+    if (!validateCustomFields()) {
+      toast.error("Please fill in all required fields correctly");
       return;
     }
     setNoticeProduct(product);
