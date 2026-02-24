@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useState, useCallback } from "react";
 import { useCountUp } from "@/hooks/use-count-up";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
@@ -133,6 +133,23 @@ export default function DashboardHome() {
 
   const displayBalance = useCountUp(profile?.balance || 0);
 
+  // Parallax for wallet hero
+  const heroRef = useRef<HTMLDivElement>(null);
+  const [parallaxY, setParallaxY] = useState(0);
+
+  const handleScroll = useCallback(() => {
+    if (!heroRef.current) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    const offset = (rect.top / window.innerHeight) * 30;
+    setParallaxY(offset);
+  }, []);
+
+  useEffect(() => {
+    const scrollEl = heroRef.current?.closest("main") || window;
+    scrollEl.addEventListener("scroll", handleScroll, { passive: true });
+    return () => scrollEl.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
   const stats = [
     {
       label: "Wallet Balance",
@@ -168,7 +185,15 @@ export default function DashboardHome() {
       </div>
 
       {/* Wallet Hero Card */}
-      <div className="wallet-hero p-6 lg:p-8 animate-fade-in" style={{ animationDelay: "0.05s" }}>
+      <div
+        ref={heroRef}
+        className="wallet-hero p-6 lg:p-8 animate-fade-in"
+        style={{
+          animationDelay: "0.05s",
+          transform: `translateY(${parallaxY * 0.3}px)`,
+          transition: "transform 0.1s linear",
+        }}
+      >
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {!profile ? (
             <div className="space-y-2">
