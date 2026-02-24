@@ -298,7 +298,7 @@ export default function AdminCredentials() {
         <div className="flex gap-2">
           <Button
             variant="outline"
-            className="gap-2"
+            className="gap-2 btn-glass"
             onClick={() => {
               const filtered = filterCredentials(credentials || []);
               if (filtered.length === 0) { toast.error("No credentials to export"); return; }
@@ -319,7 +319,7 @@ export default function AdminCredentials() {
           
           <Button
             variant="outline"
-            className="gap-2 text-destructive hover:text-destructive"
+            className="gap-2 btn-danger"
             disabled={soldCount === 0}
             onClick={() => setBulkDeleteOpen(true)}
           >
@@ -390,21 +390,17 @@ export default function AdminCredentials() {
         </div>
       </div>
 
-      <div className="flex gap-2 animate-fade-in">
+      <div className="flex gap-2 flex-wrap animate-fade-in">
         <button
           onClick={() => { setFilterProduct(""); setSearchParams({}); setPage(1); }}
-          className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-            !filterProduct ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
-          }`}
+          className={`filter-pill ${!filterProduct ? "filter-pill-active" : "filter-pill-inactive"}`}
         >All</button>
         {(products || []).map((p: any) => (
           <button
             key={p.id}
             onClick={() => { setFilterProduct(p.id); setSearchParams({ product: p.id }); setPage(1); }}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              filterProduct === p.id ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
-          >{p.icon} {p.name}</button>
+            className={`filter-pill ${filterProduct === p.id ? "filter-pill-active" : "filter-pill-inactive"}`}
+          >{p.name}</button>
         ))}
       </div>
 
@@ -413,9 +409,7 @@ export default function AdminCredentials() {
           <button
             key={s}
             onClick={() => { setStatusFilter(s); setPage(1); }}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              statusFilter === s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
+            className={`filter-pill ${statusFilter === s ? "filter-pill-active" : "filter-pill-inactive"}`}
           >
             {s === "all" ? "All Status" : s === "available" ? "Available" : s === "sold" ? "Sold" : `Expiring (${expiringCount})`}
           </button>
@@ -434,7 +428,7 @@ export default function AdminCredentials() {
 
       <div className="glass-card overflow-hidden animate-fade-in">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="premium-table">
             <thead>
               <tr className="border-b border-border">
                 <th className="w-10 p-4">
@@ -484,10 +478,10 @@ export default function AdminCredentials() {
                     {(c.products as any)?.name || "Unknown"} - {(c.products as any)?.duration || ""}
                   </td>
                   <td className="p-4">
-                    <code className="text-xs font-mono text-muted-foreground bg-muted/50 px-2 py-1 rounded">{c.credentials}</code>
+                    <code className="text-xs font-mono text-primary/80 bg-primary/5 px-2.5 py-1 rounded-md border border-primary/10">{c.credentials}</code>
                   </td>
                   <td className="p-4 text-center">
-                    <span className={`text-xs px-2 py-1 rounded-full ${c.is_sold ? "bg-destructive/10 text-destructive" : "bg-success/10 text-success"}`}>
+                    <span className={`text-[11px] px-2.5 py-1 rounded-full ${c.is_sold ? "badge-sold" : "badge-available"}`}>
                       {c.is_sold ? "Sold" : "Available"}
                     </span>
                   </td>
@@ -647,7 +641,7 @@ export default function AdminCredentials() {
 
       {/* Floating selection bar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-card border border-border rounded-xl shadow-lg px-5 py-3 flex items-center gap-4 animate-fade-in">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 glass-card border-primary/20 px-5 py-3 flex items-center gap-4 animate-fade-in" style={{ boxShadow: '0 0 30px hsl(43 76% 47% / 0.15), 0 20px 40px -10px hsl(0 0% 0% / 0.4)' }}>
           {(() => {
             const filtered = filterCredentials(credentials || []);
             const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));

@@ -27,7 +27,7 @@ export default function AdminResellers() {
 
       <div className="glass-card overflow-hidden animate-fade-in">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="premium-table">
             <thead>
               <tr className="border-b border-border">
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Name</th>

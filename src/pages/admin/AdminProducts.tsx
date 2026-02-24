@@ -409,16 +409,12 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      <div className="flex gap-2 animate-fade-in items-center">
+      <div className="flex gap-2 animate-fade-in items-center flex-wrap">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
             onClick={() => setActiveCategory(cat)}
-            className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
-              activeCategory === cat
-                ? "bg-primary text-primary-foreground"
-                : "bg-muted text-muted-foreground hover:text-foreground"
-            }`}
+            className={`filter-pill ${activeCategory === cat ? "filter-pill-active" : "filter-pill-inactive"}`}
           >
             {cat}
           </button>
@@ -464,7 +460,7 @@ export default function AdminProducts() {
       <div className="glass-card overflow-hidden animate-fade-in">
         <div className="overflow-x-auto">
           <DragDropContext onDragEnd={handleDragEnd}>
-            <table className="w-full">
+            <table className="premium-table">
               <thead>
                 <tr className="border-b border-border">
                   <th className="w-10 p-4"></th>
