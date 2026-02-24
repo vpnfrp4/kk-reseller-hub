@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Package } from "lucide-react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 interface PricingTier {
@@ -17,6 +19,8 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, index, isPurchasing, onBuyClick, pricingTiers = [] }: ProductCardProps) {
+  const [imgError, setImgError] = useState(false);
+
   const hasTiers = pricingTiers.length > 0;
   const lowestTier = hasTiers
     ? [...pricingTiers].sort((a, b) => a.unit_price - b.unit_price)[0]
@@ -29,13 +33,36 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
   const profitPerUnit = product.retail_price - product.wholesale_price;
   const showProfit = profitPerUnit > 0;
 
+  const hasImage = product.image_url && !imgError;
+
   return (
     <div
-      className="glass-card flex flex-col opacity-0 animate-stagger-in"
+      className="glass-card flex flex-col opacity-0 animate-stagger-in overflow-hidden"
       style={{ animationDelay: `${index * 0.04}s` }}
     >
-      {/* Header: Name + Category + Duration */}
-      <div className="p-card pb-0 space-y-compact">
+      {/* Product Image */}
+      <Link to={`/dashboard/products/${product.id}`} className="block">
+        <div className="w-full h-[150px] bg-muted/30 flex items-center justify-center overflow-hidden">
+          {hasImage ? (
+            <img
+              src={product.image_url}
+              alt={product.name}
+              loading="lazy"
+              onError={() => setImgError(true)}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="flex flex-col items-center gap-1.5 text-muted-foreground/40">
+              <Package className="w-10 h-10" strokeWidth={1} />
+              <span className="text-[10px] font-medium uppercase tracking-wider">{product.category}</span>
+            </div>
+          )}
+        </div>
+      </Link>
+
+      {/* Info Section */}
+      <div className="p-card space-y-compact">
+        {/* Name + Duration + Category */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <Link to={`/dashboard/products/${product.id}`}>
