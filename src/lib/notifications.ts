@@ -8,6 +8,8 @@ export interface NotificationPrefs {
   purchaseComplete: boolean;
   lowBalance: boolean;
   orderUpdates: boolean;
+  // Low balance threshold in MMK
+  lowBalanceThreshold: number;
 }
 
 const defaultPrefs: NotificationPrefs = {
@@ -17,6 +19,7 @@ const defaultPrefs: NotificationPrefs = {
   purchaseComplete: true,
   lowBalance: true,
   orderUpdates: true,
+  lowBalanceThreshold: 5000,
 };
 
 export function getNotificationPrefs(): NotificationPrefs {
