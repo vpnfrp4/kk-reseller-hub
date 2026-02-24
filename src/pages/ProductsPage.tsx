@@ -206,16 +206,16 @@ export default function ProductsPage() {
         products={products || []}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <ProductCardSkeleton key={i} index={i} />
           ))
         ) : filtered.length === 0 ? (
-          <div className="col-span-full bg-card border border-border rounded-2xl p-12 text-center" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-            <Package className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-foreground font-medium">{t.products.noProducts.mm}</p>
-            <p className="text-sm text-muted-foreground mt-1">{t.products.adjustFilter.mm}</p>
+          <div className="col-span-full rounded-2xl border border-border/60 bg-card p-12 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)]">
+            <Package className="mx-auto mb-3 h-10 w-10 text-muted-foreground/30" />
+            <p className="font-medium text-foreground">{t.products.noProducts.mm}</p>
+            <p className="mt-1 text-sm text-muted-foreground">{t.products.adjustFilter.mm}</p>
           </div>
         ) : (
           visibleProducts.map((product: any, i: number) => (
