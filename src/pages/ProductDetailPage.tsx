@@ -4,13 +4,27 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Package, TrendingDown } from "lucide-react";
+import {
+  Package,
+  TrendingDown,
+  Wallet,
+  AlertTriangle,
+  CheckCircle2,
+  ChevronDown,
+  Zap,
+  Shield,
+  Clock,
+  RefreshCw,
+  Lock,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
 import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
 import ImportantNoticeModal from "@/components/products/ImportantNoticeModal";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
+import { cn } from "@/lib/utils";
+import { Money } from "@/components/shared";
 
 interface PurchaseResult {
   order_id: string;
@@ -21,6 +35,20 @@ interface PurchaseResult {
   unit_price?: number;
 }
 
+const WHAT_YOU_GET = [
+  { icon: Zap, text: "Instant activation" },
+  { icon: Shield, text: "Official account" },
+  { icon: Clock, text: "24h warranty" },
+  { icon: RefreshCw, text: "Replacement if failed" },
+  { icon: Lock, text: "Secure delivery" },
+];
+
+const NOTICES = [
+  "No refund after delivery",
+  "Incorrect input voids warranty",
+  "Double-check before confirming",
+];
+
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { user, profile, refreshProfile } = useAuth();
@@ -28,7 +56,8 @@ export default function ProductDetailPage() {
   const navigate = useNavigate();
   const [purchasing, setPurchasing] = useState(false);
   const [result, setResult] = useState<PurchaseResult | null>(null);
-  
+  const [noticeOpen, setNoticeOpen] = useState(false);
+
   const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
   const [noticeProduct, setNoticeProduct] = useState<any | null>(null);
   const [agreedTerms, setAgreedTerms] = useState(false);
@@ -148,77 +177,146 @@ export default function ProductDetailPage() {
     );
   }
 
-  const savings = product.retail_price - product.wholesale_price;
-  const savingsPercent = Math.round((savings / product.retail_price) * 100);
-
+  const isOutOfStock = product.stock === 0;
+  const isLowStock = product.stock > 0 && product.stock <= 5;
   const hasTiers = pricingTiers.length > 0;
   const lowestTier = hasTiers
     ? [...pricingTiers].sort((a: any, b: any) => a.unit_price - b.unit_price)[0] as any
     : null;
-  const highestTier = hasTiers
-    ? [...pricingTiers].sort((a: any, b: any) => b.unit_price - a.unit_price)[0] as any
-    : null;
+  const profitPerUnit = product.retail_price - product.wholesale_price;
+  const balance = profile?.balance || 0;
+  const insufficientBalance = balance < product.wholesale_price;
 
   return (
-    <div className="space-y-8 max-w-3xl mx-auto">
+    <div className="space-y-default max-w-2xl mx-auto animate-fade-in">
       <Breadcrumb items={[
         { label: "Dashboard", path: "/dashboard" },
         { label: "Products", path: "/dashboard/products" },
         { label: product.name },
       ]} />
 
-      {/* Product Info Card */}
-      <div className="bg-card border border-border rounded-2xl p-6 lg:p-8" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <div className="flex flex-col sm:flex-row gap-6">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-20 h-20 rounded-2xl bg-primary/8 border border-primary/15 flex items-center justify-center text-4xl">
-              {product.icon}
-            </div>
-            <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-2.5 py-1 rounded-lg bg-muted/50 border border-border">
-              {product.category}
+      {/* ═══ ABOVE THE FOLD — Hero Section ═══ */}
+      <div className="glass-card p-card lg:p-section space-y-card">
+        {/* Top row: Name + Category */}
+        <div className="flex items-start justify-between gap-compact">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-bold text-foreground leading-snug">{product.name}</h1>
+            <p className="text-sm text-primary font-medium mt-0.5">{product.duration}</p>
+          </div>
+          <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-2.5 py-1 rounded-md bg-muted/50 border border-border shrink-0">
+            {product.category}
+          </span>
+        </div>
+
+        {/* Price — Dominant */}
+        <div className="space-y-1">
+          <p className="text-4xl font-extrabold font-mono tabular-nums text-foreground tracking-tighter leading-none">
+            {product.wholesale_price.toLocaleString()}
+            <span className="text-sm font-medium text-muted-foreground ml-2">MMK</span>
+          </p>
+          {hasTiers && lowestTier && lowestTier.unit_price < product.wholesale_price && (
+            <p className="text-xs text-muted-foreground">
+              From{" "}
+              <span className="font-mono font-semibold text-primary">
+                {lowestTier.unit_price.toLocaleString()}
+              </span>{" "}
+              MMK at {lowestTier.min_qty}+ qty
+            </p>
+          )}
+        </div>
+
+        {/* Stock + Delivery badges */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5">
+            <span
+              className={cn(
+                "w-2 h-2 rounded-full",
+                isOutOfStock ? "bg-destructive" : isLowStock ? "bg-warning animate-pulse" : "bg-success"
+              )}
+            />
+            <span
+              className={cn(
+                "text-xs font-semibold",
+                isOutOfStock ? "text-destructive" : isLowStock ? "text-warning" : "text-success"
+              )}
+            >
+              {isOutOfStock ? "Out of stock" : isLowStock ? `Only ${product.stock} left` : `${product.stock} in stock`}
             </span>
           </div>
-
-          <div className="flex-1 space-y-3">
-            <h1 className="text-2xl font-bold text-foreground">{product.name}</h1>
-            <p className="text-sm text-primary font-medium">{product.duration}</p>
-            {product.description && (
-              <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
-            )}
-          </div>
+          <span className="text-border">·</span>
+          <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+            <Zap className="w-3 h-3" /> Instant delivery
+          </span>
         </div>
+
+        {/* Wallet awareness */}
+        {insufficientBalance && !isOutOfStock && (
+          <div className="rounded-[var(--radius-btn)] bg-warning/[0.06] border border-warning/20 p-compact flex items-center justify-between gap-compact">
+            <div className="flex items-center gap-2 min-w-0">
+              <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
+              <p className="text-xs text-foreground">
+                Insufficient balance.{" "}
+                <span className="text-muted-foreground">
+                  Need {(product.wholesale_price - balance).toLocaleString()} more MMK.
+                </span>
+              </p>
+            </div>
+            <button
+              onClick={() => handleTopUp(product.wholesale_price - balance)}
+              className="btn-glow px-3 py-1 text-[11px] font-semibold shrink-0"
+            >
+              Top Up
+            </button>
+          </div>
+        )}
+
+        {/* Primary CTA */}
+        <Button
+          className="w-full h-12 rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-base hover:brightness-90 transition-all"
+          onClick={handleBuyClick}
+          disabled={isOutOfStock || purchasing}
+        >
+          {purchasing ? (
+            <>
+              <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
+              Processing...
+            </>
+          ) : isOutOfStock ? (
+            "Out of Stock"
+          ) : (
+            "Buy Now"
+          )}
+        </Button>
+
+        {/* Balance indicator */}
+        <p className="text-xs text-muted-foreground text-center">
+          Wallet: <span className="font-mono font-semibold text-foreground">{balance.toLocaleString()} MMK</span>
+        </p>
       </div>
 
-      {/* Pricing */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="bg-card border border-border rounded-2xl p-5 space-y-2" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Retail Price</p>
-          <p className="text-2xl font-bold font-mono text-muted-foreground line-through">
-            {product.retail_price.toLocaleString()} <span className="text-xs">MMK</span>
-          </p>
-          <p className="text-xs text-muted-foreground">Standard market price</p>
-        </div>
-
-        <div className="bg-card border border-primary/20 rounded-2xl p-5 space-y-2 relative" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-          <div className="absolute inset-x-0 top-0 h-[2px] bg-primary rounded-t-2xl" />
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-primary uppercase tracking-wider font-semibold">Wholesale Price</p>
-            {savingsPercent > 0 && (
-              <span className="text-[10px] text-muted-foreground">
-                {savingsPercent}% below retail
-              </span>
-            )}
+      {/* ═══ PROFIT INDICATOR ═══ */}
+      {profitPerUnit > 0 && (
+        <div className="glass-card p-card flex items-center justify-between">
+          <div>
+            <p className="text-xs text-muted-foreground">Suggested resell price</p>
+            <p className="text-lg font-bold font-mono tabular-nums text-foreground">
+              {product.retail_price.toLocaleString()}
+              <span className="text-[11px] font-medium text-muted-foreground ml-1">MMK</span>
+            </p>
           </div>
-          <p className="text-2xl font-bold font-mono text-foreground">
-            {product.wholesale_price.toLocaleString()} <span className="text-xs text-muted-foreground">MMK</span>
-          </p>
-          <p className="text-xs text-muted-foreground">Your reseller price</p>
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">Profit per unit</p>
+            <p className="text-lg font-bold font-mono tabular-nums text-success">
+              +{profitPerUnit.toLocaleString()}
+              <span className="text-[11px] font-medium text-success/70 ml-1">MMK</span>
+            </p>
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* Tier Pricing Table */}
+      {/* ═══ VOLUME PRICING ═══ */}
       {hasTiers && (
-        <div className="bg-card border border-border rounded-2xl p-5 space-y-3" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+        <div className="glass-card p-card space-y-compact">
           <div className="flex items-center gap-2">
             <TrendingDown className="w-4 h-4 text-primary" />
             <p className="text-sm font-semibold text-foreground">Volume Pricing</p>
@@ -232,19 +330,20 @@ export default function ProductDetailPage() {
               return (
                 <div
                   key={i}
-                  className={`rounded-xl p-3 text-center border transition-all ${
+                  className={cn(
+                    "rounded-[var(--radius-btn)] p-3 text-center border transition-all",
                     isLowest
-                      ? "bg-primary/5 border-primary/20"
+                      ? "bg-primary/[0.04] border-primary/20"
                       : "bg-muted/20 border-border"
-                  }`}
+                  )}
                 >
-                  <p className="text-xs text-muted-foreground mb-1">{label} accounts</p>
-                  <p className={`text-lg font-bold font-mono ${isLowest ? "text-primary" : "text-foreground"}`}>
+                  <p className="text-[11px] text-muted-foreground mb-0.5">{label} qty</p>
+                  <p className={cn("text-lg font-bold font-mono tabular-nums", isLowest ? "text-primary" : "text-foreground")}>
                     {tier.unit_price.toLocaleString()}
                   </p>
                   <p className="text-[10px] text-muted-foreground">MMK / each</p>
                   {isLowest && (
-                    <span className="text-[10px] font-semibold text-primary mt-1 inline-block">Best value</span>
+                    <span className="text-[10px] font-semibold text-primary mt-0.5 inline-block">Best value</span>
                   )}
                 </div>
               );
@@ -253,38 +352,57 @@ export default function ProductDetailPage() {
         </div>
       )}
 
-      {/* Purchase Section */}
-      <div className="bg-card border border-border rounded-2xl p-6 space-y-4" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm">
-            <Package className="w-4 h-4 text-muted-foreground" />
-            <span className={product.stock === 0 ? "text-destructive font-medium" : "text-muted-foreground"}>
-              {product.stock === 0 ? "Out of stock" : `${product.stock} available`}
-            </span>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            Balance: <span className="font-mono font-semibold text-foreground">{(profile?.balance || 0).toLocaleString()} MMK</span>
-          </p>
+      {/* ═══ WHAT YOU GET ═══ */}
+      <div className="glass-card p-card space-y-compact">
+        <p className="text-sm font-semibold text-foreground">What You Get</p>
+        <div className="space-y-2">
+          {WHAT_YOU_GET.map((item, i) => (
+            <div key={i} className="flex items-center gap-2.5">
+              <item.icon className="w-4 h-4 text-success shrink-0" />
+              <span className="text-sm text-foreground">{item.text}</span>
+            </div>
+          ))}
         </div>
-
-        <Button
-          className="w-full h-12 rounded-xl bg-primary text-primary-foreground font-semibold text-base hover:brightness-90 transition-all"
-          onClick={handleBuyClick}
-          disabled={product.stock === 0 || purchasing}
-        >
-          {purchasing ? (
-            <>
-              <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
-              Processing...
-            </>
-          ) : product.stock === 0 ? (
-            "Out of Stock"
-          ) : (
-            "Purchase"
-          )}
-        </Button>
       </div>
 
+      {/* ═══ IMPORTANT NOTICE (Collapsible) ═══ */}
+      <div className="glass-card overflow-hidden">
+        <button
+          onClick={() => setNoticeOpen(!noticeOpen)}
+          className="w-full p-card flex items-center justify-between text-left"
+        >
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-warning" />
+            <span className="text-sm font-semibold text-foreground">Important Notice</span>
+          </div>
+          <ChevronDown
+            className={cn(
+              "w-4 h-4 text-muted-foreground transition-transform duration-200",
+              noticeOpen && "rotate-180"
+            )}
+          />
+        </button>
+        {noticeOpen && (
+          <div className="px-card pb-card space-y-2 animate-fade-in">
+            {NOTICES.map((notice, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-warning/60 mt-1.5 shrink-0" />
+                <span className="text-sm text-muted-foreground">{notice}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ═══ DESCRIPTION ═══ */}
+      {product.description && (
+        <div className="glass-card p-card">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-compact">Description</p>
+          <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
+        </div>
+      )}
+
+      {/* Modals */}
       <PurchaseConfirmModal
         product={confirmProduct}
         agreedTerms={agreedTerms}
@@ -308,7 +426,6 @@ export default function ProductDetailPage() {
         totalSavings={lastSavings}
       />
 
-      {/* Hidden TopUpDialog triggered from insufficient balance prompt */}
       <TopUpDialog
         userId={user?.id}
         defaultAmount={topUpDefaultAmount}
