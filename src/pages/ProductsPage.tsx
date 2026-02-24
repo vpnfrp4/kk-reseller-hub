@@ -172,9 +172,9 @@ export default function ProductsPage() {
         { label: "Products" },
       ]} />
 
-      <div className="animate-fade-in">
+      <div>
         <h1 className="text-2xl font-bold text-foreground">Products</h1>
-        <p className="text-muted-foreground text-sm">Browse digital services at wholesale prices</p>
+        <p className="text-muted-foreground text-sm mt-1">Wholesale catalog</p>
       </div>
 
       <ProductFilters
@@ -187,14 +187,14 @@ export default function ProductsPage() {
         products={products || []}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading ? (
           Array.from({ length: 6 }).map((_, i) => (
             <ProductCardSkeleton key={i} index={i} />
           ))
         ) : filtered.length === 0 ? (
-          <div className="col-span-full glass-card p-12 text-center animate-fade-in">
-            <Package className="w-10 h-10 text-muted-foreground/50 mx-auto mb-3" />
+          <div className="col-span-full bg-card border border-border rounded-2xl p-12 text-center" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <Package className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
             <p className="text-foreground font-medium">No products found</p>
             <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filter</p>
           </div>
@@ -242,7 +242,7 @@ export default function ProductsPage() {
 
     <button
       onClick={scrollToTop}
-      className={`fixed bottom-6 right-6 z-50 p-3 rounded-full btn-glow shadow-lg transition-all duration-300 ${
+      className={`fixed bottom-6 right-6 z-50 p-3 rounded-full bg-primary text-primary-foreground shadow-md transition-all duration-300 ${
         showScrollTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
       }`}
       aria-label="Scroll to top"

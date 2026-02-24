@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ShoppingCart, Package, TrendingDown } from "lucide-react";
+import { Package } from "lucide-react";
 import { useState } from "react";
 
 interface PricingTier {
@@ -31,14 +31,20 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
     ? Math.round(((highestTier.unit_price - lowestTier.unit_price) / highestTier.unit_price) * 100)
     : 0;
 
+  const isOutOfStock = product.stock === 0;
+
   return (
     <div
-      className="glass-card flex flex-col animate-fade-in hover-lift hover:border-primary/30 transition-all duration-250 overflow-hidden"
-      style={{ animationDelay: `${index * 0.05}s` }}
+      className="bg-card border border-border rounded-2xl flex flex-col transition-all duration-200 hover:shadow-md overflow-hidden"
+      style={{
+        animationDelay: `${index * 0.04}s`,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+      }}
     >
+      {/* Image */}
       <Link to={`/dashboard/products/${product.id}`} className="block">
         {product.image_url && !imgError ? (
-          <div className="relative w-full aspect-[16/9] bg-muted/30">
+          <div className="relative w-full aspect-[16/9] bg-muted/20">
             <img
               src={product.image_url}
               alt={product.name}
@@ -46,81 +52,65 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
               onError={() => setImgError(true)}
               className="w-full h-full object-cover"
             />
-            <span className="absolute top-2.5 right-2.5 text-[10px] uppercase tracking-widest gold-text font-semibold px-2.5 py-1 rounded-full bg-card/80 backdrop-blur-sm border border-primary/20">
+            <span className="absolute top-3 right-3 text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-2.5 py-1 rounded-lg bg-card/90 backdrop-blur-sm border border-border">
               {product.category}
             </span>
-            {maxDiscountPct > 0 && (
-              <span
-                className="absolute top-2.5 left-2.5 text-[10px] font-bold px-2 py-1 rounded-full bg-success text-success-foreground shadow-sm"
-                style={{ animation: 'savings-pulse 2.5s ease-in-out infinite' }}
-              >
-                Save up to {maxDiscountPct}%
-              </span>
-            )}
           </div>
         ) : (
-          <div className="flex items-start justify-between p-6 pb-0">
-            <div className="flex items-center gap-2">
-              <div className="text-3xl">{product.icon}</div>
-              {maxDiscountPct > 0 && (
-                <span
-                  className="text-[10px] font-bold px-2 py-1 rounded-full bg-success text-success-foreground"
-                  style={{ animation: 'savings-pulse 2.5s ease-in-out infinite' }}
-                >
-                  Save up to {maxDiscountPct}%
-                </span>
-              )}
-            </div>
-            <span className="text-[10px] uppercase tracking-widest gold-text font-semibold px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
+          <div className="flex items-start justify-between px-5 pt-5">
+            <div className="text-3xl">{product.icon}</div>
+            <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-2.5 py-1 rounded-lg bg-muted/50 border border-border">
               {product.category}
             </span>
           </div>
         )}
       </Link>
 
-      <div className="p-6 flex flex-col flex-1">
+      <div className="p-5 flex flex-col flex-1">
         <Link to={`/dashboard/products/${product.id}`}>
-          <h3 className="font-semibold text-foreground text-lg hover:text-primary transition-colors duration-200">{product.name}</h3>
+          <h3 className="font-semibold text-foreground text-base hover:text-primary transition-colors duration-200">{product.name}</h3>
         </Link>
-        <p className="text-sm text-muted-foreground mb-4">{product.duration}</p>
+        <p className="text-sm text-muted-foreground mt-0.5">{product.duration}</p>
 
-        <div className="mt-auto space-y-3">
+        <div className="mt-auto pt-5 space-y-4">
+          {/* Price section */}
           <div className="flex items-end justify-between">
             <div>
               <p className="text-xs text-muted-foreground line-through">{product.retail_price.toLocaleString()} MMK</p>
-              <p className="text-xl font-bold font-mono gold-text">
-                {product.wholesale_price.toLocaleString()} <span className="text-xs text-muted-foreground">MMK</span>
+              <p className="text-2xl font-bold font-mono text-foreground tracking-tight">
+                {product.wholesale_price.toLocaleString()}
+                <span className="text-xs font-normal text-muted-foreground ml-1.5">MMK</span>
               </p>
+              {maxDiscountPct > 0 && (
+                <p className="text-[11px] text-muted-foreground mt-0.5">
+                  {maxDiscountPct}% below standard rate
+                </p>
+              )}
             </div>
-            <div className={`flex items-center gap-1 text-xs ${product.stock <= 5 ? "stock-low font-semibold" : "text-muted-foreground"}`}>
-              <Package className="w-3 h-3" />
-              {product.stock} left
-            </div>
+            <span className={`text-xs ${isOutOfStock ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+              {isOutOfStock ? "Out of stock" : `${product.stock} available`}
+            </span>
           </div>
 
-          {/* Tier badge */}
+          {/* Tier hint */}
           {hasTiers && lowestTier && (
-            <div className="flex items-center gap-1.5 text-[11px] text-primary bg-primary/5 border border-primary/15 rounded-md px-2.5 py-1.5">
-              <TrendingDown className="w-3 h-3" />
-              <span>From <span className="font-mono font-semibold">{lowestTier.unit_price.toLocaleString()}</span> MMK at {lowestTier.min_qty}+ qty</span>
-            </div>
+            <p className="text-[11px] text-muted-foreground">
+              From <span className="font-mono font-semibold text-foreground">{lowestTier.unit_price.toLocaleString()}</span> MMK at {lowestTier.min_qty}+ qty
+            </p>
           )}
 
           <Button
-            className="w-full btn-glow gap-2"
+            className="w-full h-11 rounded-xl bg-primary text-primary-foreground font-semibold hover:brightness-90 transition-all"
             onClick={() => onBuyClick(product)}
-            disabled={product.stock === 0 || isPurchasing}
+            disabled={isOutOfStock || isPurchasing}
           >
             {isPurchasing ? (
               <>
-                <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
                 Processing...
               </>
             ) : (
-              <>
-                <ShoppingCart className="w-4 h-4" />
-                Buy Now
-              </>
+              "Purchase"
             )}
           </Button>
         </div>
