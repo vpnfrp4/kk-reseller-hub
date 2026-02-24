@@ -5,6 +5,7 @@ import { Package, KeyRound, Wallet, Users, ShoppingCart, AlertTriangle, Settings
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
 import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
+import LiveActivityFeed from "@/components/admin/LiveActivityFeed";
 import MiniSparkline from "@/components/admin/MiniSparkline";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -376,7 +377,15 @@ export default function AdminOverview() {
         )}
       </div>
 
-      <AdminAnalyticsCharts />
+      {/* Live Activity Feed + Analytics side by side on large screens */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-1">
+          <LiveActivityFeed />
+        </div>
+        <div className="lg:col-span-2">
+          <AdminAnalyticsCharts />
+        </div>
+      </div>
 
       <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.4s" }}>
         <h2 className="text-lg font-semibold text-foreground mb-1">Credentials Overview</h2>
