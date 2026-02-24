@@ -13,6 +13,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { DataCard, Money, ResponsiveTable } from "@/components/shared";
 import type { Column } from "@/components/shared";
+import { t } from "@/lib/i18n";
+import MmLabel, { MmStatus, MmInline } from "@/components/shared/MmLabel";
 
 const PAGE_SIZE = 10;
 
@@ -75,7 +77,7 @@ export default function OrdersPage() {
     q = buildQuery(q);
     const { data: allOrders } = await q;
     if (!allOrders || allOrders.length === 0) {
-      toast.error("No orders to export");
+      toast.error("ထုတ်ယူမည့် မှာယူမှုမရှိပါ");
       return;
     }
     const headers = ["Order ID", "Product", "Credentials", "Price (MMK)", "Date", "Status"];
@@ -95,7 +97,7 @@ export default function OrdersPage() {
     a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("Orders exported successfully");
+    toast.success("ဒေတာထုတ်ယူမှု အောင်မြင်ပါသည်");
   };
 
   const clearFilters = () => {
@@ -111,18 +113,18 @@ export default function OrdersPage() {
   const columns: Column<any>[] = [
     {
       key: "id",
-      label: "Order ID",
+      label: t.orders.orderId.mm,
       hideOnMobile: true,
       render: (row) => <span className="font-mono text-muted-foreground">{row.id.slice(0, 8)}</span>,
     },
     {
       key: "product_name",
-      label: "Product",
+      label: t.orders.product.mm,
       priority: true,
     },
     {
       key: "credentials",
-      label: "Credentials",
+      label: t.orders.credentials.mm,
       render: (row) => (
         <div className="flex items-center gap-2">
           <code className="text-xs font-mono text-muted-foreground bg-primary/5 border border-primary/10 px-2.5 py-1 rounded-md truncate max-w-[200px]">
@@ -143,34 +145,28 @@ export default function OrdersPage() {
     },
     {
       key: "price",
-      label: "Price",
+      label: t.orders.price.mm,
       align: "right" as const,
       render: (row) => <Money amount={row.price} className="gold-text" />,
     },
     {
       key: "created_at",
-      label: "Date",
+      label: t.orders.date.mm,
       hideOnMobile: true,
       render: (row) => <span className="text-muted-foreground">{new Date(row.created_at).toLocaleDateString()}</span>,
     },
     {
       key: "status",
-      label: "Status",
+      label: t.status.delivered.en === "Delivered" ? "Status" : "Status",
       align: "center" as const,
-      render: (row) => (
-        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-          row.status === "delivered" ? "badge-delivered" :
-          row.status === "pending" ? "badge-pending" :
-          "badge-cancelled"
-        }`}>{row.status}</span>
-      ),
+      render: (row) => <MmStatus status={row.status} />,
     },
   ];
 
   const paginationFooter = totalCount > PAGE_SIZE ? (
     <div className="flex items-center justify-between">
       <p className="text-xs text-muted-foreground">
-        Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
+        {t.products.showing.mm} {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} / {totalCount}
       </p>
       <div className="flex items-center gap-1">
         <Button variant="ghost" size="icon" className="h-8 w-8" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
@@ -191,19 +187,21 @@ export default function OrdersPage() {
   return (
     <div className="space-y-section">
       <Breadcrumb items={[
-        { label: "Dashboard", path: "/dashboard" },
-        { label: "Orders" },
+        { label: t.nav.dashboard.mm, path: "/dashboard" },
+        { label: t.nav.orders.mm },
       ]} />
 
       <div className="animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-h1 text-foreground">Order History</h1>
-            <p className="text-caption text-muted-foreground">View all your previous purchases</p>
+            <h1 className="text-h1 text-foreground">
+              <MmLabel mm={t.orders.title.mm} en={t.orders.title.en} />
+            </h1>
+            <p className="text-caption text-muted-foreground">{t.orders.subtitle.mm}</p>
           </div>
           <Button onClick={exportCSV} size="sm" className="gap-2 btn-glass">
             <Download className="w-4 h-4 text-primary" />
-            Export CSV
+            <MmInline mm={t.orders.exportCsv.mm} en={t.orders.exportCsv.en} />
           </Button>
         </div>
       </div>
@@ -212,11 +210,11 @@ export default function OrdersPage() {
       <DataCard className="animate-fade-in" noPadding>
         <div className="p-card flex flex-wrap gap-default items-end">
           <div className="flex-1 min-w-[180px]">
-            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">Search</label>
+            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">{t.orders.search.mm}</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Product name..."
+                placeholder={t.orders.productName.mm}
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(0); }}
                 className="pl-9 h-9"
@@ -231,20 +229,20 @@ export default function OrdersPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="delivered">Delivered</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="all">{t.products.all.mm}</SelectItem>
+                <SelectItem value="delivered">{t.status.delivered.mm}</SelectItem>
+                <SelectItem value="pending">{t.status.pending.mm}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="min-w-[140px]">
-            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">From</label>
+            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">{t.orders.from.mm}</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
                   <CalendarIcon className="w-4 h-4 mr-2" />
-                  {dateFrom ? format(dateFrom, "PP") : "Start date"}
+                  {dateFrom ? format(dateFrom, "PP") : t.orders.startDate.mm}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -254,12 +252,12 @@ export default function OrdersPage() {
           </div>
 
           <div className="min-w-[140px]">
-            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">To</label>
+            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">{t.orders.to.mm}</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
                   <CalendarIcon className="w-4 h-4 mr-2" />
-                  {dateTo ? format(dateTo, "PP") : "End date"}
+                  {dateTo ? format(dateTo, "PP") : t.orders.endDate.mm}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -271,7 +269,7 @@ export default function OrdersPage() {
           {hasFilters && (
             <Button variant="ghost" size="sm" className="h-9 gap-1 text-muted-foreground hover:text-destructive" onClick={clearFilters}>
               <X className="w-4 h-4" />
-              Clear
+              {t.orders.clear.mm}
             </Button>
           )}
         </div>
@@ -283,7 +281,7 @@ export default function OrdersPage() {
           columns={columns}
           data={orders || []}
           keyExtractor={(row) => row.id}
-          emptyMessage={hasFilters ? "No orders match your filters" : "No orders yet"}
+          emptyMessage={hasFilters ? t.orders.noMatch.mm : t.orders.noOrders.mm}
         />
       </DataCard>
     </div>

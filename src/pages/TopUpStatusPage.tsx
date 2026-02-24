@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +18,7 @@ import {
   PartyPopper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { t } from "@/lib/i18n";
 
 type TxStatus = "pending" | "approved" | "rejected";
 
@@ -28,15 +29,15 @@ interface StepInfo {
 }
 
 const STEPS: StepInfo[] = [
-  { label: "Request Submitted", description: "Your top-up request has been received", icon: CheckCircle2 },
-  { label: "Payment Under Review", description: "Admin is verifying your payment", icon: Clock },
-  { label: "Wallet Credited", description: "Funds available in your wallet", icon: Wallet },
+  { label: "တင်သွင်းပြီး", description: "ငွေဖြည့်တောင်းဆိုမှု လက်ခံရရှိပါပြီ", icon: CheckCircle2 },
+  { label: "စစ်ဆေးနေသည်", description: "အက်ဒမင်မှ စစ်ဆေးအတည်ပြုနေပါသည်", icon: Clock },
+  { label: "ငွေရောက်မည်", description: "ပိုက်ဆံအိတ်တွင် ချက်ချင်းရရှိနိုင်မည်", icon: Wallet },
 ];
 
 function getActiveStep(status: TxStatus): number {
   if (status === "approved") return 3;
   if (status === "rejected") return -1;
-  return 1; // pending → step 2 active (0-indexed: step 1 done, step 2 active)
+  return 1;
 }
 
 export default function TopUpStatusPage() {
@@ -51,7 +52,6 @@ export default function TopUpStatusPage() {
   const [oldBalance, setOldBalance] = useState<number | null>(null);
   const [justApproved, setJustApproved] = useState(false);
 
-  // Fetch the specific transaction
   const { data: transaction } = useQuery({
     queryKey: ["topup-status", txId],
     queryFn: async () => {
@@ -64,14 +64,12 @@ export default function TopUpStatusPage() {
       return data;
     },
     enabled: !!txId,
-    // Poll every 5s as fallback — realtime is primary but can have latency
     refetchInterval: (query) => {
       const status = query.state.data?.status;
       return status === "pending" ? 5000 : false;
     },
   });
 
-  // Count pending requests ahead
   const { data: queueCount } = useQuery({
     queryKey: ["topup-queue", txId],
     queryFn: async () => {
@@ -90,7 +88,7 @@ export default function TopUpStatusPage() {
   const txStatus = (transaction?.status || "pending") as TxStatus;
   const activeStep = getActiveStep(txStatus);
 
-  // Realtime subscription for this transaction
+  // Realtime subscription
   useEffect(() => {
     if (!txId) return;
     const channel = supabase
@@ -103,19 +101,15 @@ export default function TopUpStatusPage() {
           table: "wallet_transactions",
           filter: `id=eq.${txId}`,
         },
-        (payload) => {
-          console.log("[TopUpStatus] realtime event:", payload);
+        () => {
           queryClient.invalidateQueries({ queryKey: ["topup-status", txId] });
         }
       )
-      .subscribe((status) => {
-        console.log("[TopUpStatus] subscription status:", status);
-      });
+      .subscribe();
 
     return () => { supabase.removeChannel(channel); };
   }, [txId, queryClient]);
 
-  // Also listen for profile balance changes — call refreshProfile directly
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -129,7 +123,6 @@ export default function TopUpStatusPage() {
           filter: `user_id=eq.${user.id}`,
         },
         () => {
-          console.log("[TopUpStatus] profile changed, refreshing");
           refreshProfile();
         }
       )
@@ -138,12 +131,10 @@ export default function TopUpStatusPage() {
     return () => { supabase.removeChannel(channel); };
   }, [user, refreshProfile]);
 
-  // Detect status change to approved → trigger success
   useEffect(() => {
     if (prevStatus && prevStatus !== "approved" && txStatus === "approved") {
       setShowConfetti(true);
       setJustApproved(true);
-      // Store old balance for count-up animation
       if (oldBalance === null && profile) {
         setOldBalance((profile.balance || 0) - (transaction?.amount || 0));
       }
@@ -151,7 +142,6 @@ export default function TopUpStatusPage() {
     setPrevStatus(txStatus);
   }, [txStatus]);
 
-  // Capture initial balance before approval for animation
   useEffect(() => {
     if (txStatus === "pending" && profile && oldBalance === null) {
       setOldBalance(profile.balance || 0);
@@ -167,9 +157,9 @@ export default function TopUpStatusPage() {
     return (
       <PageContainer>
         <div className="text-center py-page">
-          <p className="text-muted-foreground">No transaction specified.</p>
+          <p className="text-muted-foreground">ငွေလွှဲမှတ်တမ်း မတွေ့ပါ</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate("/dashboard/wallet")}>
-            Go to Wallet
+            {t.nav.wallet.mm}သို့ သွားမည်
           </Button>
         </div>
       </PageContainer>
@@ -183,9 +173,9 @@ export default function TopUpStatusPage() {
   return (
     <div className="space-y-section">
       <Breadcrumb items={[
-        { label: "Dashboard", path: "/dashboard" },
-        { label: "Wallet", path: "/dashboard/wallet" },
-        { label: "Top-Up Status" },
+        { label: t.nav.dashboard.mm, path: "/dashboard" },
+        { label: t.nav.wallet.mm, path: "/dashboard/wallet" },
+        { label: "ငွေဖြည့်အခြေအနေ" },
       ]} />
 
       <PageContainer maxWidth="max-w-xl">
@@ -201,15 +191,14 @@ export default function TopUpStatusPage() {
               </div>
 
               <div className="space-y-2">
-                <h2 className="text-h1 text-foreground">Top-Up Successful!</h2>
+                <h2 className="text-h1 text-foreground">ငွေဖြည့်မှု အောင်မြင်ပါပြီ</h2>
                 <p className="text-body text-muted-foreground">
-                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> has been credited to your wallet.
+                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> သင့်ပိုက်ဆံအိတ်သို့ ထည့်ပြီးပါပြီ
                 </p>
               </div>
 
-              {/* Balance Animation */}
               <div className="rounded-[var(--radius-card)] border border-success/20 bg-success/5 p-6">
-                <p className="text-caption text-muted-foreground uppercase tracking-wider mb-2">New Wallet Balance</p>
+                <p className="text-caption text-muted-foreground uppercase tracking-wider mb-2">{t.wallet.availableBalance.mm}</p>
                 <p className="text-4xl font-bold font-mono tabular-nums text-success tracking-tight">
                   {justApproved
                     ? animatedBalance.toLocaleString()
@@ -225,7 +214,7 @@ export default function TopUpStatusPage() {
                   onClick={() => navigate("/dashboard/products")}
                 >
                   <ShoppingCart className="w-4 h-4" />
-                  Continue Shopping
+                  {t.dashboard.browseProducts.mm}
                 </Button>
                 <Button
                   variant="outline"
@@ -233,7 +222,7 @@ export default function TopUpStatusPage() {
                   onClick={() => navigate("/dashboard/wallet")}
                 >
                   <Wallet className="w-4 h-4" />
-                  View Wallet
+                  {t.nav.wallet.mm}
                 </Button>
               </div>
             </div>
@@ -247,24 +236,24 @@ export default function TopUpStatusPage() {
               </div>
 
               <div className="space-y-2">
-                <h2 className="text-h1 text-foreground">Top-Up Rejected</h2>
+                <h2 className="text-h1 text-foreground">ငွေဖြည့်မှု ငြင်းပယ်ခံရပါသည်</h2>
                 <p className="text-body text-muted-foreground">
-                  Your request for <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> was not approved.
+                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> တောင်းဆိုမှု အတည်မပြုပါ
                 </p>
                 <p className="text-caption text-muted-foreground">
-                  Please verify your payment details and try again, or contact support.
+                  ငွေလွှဲအချက်အလက်များ ပြန်စစ်ပြီး ထပ်ကြိုးစားပါ
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Button className="flex-1 h-12 btn-glow" onClick={() => navigate("/dashboard/wallet")}>
-                  Try Again
+                  ထပ်ကြိုးစားမည်
                 </Button>
               </div>
             </div>
           )}
 
-          {/* ── PENDING STATE — STATUS TRACKER ── */}
+          {/* ── PENDING STATE ── */}
           {isPending && (
             <div className="space-y-8 animate-fade-in">
               <div className="text-center space-y-3">
@@ -272,19 +261,17 @@ export default function TopUpStatusPage() {
                   style={{ boxShadow: "0 0 30px hsl(var(--primary) / 0.15)" }}>
                   <Clock className="w-8 h-8 text-primary animate-pulse" />
                 </div>
-                <h2 className="text-xl font-semibold text-foreground">Top-Up In Progress</h2>
+                <h2 className="text-xl font-semibold text-foreground">ငွေဖြည့်နေသည်</h2>
                 <p className="text-sm text-muted-foreground">
-                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> via {transaction?.method || "Payment"}
+                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> ({transaction?.method || "Payment"})
                 </p>
               </div>
 
-              {/* Steps */}
               <div className="space-y-0 px-2">
                 {STEPS.map((step, i) => {
                   const stepNum = i + 1;
                   const isDone = stepNum <= activeStep;
                   const isActive = stepNum === activeStep + 1;
-                  const isFuture = stepNum > activeStep + 1;
 
                   return (
                     <div key={i} className="flex items-start gap-4">
@@ -326,7 +313,7 @@ export default function TopUpStatusPage() {
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                             </span>
-                            Usually completed within 5–15 minutes
+                            {t.topup.reviewTime.mm}
                           </p>
                         )}
                       </div>
@@ -335,19 +322,17 @@ export default function TopUpStatusPage() {
                 })}
               </div>
 
-              {/* Queue indicator */}
               {typeof queueCount === "number" && queueCount > 0 && (
                 <div className="text-center rounded-[var(--radius-card)] border border-border/40 bg-muted/10 py-3 px-4">
                   <p className="text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground">{queueCount}</span> request{queueCount !== 1 ? "s" : ""} ahead of you
+                    သင့်ရှေ့တွင် <span className="font-semibold text-foreground">{queueCount}</span> တောင်းဆိုမှု ရှိနေပါသေးသည်
                   </p>
                 </div>
               )}
 
-              {/* Security footer */}
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground/60">
                 <Shield className="w-3.5 h-3.5" />
-                <span>This page updates automatically — no refresh needed</span>
+                <span>ဤစာမျက်နှာသည် အလိုအလျောက် အပ်ဒိတ်ဖြစ်ပါသည်</span>
               </div>
 
               <Button
@@ -355,7 +340,7 @@ export default function TopUpStatusPage() {
                 className="w-full h-11 btn-glass"
                 onClick={() => navigate("/dashboard/wallet")}
               >
-                Back to Wallet
+                {t.nav.wallet.mm}သို့ ပြန်သွားမည်
               </Button>
             </div>
           )}

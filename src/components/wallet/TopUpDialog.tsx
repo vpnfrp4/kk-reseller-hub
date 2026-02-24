@@ -30,17 +30,15 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { t } from "@/lib/i18n";
+import MmLabel from "@/components/shared/MmLabel";
 
 interface TopUpDialogProps {
   userId: string | undefined;
-  /** Pre-fill amount (e.g. from insufficient balance prompt) */
   defaultAmount?: number;
-  /** Control open state externally */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  /** Hide the trigger button (when opened programmatically) */
   hideTrigger?: boolean;
-  /** Called after successful submission with transaction ID */
   onSubmitted?: (transactionId: string) => void;
 }
 
@@ -60,10 +58,10 @@ const PRESET_AMOUNTS = [10000, 30000, 50000, 100000];
 const MIN_AMOUNT = 5000;
 
 const PROCESS_STEPS = [
-  { icon: CreditCard, label: "Transfer funds", description: "Send to an official account" },
-  { icon: Camera, label: "Upload screenshot", description: "Proof of payment" },
-  { icon: UserCheck, label: "Admin verification", description: "5–15 minutes" },
-  { icon: Wallet, label: "Wallet credited", description: "Funds available instantly" },
+  { icon: CreditCard, mm: "ငွေလွှဲပါ", en: "Transfer funds" },
+  { icon: Camera, mm: "ပြေစာတင်ပါ", en: "Upload screenshot" },
+  { icon: UserCheck, mm: "အတည်ပြုစစ်ဆေး", en: "Admin verification" },
+  { icon: Wallet, mm: "ငွေရောက်ပါပြီ", en: "Wallet credited" },
 ];
 
 type SubmissionState = "idle" | "uploading" | "submitted";
@@ -93,7 +91,6 @@ export default function TopUpDialog({
     ? (open: boolean) => controlledOnOpenChange?.(open)
     : setInternalOpen;
 
-  // Pre-fill amount when opened with defaultAmount
   useEffect(() => {
     if (dialogOpen && defaultAmount && defaultAmount > 0) {
       setTopupAmount(defaultAmount.toString());
@@ -106,7 +103,7 @@ export default function TopUpDialog({
   const handleCopy = useCallback((phone: string, provider: string) => {
     navigator.clipboard.writeText(phone);
     setCopiedId(phone);
-    toast({ title: "Copied!", description: `${provider} number copied successfully.` });
+    toast({ title: "ကူးပြီး!", description: `${provider} နံပါတ် ကူးပြီးပါပြီ` });
     setTimeout(() => setCopiedId(null), 2000);
   }, []);
 
@@ -160,14 +157,13 @@ export default function TopUpDialog({
       setSubmissionState("submitted");
       queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] });
 
-      // Navigate to status page if callback provided
       if (insertedTx?.id && onSubmitted) {
         resetOnClose(false);
         onSubmitted(insertedTx.id);
       }
     } catch (err) {
       console.error("Top-up error:", err);
-      toast({ title: "Error", description: "Failed to submit top-up request.", variant: "destructive" });
+      toast({ title: "အမှား", description: "ငွေဖြည့်တင်သွင်းမှု မအောင်မြင်ပါ", variant: "destructive" });
       setSubmissionState("idle");
     }
   };
@@ -187,7 +183,7 @@ export default function TopUpDialog({
         <DialogTrigger asChild>
           <Button className="btn-glow gap-2">
             <Plus className="w-4 h-4" />
-            Top Up
+            {t.wallet.topUp.mm}
           </Button>
         </DialogTrigger>
       )}
@@ -199,29 +195,27 @@ export default function TopUpDialog({
               <div className="w-8 h-8 rounded-[var(--radius-btn)] bg-primary/10 flex items-center justify-center">
                 <Shield className="w-4 h-4 text-primary" />
               </div>
-              Secure Wallet Top-Up
+              <MmLabel mm={t.topup.title.mm} en={t.topup.title.en} />
             </DialogTitle>
-            <p className="text-sm text-muted-foreground mt-1">Transfer funds to an official account and upload proof.</p>
+            <p className="text-sm text-muted-foreground mt-1">{t.topup.subtitle.mm}</p>
           </DialogHeader>
         </div>
 
         {submissionState === "submitted" ? (
-          /* ── STATUS TRACKER ── */
           <div className="px-7 py-8 space-y-6 animate-fade-in">
             <div className="text-center space-y-2">
               <div className="w-14 h-14 rounded-full bg-success/10 flex items-center justify-center mx-auto" style={{ boxShadow: "0 0 30px hsl(var(--success) / 0.15)" }}>
                 <CheckCircle2 className="w-7 h-7 text-success" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground">Top-Up Request Submitted</h3>
+              <h3 className="text-lg font-semibold text-foreground">{t.topup.submitted.mm}</h3>
               <p className="text-sm text-muted-foreground">{parsedAmount.toLocaleString()} MMK</p>
             </div>
 
-            {/* Status Steps */}
             <div className="space-y-0">
               {[
-                { label: "Request Submitted", done: true },
-                { label: "Payment Under Review", active: true },
-                { label: "Wallet Credited", done: false },
+                { label: t.topup.requestSubmitted.mm, done: true },
+                { label: t.topup.underReview.mm, active: true },
+                { label: t.topup.walletCreditedStep.mm, done: false },
               ].map((step, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="flex flex-col items-center">
@@ -242,7 +236,7 @@ export default function TopUpDialog({
                       {step.label}
                     </p>
                     {step.active && (
-                      <p className="text-xs text-muted-foreground mt-0.5">Usually completed within 5–15 minutes</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{t.topup.reviewTime.mm}</p>
                     )}
                   </div>
                 </div>
@@ -253,18 +247,21 @@ export default function TopUpDialog({
               className="w-full h-12 rounded-[var(--radius-btn)] btn-glow"
               onClick={() => resetOnClose(false)}
             >
-              Done
+              {t.topup.done.mm}
             </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmitTopup} className="px-7 py-6 space-y-6 max-h-[72vh] overflow-y-auto">
             {/* ── AMOUNT ── */}
             <div className="space-y-3">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Amount (MMK)</Label>
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                {t.topup.amount.mm}
+                <span className="text-[10px] text-muted-foreground/60 normal-case ml-1">({t.topup.amount.en})</span>
+              </Label>
               <div className="relative">
                 <Input
                   type="number"
-                  placeholder="Enter amount"
+                  placeholder="ပမာဏထည့်ပါ"
                   value={topupAmount}
                   onChange={(e) => setTopupAmount(e.target.value)}
                   className="bg-muted/20 border-border/50 font-mono text-lg h-12 rounded-[var(--radius-input)] focus:border-primary/50 focus:ring-primary/20 pr-14"
@@ -277,7 +274,7 @@ export default function TopUpDialog({
               {isAmountTooLow && (
                 <p className="text-xs text-warning flex items-center gap-1.5">
                   <AlertTriangle className="w-3 h-3" />
-                  Minimum top-up amount is {MIN_AMOUNT.toLocaleString()} MMK
+                  {t.topup.minAmount.mm} {MIN_AMOUNT.toLocaleString()} MMK
                 </p>
               )}
 
@@ -298,12 +295,14 @@ export default function TopUpDialog({
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground/60">Most resellers top up 50,000 MMK</p>
+              <p className="text-xs text-muted-foreground/60">ဒိုင်အများစုသည် 50,000 MMK ဖြည့်ကြပါသည်</p>
             </div>
 
             {/* ── PAYMENT METHODS ── */}
             <div className="space-y-3">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Official Payment Methods</Label>
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                {t.topup.paymentMethods.mm}
+              </Label>
               <div className="space-y-3">
                 {ACCOUNTS.map((account) => {
                   const isSelected = selectedAccount === account.id;
@@ -321,7 +320,6 @@ export default function TopUpDialog({
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="space-y-3 flex-1 min-w-0">
-                          {/* Provider Badge */}
                           <div className="flex items-center gap-2">
                             <span className={cn(
                               "text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full",
@@ -334,15 +332,13 @@ export default function TopUpDialog({
                             {isSelected && (
                               <div className="flex items-center gap-1 text-primary">
                                 <BadgeCheck className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-medium">Verified</span>
+                                <span className="text-[10px] font-medium">{t.topup.verified.mm}</span>
                               </div>
                             )}
                           </div>
 
-                          {/* Account Holder */}
                           <p className="text-sm font-semibold text-foreground">{account.name}</p>
 
-                          {/* Phone Number + Copy */}
                           <div className="flex items-center gap-2">
                             <span className="font-mono text-xl font-bold text-foreground tracking-wide">
                               {account.phone}
@@ -370,7 +366,6 @@ export default function TopUpDialog({
                           </div>
                         </div>
 
-                        {/* Radio indicator */}
                         <div className={cn(
                           "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-all duration-200",
                           isSelected
@@ -394,10 +389,7 @@ export default function TopUpDialog({
                     <div className="w-8 h-8 rounded-full bg-muted/30 flex items-center justify-center mx-auto">
                       <step.icon className="w-3.5 h-3.5 text-muted-foreground" />
                     </div>
-                    <p className="text-[10px] font-medium text-foreground leading-tight">{step.label}</p>
-                    {i < PROCESS_STEPS.length - 1 && (
-                      <div className="hidden" />
-                    )}
+                    <p className="text-[10px] font-medium text-foreground leading-tight">{step.mm}</p>
                   </div>
                 ))}
               </div>
@@ -407,21 +399,23 @@ export default function TopUpDialog({
             <div className="rounded-[var(--radius-card)] border border-border/40 bg-muted/10 p-4 space-y-2">
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
-                <span>Official verified account</span>
+                <span>တရားဝင် အတည်ပြုပြီးအကောင့်</span>
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <Shield className="w-4 h-4 text-success flex-shrink-0" />
-                <span>Manual verification for security</span>
+                <span>လုံခြုံရေးအတွက် ကိုယ်တိုင်စစ်ဆေးခြင်း</span>
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground/70 pt-1.5 border-t border-border/30">
                 <AlertTriangle className="w-4 h-4 text-warning/70 flex-shrink-0" />
-                <span>Do not transfer to any other number.</span>
+                <span>အခြားနံပါတ်သို့ မလွှဲပါနှင့်</span>
               </div>
             </div>
 
             {/* ── UPLOAD ── */}
             <div className="space-y-3">
-              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Payment Screenshot</Label>
+              <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                {t.topup.uploadProof.mm}
+              </Label>
               {screenshotPreview ? (
                 <div className="relative rounded-[var(--radius-card)] border border-border/30 bg-muted/10 overflow-hidden group">
                   <img
@@ -440,7 +434,7 @@ export default function TopUpDialog({
                   </div>
                   <div className="px-4 py-2.5 border-t border-border/20 flex items-center justify-between">
                     <span className="text-xs text-muted-foreground truncate max-w-[200px]">{screenshot?.name}</span>
-                    <span className="text-[10px] text-success font-medium">Ready</span>
+                    <span className="text-[10px] text-success font-medium">အဆင်သင့်</span>
                   </div>
                 </div>
               ) : (
@@ -466,9 +460,9 @@ export default function TopUpDialog({
                   </div>
                   <div className="text-center">
                     <span className="text-sm font-medium text-muted-foreground">
-                      {isDragging ? "Drop your screenshot here" : "Upload payment screenshot"}
+                      {isDragging ? "ဖိုင်ချပါ" : t.topup.dragDrop.mm}
                     </span>
-                    <p className="text-xs text-muted-foreground/60 mt-1">PNG, JPG up to 5MB</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">PNG, JPG 5MB အထိ</p>
                   </div>
                   <input
                     ref={fileInputRef}
@@ -491,13 +485,13 @@ export default function TopUpDialog({
                 {submissionState === "uploading" ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Processing...
+                    ဆောင်ရွက်နေသည်...
                   </span>
                 ) : (
-                  "Submit Top-Up Request"
+                  t.topup.submit.mm
                 )}
               </Button>
-              <p className="text-xs text-muted-foreground/60 text-center">Top-up requests are manually reviewed for security.</p>
+              <p className="text-xs text-muted-foreground/60 text-center">ငွေဖြည့်တင်သွင်းမှုများကို လုံခြုံရေးအတွက် ကိုယ်တိုင်စစ်ဆေးပါသည်</p>
             </div>
           </form>
         )}

@@ -25,6 +25,8 @@ import {
   playSound,
   type NotificationPrefs,
 } from "@/lib/notifications";
+import { t } from "@/lib/i18n";
+import MmLabel from "@/components/shared/MmLabel";
 
 export default function SettingsPage() {
   const { profile, refreshProfile } = useAuth();
@@ -58,7 +60,7 @@ export default function SettingsPage() {
     if (enabled) {
       const granted = await requestNotificationPermission();
       if (!granted) {
-        toast.error("Browser notifications blocked. Enable in browser settings.");
+        toast.error("ဘရောက်ဇာ အသိပေးချက်များ ပိတ်ထားသည်။ ဘရောက်ဇာ ဆက်တင်တွင် ဖွင့်ပေးပါ။");
         return;
       }
     }
@@ -69,7 +71,7 @@ export default function SettingsPage() {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed || trimmed.length > 100) {
-      toast.error("Name must be between 1 and 100 characters");
+      toast.error("အမည်သည် ၁ မှ ၁၀၀ စာလုံးအတွင်း ဖြစ်ရမည်");
       return;
     }
     setSaving(true);
@@ -80,30 +82,29 @@ export default function SettingsPage() {
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     await refreshProfile();
-    toast.success("Name updated successfully");
+    toast.success("အမည်ပြင်ဆင်ပြီးပါပြီ");
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.length < 6) {
-      toast.error("New password must be at least 6 characters");
+      toast.error("စကားဝှက်အသစ်သည် အနည်းဆုံး ၆ လုံး ရှိရမည်");
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match");
+      toast.error("စကားဝှက်များ မကိုက်ညီပါ");
       return;
     }
 
     setChangingPassword(true);
 
-    // Verify current password by re-authenticating
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email: profile?.email || "",
       password: currentPassword,
     });
     if (signInError) {
       setChangingPassword(false);
-      toast.error("Current password is incorrect");
+      toast.error("လက်ရှိစကားဝှက် မမှန်ကန်ပါ");
       return;
     }
 
@@ -114,34 +115,36 @@ export default function SettingsPage() {
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
-    toast.success("Password changed successfully");
+    toast.success("စကားဝှက်ပြောင်းပြီးပါပြီ");
   };
 
   return (
     <div className="space-y-8 max-w-lg">
       <Breadcrumb items={[
-        { label: "Dashboard", path: "/dashboard" },
-        { label: "Settings" },
+        { label: t.nav.dashboard.mm, path: "/dashboard" },
+        { label: t.nav.settings.mm },
       ]} />
 
       <div className="animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Settings</h1>
-        <p className="text-muted-foreground text-sm">Manage your account preferences</p>
+        <h1 className="text-2xl font-bold text-foreground">
+          <MmLabel mm={t.settings.title.mm} en={t.settings.title.en} />
+        </h1>
+        <p className="text-muted-foreground text-sm">{t.settings.subtitle.mm}</p>
       </div>
 
       {/* Profile Section */}
       <div className="glass-card p-6 space-y-4 animate-fade-in" style={{ animationDelay: "0.05s" }}>
         <div className="flex items-center gap-2 font-semibold">
           <User className="w-5 h-5 text-primary" />
-          <span className="gold-text">Profile</span>
+          <MmLabel mm={t.settings.profile.mm} en={t.settings.profile.en} className="gold-text" />
         </div>
         <form onSubmit={handleUpdateName} className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Email</Label>
+            <Label className="text-muted-foreground text-xs">{t.settings.email.mm}</Label>
             <Input value={profile?.email || ""} disabled className="bg-muted/50 border-border opacity-60" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Display Name</Label>
+            <Label className="text-muted-foreground text-xs">{t.settings.displayName.mm}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -151,7 +154,7 @@ export default function SettingsPage() {
             />
           </div>
           <Button type="submit" disabled={saving} className="btn-glow">
-            {saving ? "Saving..." : "Update Name"}
+            {saving ? t.settings.saving.mm : t.settings.updateName.mm}
           </Button>
         </form>
       </div>
@@ -160,11 +163,11 @@ export default function SettingsPage() {
       <div className="glass-card p-6 space-y-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
         <div className="flex items-center gap-2 font-semibold">
           <Lock className="w-5 h-5 text-primary" />
-          <span className="gold-text">Change Password</span>
+          <MmLabel mm={t.settings.changePassword.mm} en={t.settings.changePassword.en} className="gold-text" />
         </div>
         <form onSubmit={handleChangePassword} className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Current Password</Label>
+            <Label className="text-muted-foreground text-xs">{t.settings.currentPw.mm}</Label>
             <Input
               type="password"
               value={currentPassword}
@@ -174,7 +177,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">New Password</Label>
+            <Label className="text-muted-foreground text-xs">{t.settings.newPw.mm}</Label>
             <Input
               type="password"
               value={newPassword}
@@ -185,7 +188,7 @@ export default function SettingsPage() {
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Confirm New Password</Label>
+            <Label className="text-muted-foreground text-xs">{t.settings.confirmPw.mm}</Label>
             <Input
               type="password"
               value={confirmPassword}
@@ -196,7 +199,7 @@ export default function SettingsPage() {
             />
           </div>
           <Button type="submit" disabled={changingPassword} className="btn-glow">
-            {changingPassword ? "Changing..." : "Change Password"}
+            {changingPassword ? t.settings.changing.mm : t.settings.changePwBtn.mm}
           </Button>
         </form>
       </div>
@@ -205,19 +208,19 @@ export default function SettingsPage() {
       <div className="glass-card p-6 space-y-5 animate-fade-in" style={{ animationDelay: "0.15s" }}>
         <div className="flex items-center gap-2 font-semibold">
           <Bell className="w-5 h-5 text-primary" />
-          <span className="gold-text">Notification Preferences</span>
+          <MmLabel mm={t.settings.notifPrefs.mm} en={t.settings.notifPrefs.en} className="gold-text" />
         </div>
 
         {/* Delivery Methods */}
         <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Delivery Methods</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.settings.deliveryMethods.mm}</p>
           <div className="space-y-3 mt-3">
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
               <div className="flex items-center gap-3">
                 <Volume2 className={`w-4 h-4 ${notifPrefs.soundEnabled ? "text-primary" : "text-muted-foreground"}`} />
                 <div>
-                  <p className="text-sm font-medium text-foreground">Sound Effects</p>
-                  <p className="text-xs text-muted-foreground">Play audio chime for alerts</p>
+                  <p className="text-sm font-medium text-foreground">{t.settings.soundEffects.mm}</p>
+                  <p className="text-xs text-muted-foreground">{t.settings.soundDesc.mm}</p>
                 </div>
               </div>
               <Switch checked={notifPrefs.soundEnabled} onCheckedChange={handleSoundToggle} />
@@ -227,8 +230,8 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 <Globe className={`w-4 h-4 ${notifPrefs.browserNotificationsEnabled ? "text-primary" : "text-muted-foreground"}`} />
                 <div>
-                  <p className="text-sm font-medium text-foreground">Browser Notifications</p>
-                  <p className="text-xs text-muted-foreground">Show desktop alerts when tab is unfocused</p>
+                  <p className="text-sm font-medium text-foreground">{t.settings.browserNotifs.mm}</p>
+                  <p className="text-xs text-muted-foreground">{t.settings.browserDesc.mm}</p>
                 </div>
               </div>
               <Switch checked={notifPrefs.browserNotificationsEnabled} onCheckedChange={handleBrowserToggle} />
@@ -237,21 +240,21 @@ export default function SettingsPage() {
 
           {"Notification" in window && Notification.permission === "denied" && notifPrefs.browserNotificationsEnabled && (
             <p className="text-[11px] text-destructive mt-2 px-1">
-              Browser notifications are blocked. Enable them in your browser settings.
+              ဘရောက်ဇာ အသိပေးချက်များ ပိတ်ထားသည်။ ဘရောက်ဇာ ဆက်တင်တွင် ဖွင့်ပေးပါ။
             </p>
           )}
         </div>
 
         {/* Alert Types */}
         <div className="space-y-1 pt-2 border-t border-border/30">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Alert Types</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t.settings.alertTypes.mm}</p>
           <div className="space-y-3 mt-3">
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
               <div className="flex items-center gap-3">
                 <Wallet className={`w-4 h-4 ${notifPrefs.topupApproved ? "text-success" : "text-muted-foreground"}`} />
                 <div>
-                  <p className="text-sm font-medium text-foreground">Top-Up Approved</p>
-                  <p className="text-xs text-muted-foreground">When your wallet top-up is approved</p>
+                  <p className="text-sm font-medium text-foreground">{t.settings.topupApproved.mm}</p>
+                  <p className="text-xs text-muted-foreground">{t.settings.topupApprovedDesc.mm}</p>
                 </div>
               </div>
               <Switch checked={notifPrefs.topupApproved} onCheckedChange={(v) => updateNotifPref("topupApproved", v)} />
@@ -261,8 +264,8 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 <ShoppingBag className={`w-4 h-4 ${notifPrefs.purchaseComplete ? "text-primary" : "text-muted-foreground"}`} />
                 <div>
-                  <p className="text-sm font-medium text-foreground">Purchase Complete</p>
-                  <p className="text-xs text-muted-foreground">When a product purchase is completed</p>
+                  <p className="text-sm font-medium text-foreground">{t.settings.purchaseComplete.mm}</p>
+                  <p className="text-xs text-muted-foreground">{t.settings.purchaseCompleteDesc.mm}</p>
                 </div>
               </div>
               <Switch checked={notifPrefs.purchaseComplete} onCheckedChange={(v) => updateNotifPref("purchaseComplete", v)} />
@@ -273,8 +276,8 @@ export default function SettingsPage() {
                 <div className="flex items-center gap-3">
                   <AlertTriangle className={`w-4 h-4 ${notifPrefs.lowBalance ? "text-warning" : "text-muted-foreground"}`} />
                   <div>
-                    <p className="text-sm font-medium text-foreground">Low Balance Warning</p>
-                    <p className="text-xs text-muted-foreground">When your balance drops below threshold</p>
+                    <p className="text-sm font-medium text-foreground">{t.settings.lowBalanceWarning.mm}</p>
+                    <p className="text-xs text-muted-foreground">{t.settings.lowBalanceDesc.mm}</p>
                   </div>
                 </div>
                 <Switch checked={notifPrefs.lowBalance} onCheckedChange={(v) => updateNotifPref("lowBalance", v)} />
@@ -282,7 +285,7 @@ export default function SettingsPage() {
               {notifPrefs.lowBalance && (
                 <div className="px-3 pb-3 pt-0">
                   <div className="flex items-center gap-2 p-2.5 rounded-lg bg-background/50 border border-border/20">
-                    <Label className="text-xs text-muted-foreground whitespace-nowrap">Alert when below</Label>
+                    <Label className="text-xs text-muted-foreground whitespace-nowrap">{t.settings.alertBelow.mm}</Label>
                     <Input
                       type="number"
                       min={1000}
@@ -300,7 +303,7 @@ export default function SettingsPage() {
                     <span className="text-xs font-medium text-muted-foreground">MMK</span>
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-1.5 px-1">
-                    Recommended: 5,000 – 50,000 MMK
+                    အကြံပြု: 5,000 – 50,000 MMK
                   </p>
                 </div>
               )}
@@ -310,8 +313,8 @@ export default function SettingsPage() {
               <div className="flex items-center gap-3">
                 <ClipboardList className={`w-4 h-4 ${notifPrefs.orderUpdates ? "text-ice" : "text-muted-foreground"}`} />
                 <div>
-                  <p className="text-sm font-medium text-foreground">Order Updates</p>
-                  <p className="text-xs text-muted-foreground">When your order status changes</p>
+                  <p className="text-sm font-medium text-foreground">{t.settings.orderUpdates.mm}</p>
+                  <p className="text-xs text-muted-foreground">{t.settings.orderUpdatesDesc.mm}</p>
                 </div>
               </div>
               <Switch checked={notifPrefs.orderUpdates} onCheckedChange={(v) => updateNotifPref("orderUpdates", v)} />
