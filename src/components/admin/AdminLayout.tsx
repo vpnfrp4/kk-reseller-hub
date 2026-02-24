@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationSettings from "@/components/NotificationSettings";
+import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import { notifyEvent } from "@/lib/notifications";
@@ -213,8 +214,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </h2>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <ThemeToggle />
+            <AdminNotificationBell />
             <NotificationSettings />
             <span className="admin-badge text-[10px] uppercase tracking-[0.15em] px-3 py-1.5 rounded-full">
               Admin
