@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Zap, Eye, EyeOff } from "lucide-react";
+import { KeyRound, Eye, EyeOff, CheckCircle2, ArrowRight, ShieldAlert } from "lucide-react";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -17,14 +17,12 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Listen for PASSWORD_RECOVERY event
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setIsRecovery(true);
       }
     });
 
-    // Check hash for recovery type
     const hash = window.location.hash;
     if (hash.includes("type=recovery")) {
       setIsRecovery(true);
@@ -60,83 +58,132 @@ export default function ResetPassword() {
 
   if (!isRecovery) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <div className="w-full max-w-md text-center space-y-4">
-          <div className="w-16 h-16 rounded-2xl bg-primary mx-auto mb-4 flex items-center justify-center">
-            <Zap className="w-8 h-8 text-primary-foreground" />
+      <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+        <div className="fixed inset-0 pointer-events-none">
+          <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[150px] opacity-20" style={{ background: "radial-gradient(circle, hsl(0 72% 51% / 0.15), transparent 70%)" }} />
+        </div>
+
+        <div className="w-full max-w-md text-center space-y-6 relative z-10 animate-fade-in">
+          <div
+            className="w-[72px] h-[72px] rounded-2xl mx-auto flex items-center justify-center"
+            style={{ background: "hsl(var(--destructive) / 0.15)", border: "1px solid hsl(var(--destructive) / 0.2)" }}
+          >
+            <ShieldAlert className="w-9 h-9 text-destructive" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Invalid Reset Link</h1>
+          <h1 className="text-2xl font-bold text-foreground font-display">Invalid Reset Link</h1>
           <p className="text-muted-foreground text-sm">This password reset link is invalid or has expired.</p>
-          <Button onClick={() => navigate("/login")} variant="outline">Back to Login</Button>
+          <Button onClick={() => navigate("/login")} className="btn-glass gap-2">
+            Back to Login
+            <ArrowRight className="w-4 h-4" />
+          </Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Ambient background */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[150px] opacity-30" style={{ background: "radial-gradient(circle, hsl(43 76% 47% / 0.12), transparent 70%)" }} />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[130px] opacity-20" style={{ background: "radial-gradient(circle, hsl(224 76% 33% / 0.15), transparent 70%)" }} />
+      </div>
 
-      <div className="w-full max-w-md relative">
-        <div className="text-center mb-8 animate-fade-in">
-          <div className="w-16 h-16 rounded-2xl bg-primary mx-auto mb-4 flex items-center justify-center btn-glow">
-            <Zap className="w-8 h-8 text-primary-foreground" />
+      <div className="w-full max-w-md relative z-10">
+        {/* Branding */}
+        <div className="text-center mb-10 animate-fade-in">
+          <div
+            className="w-[72px] h-[72px] rounded-2xl mx-auto mb-5 flex items-center justify-center relative overflow-hidden"
+            style={{
+              background: "var(--gradient-gold)",
+              boxShadow: "0 0 40px hsl(43 76% 47% / 0.3)",
+            }}
+          >
+            <KeyRound className="w-9 h-9 text-primary-foreground relative z-10" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground">Set New Password</h1>
-          <p className="text-muted-foreground text-sm mt-1">Enter your new password below</p>
+          <h1 className="text-3xl font-bold text-foreground font-display tracking-tight">Set New Password</h1>
+          <p className="text-muted-foreground text-sm mt-3">Enter your new password below</p>
         </div>
 
         {success ? (
-          <div className="glass-card p-8 text-center space-y-3 animate-fade-in">
-            <p className="text-success font-semibold">Password updated successfully!</p>
+          <div className="glass-card p-8 text-center space-y-4 animate-fade-in relative overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, hsl(var(--success)), hsl(var(--success) / 0.3))" }} />
+            <CheckCircle2 className="w-14 h-14 text-success mx-auto" />
+            <p className="text-foreground font-semibold text-lg">Password Updated</p>
             <p className="text-muted-foreground text-sm">Redirecting to dashboard...</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="glass-card p-8 space-y-5 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm text-muted-foreground">New Password</Label>
-              <div className="relative">
+          <div className="glass-card p-8 animate-fade-in relative overflow-hidden" style={{ animationDelay: "0.1s" }}>
+            <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "var(--gradient-gold)" }} />
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="password" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  New Password
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="bg-muted/50 border-border/50 focus:border-primary/50 pr-10 transition-all duration-200 h-11"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-200"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirm" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Confirm Password
+                </Label>
                 <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
+                  id="confirm"
+                  type="password"
                   placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="bg-muted/50 border-border focus:border-primary pr-10"
+                  className="bg-muted/50 border-border/50 focus:border-primary/50 transition-all duration-200 h-11"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="confirm" className="text-sm text-muted-foreground">Confirm Password</Label>
-              <Input
-                id="confirm"
-                type="password"
-                placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                minLength={6}
-                className="bg-muted/50 border-border focus:border-primary"
-              />
-            </div>
+              {error && (
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg px-4 py-2.5">
+                  <p className="text-destructive text-sm text-center">{error}</p>
+                </div>
+              )}
 
-            {error && <p className="text-destructive text-sm text-center">{error}</p>}
-
-            <Button type="submit" className="w-full btn-glow font-semibold" disabled={loading}>
-              {loading ? "Updating..." : "Update Password"}
-            </Button>
-          </form>
+              <Button type="submit" className="w-full btn-glow font-semibold h-11 gap-2" disabled={loading}>
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  <>
+                    Update Password
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
+            </form>
+          </div>
         )}
+
+        <p className="text-center text-xs text-muted-foreground/60 mt-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
+          &copy; {new Date().getFullYear()} KKTech. All rights reserved.
+        </p>
       </div>
     </div>
   );
