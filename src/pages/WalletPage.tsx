@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useCountUp } from "@/hooks/use-count-up";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,8 +19,10 @@ import { Button } from "@/components/ui/button";
 
 export default function WalletPage() {
   const { user, profile } = useAuth();
+  const [balanceFlash, setBalanceFlash] = useState(false);
+  const prevBalanceRef = useRef<number | null>(null);
 
-  const { data: transactions } = useQuery({
+  const { data: transactions, refetch: refetchTransactions } = useQuery({
     queryKey: ["wallet-transactions"],
     queryFn: async () => {
       const { data } = await supabase
@@ -29,6 +32,39 @@ export default function WalletPage() {
       return data || [];
     },
   });
+
+  // Detect balance changes and trigger flash animation
+  useEffect(() => {
+    const currentBalance = profile?.balance ?? 0;
+    if (prevBalanceRef.current !== null && prevBalanceRef.current !== currentBalance) {
+      setBalanceFlash(true);
+      refetchTransactions();
+      const timer = setTimeout(() => setBalanceFlash(false), 1500);
+      return () => clearTimeout(timer);
+    }
+    prevBalanceRef.current = currentBalance;
+  }, [profile?.balance]);
+
+  // Realtime transaction updates
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('wallet-tx-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'wallet_transactions',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          refetchTransactions();
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user]);
 
   const statusIcon = (status: string) => {
     if (status === "approved") return <CheckCircle2 className="w-4 h-4 text-success" />;
@@ -65,7 +101,9 @@ export default function WalletPage() {
               <Wallet className="w-5 h-5 text-primary" />
               <span className="text-sm text-muted-foreground">Available Balance</span>
             </div>
-            <p className="text-4xl font-bold font-mono gold-shimmer glow-text">
+            <p className={`text-4xl font-bold font-mono gold-shimmer glow-text transition-all duration-500 ${
+              balanceFlash ? "scale-110 text-success drop-shadow-[0_0_20px_hsl(var(--success)/0.6)]" : ""
+            }`}>
               {displayBalance.toLocaleString()}
             </p>
             <p className="text-xs text-muted-foreground mt-1">MMK</p>
