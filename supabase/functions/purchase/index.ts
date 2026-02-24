@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
-    const { product_id } = await req.json();
+    const { product_id, quantity } = await req.json();
 
     if (!product_id) {
       return new Response(JSON.stringify({ success: false, error: "product_id is required" }), {
@@ -44,6 +44,8 @@ Deno.serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const qty = Math.max(1, Math.min(100, parseInt(quantity) || 1));
 
     // Call the atomic purchase function using service role for SECURITY DEFINER
     const serviceClient = createClient(
@@ -54,6 +56,7 @@ Deno.serve(async (req) => {
     const { data, error } = await serviceClient.rpc("process_purchase", {
       p_user_id: userId,
       p_product_id: product_id,
+      p_quantity: qty,
     });
 
     if (error) {

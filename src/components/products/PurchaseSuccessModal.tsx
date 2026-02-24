@@ -14,6 +14,8 @@ interface PurchaseResult {
   credentials: string;
   product_name: string;
   price: number;
+  quantity?: number;
+  unit_price?: number;
 }
 
 interface PurchaseSuccessModalProps {
@@ -31,6 +33,8 @@ export default function PurchaseSuccessModal({ result, onClose }: PurchaseSucces
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const credentialsList = result?.credentials?.split("\n").filter(Boolean) || [];
+
   return (
     <Dialog open={!!result} onOpenChange={() => onClose()}>
       <DialogContent className="bg-card border-border/50 max-w-md">
@@ -46,25 +50,50 @@ export default function PurchaseSuccessModal({ result, onClose }: PurchaseSucces
             <div className="stat-card">
               <p className="text-sm text-muted-foreground mb-1">Product</p>
               <p className="text-foreground font-semibold">{result.product_name}</p>
+              {result.quantity && result.quantity > 1 && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {result.quantity} accounts × {(result.unit_price || 0).toLocaleString()} MMK
+                </p>
+              )}
             </div>
 
             <div className="stat-card">
-              <p className="text-sm text-muted-foreground mb-2">Account Credentials</p>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 text-sm font-mono text-primary bg-primary/10 px-3 py-2 rounded-lg break-all">
-                  {result.credentials}
-                </code>
+              <p className="text-sm text-muted-foreground mb-2">
+                Account Credentials {credentialsList.length > 1 ? `(${credentialsList.length})` : ""}
+              </p>
+              <div className="space-y-2 max-h-48 overflow-y-auto">
+                {credentialsList.map((cred, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    {credentialsList.length > 1 && (
+                      <span className="text-[10px] text-muted-foreground font-mono w-5 shrink-0">#{i + 1}</span>
+                    )}
+                    <code className="flex-1 text-sm font-mono text-primary bg-primary/10 px-3 py-2 rounded-lg break-all">
+                      {cred}
+                    </code>
+                    <button
+                      onClick={() => copyCredentials(cred)}
+                      className="p-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors duration-200 shrink-0"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              {credentialsList.length > 1 && (
                 <button
                   onClick={() => copyCredentials(result.credentials)}
-                  className="p-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors duration-200"
+                  className="mt-2 text-xs text-primary hover:text-primary/80 transition-colors"
                 >
-                  {copied ? <CheckCircle2 className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
+                  {copied ? "✓ Copied all" : "Copy all credentials"}
                 </button>
-              </div>
+              )}
+              {credentialsList.length === 1 && copied && (
+                <p className="text-xs text-success mt-1">✓ Copied</p>
+              )}
             </div>
 
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Amount Charged</span>
+              <span className="text-muted-foreground">Total Charged</span>
               <span className="font-mono font-semibold text-foreground">{result.price.toLocaleString()} MMK</span>
             </div>
 

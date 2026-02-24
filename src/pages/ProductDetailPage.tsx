@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Package, ShoppingCart } from "lucide-react";
+import { Package, ShoppingCart, TrendingDown } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
@@ -15,6 +15,8 @@ interface PurchaseResult {
   credentials: string;
   product_name: string;
   price: number;
+  quantity?: number;
+  unit_price?: number;
 }
 
 export default function ProductDetailPage() {
@@ -42,9 +44,22 @@ export default function ProductDetailPage() {
     enabled: !!id,
   });
 
+  const { data: pricingTiers = [] } = useQuery({
+    queryKey: ["pricing-tiers", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("pricing_tiers")
+        .select("*")
+        .eq("product_id", id!)
+        .order("min_qty", { ascending: true });
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
   const mapErrorMessage = (msg: string): string => {
     const lower = msg.toLowerCase();
-    if (lower.includes("out of stock") || lower.includes("no credentials available")) {
+    if (lower.includes("out of stock") || lower.includes("no credentials available") || lower.includes("not enough stock")) {
       return "လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)";
     }
     if (lower.includes("insufficient balance")) {
@@ -55,10 +70,6 @@ export default function ProductDetailPage() {
 
   const handleBuyClick = () => {
     if (!product) return;
-    if ((profile?.balance || 0) < product.wholesale_price) {
-      toast.error("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပေးပါရန်။ (Insufficient Balance)");
-      return;
-    }
     if (product.stock <= 0) {
       toast.error("လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)");
       return;
@@ -67,12 +78,12 @@ export default function ProductDetailPage() {
     setAgreedTerms(false);
   };
 
-  const handleBuy = async (prod: any) => {
+  const handleBuy = async (prod: any, quantity: number = 1) => {
     setConfirmProduct(null);
     setPurchasing(true);
     try {
       const { data, error } = await supabase.functions.invoke("purchase", {
-        body: { product_id: prod.id },
+        body: { product_id: prod.id, quantity },
       });
       if (error) throw new Error(error.message);
       if (data && !data.success) {
@@ -94,7 +105,6 @@ export default function ProductDetailPage() {
     }
   };
 
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -114,6 +124,11 @@ export default function ProductDetailPage() {
 
   const savings = product.retail_price - product.wholesale_price;
   const savingsPercent = Math.round((savings / product.retail_price) * 100);
+
+  const hasTiers = pricingTiers.length > 0;
+  const lowestTier = hasTiers
+    ? [...pricingTiers].sort((a: any, b: any) => a.unit_price - b.unit_price)[0] as any
+    : null;
 
   return (
     <div className="space-y-8 max-w-3xl mx-auto">
@@ -145,7 +160,7 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* Pricing Tiers */}
+      {/* Pricing */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
         <div className="glass-card p-5 space-y-2 opacity-60">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Retail Price</p>
@@ -170,6 +185,43 @@ export default function ProductDetailPage() {
           <p className="text-xs text-muted-foreground">Your reseller price</p>
         </div>
       </div>
+
+      {/* Tier Pricing Table */}
+      {hasTiers && (
+        <div className="glass-card p-5 animate-fade-in space-y-3" style={{ animationDelay: "0.12s" }}>
+          <div className="flex items-center gap-2">
+            <TrendingDown className="w-4 h-4 text-primary" />
+            <p className="text-sm font-semibold gold-text">Bulk Pricing — Buy More, Save More</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {[...pricingTiers].sort((a: any, b: any) => a.min_qty - b.min_qty).map((tier: any, i: number) => {
+              const label = tier.max_qty
+                ? `${tier.min_qty}–${tier.max_qty}`
+                : `${tier.min_qty}+`;
+              const isLowest = lowestTier && tier.unit_price === lowestTier.unit_price;
+              return (
+                <div
+                  key={i}
+                  className={`rounded-lg p-3 text-center border transition-all ${
+                    isLowest
+                      ? "bg-primary/10 border-primary/30"
+                      : "bg-muted/20 border-border/30"
+                  }`}
+                >
+                  <p className="text-xs text-muted-foreground mb-1">{label} accounts</p>
+                  <p className={`text-lg font-bold font-mono ${isLowest ? "gold-text" : "text-foreground"}`}>
+                    {tier.unit_price.toLocaleString()}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">MMK / each</p>
+                  {isLowest && (
+                    <span className="text-[10px] font-semibold text-success mt-1 inline-block">Best value</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Purchase Section */}
       <div className="glass-card p-6 animate-fade-in space-y-4" style={{ animationDelay: "0.15s" }}>
@@ -200,7 +252,7 @@ export default function ProductDetailPage() {
           ) : (
             <>
               <ShoppingCart className="w-5 h-5" />
-              Buy Now — {product.wholesale_price.toLocaleString()} MMK
+              Buy Now{hasTiers ? "" : ` — ${product.wholesale_price.toLocaleString()} MMK`}
             </>
           )}
         </Button>
@@ -212,6 +264,7 @@ export default function ProductDetailPage() {
         onAgreedTermsChange={setAgreedTerms}
         onConfirm={handleBuy}
         onClose={() => setConfirmProduct(null)}
+        pricingTiers={pricingTiers as any[]}
       />
 
       <PurchaseSuccessModal
