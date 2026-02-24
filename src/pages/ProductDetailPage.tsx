@@ -29,6 +29,7 @@ export default function ProductDetailPage() {
   
   const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
   const [agreedTerms, setAgreedTerms] = useState(false);
+  const [lastSavings, setLastSavings] = useState(0);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -79,6 +80,13 @@ export default function ProductDetailPage() {
   };
 
   const handleBuy = async (prod: any, quantity: number = 1) => {
+    // Calculate savings
+    const highestTierPrice = pricingTiers.length > 0 ? Math.max(...pricingTiers.map((t: any) => t.unit_price)) : prod.wholesale_price;
+    const sortedTiers = [...pricingTiers].sort((a: any, b: any) => b.min_qty - a.min_qty);
+    const activeTier = sortedTiers.find((t: any) => quantity >= t.min_qty && (t.max_qty === null || quantity <= t.max_qty));
+    const unitPrice = activeTier ? (activeTier as any).unit_price : prod.wholesale_price;
+    const savings = (highestTierPrice - unitPrice) * quantity;
+
     setConfirmProduct(null);
     setPurchasing(true);
     try {
@@ -90,6 +98,7 @@ export default function ProductDetailPage() {
         toast.error(mapErrorMessage(data.error as string));
         return;
       }
+      setLastSavings(savings);
       setResult(data as PurchaseResult);
       queryClient.invalidateQueries({ queryKey: ["product", id] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
@@ -285,7 +294,8 @@ export default function ProductDetailPage() {
 
       <PurchaseSuccessModal
         result={result}
-        onClose={() => setResult(null)}
+        onClose={() => { setResult(null); setLastSavings(0); }}
+        totalSavings={lastSavings}
       />
     </div>
   );

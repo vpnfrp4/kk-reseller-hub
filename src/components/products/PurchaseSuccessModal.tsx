@@ -1,4 +1,4 @@
-import { CheckCircle2, Copy, ArrowLeft, History } from "lucide-react";
+import { CheckCircle2, Copy, ArrowLeft, History, BadgePercent } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Confetti from "@/components/Confetti";
 
 interface PurchaseResult {
   order_id: string;
@@ -21,11 +22,13 @@ interface PurchaseResult {
 interface PurchaseSuccessModalProps {
   result: PurchaseResult | null;
   onClose: () => void;
+  totalSavings?: number;
 }
 
-export default function PurchaseSuccessModal({ result, onClose }: PurchaseSuccessModalProps) {
+export default function PurchaseSuccessModal({ result, onClose, totalSavings = 0 }: PurchaseSuccessModalProps) {
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
+  const showConfetti = totalSavings >= 10000;
 
   const copyCredentials = (creds: string) => {
     navigator.clipboard.writeText(creds);
@@ -37,13 +40,14 @@ export default function PurchaseSuccessModal({ result, onClose }: PurchaseSucces
 
   return (
     <Dialog open={!!result} onOpenChange={() => onClose()}>
-      <DialogContent className="bg-card border-border/50 max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-foreground flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-success" />
-            Purchase Successful!
-          </DialogTitle>
-        </DialogHeader>
+        <DialogContent className="bg-card border-border/50 max-w-md relative overflow-hidden">
+          {showConfetti && <Confetti />}
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-success" />
+              Purchase Successful!
+            </DialogTitle>
+          </DialogHeader>
 
         {result && (
           <div className="space-y-4">
@@ -96,6 +100,15 @@ export default function PurchaseSuccessModal({ result, onClose }: PurchaseSucces
               <span className="text-muted-foreground">Total Charged</span>
               <span className="font-mono font-semibold text-foreground">{result.price.toLocaleString()} MMK</span>
             </div>
+
+            {totalSavings > 0 && (
+              <div className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-success/10 border border-success/20 animate-fade-in">
+                <BadgePercent className="w-4 h-4 text-success" />
+                <span className="text-sm font-semibold text-success">
+                  You saved {totalSavings.toLocaleString()} MMK{showConfetti ? " 🎉" : ""}
+                </span>
+              </div>
+            )}
 
             <p className="text-xs text-muted-foreground text-center">
               These credentials are also saved in your Order History.
