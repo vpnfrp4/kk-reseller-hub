@@ -12,6 +12,18 @@ const features = [
   { icon: CheckCircle2, title: "Bulk Order Support", text: "Process multiple unlock orders at once with our bulk ordering system. Ideal for repair shops handling high volumes daily." },
 ];
 
+const specs = [
+  { label: "Activation Type", value: "Official IMEI / Server-Based Unlock" },
+  { label: "Account Type", value: "Permanent Carrier Unlock" },
+  { label: "Supported Brands", value: "iPhone, Samsung, Huawei, LG, Motorola" },
+  { label: "Carrier Coverage", value: "200+ Carriers Worldwide" },
+  { label: "Delivery Method", value: "Automated via Dashboard" },
+  { label: "Warranty", value: "Replacement if activation fails on first use" },
+  { label: "Bulk Orders", value: "Supported — Volume pricing available" },
+];
+
+const notice = "IMEI unlock processing times vary by carrier and model. iPhone unlocks typically take 1–5 business days. Samsung FRP removal is usually completed within 24 hours. Delivery estimates shown at checkout are approximate and may change during peak periods.";
+
 const faqs = [
   { q: "What is IMEI carrier unlock?", a: "IMEI carrier unlock permanently removes the network restriction on a phone, allowing it to be used with any SIM card worldwide. Unlike software unlocks, this method is official and does not void warranty." },
   { q: "How long does iPhone unlock take?", a: "iPhone carrier unlock typically takes 1–5 business days depending on the original carrier. Some carriers like AT&T can be processed within 24 hours. You'll receive confirmation once the unlock is complete." },
@@ -60,6 +72,8 @@ export default function ImeiUnlockServicePage() {
       h1="IMEI Unlock Services — Wholesale for Myanmar Resellers"
       subtitle="Official iPhone unlock, Samsung FRP removal, and network unlock codes for 200+ carriers at wholesale pricing."
       features={features}
+      specs={specs}
+      notice={notice}
       seoContent={seoContent}
       faqs={faqs}
       ctaTitle="Start Your IMEI Unlock Business"

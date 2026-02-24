@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, ChevronRight, type LucideIcon } from "lucide-react";
+import { ArrowLeft, ChevronRight, ClipboardList, AlertTriangle, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Accordion,
@@ -14,6 +14,11 @@ interface Feature {
   text: string;
 }
 
+interface Spec {
+  label: string;
+  value: string;
+}
+
 interface Faq {
   q: string;
   a: string;
@@ -24,6 +29,8 @@ interface ServicePageProps {
   h1: string;
   subtitle: string;
   features: Feature[];
+  specs?: Spec[];
+  notice?: string;
   seoContent: React.ReactNode;
   faqs: Faq[];
   ctaTitle: string;
@@ -53,6 +60,8 @@ export default function ServicePageLayout({
   h1,
   subtitle,
   features,
+  specs,
+  notice,
   seoContent,
   faqs,
   ctaTitle,
@@ -110,22 +119,61 @@ export default function ServicePageLayout({
           </div>
         </section>
 
-        {/* FEATURES */}
-        <section className="bg-muted/30 py-16 sm:py-20">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
-            <h2 className="mb-10 text-center text-2xl font-bold tracking-tight text-foreground">
-              What's Included
-            </h2>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {features.map((f) => (
-                <article key={f.title} className="flex flex-col gap-3 rounded-card border border-border bg-card p-5 shadow-luxury hover-lift">
-                  <f.icon className="h-8 w-8 text-primary" />
-                  <h3 className="font-semibold text-foreground">{f.title}</h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">{f.text}</p>
-                </article>
-              ))}
+        {/* SERVICE SPECIFICATION CARD */}
+        {specs && specs.length > 0 && (
+          <section className="bg-muted/30 py-16 sm:py-20">
+            <div className="mx-auto max-w-2xl px-4 sm:px-6">
+              <div className="rounded-2xl border border-border bg-card p-6 shadow-[0_2px_8px_rgba(0,0,0,0.04)] sm:p-8">
+                <div className="mb-6 flex items-center gap-2.5">
+                  <ClipboardList className="h-5 w-5 text-primary" />
+                  <h2 className="text-lg font-semibold tracking-tight text-foreground">
+                    Service Specification
+                  </h2>
+                </div>
+                <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-[minmax(140px,auto)_1fr]">
+                  {specs.map((s, i) => (
+                    <div key={i} className="contents">
+                      <div className="bg-muted/60 px-4 py-3 text-[13px] font-medium text-muted-foreground sm:border-b sm:border-border/30 last:border-b-0">
+                        {s.label}
+                      </div>
+                      <div className="bg-card px-4 py-3 text-[13px] font-semibold text-foreground sm:border-b sm:border-border/30 last:border-b-0">
+                        {s.value}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* IMPORTANT NOTICE */}
+              {notice && (
+                <div className="mt-5 flex gap-3 rounded-2xl border border-amber-200/60 bg-amber-50/60 p-5 dark:border-amber-500/20 dark:bg-amber-950/20">
+                  <div className="flex-shrink-0 border-l-[3px] border-amber-400 dark:border-amber-500" />
+                  <div>
+                    <div className="mb-1.5 flex items-center gap-1.5">
+                      <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                      <span className="text-[13px] font-semibold text-amber-800 dark:text-amber-300">
+                        Important Notice
+                      </span>
+                    </div>
+                    <p className="text-[13px] leading-relaxed text-amber-700 dark:text-amber-400/80">
+                      {notice}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          </section>
+        )}
+
+        {/* FEATURES (sr-only for SEO — visually hidden, DOM preserved) */}
+        <section className="sr-only" aria-hidden="false">
+          <h2>What's Included</h2>
+          {features.map((f) => (
+            <article key={f.title}>
+              <h3>{f.title}</h3>
+              <p>{f.text}</p>
+            </article>
+          ))}
         </section>
 
         {/* SEO CONTENT */}
