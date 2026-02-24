@@ -1,5 +1,5 @@
 import { useEffect, useRef, useMemo, useState, useCallback } from "react";
-import { useCountUp } from "@/hooks/use-count-up";
+import { useCountUp, useCountUpOnView } from "@/hooks/use-count-up";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
 import { useAuth } from "@/contexts/AuthContext";
@@ -150,24 +150,32 @@ export default function DashboardHome() {
     return () => scrollEl.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
+  // Count-up on view for stat cards
+  const balanceUp = useCountUpOnView(profile?.balance || 0);
+  const spentUp = useCountUpOnView(profile?.total_spent || 0);
+  const ordersUp = useCountUpOnView(profile?.total_orders || 0);
+
   const stats = [
     {
       label: "Wallet Balance",
-      value: `${(profile?.balance || 0).toLocaleString()} MMK`,
+      displayValue: `${balanceUp.display.toLocaleString()} MMK`,
+      ref: balanceUp.ref,
       icon: Wallet,
       change: "Available",
       color: "text-primary",
     },
     {
       label: "Total Spent",
-      value: `${(profile?.total_spent || 0).toLocaleString()} MMK`,
+      displayValue: `${spentUp.display.toLocaleString()} MMK`,
+      ref: spentUp.ref,
       icon: TrendingUp,
       change: "All time",
       color: "text-ice",
     },
     {
       label: "Total Orders",
-      value: (profile?.total_orders || 0).toString(),
+      displayValue: ordersUp.display.toString(),
+      ref: ordersUp.ref,
       icon: ShoppingCart,
       change: "Completed",
       color: "text-success",
@@ -234,7 +242,7 @@ export default function DashboardHome() {
           ))
         ) : (
           stats.map((stat, i) => (
-            <div key={stat.label} className="stat-card hover-lift opacity-0 animate-stagger-in" style={{ animationDelay: `${i * 0.1}s` }}>
+            <div ref={stat.ref} key={stat.label} className="stat-card hover-lift opacity-0 animate-stagger-in" style={{ animationDelay: `${i * 0.1}s` }}>
               <div className="flex items-start justify-between mb-4">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <stat.icon className={`w-5 h-5 ${stat.color}`} />
@@ -244,7 +252,7 @@ export default function DashboardHome() {
                   {stat.change}
                 </span>
               </div>
-              <p className="text-2xl font-bold font-mono text-foreground">{stat.value}</p>
+              <p className="text-2xl font-bold font-mono text-foreground">{stat.displayValue}</p>
               <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
             </div>
           ))
