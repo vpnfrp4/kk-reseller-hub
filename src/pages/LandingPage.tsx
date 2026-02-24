@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Shield,
@@ -18,6 +19,10 @@ import {
   Lock,
   HeadphonesIcon,
   BarChart3,
+  MessageCircle,
+  X,
+  Send,
+  Phone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -147,6 +152,8 @@ function FaqJsonLd() {
    LANDING PAGE
    ═══════════════════════════════════════════════════════ */
 export default function LandingPage() {
+  const [contactOpen, setContactOpen] = useState(false);
+
   return (
     <>
       <FaqJsonLd />
@@ -466,6 +473,39 @@ export default function LandingPage() {
           </p>
         </div>
       </footer>
+
+      {/* ═══════════ FLOATING CONTACT BUTTON ═══════════ */}
+      <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2">
+        {contactOpen && (
+          <div className="mb-1 flex flex-col gap-2 animate-fade-in">
+            <a
+              href="https://t.me/kktech_support"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-elevated transition-all hover:bg-muted"
+            >
+              <Send className="h-4 w-4 text-[hsl(200_80%_50%)]" />
+              Telegram
+            </a>
+            <a
+              href="viber://chat?number=%2B959xxxxxxxxx"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-elevated transition-all hover:bg-muted"
+            >
+              <Phone className="h-4 w-4 text-[hsl(270_60%_55%)]" />
+              Viber
+            </a>
+          </div>
+        )}
+        <button
+          onClick={() => setContactOpen(!contactOpen)}
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-elevated transition-transform hover:scale-105 active:scale-95"
+          aria-label="Contact support"
+        >
+          {contactOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
+        </button>
+      </div>
     </>
   );
 }
