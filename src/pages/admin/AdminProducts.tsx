@@ -19,6 +19,8 @@ import BulkTierDialog from "@/components/admin/BulkTierDialog";
 import { Progress } from "@/components/ui/progress";
 import BulkImageUpload from "@/components/admin/BulkImageUpload";
 import { toast } from "sonner";
+import { Separator } from "@/components/ui/separator";
+import FulfillmentConfig, { DEFAULT_DELIVERY_TIMES } from "@/components/admin/FulfillmentConfig";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { DataCard, Money } from "@/components/shared";
 
@@ -78,6 +80,8 @@ export default function AdminProducts() {
     retail_price: "", wholesale_price: "", duration: "", stock: "",
     image_url: "",
   });
+  const [fulfillmentModes, setFulfillmentModes] = useState<string[]>(["instant"]);
+  const [deliveryTimeConfig, setDeliveryTimeConfig] = useState<Record<string, string>>(DEFAULT_DELIVERY_TIMES);
 
   const { data: products } = useQuery({
     queryKey: ["admin-products"],
@@ -107,6 +111,8 @@ export default function AdminProducts() {
     setForm({ name: "", icon: "📦", category: "General", description: "", retail_price: "", wholesale_price: "", duration: "", stock: "", image_url: "" });
     setEditing(null);
     setImagePreview(null);
+    setFulfillmentModes(["instant"]);
+    setDeliveryTimeConfig(DEFAULT_DELIVERY_TIMES);
   };
 
   const openEdit = (p: any) => {
@@ -117,6 +123,8 @@ export default function AdminProducts() {
       duration: p.duration, stock: p.stock.toString(), image_url: p.image_url || "",
     });
     setImagePreview(p.image_url || null);
+    setFulfillmentModes(Array.isArray(p.fulfillment_modes) ? p.fulfillment_modes : ["instant"]);
+    setDeliveryTimeConfig(p.delivery_time_config && typeof p.delivery_time_config === "object" ? p.delivery_time_config : DEFAULT_DELIVERY_TIMES);
     setDialogOpen(true);
   };
 
@@ -238,6 +246,8 @@ export default function AdminProducts() {
       retail_price: parseInt(form.retail_price), wholesale_price: parseInt(form.wholesale_price),
       duration: form.duration.trim(), stock: parseInt(form.stock),
       image_url: form.image_url || null,
+      fulfillment_modes: fulfillmentModes,
+      delivery_time_config: deliveryTimeConfig,
     };
 
     if (editing) {
@@ -406,6 +416,18 @@ export default function AdminProducts() {
                   maxLength={500}
                 />
               </div>
+
+              <Separator />
+
+              {/* Fulfillment Configuration */}
+              <FulfillmentConfig
+                productId={editing?.id || ""}
+                fulfillmentModes={fulfillmentModes}
+                deliveryTimeConfig={deliveryTimeConfig}
+                onModesChange={setFulfillmentModes}
+                onDeliveryTimeChange={setDeliveryTimeConfig}
+              />
+
               <Button type="submit" className="w-full btn-glow">{editing ? "Update" : "Create"} Product</Button>
             </form>
           </DialogContent>

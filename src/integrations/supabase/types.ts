@@ -49,6 +49,8 @@ export type Database = {
           created_at: string
           credential_id: string | null
           credentials: string
+          custom_fields_data: Json | null
+          fulfillment_mode: string
           id: string
           price: number
           product_name: string
@@ -59,6 +61,8 @@ export type Database = {
           created_at?: string
           credential_id?: string | null
           credentials?: string
+          custom_fields_data?: Json | null
+          fulfillment_mode?: string
           id?: string
           price: number
           product_name: string
@@ -69,6 +73,8 @@ export type Database = {
           created_at?: string
           credential_id?: string | null
           credentials?: string
+          custom_fields_data?: Json | null
+          fulfillment_mode?: string
           id?: string
           price?: number
           product_name?: string
@@ -161,12 +167,64 @@ export type Database = {
           },
         ]
       }
+      product_custom_fields: {
+        Row: {
+          created_at: string
+          field_name: string
+          field_type: string
+          id: string
+          linked_mode: string
+          max_length: number | null
+          min_length: number | null
+          options: Json | null
+          product_id: string
+          required: boolean
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          field_name: string
+          field_type?: string
+          id?: string
+          linked_mode: string
+          max_length?: number | null
+          min_length?: number | null
+          options?: Json | null
+          product_id: string
+          required?: boolean
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          field_name?: string
+          field_type?: string
+          id?: string
+          linked_mode?: string
+          max_length?: number | null
+          min_length?: number | null
+          options?: Json | null
+          product_id?: string
+          required?: boolean
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_custom_fields_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           category: string
           created_at: string
+          delivery_time_config: Json
           description: string
           duration: string
+          fulfillment_modes: Json
           icon: string
           id: string
           image_url: string | null
@@ -179,8 +237,10 @@ export type Database = {
         Insert: {
           category?: string
           created_at?: string
+          delivery_time_config?: Json
           description?: string
           duration: string
+          fulfillment_modes?: Json
           icon?: string
           id?: string
           image_url?: string | null
@@ -193,8 +253,10 @@ export type Database = {
         Update: {
           category?: string
           created_at?: string
+          delivery_time_config?: Json
           description?: string
           duration?: string
+          fulfillment_modes?: Json
           icon?: string
           id?: string
           image_url?: string | null

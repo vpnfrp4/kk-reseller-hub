@@ -25,6 +25,7 @@ import ImportantNoticeModal from "@/components/products/ImportantNoticeModal";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
 import { cn } from "@/lib/utils";
 import { Money } from "@/components/shared";
+import FulfillmentModeSelector from "@/components/products/FulfillmentModeSelector";
 
 interface PurchaseResult {
   order_id: string;
@@ -66,6 +67,11 @@ export default function ProductDetailPage() {
   // Smart top-up state
   const [topUpOpen, setTopUpOpen] = useState(false);
   const [topUpDefaultAmount, setTopUpDefaultAmount] = useState<number | undefined>();
+
+  // Fulfillment mode state
+  const [selectedMode, setSelectedMode] = useState<string>("instant");
+  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -137,7 +143,12 @@ export default function ProductDetailPage() {
     setPurchasing(true);
     try {
       const { data, error } = await supabase.functions.invoke("purchase", {
-        body: { product_id: prod.id, quantity },
+        body: {
+          product_id: prod.id,
+          quantity,
+          fulfillment_mode: effectiveMode,
+          custom_fields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
+        },
       });
       if (error) throw new Error(error.message);
       if (data && !data.success) {
@@ -186,6 +197,16 @@ export default function ProductDetailPage() {
   const profitPerUnit = product.retail_price - product.wholesale_price;
   const balance = profile?.balance || 0;
   const insufficientBalance = balance < product.wholesale_price;
+
+  // Fulfillment modes
+  const productModes: string[] = Array.isArray(product.fulfillment_modes) ? (product.fulfillment_modes as any[]).map(String) : ["instant"];
+  const deliveryTimeConfig: Record<string, string> = product.delivery_time_config && typeof product.delivery_time_config === "object"
+    ? product.delivery_time_config as Record<string, string>
+    : {};
+
+  // Set default mode to first available on load
+  const effectiveMode = productModes.includes(selectedMode) ? selectedMode : productModes[0];
+  const currentDeliveryBadge = deliveryTimeConfig[effectiveMode] || "⚡ Instant Delivery";
 
   return (
     <div className="space-y-default max-w-2xl mx-auto animate-fade-in">
@@ -245,9 +266,24 @@ export default function ProductDetailPage() {
           </div>
           <span className="text-border">·</span>
           <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-            <Zap className="w-3 h-3" /> Instant delivery
+            {currentDeliveryBadge}
           </span>
         </div>
+
+        {/* Fulfillment Mode Selector */}
+        <FulfillmentModeSelector
+          productId={product.id}
+          fulfillmentModes={productModes}
+          deliveryTimeConfig={deliveryTimeConfig}
+          selectedMode={effectiveMode}
+          onModeChange={setSelectedMode}
+          customFieldValues={customFieldValues}
+          onCustomFieldChange={(name, val) => {
+            setCustomFieldValues(prev => ({ ...prev, [name]: val }));
+            setFieldErrors(prev => { const n = { ...prev }; delete n[name]; return n; });
+          }}
+          fieldErrors={fieldErrors}
+        />
 
         {/* Wallet awareness */}
         {insufficientBalance && !isOutOfStock && (
