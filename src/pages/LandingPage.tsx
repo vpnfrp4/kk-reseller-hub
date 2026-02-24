@@ -166,9 +166,10 @@ export default function LandingPage() {
           </span>
           <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
             <a href="#services" className="hover:text-foreground transition-colors">Services</a>
-            <a href="#why" className="hover:text-foreground transition-colors">Why Us</a>
-            <a href="#how" className="hover:text-foreground transition-colors">How It Works</a>
-            <a href="#faq" className="hover:text-foreground transition-colors">FAQ</a>
+            <Link to="/services/imei-unlock" className="hover:text-foreground transition-colors">IMEI Unlock</Link>
+            <Link to="/services/vpn-keys" className="hover:text-foreground transition-colors">VPN Keys</Link>
+            <Link to="/services/capcut-pro" className="hover:text-foreground transition-colors">CapCut Pro</Link>
+            <Link to="/tools/imei-check" className="hover:text-foreground transition-colors">IMEI Checker</Link>
           </nav>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" asChild>
