@@ -25,6 +25,9 @@ import AdminResellers from "./pages/admin/AdminResellers";
 import AdminOrders from "./pages/admin/AdminOrders";
 import LandingPage from "./pages/LandingPage";
 import ImeiCheckPage from "./pages/ImeiCheckPage";
+import ImeiUnlockPage from "./pages/services/ImeiUnlockPage";
+import VpnKeysPage from "./pages/services/VpnKeysPage";
+import CapcutProPage from "./pages/services/CapcutProPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,6 +76,9 @@ function AppRoutes() {
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/tools/imei-check" element={<ImeiCheckPage />} />
+      <Route path="/services/imei-unlock" element={<ImeiUnlockPage />} />
+      <Route path="/services/vpn-keys" element={<VpnKeysPage />} />
+      <Route path="/services/capcut-pro" element={<CapcutProPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
       <Route path="/dashboard/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet/topup-status" element={<ProtectedRoute><TopUpStatusPage /></ProtectedRoute>} />
