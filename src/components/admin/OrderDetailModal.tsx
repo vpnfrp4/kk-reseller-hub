@@ -1,23 +1,29 @@
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { KeyRound, Wallet, ShoppingCart, User, Calendar, Copy, Check, Zap, Clock, Smartphone, UserIcon } from "lucide-react";
+import { KeyRound, Wallet, ShoppingCart, User, Calendar, Copy, Check, Zap, Clock, Smartphone, UserIcon, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface OrderDetailModalProps {
   order: any;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onStatusUpdated?: () => void;
 }
 
-export default function OrderDetailModal({ order, open, onOpenChange }: OrderDetailModalProps) {
+export default function OrderDetailModal({ order, open, onOpenChange, onStatusUpdated }: OrderDetailModalProps) {
+  const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const [credentialsInput, setCredentialsInput] = useState("");
 
   const { data: transactions } = useQuery({
     queryKey: ["admin-user-transactions", order?.user_id],
@@ -235,6 +241,63 @@ export default function OrderDetailModal({ order, open, onOpenChange }: OrderDet
               )}
             </div>
           </div>
+
+          {/* ═══ FULFILL ACTION ═══ */}
+          {(order.status === "pending_creation" || order.status === "pending_review") && (
+            <div className="space-y-3 border-t border-border pt-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="font-medium text-foreground">Fulfill Order</span>
+              </div>
+
+              {/* Optional credentials input for manual fulfillment */}
+              {(!order.credentials || order.credentials === "") && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Credentials (optional — paste account details to deliver)</p>
+                  <Input
+                    value={credentialsInput}
+                    onChange={(e) => setCredentialsInput(e.target.value)}
+                    placeholder="e.g. username:password or account details"
+                    className="bg-muted/50 border-border text-sm font-mono"
+                  />
+                </div>
+              )}
+
+              <Button
+                className="w-full gap-2"
+                disabled={updating}
+                onClick={async () => {
+                  setUpdating(true);
+                  try {
+                    const updatePayload: any = { status: "delivered" };
+                    if (credentialsInput.trim()) {
+                      updatePayload.credentials = credentialsInput.trim();
+                    }
+                    const { error } = await supabase
+                      .from("orders")
+                      .update(updatePayload)
+                      .eq("id", order.id);
+                    if (error) throw error;
+                    toast.success("Order marked as delivered");
+                    queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+                    onStatusUpdated?.();
+                    onOpenChange(false);
+                  } catch (err: any) {
+                    toast.error(err.message || "Failed to update order");
+                  } finally {
+                    setUpdating(false);
+                  }
+                }}
+              >
+                {updating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <CheckCircle2 className="w-4 h-4" />
+                )}
+                Mark as Delivered
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

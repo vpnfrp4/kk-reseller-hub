@@ -341,6 +341,7 @@ export default function AdminOrders() {
         order={detailOrder}
         open={!!detailOrder}
         onOpenChange={(open) => { if (!open) setDetailOrder(null); }}
+        onStatusUpdated={() => queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] })}
       />
     </div>
   );
