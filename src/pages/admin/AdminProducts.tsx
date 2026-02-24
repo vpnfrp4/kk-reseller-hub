@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, KeyRound, Upload, X, ImageIcon, GripVertical, RotateCcw } from "lucide-react";
+import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
 import { Progress } from "@/components/ui/progress";
 import BulkImageUpload from "@/components/admin/BulkImageUpload";
 import { toast } from "sonner";
@@ -519,6 +520,7 @@ export default function AdminProducts() {
                                   <Link to={`/admin/credentials?product=${p.id}`} className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="View credentials">
                                     <KeyRound className="w-4 h-4" />
                                   </Link>
+                                  <PricingTiersDialog productId={p.id} productName={`${p.name} ${p.duration}`} />
                                   <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
                                     <Pencil className="w-4 h-4" />
                                   </button>
