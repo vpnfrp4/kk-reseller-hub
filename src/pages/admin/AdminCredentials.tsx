@@ -68,6 +68,8 @@ export default function AdminCredentials() {
   const [bulkExpiryOpen, setBulkExpiryOpen] = useState(false);
   const [bulkExpiryDate, setBulkExpiryDate] = useState("");
   const [bulkExpiryUpdating, setBulkExpiryUpdating] = useState(false);
+  const [bulkDeleteSelectedOpen, setBulkDeleteSelectedOpen] = useState(false);
+  const [bulkDeletingSelected, setBulkDeletingSelected] = useState(false);
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
@@ -577,6 +579,41 @@ export default function AdminCredentials() {
         </DialogContent>
       </Dialog>
 
+      {/* Bulk delete selected confirmation dialog */}
+      <Dialog open={bulkDeleteSelectedOpen} onOpenChange={setBulkDeleteSelectedOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Delete Selected Credentials</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Are you sure you want to delete <span className="font-semibold text-destructive">{selectedIds.size}</span> selected unsold credential(s)? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setBulkDeleteSelectedOpen(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              disabled={bulkDeletingSelected}
+              onClick={async () => {
+                setBulkDeletingSelected(true);
+                const { error } = await supabase
+                  .from("product_credentials")
+                  .delete()
+                  .in("id", Array.from(selectedIds));
+                setBulkDeletingSelected(false);
+                setBulkDeleteSelectedOpen(false);
+                if (error) { toast.error(error.message); return; }
+                toast.success(`${selectedIds.size} credential(s) deleted`);
+                queryClient.invalidateQueries({ queryKey: ["admin-credentials"] });
+                queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+                setSelectedIds(new Set());
+              }}
+            >
+              {bulkDeletingSelected ? "Deleting..." : `Delete ${selectedIds.size} Credentials`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Floating selection bar */}
       {selectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-card border border-border rounded-xl shadow-lg px-5 py-3 flex items-center gap-4 animate-fade-in">
@@ -590,6 +627,14 @@ export default function AdminCredentials() {
             onClick={() => setBulkExpiryOpen(true)}
           >
             <Pencil className="w-3.5 h-3.5" />Set Expiry
+          </Button>
+          <Button
+            size="sm"
+            variant="destructive"
+            className="gap-1.5"
+            onClick={() => setBulkDeleteSelectedOpen(true)}
+          >
+            <Trash2 className="w-3.5 h-3.5" />Delete
           </Button>
           <Button
             variant="ghost"
