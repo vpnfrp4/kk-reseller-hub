@@ -268,15 +268,42 @@ export default function SettingsPage() {
               <Switch checked={notifPrefs.purchaseComplete} onCheckedChange={(v) => updateNotifPref("purchaseComplete", v)} />
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
-              <div className="flex items-center gap-3">
-                <AlertTriangle className={`w-4 h-4 ${notifPrefs.lowBalance ? "text-warning" : "text-muted-foreground"}`} />
-                <div>
-                  <p className="text-sm font-medium text-foreground">Low Balance Warning</p>
-                  <p className="text-xs text-muted-foreground">When your balance drops below threshold</p>
+            <div className="rounded-lg bg-muted/20 border border-border/30 overflow-hidden">
+              <div className="flex items-center justify-between p-3">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className={`w-4 h-4 ${notifPrefs.lowBalance ? "text-warning" : "text-muted-foreground"}`} />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">Low Balance Warning</p>
+                    <p className="text-xs text-muted-foreground">When your balance drops below threshold</p>
+                  </div>
                 </div>
+                <Switch checked={notifPrefs.lowBalance} onCheckedChange={(v) => updateNotifPref("lowBalance", v)} />
               </div>
-              <Switch checked={notifPrefs.lowBalance} onCheckedChange={(v) => updateNotifPref("lowBalance", v)} />
+              {notifPrefs.lowBalance && (
+                <div className="px-3 pb-3 pt-0">
+                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-background/50 border border-border/20">
+                    <Label className="text-xs text-muted-foreground whitespace-nowrap">Alert when below</Label>
+                    <Input
+                      type="number"
+                      min={1000}
+                      max={10000000}
+                      step={1000}
+                      value={notifPrefs.lowBalanceThreshold}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value);
+                        if (!isNaN(val) && val >= 0 && val <= 10000000) {
+                          updateNotifPref("lowBalanceThreshold", val as any);
+                        }
+                      }}
+                      className="h-8 w-28 bg-muted/50 border-border text-sm font-mono text-right"
+                    />
+                    <span className="text-xs font-medium text-muted-foreground">MMK</span>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground mt-1.5 px-1">
+                    Recommended: 5,000 – 50,000 MMK
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">

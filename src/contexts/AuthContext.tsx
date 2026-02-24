@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useRef, ReactNode } fro
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { notifyEvent } from "@/lib/notifications";
+import { getNotificationPrefs } from "@/lib/notifications";
 
 interface Profile {
   id: string;
@@ -104,6 +105,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 body: `${added.toLocaleString()} MMK has been added to your wallet.`,
                 type: "success",
               }).then(() => {});
+            }
+            // Detect low balance after a purchase (balance decreased)
+            if (newData.balance < prev.balance) {
+              const prefs = getNotificationPrefs();
+              if (prefs.lowBalance && newData.balance > 0 && newData.balance <= prefs.lowBalanceThreshold) {
+                notifyEvent(
+                  "⚠️ Low Balance",
+                  `Your balance is ${newData.balance.toLocaleString()} MMK. Consider topping up.`,
+                  "error",
+                  "lowBalance"
+                );
+                supabase.from("notifications").insert({
+                  user_id: newData.user_id,
+                  title: "Low Balance Warning",
+                  body: `Your balance is ${newData.balance.toLocaleString()} MMK, below your ${prefs.lowBalanceThreshold.toLocaleString()} MMK threshold.`,
+                  type: "warning",
+                }).then(() => {});
+              }
             }
             return { ...prev, ...newData };
           });
