@@ -270,8 +270,8 @@ export default function WalletPage() {
             <tbody>
               {(!transactions || transactions.length === 0) ? (
                 <tr><td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">No transactions yet</td></tr>
-              ) : transactions.map((tx: any) => (
-                <tr key={tx.id}>
+              ) : transactions.map((tx: any, i: number) => (
+                <tr key={tx.id} className="opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.04}s` }}>
                   <td className="p-4 text-sm text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</td>
                   <td className="p-4 text-sm font-medium text-foreground">{tx.description}</td>
                   <td className="p-4 text-sm text-muted-foreground">{tx.method || "—"}</td>

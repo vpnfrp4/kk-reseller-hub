@@ -209,7 +209,7 @@ export default function DashboardHome() {
           ))
         ) : (
           stats.map((stat, i) => (
-            <div key={stat.label} className="stat-card hover-lift animate-fade-in opacity-0 scale-95 transition-all duration-500 ease-out" style={{ animationDelay: `${(i + 1) * 0.1}s` }}>
+            <div key={stat.label} className="stat-card hover-lift opacity-0 animate-stagger-in" style={{ animationDelay: `${i * 0.1}s` }}>
               <div className="flex items-start justify-between mb-4">
                 <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
                   <stat.icon className={`w-5 h-5 ${stat.color}`} />
@@ -312,8 +312,8 @@ export default function DashboardHome() {
               ))
             ) : (!transactions || transactions.length === 0) ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No transactions yet</p>
-            ) : transactions.map((tx: any) => (
-              <div key={tx.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+            ) : transactions.map((tx: any, i: number) => (
+              <div key={tx.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0 opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.05}s` }}>
                 <div>
                   <p className="text-sm font-medium text-foreground">{tx.description}</p>
                   <p className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</p>
@@ -354,8 +354,8 @@ export default function DashboardHome() {
               ))
             ) : (!orders || orders.length === 0) ? (
               <p className="text-sm text-muted-foreground py-4 text-center">No orders yet</p>
-            ) : orders.map((order: any) => (
-              <div key={order.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
+            ) : orders.map((order: any, i: number) => (
+              <div key={order.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0 opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.05}s` }}>
                 <div>
                   <p className="text-sm font-medium text-foreground">{order.product_name}</p>
                   <p className="text-xs text-muted-foreground font-mono">{order.credentials}</p>

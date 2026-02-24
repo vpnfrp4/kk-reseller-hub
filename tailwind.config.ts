@@ -98,6 +98,14 @@ export default {
           from: { opacity: "0", transform: "translateX(-10px)" },
           to: { opacity: "1", transform: "translateX(0)" },
         },
+        "stagger-in": {
+          from: { opacity: "0", transform: "translateY(16px) scale(0.95)" },
+          to: { opacity: "1", transform: "translateY(0) scale(1)" },
+        },
+        "row-in": {
+          from: { opacity: "0", transform: "translateX(-8px)" },
+          to: { opacity: "1", transform: "translateX(0)" },
+        },
         pulse_glow: {
           "0%, 100%": { boxShadow: "0 0 20px hsl(43 72% 52% / 0.15)" },
           "50%": { boxShadow: "0 0 40px hsl(43 72% 52% / 0.3)" },
@@ -112,6 +120,8 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.5s ease-out forwards",
         "slide-in": "slide-in 0.3s ease-out forwards",
+        "stagger-in": "stagger-in 0.4s ease-out forwards",
+        "row-in": "row-in 0.3s ease-out forwards",
         "pulse-glow": "pulse_glow 3s ease-in-out infinite",
         shimmer: "shimmer 2s linear infinite",
       },

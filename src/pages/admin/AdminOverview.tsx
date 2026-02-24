@@ -236,7 +236,7 @@ export default function AdminOverview() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {cards.map((card, i) => (
-          <div key={card.label} className="stat-card animate-fade-in" style={{ animationDelay: `${i * 0.1}s` }}>
+          <div key={card.label} className="stat-card opacity-0 animate-stagger-in hover-lift" style={{ animationDelay: `${i * 0.08}s` }}>
             <div className="flex items-center gap-3 mb-3">
               <card.icon className={`w-5 h-5 ${card.color}`} />
               <span className="text-sm text-muted-foreground">{card.label}</span>
@@ -353,8 +353,8 @@ function RecentOrdersFeed() {
 
   return (
     <div className="space-y-2">
-      {orders.map((o: any) => (
-        <div key={o.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+      {orders.map((o: any, i: number) => (
+        <div key={o.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-muted/30 transition-colors opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.05}s` }}>
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary">
             {(o.profile?.name || "?")[0].toUpperCase()}
           </div>
