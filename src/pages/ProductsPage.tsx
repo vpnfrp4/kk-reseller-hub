@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -25,6 +26,7 @@ const PAGE_SIZE = 9;
 
 export default function ProductsPage() {
   const { user, profile, refreshProfile } = useAuth();
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [result, setResult] = useState<PurchaseResult | null>(null);
@@ -256,6 +258,7 @@ export default function ProductsPage() {
         open={topUpOpen}
         onOpenChange={setTopUpOpen}
         hideTrigger
+        onSubmitted={(txId) => navigate(`/dashboard/wallet/topup-status?id=${txId}`)}
       />
     </div>
 

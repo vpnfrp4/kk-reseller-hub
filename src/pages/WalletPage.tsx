@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useCountUp } from "@/hooks/use-count-up";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +19,7 @@ import type { Column } from "@/components/shared";
 
 export default function WalletPage() {
   const { user, profile } = useAuth();
+  const navigate = useNavigate();
   const [balanceFlash, setBalanceFlash] = useState(false);
   const prevBalanceRef = useRef<number | null>(null);
 
@@ -143,7 +145,10 @@ export default function WalletPage() {
           <h1 className="text-h1 text-foreground">Wallet</h1>
           <p className="text-caption text-muted-foreground">Manage your credit balance</p>
         </div>
-        <TopUpDialog userId={user?.id} />
+        <TopUpDialog
+          userId={user?.id}
+          onSubmitted={(txId) => navigate(`/dashboard/wallet/topup-status?id=${txId}`)}
+        />
       </div>
 
       {/* Wallet Hero */}
