@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { KeyRound, Wallet, ShoppingCart, User, Calendar, Copy, Check } from "lucide-react";
+import { KeyRound, Wallet, ShoppingCart, User, Calendar, Copy, Check, Zap, Clock, Smartphone, UserIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -54,17 +54,33 @@ export default function OrderDetailModal({ order, open, onOpenChange }: OrderDet
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const FULFILLMENT_MODE_LABELS: Record<string, { label: string; icon: any; color: string }> = {
+    instant: { label: "Instant Stock Delivery", icon: Zap, color: "bg-success/10 text-success" },
+    custom_username: { label: "Custom Username", icon: UserIcon, color: "bg-primary/10 text-primary" },
+    imei: { label: "IMEI Required", icon: Smartphone, color: "bg-primary/10 text-primary" },
+    manual: { label: "Manual Processing", icon: Clock, color: "bg-warning/10 text-warning" },
+  };
+
+  const fulfillmentMode = order.fulfillment_mode || "instant";
+  const modeInfo = FULFILLMENT_MODE_LABELS[fulfillmentMode] || FULFILLMENT_MODE_LABELS.instant;
+  const ModeIcon = modeInfo.icon;
+  const customFieldsData: Record<string, string> | null = order.custom_fields_data && typeof order.custom_fields_data === "object"
+    ? order.custom_fields_data
+    : null;
+
   const statusBadge = (status: string) => {
     const styles: Record<string, string> = {
       delivered: "bg-success/10 text-success",
       pending: "bg-warning/10 text-warning",
+      pending_creation: "bg-primary/10 text-primary",
+      pending_review: "bg-warning/10 text-warning",
       cancelled: "bg-destructive/10 text-destructive",
       approved: "bg-success/10 text-success",
       rejected: "bg-destructive/10 text-destructive",
     };
     return (
       <span className={`text-[11px] px-2.5 py-1 rounded-full font-medium ${styles[status] || "bg-muted text-muted-foreground"}`}>
-        {status}
+        {status.replace("_", " ")}
       </span>
     );
   };
@@ -106,6 +122,35 @@ export default function OrderDetailModal({ order, open, onOpenChange }: OrderDet
               </div>
             </div>
           </div>
+
+          {/* Fulfillment Info */}
+          {(fulfillmentMode !== "instant" || customFieldsData) && (
+            <div className="space-y-3 border-t border-border pt-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <ModeIcon className="w-4 h-4" />
+                <span className="font-medium text-foreground">Fulfillment</span>
+              </div>
+              <div className="space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <span className={`text-[11px] px-2.5 py-1 rounded-full font-medium inline-flex items-center gap-1.5 ${modeInfo.color}`}>
+                    <ModeIcon className="w-3 h-3" />
+                    {modeInfo.label}
+                  </span>
+                </div>
+                {customFieldsData && Object.keys(customFieldsData).length > 0 && (
+                  <div className="rounded-lg bg-muted/30 border border-border p-3 space-y-2">
+                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Customer Input</p>
+                    {Object.entries(customFieldsData).map(([key, value]) => (
+                      <div key={key} className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">{key}</span>
+                        <span className="font-medium text-foreground font-mono">{String(value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* User Info */}
           <div className="space-y-3 border-t border-border pt-4">
