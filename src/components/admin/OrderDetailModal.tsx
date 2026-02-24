@@ -278,6 +278,15 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
                       .update(updatePayload)
                       .eq("id", order.id);
                     if (error) throw error;
+
+                    // Notify the reseller
+                    await supabase.from("notifications").insert({
+                      user_id: order.user_id,
+                      title: "Order Delivered",
+                      body: `Your order for ${order.product_name} has been fulfilled and delivered.`,
+                      type: "order",
+                    });
+
                     toast.success("Order marked as delivered");
                     queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
                     onStatusUpdated?.();
