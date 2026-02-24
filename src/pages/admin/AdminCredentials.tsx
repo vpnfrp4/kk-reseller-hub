@@ -15,7 +15,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download, Upload, AlertTriangle, Pencil, X, Check } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download, Upload, AlertTriangle, Pencil, X, Check, ArrowRightLeft } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -70,6 +70,26 @@ export default function AdminCredentials() {
   const [bulkExpiryUpdating, setBulkExpiryUpdating] = useState(false);
   const [bulkDeleteSelectedOpen, setBulkDeleteSelectedOpen] = useState(false);
   const [bulkDeletingSelected, setBulkDeletingSelected] = useState(false);
+  const [bulkReassignOpen, setBulkReassignOpen] = useState(false);
+  const [bulkReassignProduct, setBulkReassignProduct] = useState("");
+  const [bulkReassigning, setBulkReassigning] = useState(false);
+
+  const handleBulkReassign = async () => {
+    if (!bulkReassignProduct || selectedIds.size === 0) return;
+    setBulkReassigning(true);
+    const { error } = await supabase
+      .from("product_credentials")
+      .update({ product_id: bulkReassignProduct } as any)
+      .in("id", Array.from(selectedIds));
+    setBulkReassigning(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`${selectedIds.size} credential(s) reassigned`);
+    queryClient.invalidateQueries({ queryKey: ["admin-credentials"] });
+    queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    setSelectedIds(new Set());
+    setBulkReassignOpen(false);
+    setBulkReassignProduct("");
+  };
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
@@ -630,6 +650,14 @@ export default function AdminCredentials() {
           </Button>
           <Button
             size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={() => setBulkReassignOpen(true)}
+          >
+            <ArrowRightLeft className="w-3.5 h-3.5" />Reassign
+          </Button>
+          <Button
+            size="sm"
             variant="destructive"
             className="gap-1.5"
             onClick={() => setBulkDeleteSelectedOpen(true)}
@@ -646,6 +674,36 @@ export default function AdminCredentials() {
           </Button>
         </div>
       )}
+      {/* Bulk reassign dialog */}
+      <Dialog open={bulkReassignOpen} onOpenChange={setBulkReassignOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Reassign Credentials</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Move <span className="font-semibold text-foreground">{selectedIds.size}</span> selected credential(s) to a different product.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Label className="text-muted-foreground text-xs">Target Product</Label>
+            <select
+              value={bulkReassignProduct}
+              onChange={(e) => setBulkReassignProduct(e.target.value)}
+              className="w-full bg-muted/50 border border-border rounded-lg px-3 py-2 text-sm text-foreground"
+            >
+              <option value="">Select product...</option>
+              {(products || []).map((p: any) => (
+                <option key={p.id} value={p.id}>{p.icon} {p.name} - {p.duration}</option>
+              ))}
+            </select>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setBulkReassignOpen(false)}>Cancel</Button>
+            <Button onClick={handleBulkReassign} disabled={bulkReassigning || !bulkReassignProduct} className="btn-glow">
+              {bulkReassigning ? "Reassigning..." : `Reassign ${selectedIds.size} Credentials`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
