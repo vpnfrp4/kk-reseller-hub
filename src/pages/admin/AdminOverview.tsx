@@ -1,19 +1,17 @@
 import { useEffect, useRef, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { KeyRound, Wallet, ShoppingCart, AlertTriangle, Settings2, TrendingUp, TrendingDown, Clock, Plus, CheckCircle2, ArrowRight } from "lucide-react";
+import { KeyRound, Wallet, ShoppingCart, AlertTriangle, Settings2, Clock, Plus, CheckCircle2, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
 import AdminAnalyticsCharts from "@/components/admin/AdminAnalyticsCharts";
 import LiveActivityFeed from "@/components/admin/LiveActivityFeed";
-import MiniSparkline from "@/components/admin/MiniSparkline";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useCountUp } from "@/hooks/use-count-up";
 import { format, subDays } from "date-fns";
-import { PageContainer, DataCard, Money } from "@/components/shared";
+import { PageContainer, StatCard, DataCard, Money } from "@/components/shared";
 
 const THRESHOLD_KEY = "admin-low-balance-threshold";
 const DEFAULT_THRESHOLD = 5000;
@@ -24,51 +22,6 @@ function getStoredThreshold(): number {
     if (v) return Math.max(0, Number(v));
   } catch {}
   return DEFAULT_THRESHOLD;
-}
-
-/* KPI Card with sparkline — admin-specific, extends shared pattern */
-function KpiCard({
-  label, value, icon: Icon, color, trend, sparkData, delay, suffix,
-}: {
-  label: string; value: number; icon: any; color: string;
-  trend?: { value: number; label: string }; sparkData?: number[];
-  delay: number; suffix?: string;
-}) {
-  const display = useCountUp(value, 900);
-  return (
-    <div
-      className="group stat-card hover-lift opacity-0 animate-stagger-in"
-      style={{ animationDelay: `${delay}s` }}
-    >
-      <div className="flex items-start justify-between mb-compact">
-        <div className="flex items-center gap-compact">
-          <div className="w-9 h-9 rounded-btn flex items-center justify-center" style={{ background: `hsl(var(--${color.replace("text-", "")}) / 0.1)` }}>
-            <Icon className={`w-[18px] h-[18px] ${color}`} strokeWidth={1.5} />
-          </div>
-          <span className="text-caption font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
-        </div>
-        {sparkData && sparkData.length > 1 && (
-          <MiniSparkline
-            data={sparkData} width={64} height={24}
-            color={`hsl(var(--${color.replace("text-", "")}))`}
-            className="opacity-60 group-hover:opacity-100 transition-opacity"
-          />
-        )}
-      </div>
-      <div className="flex items-end justify-between">
-        <p className="text-3xl font-bold font-mono tabular-nums text-foreground tracking-tight">
-          {display.toLocaleString()}
-          {suffix && <span className="text-base font-semibold text-muted-foreground ml-1">{suffix}</span>}
-        </p>
-        {trend && (
-          <div className={`flex items-center gap-1 text-caption font-medium ${trend.value >= 0 ? "text-success" : "text-destructive"}`}>
-            {trend.value >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-            {trend.value >= 0 ? "+" : ""}{trend.value.toFixed(1)}%
-          </div>
-        )}
-      </div>
-    </div>
-  );
 }
 
 export default function AdminOverview() {
@@ -241,7 +194,7 @@ export default function AdminOverview() {
       label: "Total Accounts",
       value: stats?.totalCredentials || 0,
       icon: KeyRound,
-      color: "text-primary",
+      iconColor: "text-primary",
       sparkData: sparkSales,
       trend: { value: 5.2, label: "vs last week" },
     },
@@ -249,7 +202,7 @@ export default function AdminOverview() {
       label: "Sold Today",
       value: stats?.soldToday || 0,
       icon: ShoppingCart,
-      color: "text-success",
+      iconColor: "text-success",
       sparkData: sparkSales,
       trend: { value: 12.8, label: "vs yesterday" },
     },
@@ -257,7 +210,7 @@ export default function AdminOverview() {
       label: "Revenue (Monthly)",
       value: stats?.monthRevenue || 0,
       icon: Wallet,
-      color: "text-warning",
+      iconColor: "text-warning",
       sparkData: sparkRevenue,
       trend: { value: 8.4, label: "vs last month" },
       suffix: "MMK",
@@ -266,10 +219,10 @@ export default function AdminOverview() {
       label: "Expiring Soon",
       value: stats?.expiringSoon || 0,
       icon: Clock,
-      color: "text-destructive",
+      iconColor: "text-destructive",
       trend: stats?.expiringSoon ? { value: -2.1, label: "" } : undefined,
     },
-  ];
+  ] as const;
 
   return (
     <PageContainer>
@@ -307,7 +260,7 @@ export default function AdminOverview() {
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-default">
         {kpiCards.map((card, i) => (
-          <KpiCard key={card.label} {...card} delay={i * 0.08} />
+          <StatCard key={card.label} {...card} animate delay={i * 0.08} className="hover-lift" />
         ))}
       </div>
 
