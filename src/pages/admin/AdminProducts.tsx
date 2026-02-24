@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, ImageIcon, GripVertical } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, ImageIcon, GripVertical, RotateCcw } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import BulkImageUpload from "@/components/admin/BulkImageUpload";
 import { toast } from "sonner";
@@ -371,7 +371,7 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      <div className="flex gap-2 animate-fade-in">
+      <div className="flex gap-2 animate-fade-in items-center">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
@@ -385,6 +385,25 @@ export default function AdminProducts() {
             {cat}
           </button>
         ))}
+        <Button
+          variant="outline"
+          size="sm"
+          className="ml-auto gap-1.5 text-xs"
+          onClick={async () => {
+            if (!products || !confirm("Reset product order to alphabetical?")) return;
+            const sorted = [...products].sort((a: any, b: any) => a.name.localeCompare(b.name));
+            const updated = sorted.map((p: any, i: number) => ({ ...p, sort_order: i }));
+            queryClient.setQueryData(["admin-products"], updated);
+            for (const p of updated) {
+              await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id);
+            }
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+            toast.success("Order reset to alphabetical");
+          }}
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+          Reset Order
+        </Button>
       </div>
 
       <div className="glass-card overflow-hidden animate-fade-in">
