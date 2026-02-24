@@ -50,6 +50,7 @@ export default function AdminCredentials() {
     return () => { supabase.removeChannel(channel); };
   }, [queryClient]);
 
+
   const [searchParams, setSearchParams] = useSearchParams();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filterProduct, setFilterProduct] = useState(searchParams.get("product") || "");
@@ -73,6 +74,16 @@ export default function AdminCredentials() {
   const [bulkReassignOpen, setBulkReassignOpen] = useState(false);
   const [bulkReassignProduct, setBulkReassignProduct] = useState("");
   const [bulkReassigning, setBulkReassigning] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedIds.size > 0) {
+        setSelectedIds(new Set());
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedIds.size]);
 
   const handleBulkReassign = async () => {
     if (!bulkReassignProduct || selectedIds.size === 0) return;
