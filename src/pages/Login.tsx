@@ -7,16 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Crown, Eye, EyeOff, ArrowRight } from "lucide-react";
 import GoldParticles from "@/components/GoldParticles";
-import { t } from "@/lib/i18n";
-
-function MmLabel({ mm, en }: { mm: string; en: string }) {
-  return (
-    <span>
-      {mm}
-      <span className="text-muted-foreground/50 ml-1.5 text-[10px] font-normal normal-case tracking-normal">{en}</span>
-    </span>
-  );
-}
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -59,7 +49,7 @@ export default function Login() {
       if (error) {
         setError(error.message);
       } else {
-        setSuccess(t.auth.resetSuccess.mm);
+        setSuccess("Password reset link sent! Check your email.");
       }
       setLoading(false);
       return;
@@ -70,7 +60,7 @@ export default function Login() {
       if (error) {
         setError(error);
       } else {
-        setSuccess(t.auth.signUpSuccess.mm);
+        setSuccess("Account created! Check your email to verify, then sign in.");
         setIsSignup(false);
       }
     } else {
@@ -118,17 +108,10 @@ export default function Login() {
           </p>
           <p className="text-muted-foreground text-sm mt-4">
             {isForgot
-              ? t.auth.resetSubtitle.mm
+              ? "Enter your email to reset your password"
               : isSignup
-              ? t.auth.signUpSubtitle.mm
-              : t.auth.signInSubtitle.mm}
-          </p>
-          <p className="text-muted-foreground/50 text-[10px] mt-0.5">
-            {isForgot
-              ? t.auth.resetSubtitle.en
-              : isSignup
-              ? t.auth.signUpSubtitle.en
-              : t.auth.signInSubtitle.en}
+              ? "Create your reseller account"
+              : "Sign in to your reseller dashboard"}
           </p>
         </div>
 
@@ -154,11 +137,11 @@ export default function Login() {
                 style={{ animationDelay: "0.15s" }}
               >
                 <Label htmlFor="name" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  <MmLabel mm={t.auth.fullName.mm} en={t.auth.fullName.en} />
+                  Full Name
                 </Label>
                 <Input
                   id="name"
-                  placeholder={t.auth.fullName.mm}
+                  placeholder="Your name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -172,7 +155,7 @@ export default function Login() {
               style={{ animationDelay: isSignup ? "0.25s" : "0.15s" }}
             >
               <Label htmlFor="email" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                <MmLabel mm={t.auth.emailAddress.mm} en={t.auth.emailAddress.en} />
+                Email Address
               </Label>
               <Input
                 id="email"
@@ -192,7 +175,7 @@ export default function Login() {
               >
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    <MmLabel mm={t.auth.password.mm} en={t.auth.password.en} />
+                    Password
                   </Label>
                   {!isSignup && (
                     <button
@@ -200,7 +183,7 @@ export default function Login() {
                       onClick={() => { setIsForgot(true); setError(""); setSuccess(""); }}
                       className="text-xs text-primary/80 hover:text-primary transition-colors duration-200"
                     >
-                      {t.auth.forgotPassword.mm}
+                      Forgot password?
                     </button>
                   )}
                 </div>
@@ -245,11 +228,11 @@ export default function Login() {
                 {loading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                    {t.auth.pleaseWait.mm}
+                    Please wait...
                   </>
                 ) : (
                   <>
-                    {isForgot ? t.auth.sendResetLink.mm : isSignup ? t.auth.signUp.mm : t.auth.signIn.mm}
+                    {isForgot ? "Send Reset Link" : isSignup ? "Create Account" : "Sign In"}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -266,7 +249,7 @@ export default function Login() {
                 </div>
                 <div className="relative flex justify-center text-xs">
                   <span className="bg-card px-3 text-muted-foreground">
-                    {isForgot ? t.auth.or.mm : isSignup ? t.auth.alreadyHaveAccount.mm : t.auth.newHere.mm}
+                    {isForgot ? "or" : isSignup ? "already have an account?" : "new here?"}
                   </span>
                 </div>
               </div>
@@ -278,7 +261,7 @@ export default function Login() {
                     onClick={() => { setIsForgot(false); setError(""); setSuccess(""); }}
                     className="text-primary hover:text-primary/80 font-medium transition-colors duration-200"
                   >
-                    {t.auth.backToSignIn.mm}
+                    Back to Sign In
                   </button>
                 ) : (
                   <button
@@ -286,7 +269,7 @@ export default function Login() {
                     onClick={() => { setIsSignup(!isSignup); setError(""); setSuccess(""); }}
                     className="text-primary hover:text-primary/80 font-medium transition-colors duration-200"
                   >
-                    {isSignup ? t.auth.signInInstead.mm : t.auth.createAccount.mm}
+                    {isSignup ? "Sign In Instead" : "Create an Account"}
                   </button>
                 )}
               </p>

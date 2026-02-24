@@ -228,30 +228,6 @@ export const t = {
     showing: { mm: "ပြသနေသည်", en: "Showing" },
     termsAndConditions: { mm: "စည်းကမ်းသတ်မှတ်ချက်များ", en: "Terms and Conditions" },
   },
-
-  // Auth / Login
-  auth: {
-    signIn: { mm: "ဝင်မည်", en: "Sign In" },
-    signUp: { mm: "အကောင့်ဖွင့်မည်", en: "Create Account" },
-    forgotPassword: { mm: "စကားဝှက်မေ့သလား?", en: "Forgot password?" },
-    resetPassword: { mm: "စကားဝှက်ပြန်သတ်မှတ်မည်", en: "Reset Password" },
-    sendResetLink: { mm: "လင့်ပို့မည်", en: "Send Reset Link" },
-    backToSignIn: { mm: "အကောင့်ဝင်ရန် ပြန်သွားမည်", en: "Back to Sign In" },
-    signInInstead: { mm: "အကောင့်ရှိပြီးသား", en: "Sign In Instead" },
-    createAccount: { mm: "အကောင့်အသစ်ဖွင့်မည်", en: "Create an Account" },
-    emailAddress: { mm: "အီးမေးလ်", en: "Email Address" },
-    password: { mm: "စကားဝှက်", en: "Password" },
-    fullName: { mm: "အမည်အပြည့်အစုံ", en: "Full Name" },
-    pleaseWait: { mm: "ခေတ္တစောင့်ပါ...", en: "Please wait..." },
-    signInSubtitle: { mm: "ဒိုင်ဒက်ရှ်ဘုတ်သို့ ဝင်ပါ", en: "Sign in to your reseller dashboard" },
-    signUpSubtitle: { mm: "ဒိုင်အကောင့်ဖွင့်ပါ", en: "Create your reseller account" },
-    resetSubtitle: { mm: "စကားဝှက်ပြန်သတ်မှတ်ရန် အီးမေးလ်ထည့်ပါ", en: "Enter your email to reset your password" },
-    newHere: { mm: "အကောင့်မရှိသေးဘူးလား?", en: "new here?" },
-    alreadyHaveAccount: { mm: "အကောင့်ရှိပြီးသားလား?", en: "already have an account?" },
-    or: { mm: "သို့မဟုတ်", en: "or" },
-    resetSuccess: { mm: "စကားဝှက်ပြန်သတ်မှတ်ရန် လင့်ပို့ပြီးပါပြီ။ အီးမေးလ်စစ်ပါ။", en: "Password reset link sent! Check your email." },
-    signUpSuccess: { mm: "အကောင့်ဖွင့်ပြီးပါပြီ! အီးမေးလ်စစ်ပြီး အတည်ပြုပါ။", en: "Account created! Check your email to verify, then sign in." },
-  },
 } as const;
 
 /** Render a bilingual label: Burmese large, English small */
