@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { DataCard, Money, ResponsiveTable } from "@/components/shared";
 import type { Column } from "@/components/shared";
-import { t } from "@/lib/i18n";
+import { t, useT } from "@/lib/i18n";
 import MmLabel, { MmStatus, MmInline } from "@/components/shared/MmLabel";
 
 const PAGE_SIZE = 10;
@@ -25,6 +25,7 @@ export default function OrdersPage() {
   const [status, setStatus] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  const l = useT();
 
   const buildQuery = (q: any) => {
     if (search.trim()) q = q.ilike("product_name", `%${search.trim()}%`);
@@ -113,18 +114,18 @@ export default function OrdersPage() {
   const columns: Column<any>[] = [
     {
       key: "id",
-      label: t.orders.orderId.mm,
+      label: l(t.orders.orderId),
       hideOnMobile: true,
       render: (row) => <span className="font-mono text-muted-foreground">{row.id.slice(0, 8)}</span>,
     },
     {
       key: "product_name",
-      label: t.orders.product.mm,
+      label: l(t.orders.product),
       priority: true,
     },
     {
       key: "credentials",
-      label: t.orders.credentials.mm,
+      label: l(t.orders.credentials),
       render: (row) => (
         <div className="flex items-center gap-2">
           <code className="text-xs font-mono text-muted-foreground bg-primary/5 border border-primary/10 px-2.5 py-1 rounded-md truncate max-w-[200px]">
@@ -145,19 +146,19 @@ export default function OrdersPage() {
     },
     {
       key: "price",
-      label: t.orders.price.mm,
+      label: l(t.orders.price),
       align: "right" as const,
       render: (row) => <Money amount={row.price} className="gold-text" />,
     },
     {
       key: "created_at",
-      label: t.orders.date.mm,
+      label: l(t.orders.date),
       hideOnMobile: true,
       render: (row) => <span className="text-muted-foreground">{new Date(row.created_at).toLocaleDateString()}</span>,
     },
     {
       key: "status",
-      label: t.status.delivered.en === "Delivered" ? "Status" : "Status",
+      label: "Status",
       align: "center" as const,
       render: (row) => <MmStatus status={row.status} />,
     },
@@ -166,7 +167,7 @@ export default function OrdersPage() {
   const paginationFooter = totalCount > PAGE_SIZE ? (
     <div className="flex items-center justify-between">
       <p className="text-xs text-muted-foreground">
-        {t.products.showing.mm} {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} / {totalCount}
+        {l(t.products.showing)} {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} / {totalCount}
       </p>
       <div className="flex items-center gap-1">
         <Button variant="ghost" size="icon" className="h-8 w-8" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
@@ -187,8 +188,8 @@ export default function OrdersPage() {
   return (
     <div className="space-y-section">
       <Breadcrumb items={[
-        { label: t.nav.dashboard.mm, path: "/dashboard" },
-        { label: t.nav.orders.mm },
+        { label: l(t.nav.dashboard), path: "/dashboard" },
+        { label: l(t.nav.orders) },
       ]} />
 
       <div className="animate-fade-in">
@@ -197,7 +198,7 @@ export default function OrdersPage() {
             <h1 className="text-h1 text-foreground">
               <MmLabel mm={t.orders.title.mm} en={t.orders.title.en} />
             </h1>
-            <p className="text-caption text-muted-foreground">{t.orders.subtitle.mm}</p>
+            <p className="text-caption text-muted-foreground">{l(t.orders.subtitle)}</p>
           </div>
           <Button onClick={exportCSV} size="sm" className="gap-2 btn-glass">
             <Download className="w-4 h-4 text-primary" />
@@ -210,11 +211,11 @@ export default function OrdersPage() {
       <DataCard className="animate-fade-in" noPadding>
         <div className="p-card flex flex-wrap gap-default items-end">
           <div className="flex-1 min-w-[180px]">
-            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">{t.orders.search.mm}</label>
+            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">{l(t.orders.search)}</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder={t.orders.productName.mm}
+                placeholder={l(t.orders.productName)}
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(0); }}
                 className="pl-9 h-9"
@@ -229,20 +230,20 @@ export default function OrdersPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{t.products.all.mm}</SelectItem>
-                <SelectItem value="delivered">{t.status.delivered.mm}</SelectItem>
-                <SelectItem value="pending">{t.status.pending.mm}</SelectItem>
+                <SelectItem value="all">{l(t.products.all)}</SelectItem>
+                <SelectItem value="delivered">{l(t.status.delivered)}</SelectItem>
+                <SelectItem value="pending">{l(t.status.pending)}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="min-w-[140px]">
-            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">{t.orders.from.mm}</label>
+            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">{l(t.orders.from)}</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
                   <CalendarIcon className="w-4 h-4 mr-2" />
-                  {dateFrom ? format(dateFrom, "PP") : t.orders.startDate.mm}
+                  {dateFrom ? format(dateFrom, "PP") : l(t.orders.startDate)}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -252,12 +253,12 @@ export default function OrdersPage() {
           </div>
 
           <div className="min-w-[140px]">
-            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">{t.orders.to.mm}</label>
+            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">{l(t.orders.to)}</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
                   <CalendarIcon className="w-4 h-4 mr-2" />
-                  {dateTo ? format(dateTo, "PP") : t.orders.endDate.mm}
+                  {dateTo ? format(dateTo, "PP") : l(t.orders.endDate)}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -269,7 +270,7 @@ export default function OrdersPage() {
           {hasFilters && (
             <Button variant="ghost" size="sm" className="h-9 gap-1 text-muted-foreground hover:text-destructive" onClick={clearFilters}>
               <X className="w-4 h-4" />
-              {t.orders.clear.mm}
+              {l(t.orders.clear)}
             </Button>
           )}
         </div>
@@ -281,7 +282,7 @@ export default function OrdersPage() {
           columns={columns}
           data={orders || []}
           keyExtractor={(row) => row.id}
-          emptyMessage={hasFilters ? t.orders.noMatch.mm : t.orders.noOrders.mm}
+          emptyMessage={hasFilters ? l(t.orders.noMatch) : l(t.orders.noOrders)}
         />
       </DataCard>
     </div>

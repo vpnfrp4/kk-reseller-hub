@@ -25,7 +25,7 @@ import { PageContainer, Money } from "@/components/shared";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
 import MiniSparkline from "@/components/admin/MiniSparkline";
 import { cn } from "@/lib/utils";
-import { t } from "@/lib/i18n";
+import { t, useT } from "@/lib/i18n";
 import { MmStatus } from "@/components/shared/MmLabel";
 
 const LOW_BALANCE_THRESHOLD = 20000;
@@ -36,6 +36,7 @@ export default function DashboardHome() {
   const initialized = useRef(false);
   const navigate = useNavigate();
   const [topUpOpen, setTopUpOpen] = useState(false);
+  const l = useT();
 
   useEffect(() => { requestNotificationPermission(); }, []);
 
@@ -148,10 +149,10 @@ export default function DashboardHome() {
   }, [orders, transactions]);
 
   const quickActions = [
-    { icon: Plus, mm: t.dashboard.addFunds.mm, en: t.dashboard.addFunds.en, onClick: () => setTopUpOpen(true), primary: true },
-    { icon: Package, mm: t.dashboard.browseProducts.mm, en: t.dashboard.browseProducts.en, onClick: () => navigate("/dashboard/products") },
-    { icon: ShoppingCart, mm: t.dashboard.viewOrders.mm, en: t.dashboard.viewOrders.en, onClick: () => navigate("/dashboard/orders") },
-    { icon: Receipt, mm: t.dashboard.transactions.mm, en: t.dashboard.transactions.en, onClick: () => navigate("/dashboard/wallet") },
+    { icon: Plus, label: t.dashboard.addFunds, onClick: () => setTopUpOpen(true), primary: true },
+    { icon: Package, label: t.dashboard.browseProducts, onClick: () => navigate("/dashboard/products") },
+    { icon: ShoppingCart, label: t.dashboard.viewOrders, onClick: () => navigate("/dashboard/orders") },
+    { icon: Receipt, label: t.dashboard.transactions, onClick: () => navigate("/dashboard/wallet") },
   ];
 
   return (
@@ -161,14 +162,13 @@ export default function DashboardHome() {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-card">
           <CrossFade isLoading={!profile} skeleton={<div className="space-y-3"><Skeleton className="h-4 w-32 rounded" /><Skeleton className="h-14 w-56 rounded" /><Skeleton className="h-4 w-44 rounded" /></div>}>
             <div>
-              <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground/60 mb-micro">{t.dashboard.balance.en}</p>
-              <p className="text-xs text-muted-foreground/80 mb-tight">{t.dashboard.balance.mm}</p>
+              <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground/60 mb-micro">{l(t.dashboard.balance)}</p>
               <div className="flex items-baseline gap-3">
                 <p className="text-5xl lg:text-6xl font-extrabold font-mono tabular-nums text-foreground tracking-tighter leading-none">{displayBalance.toLocaleString()}</p>
                 <span className="text-sm font-medium text-muted-foreground">MMK</span>
               </div>
               <p className="text-xs text-muted-foreground/70 mt-compact">
-                {t.dashboard.approxPurchases.mm} <span className="font-semibold text-foreground">{approxPurchases}</span> {t.products.qty.mm}
+                {l(t.dashboard.approxPurchases)} <span className="font-semibold text-foreground">{approxPurchases}</span> {l(t.products.qty)}
               </p>
             </div>
           </CrossFade>
@@ -178,8 +178,7 @@ export default function DashboardHome() {
             {sparklineData && sparklineData.length > 1 ? (
               <>
                 <MiniSparkline data={sparklineData} width={120} height={40} color="hsl(var(--primary-glow))" className="opacity-80" />
-                <span className="text-[9px] font-medium text-muted-foreground/60 uppercase tracking-wider">{t.dashboard.spending7d.mm}</span>
-                <span className="text-[8px] text-muted-foreground/40">{t.dashboard.spending7d.en}</span>
+                <span className="text-[9px] font-medium text-muted-foreground/60 uppercase tracking-wider">{l(t.dashboard.spending7d)}</span>
               </>
             ) : (
               <div className="w-[120px] h-[40px] rounded bg-muted/10" />
@@ -190,12 +189,12 @@ export default function DashboardHome() {
           <div className="flex flex-col sm:flex-row gap-compact shrink-0">
             <button onClick={() => setTopUpOpen(true)} className="btn-glow px-card py-compact font-semibold text-sm flex items-center justify-center gap-tight">
               <Plus className="w-4 h-4" />
-              {t.dashboard.addFunds.mm}
+              {l(t.dashboard.addFunds)}
             </button>
             <Link to="/dashboard/wallet">
               <button className="btn-glass px-card py-compact font-semibold text-sm flex items-center justify-center gap-tight w-full">
                 <Receipt className="w-4 h-4" />
-                {t.dashboard.viewTransactions.mm}
+                {l(t.dashboard.viewTransactions)}
               </button>
             </Link>
           </div>
@@ -205,21 +204,20 @@ export default function DashboardHome() {
       {/* QUICK ACTIONS */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-compact animate-fade-in" style={{ animationDelay: "0.08s" }}>
         {quickActions.map((action, i) => (
-          <button key={action.en} onClick={action.onClick} className={cn("glass-card p-card flex flex-col items-center gap-compact text-center hover-lift group cursor-pointer", "opacity-0 animate-stagger-in")} style={{ animationDelay: `${0.1 + i * 0.05}s` }}>
+          <button key={action.label.en} onClick={action.onClick} className={cn("glass-card p-card flex flex-col items-center gap-compact text-center hover-lift group cursor-pointer", "opacity-0 animate-stagger-in")} style={{ animationDelay: `${0.1 + i * 0.05}s` }}>
             <div className={cn("w-11 h-11 rounded-full flex items-center justify-center transition-colors", action.primary ? "bg-primary/10 text-primary group-hover:bg-primary/20" : "bg-muted/50 text-muted-foreground group-hover:bg-muted")}>
               <action.icon className="w-5 h-5" />
             </div>
-            <span className="text-xs font-semibold text-foreground">{action.mm}</span>
-            <span className="text-[9px] text-muted-foreground/60">{action.en}</span>
+            <span className="text-xs font-semibold text-foreground">{l(action.label)}</span>
           </button>
         ))}
       </div>
 
       {/* WALLET HEALTH */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-default animate-fade-in" style={{ animationDelay: "0.15s" }}>
-        <HealthCard mm={t.dashboard.spendingThisMonth.mm} en={t.dashboard.spendingThisMonth.en} value={walletHealth?.spendingThisMonth || 0} icon={TrendingUp} isCurrency />
-        <HealthCard mm={t.dashboard.topups30d.mm} en={t.dashboard.topups30d.en} value={walletHealth?.totalTopups || 0} icon={Wallet} isCurrency />
-        <HealthCard mm={t.dashboard.avgOrder.mm} en={t.dashboard.avgOrder.en} value={walletHealth?.avgOrderValue || 0} icon={ShoppingCart} isCurrency />
+        <HealthCard label={t.dashboard.spendingThisMonth} value={walletHealth?.spendingThisMonth || 0} icon={TrendingUp} isCurrency />
+        <HealthCard label={t.dashboard.topups30d} value={walletHealth?.totalTopups || 0} icon={Wallet} isCurrency />
+        <HealthCard label={t.dashboard.avgOrder} value={walletHealth?.avgOrderValue || 0} icon={ShoppingCart} isCurrency />
       </div>
 
       {/* LOW BALANCE */}
@@ -230,14 +228,13 @@ export default function DashboardHome() {
               <AlertTriangle className="w-5 h-5 text-warning" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground">{t.dashboard.lowBalanceTitle.mm}</p>
-              <p className="text-[10px] text-muted-foreground/60">{t.dashboard.lowBalanceTitle.en}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">{t.dashboard.lowBalanceMsg.mm}</p>
+              <p className="text-sm font-semibold text-foreground">{l(t.dashboard.lowBalanceTitle)}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{l(t.dashboard.lowBalanceMsg)}</p>
             </div>
           </div>
           <button onClick={() => setTopUpOpen(true)} className="btn-glow px-card py-compact text-sm font-semibold flex items-center gap-tight shrink-0">
             <Zap className="w-4 h-4" />
-            {t.dashboard.quickTopUp.mm}
+            {l(t.dashboard.quickTopUp)}
           </button>
         </div>
       )}
@@ -246,20 +243,19 @@ export default function DashboardHome() {
       <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.25s" }}>
         <div className="flex items-center justify-between p-card border-b border-border/50">
           <div>
-            <h3 className="text-sm font-semibold text-foreground">{t.dashboard.recentActivity.mm}</h3>
-            <p className="text-[9px] text-muted-foreground/60">{t.dashboard.recentActivity.en}</p>
+            <h3 className="text-sm font-semibold text-foreground">{l(t.dashboard.recentActivity)}</h3>
           </div>
           <div className="flex gap-compact">
-            <Link to="/dashboard/wallet" className="text-xs text-primary hover:underline font-medium">{t.dashboard.allTransactions.mm}</Link>
+            <Link to="/dashboard/wallet" className="text-xs text-primary hover:underline font-medium">{l(t.dashboard.allTransactions)}</Link>
             <span className="text-border">&middot;</span>
-            <Link to="/dashboard/orders" className="text-xs text-primary hover:underline font-medium">{t.dashboard.allOrders.mm}</Link>
+            <Link to="/dashboard/orders" className="text-xs text-primary hover:underline font-medium">{l(t.dashboard.allOrders)}</Link>
           </div>
         </div>
 
         <CrossFade isLoading={txLoading && ordersLoading} skeleton={<div className="p-card space-y-0">{Array.from({ length: 5 }).map((_, i) => (<div key={i} className="flex items-center justify-between py-3 border-b border-border/30 last:border-0"><div className="space-y-1.5"><Skeleton className="h-4 w-40 rounded" /><Skeleton className="h-3 w-24 rounded" /></div><Skeleton className="h-5 w-24 rounded" /></div>))}</div>}>
           <div>
             {recentActivity.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-section text-center">{t.dashboard.noActivity.mm}</p>
+              <p className="text-sm text-muted-foreground py-section text-center">{l(t.dashboard.noActivity)}</p>
             ) : (
               recentActivity.map((item, i) => (
                 <div key={`${item.type}-${item.id}`} className="flex items-center justify-between px-card py-3 border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.04}s` }}>
@@ -292,18 +288,16 @@ export default function DashboardHome() {
 }
 
 /* Wallet Health Card */
-function HealthCard({ mm, en, value, icon: Icon, isCurrency }: { mm: string; en: string; value: number; icon: React.ElementType; isCurrency?: boolean }) {
+function HealthCard({ label, value, icon: Icon, isCurrency }: { label: { mm: string; en: string }; value: number; icon: React.ElementType; isCurrency?: boolean }) {
   const animated = useCountUp(value, 700);
+  const l = useT();
   return (
     <div className="glass-card p-card space-y-compact">
       <div className="flex items-center gap-compact">
         <div className="w-8 h-8 rounded-full bg-muted/40 flex items-center justify-center">
           <Icon className="w-4 h-4 text-muted-foreground" />
         </div>
-        <div>
-          <span className="text-[11px] font-medium text-muted-foreground block leading-tight">{mm}</span>
-          <span className="text-[9px] text-muted-foreground/50">{en}</span>
-        </div>
+        <span className="text-[11px] font-medium text-muted-foreground leading-tight">{l(label)}</span>
       </div>
       <p className="text-2xl font-bold font-mono tabular-nums text-foreground tracking-tight">
         {isCurrency ? <Money amount={animated} /> : animated.toLocaleString()}

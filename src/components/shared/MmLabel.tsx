@@ -1,24 +1,33 @@
-/** Bilingual label: Burmese primary, English secondary */
+import { useLang } from "@/contexts/LangContext";
+
+/** Bilingual label: shows primary lang large, secondary lang small */
 export default function MmLabel({ mm, en, className = "" }: { mm: string; en: string; className?: string }) {
+  const { lang } = useLang();
+  const primary = lang === "mm" ? mm : en;
+  const secondary = lang === "mm" ? en : mm;
   return (
     <span className={className}>
-      <span>{mm}</span>
-      <span className="block text-[10px] text-muted-foreground/70 font-normal tracking-normal">{en}</span>
+      <span>{primary}</span>
+      <span className="block text-[10px] text-muted-foreground/70 font-normal tracking-normal">{secondary}</span>
     </span>
   );
 }
 
 /** Inline bilingual - single line */
 export function MmInline({ mm, en, className = "" }: { mm: string; en: string; className?: string }) {
+  const { lang } = useLang();
+  const primary = lang === "mm" ? mm : en;
+  const secondary = lang === "mm" ? en : mm;
   return (
     <span className={className}>
-      {mm} <span className="text-[10px] text-muted-foreground/60">({en})</span>
+      {primary} <span className="text-[10px] text-muted-foreground/60">({secondary})</span>
     </span>
   );
 }
 
-/** Status badge with Burmese */
+/** Status badge - lang-aware */
 export function MmStatus({ status, className = "" }: { status: string; className?: string }) {
+  const { lang } = useLang();
   const map: Record<string, { mm: string; en: string; style: string }> = {
     delivered: { mm: "ပြီးမြောက်", en: "Delivered", style: "badge-delivered" },
     pending: { mm: "စောင့်ဆိုင်းနေ", en: "Pending", style: "badge-pending" },
@@ -31,7 +40,7 @@ export function MmStatus({ status, className = "" }: { status: string; className
   const s = map[status] || { mm: status, en: status, style: "bg-muted text-muted-foreground" };
   return (
     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${s.style} ${className}`}>
-      {s.mm}
+      {s[lang]}
     </span>
   );
 }
