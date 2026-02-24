@@ -40,7 +40,7 @@ function getActiveStep(status: TxStatus): number {
 }
 
 export default function TopUpStatusPage() {
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -64,7 +64,11 @@ export default function TopUpStatusPage() {
       return data;
     },
     enabled: !!txId,
-    refetchInterval: false, // we use realtime instead
+    // Poll every 5s as fallback — realtime is primary but can have latency
+    refetchInterval: (query) => {
+      const status = query.state.data?.status;
+      return status === "pending" ? 5000 : false;
+    },
   });
 
   // Count pending requests ahead
@@ -94,21 +98,24 @@ export default function TopUpStatusPage() {
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "*",
           schema: "public",
           table: "wallet_transactions",
           filter: `id=eq.${txId}`,
         },
-        () => {
+        (payload) => {
+          console.log("[TopUpStatus] realtime event:", payload);
           queryClient.invalidateQueries({ queryKey: ["topup-status", txId] });
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log("[TopUpStatus] subscription status:", status);
+      });
 
     return () => { supabase.removeChannel(channel); };
   }, [txId, queryClient]);
 
-  // Also listen for profile balance changes
+  // Also listen for profile balance changes — call refreshProfile directly
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -116,19 +123,20 @@ export default function TopUpStatusPage() {
       .on(
         "postgres_changes",
         {
-          event: "UPDATE",
+          event: "*",
           schema: "public",
           table: "profiles",
           filter: `user_id=eq.${user.id}`,
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ["auth-profile"] });
+          console.log("[TopUpStatus] profile changed, refreshing");
+          refreshProfile();
         }
       )
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [user, queryClient]);
+  }, [user, refreshProfile]);
 
   // Detect status change to approved → trigger success
   useEffect(() => {
