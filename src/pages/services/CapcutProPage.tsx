@@ -18,6 +18,7 @@ const specs = [
   { label: "Duration Options", value: "1-Month, 3-Month, 6-Month, Annual" },
   { label: "Delivery Method", value: "Instant — Credentials in Dashboard" },
   { label: "Warranty", value: "Replacement if credentials fail on first login" },
+  { label: "Pricing Tiers", value: "Up to 40% off on bulk orders — volume discounts applied automatically" },
 ];
 
 const notice = "CapCut Pro accounts are single-user credentials. Sharing one account across multiple end-customers may result in deactivation. Each credential should be sold to one customer only. Canva Pro accounts follow the same policy.";

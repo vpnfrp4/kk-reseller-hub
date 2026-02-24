@@ -20,6 +20,7 @@ const specs = [
   { label: "Delivery Method", value: "Automated via Dashboard" },
   { label: "Warranty", value: "Replacement if activation fails on first use" },
   { label: "Bulk Orders", value: "Supported — Volume pricing available" },
+  { label: "Pricing Tiers", value: "Up to 30% off on bulk orders — tiered volume discounts" },
 ];
 
 const notice = "IMEI unlock processing times vary by carrier and model. iPhone unlocks typically take 1–5 business days. Samsung FRP removal is usually completed within 24 hours. Delivery estimates shown at checkout are approximate and may change during peak periods.";
