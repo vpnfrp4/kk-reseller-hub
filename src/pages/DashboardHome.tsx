@@ -10,13 +10,13 @@ import {
   TrendingUp,
   ShoppingCart,
   ArrowUpRight,
-  ArrowDownRight,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Link } from "react-router-dom";
 import CrossFade from "@/components/CrossFade";
 import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays } from "date-fns";
+import { PageContainer, StatCard, DataCard, Money } from "@/components/shared";
 
 export default function DashboardHome() {
   const { profile, refreshProfile } = useAuth();
@@ -151,59 +151,27 @@ export default function DashboardHome() {
     return () => scrollEl.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  // Count-up on view for stat cards
-  const balanceUp = useCountUpOnView(profile?.balance || 0);
-  const spentUp = useCountUpOnView(profile?.total_spent || 0);
-  const ordersUp = useCountUpOnView(profile?.total_orders || 0);
-
-  const stats = [
-    {
-      label: "Wallet Balance",
-      displayValue: `${balanceUp.display.toLocaleString()} MMK`,
-      ref: balanceUp.ref,
-      icon: Wallet,
-      change: "Available",
-      color: "text-primary",
-    },
-    {
-      label: "Total Spent",
-      displayValue: `${spentUp.display.toLocaleString()} MMK`,
-      ref: spentUp.ref,
-      icon: TrendingUp,
-      change: "All time",
-      color: "text-ice",
-    },
-    {
-      label: "Total Orders",
-      displayValue: ordersUp.display.toString(),
-      ref: ordersUp.ref,
-      icon: ShoppingCart,
-      change: "Completed",
-      color: "text-success",
-    },
-  ];
-
   return (
-    <div className="space-y-8">
+    <PageContainer>
       {/* Welcome Hero */}
       <div className="animate-fade-in">
-        <h1 className="text-2xl lg:text-3xl font-bold text-foreground">
-          Welcome back, <span className="gold-text font-display">{profile?.name || "Reseller"}</span>
+        <h1 className="text-h1 text-foreground">
+          Welcome back, <span className="gold-text">{profile?.name || "Reseller"}</span>
         </h1>
-        <p className="text-muted-foreground mt-1">Here's your reseller overview</p>
+        <p className="text-muted-foreground mt-tight">Here's your reseller overview</p>
       </div>
 
       {/* Wallet Hero Card */}
       <div
         ref={heroRef}
-        className="wallet-hero p-6 lg:p-8 animate-fade-in"
+        className="wallet-hero p-card lg:p-section animate-fade-in"
         style={{
           animationDelay: "0.05s",
           transform: `translateY(${parallaxY * 0.3}px)`,
           transition: "transform 0.1s linear",
         }}
       >
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-default">
           <CrossFade
             isLoading={!profile}
             skeleton={
@@ -215,15 +183,15 @@ export default function DashboardHome() {
             }
           >
             <div>
-              <p className="text-sm text-muted-foreground mb-1">Available Balance</p>
-              <p className="text-4xl lg:text-5xl font-bold font-mono gold-shimmer glow-text">
+              <p className="text-caption text-muted-foreground mb-tight">Available Balance</p>
+              <p className="text-4xl lg:text-5xl font-bold font-mono tabular-nums text-foreground">
                 {displayBalance.toLocaleString()}
               </p>
-              <p className="text-sm text-muted-foreground mt-1">MMK</p>
+              <p className="text-caption text-muted-foreground mt-tight">MMK</p>
             </div>
           </CrossFade>
           <Link to="/dashboard/wallet">
-            <button className="btn-glow px-6 py-3 rounded-xl font-semibold text-sm flex items-center gap-2">
+            <button className="btn-glow px-card py-compact font-semibold text-sm flex items-center gap-tight">
               <Wallet className="w-4 h-4" />
               Top Up Wallet
             </button>
@@ -232,43 +200,51 @@ export default function DashboardHome() {
       </div>
 
       {/* Stat Cards */}
-        <CrossFade
-          isLoading={!profile}
-          className="grid grid-cols-1 sm:grid-cols-3 gap-4"
-          skeleton={
-            <>{Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="stat-card">
-                <div className="flex items-start justify-between mb-4">
-                  <Skeleton className="w-10 h-10 rounded-lg" />
-                  <Skeleton className="w-16 h-4 rounded" />
-                </div>
-                <Skeleton className="h-7 w-32 rounded mb-2" />
-                <Skeleton className="h-4 w-24 rounded" />
+      <CrossFade
+        isLoading={!profile}
+        className="grid grid-cols-1 sm:grid-cols-3 gap-default"
+        skeleton={
+          <>{Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="stat-card">
+              <div className="flex items-start justify-between mb-default">
+                <Skeleton className="w-10 h-10 rounded-lg" />
+                <Skeleton className="w-16 h-4 rounded" />
               </div>
-            ))}</>
-          }
-        >
-          {stats.map((stat, i) => (
-            <div ref={stat.ref} key={stat.label} className="stat-card hover-lift opacity-0 animate-stagger-in" style={{ animationDelay: `${i * 0.1}s` }}>
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
-                </div>
-                <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <ArrowUpRight className="w-3 h-3 text-success" />
-                  {stat.change}
-                </span>
-              </div>
-              <p className="text-2xl font-bold font-mono text-foreground">{stat.displayValue}</p>
-              <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
+              <Skeleton className="h-7 w-32 rounded mb-2" />
+              <Skeleton className="h-4 w-24 rounded" />
             </div>
-          ))}
-        </CrossFade>
+          ))}</>
+        }
+      >
+        <StatCard
+          label="Wallet Balance"
+          value={profile?.balance || 0}
+          icon={Wallet}
+          isCurrency
+          trend={{ value: 0, label: "Available" }}
+          className="opacity-0 animate-stagger-in"
+        />
+        <StatCard
+          label="Total Spent"
+          value={profile?.total_spent || 0}
+          icon={TrendingUp}
+          isCurrency
+          trend={{ value: 0, label: "All time" }}
+          className="opacity-0 animate-stagger-in"
+          style-delay="0.1s"
+        />
+        <StatCard
+          label="Total Orders"
+          value={profile?.total_orders || 0}
+          icon={ShoppingCart}
+          trend={{ value: 0, label: "Completed" }}
+          className="opacity-0 animate-stagger-in [animation-delay:0.2s]"
+        />
+      </CrossFade>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-          <h3 className="font-semibold text-foreground mb-4">Spending (Last 30 Days)</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-card">
+        <DataCard title="Spending (Last 30 Days)" className="animate-fade-in [animation-delay:0.3s]">
           <div className="h-[200px]">
             <CrossFade
               isLoading={!spendingData}
@@ -302,10 +278,9 @@ export default function DashboardHome() {
               </ResponsiveContainer>
             </CrossFade>
           </div>
-        </div>
+        </DataCard>
 
-        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.35s" }}>
-          <h3 className="font-semibold text-foreground mb-4">Top-ups (Last 30 Days)</h3>
+        <DataCard title="Top-ups (Last 30 Days)" className="animate-fade-in [animation-delay:0.35s]">
           <div className="h-[200px]">
             <CrossFade
               isLoading={!topupData}
@@ -333,20 +308,20 @@ export default function DashboardHome() {
               </ResponsiveContainer>
             </CrossFade>
           </div>
-        </div>
+        </DataCard>
       </div>
 
       {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.4s" }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-foreground">Recent Transactions</h3>
-            <Link to="/dashboard/wallet" className="text-xs text-primary hover:underline">View all</Link>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-card">
+        <DataCard
+          title="Recent Transactions"
+          actions={<Link to="/dashboard/wallet" className="text-caption text-primary hover:underline">View all</Link>}
+          className="animate-fade-in [animation-delay:0.4s]"
+        >
           <CrossFade
             isLoading={txLoading}
             skeleton={
-              <div className="space-y-3">
+              <div className="space-y-compact">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
                     <div className="space-y-1.5">
@@ -362,17 +337,17 @@ export default function DashboardHome() {
               </div>
             }
           >
-            <div className="space-y-3">
+            <div className="space-y-compact">
               {(!transactions || transactions.length === 0) ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">No transactions yet</p>
+                <p className="text-body text-muted-foreground py-default text-center">No transactions yet</p>
               ) : transactions.map((tx: any, i: number) => (
                 <div key={tx.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0 opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.05}s` }}>
                   <div>
                     <p className="text-sm font-medium text-foreground">{tx.description}</p>
-                    <p className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</p>
+                    <p className="text-caption text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</p>
                   </div>
                   <div className="text-right">
-                    <p className={`text-sm font-mono font-semibold ${tx.type === "topup" ? "text-success" : "text-foreground"}`}>
+                    <p className={`text-sm font-mono font-semibold tabular-nums ${tx.type === "topup" ? "text-success" : "text-foreground"}`}>
                       {tx.type === "topup" ? "+" : "-"}{Math.abs(tx.amount).toLocaleString()}
                     </p>
                     <span className={`text-[10px] px-2 py-0.5 rounded-full ${
@@ -385,17 +360,17 @@ export default function DashboardHome() {
               ))}
             </div>
           </CrossFade>
-        </div>
+        </DataCard>
 
-        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.45s" }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold text-foreground">Recent Orders</h3>
-            <Link to="/dashboard/orders" className="text-xs text-primary hover:underline">View all</Link>
-          </div>
+        <DataCard
+          title="Recent Orders"
+          actions={<Link to="/dashboard/orders" className="text-caption text-primary hover:underline">View all</Link>}
+          className="animate-fade-in [animation-delay:0.45s]"
+        >
           <CrossFade
             isLoading={ordersLoading}
             skeleton={
-              <div className="space-y-3">
+              <div className="space-y-compact">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0">
                     <div className="space-y-1.5">
@@ -411,25 +386,25 @@ export default function DashboardHome() {
               </div>
             }
           >
-            <div className="space-y-3">
+            <div className="space-y-compact">
               {(!orders || orders.length === 0) ? (
-                <p className="text-sm text-muted-foreground py-4 text-center">No orders yet</p>
+                <p className="text-body text-muted-foreground py-default text-center">No orders yet</p>
               ) : orders.map((order: any, i: number) => (
                 <div key={order.id} className="flex items-center justify-between py-2 border-b border-border/50 last:border-0 opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.05}s` }}>
                   <div>
                     <p className="text-sm font-medium text-foreground">{order.product_name}</p>
-                    <p className="text-xs text-muted-foreground font-mono">{order.credentials}</p>
+                    <p className="text-caption text-muted-foreground font-mono">{order.credentials}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-mono font-semibold text-foreground">{order.price.toLocaleString()} MMK</p>
-                    <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
+                    <Money amount={order.price} className="text-sm font-semibold text-foreground" />
+                    <p className="text-caption text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
               ))}
             </div>
           </CrossFade>
-        </div>
+        </DataCard>
       </div>
-    </div>
+    </PageContainer>
   );
 }
