@@ -107,7 +107,10 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {isSignup && (
-              <div className="space-y-2">
+              <div
+                className="space-y-2 opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]"
+                style={{ animationDelay: "0.15s" }}
+              >
                 <Label htmlFor="name" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Full Name
                 </Label>
@@ -122,7 +125,10 @@ export default function Login() {
               </div>
             )}
 
-            <div className="space-y-2">
+            <div
+              className="space-y-2 opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]"
+              style={{ animationDelay: isSignup ? "0.25s" : "0.15s" }}
+            >
               <Label htmlFor="email" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Email Address
               </Label>
@@ -138,7 +144,10 @@ export default function Login() {
             </div>
 
             {!isForgot && (
-              <div className="space-y-2">
+              <div
+                className="space-y-2 opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]"
+                style={{ animationDelay: isSignup ? "0.35s" : "0.25s" }}
+              >
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     Password
@@ -186,50 +195,60 @@ export default function Login() {
               </div>
             )}
 
-            <Button type="submit" className="w-full btn-glow font-semibold h-11 gap-2" disabled={loading}>
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  Please wait...
-                </>
-              ) : (
-                <>
-                  {isForgot ? "Send Reset Link" : isSignup ? "Create Account" : "Sign In"}
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </Button>
-
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-border/50" />
-              </div>
-              <div className="relative flex justify-center text-xs">
-                <span className="bg-card px-3 text-muted-foreground">
-                  {isForgot ? "or" : isSignup ? "already have an account?" : "new here?"}
-                </span>
-              </div>
+            <div
+              className="opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]"
+              style={{ animationDelay: isSignup ? "0.45s" : isForgot ? "0.25s" : "0.35s" }}
+            >
+              <Button type="submit" className="w-full btn-glow font-semibold h-11 gap-2" disabled={loading}>
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                    Please wait...
+                  </>
+                ) : (
+                  <>
+                    {isForgot ? "Send Reset Link" : isSignup ? "Create Account" : "Sign In"}
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
             </div>
 
-            <p className="text-center text-sm">
-              {isForgot ? (
-                <button
-                  type="button"
-                  onClick={() => { setIsForgot(false); setError(""); setSuccess(""); }}
-                  className="text-primary hover:text-primary/80 font-medium transition-colors duration-200"
-                >
-                  Back to Sign In
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => { setIsSignup(!isSignup); setError(""); setSuccess(""); }}
-                  className="text-primary hover:text-primary/80 font-medium transition-colors duration-200"
-                >
-                  {isSignup ? "Sign In Instead" : "Create an Account"}
-                </button>
-              )}
-            </p>
+            <div
+              className="opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]"
+              style={{ animationDelay: isSignup ? "0.55s" : isForgot ? "0.35s" : "0.45s" }}
+            >
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-border/50" />
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="bg-card px-3 text-muted-foreground">
+                    {isForgot ? "or" : isSignup ? "already have an account?" : "new here?"}
+                  </span>
+                </div>
+              </div>
+
+              <p className="text-center text-sm mt-5">
+                {isForgot ? (
+                  <button
+                    type="button"
+                    onClick={() => { setIsForgot(false); setError(""); setSuccess(""); }}
+                    className="text-primary hover:text-primary/80 font-medium transition-colors duration-200"
+                  >
+                    Back to Sign In
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => { setIsSignup(!isSignup); setError(""); setSuccess(""); }}
+                    className="text-primary hover:text-primary/80 font-medium transition-colors duration-200"
+                  >
+                    {isSignup ? "Sign In Instead" : "Create an Account"}
+                  </button>
+                )}
+              </p>
+            </div>
           </form>
         </div>
 
