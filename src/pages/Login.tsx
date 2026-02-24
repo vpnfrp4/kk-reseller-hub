@@ -78,27 +78,26 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       {/* Ambient background */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[150px] opacity-30" style={{ background: "radial-gradient(circle, hsl(43 76% 47% / 0.12), transparent 70%)" }} />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[130px] opacity-20" style={{ background: "radial-gradient(circle, hsl(224 76% 33% / 0.15), transparent 70%)" }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full blur-[100px] opacity-10" style={{ background: "radial-gradient(circle, hsl(43 76% 47% / 0.2), transparent 70%)" }} />
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[150px] opacity-20" style={{ background: "radial-gradient(circle, hsl(142 71% 45% / 0.15), transparent 70%)" }} />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[130px] opacity-15" style={{ background: "radial-gradient(circle, hsl(216 28% 20% / 0.3), transparent 70%)" }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full blur-[100px] opacity-10" style={{ background: "radial-gradient(circle, hsl(142 71% 45% / 0.12), transparent 70%)" }} />
       </div>
 
-      {/* Gold particle animation */}
+      {/* Subtle particle animation — green accent */}
       <GoldParticles />
 
       <div className="w-full max-w-md relative z-10">
         {/* Branding */}
         <div className="text-center mb-10 animate-fade-in">
           <div
-            className="w-18 h-18 rounded-2xl mx-auto mb-5 flex items-center justify-center shadow-lg relative overflow-hidden"
+            className="rounded-2xl mx-auto mb-5 flex items-center justify-center relative overflow-hidden bg-primary/10 border border-primary/20"
             style={{
-              background: "var(--gradient-gold)",
               width: "72px",
               height: "72px",
-              boxShadow: "0 0 40px hsl(43 76% 47% / 0.3)",
+              boxShadow: "0 0 40px hsl(142 71% 45% / 0.2)",
             }}
           >
-            <Crown className="w-9 h-9 text-primary-foreground relative z-10" />
+            <Crown className="w-9 h-9 text-primary relative z-10" />
           </div>
           <h1 className="text-3xl font-bold text-foreground font-display tracking-tight">
             KK<span className="gold-text">Tech</span>
@@ -127,8 +126,8 @@ export default function Login() {
             transition: tilt.x === 0 && tilt.y === 0 ? "transform 0.4s ease-out" : "transform 0.1s ease-out",
           }}
         >
-          {/* Top gold accent line */}
-          <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "var(--gradient-gold)" }} />
+          {/* Top accent line */}
+          <div className="absolute top-0 left-0 right-0 h-[2px] bg-primary/40" />
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {isSignup && (

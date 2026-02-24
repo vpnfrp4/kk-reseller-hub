@@ -41,7 +41,7 @@ export default function GoldParticles() {
         speedY: (Math.random() - 0.5) * 0.3 - 0.15,
         opacity: Math.random() * 0.5 + 0.1,
         opacityDir: (Math.random() - 0.5) * 0.008,
-        hue: 43 + Math.random() * 10,
+        hue: 142 + Math.random() * 10,
       });
     }
 
@@ -62,15 +62,15 @@ export default function GoldParticles() {
         // Glow
         ctx.beginPath();
         const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
-        grad.addColorStop(0, `hsla(${p.hue}, 76%, 50%, ${p.opacity * 0.4})`);
-        grad.addColorStop(1, `hsla(${p.hue}, 76%, 50%, 0)`);
+        grad.addColorStop(0, `hsla(${p.hue}, 71%, 45%, ${p.opacity * 0.3})`);
+        grad.addColorStop(1, `hsla(${p.hue}, 71%, 45%, 0)`);
         ctx.fillStyle = grad;
         ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
         ctx.fill();
 
         // Core
         ctx.beginPath();
-        ctx.fillStyle = `hsla(${p.hue}, 76%, 60%, ${p.opacity})`;
+        ctx.fillStyle = `hsla(${p.hue}, 71%, 50%, ${p.opacity})`;
         ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
         ctx.fill();
       }
