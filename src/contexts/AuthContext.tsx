@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useRef, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { notifyEvent } from "@/lib/notifications";
 
 interface Profile {
   id: string;
@@ -84,7 +85,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          setProfile((prev) => prev ? { ...prev, ...payload.new } as Profile : prev);
+          const newData = payload.new as Profile;
+          setProfile((prev) => {
+            if (!prev) return newData;
+            // Detect balance increase → approved top-up
+            if (newData.balance > prev.balance) {
+              const added = newData.balance - prev.balance;
+              notifyEvent(
+                "💰 Top-Up Approved!",
+                `${added.toLocaleString()} MMK has been added to your wallet.`,
+                "success"
+              );
+            }
+            return { ...prev, ...newData };
+          });
         }
       )
       .subscribe();
