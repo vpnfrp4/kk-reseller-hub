@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, CSSProperties, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   Shield,
@@ -32,6 +32,31 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+
+/* ───────── SCROLL REVEAL ───────── */
+function ScrollReveal({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.unobserve(el); } },
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const style: CSSProperties = {
+    opacity: visible ? 1 : 0,
+    transform: visible ? "translateY(0)" : "translateY(20px)",
+    transition: `opacity 0.5s ease-out ${delay}ms, transform 0.5s ease-out ${delay}ms`,
+  };
+
+  return <div ref={ref} style={style} className={className}>{children}</div>;
+}
 
 /* ───────── TRUST BADGES ───────── */
 const trustBadges = [
@@ -194,59 +219,64 @@ export default function LandingPage() {
             <div className="h-[300px] w-[300px] rounded-full bg-primary/[0.03] blur-[80px]" />
           </div>
 
-          <div className="relative mx-auto max-w-3xl px-5 text-center sm:px-8">
-            {/* Badge */}
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] px-4 py-1.5">
-              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
-              <span className="text-xs font-medium text-primary">Trusted by 500+ Myanmar Resellers</span>
+          <ScrollReveal>
+            <div className="relative mx-auto max-w-3xl px-5 text-center sm:px-8">
+              {/* Badge */}
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] px-4 py-1.5">
+                <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                <span className="text-xs font-medium text-primary">Trusted by 500+ Myanmar Resellers</span>
+              </div>
+
+              <h1 className="text-[2.25rem] font-extrabold leading-[1.15] tracking-tight text-foreground sm:text-[3.25rem]">
+                GSM Unlock &amp; Digital
+                <br className="hidden sm:block" />
+                {" "}Reseller Platform
+                <span className="text-primary"> in Myanmar</span>
+              </h1>
+
+              <p className="mx-auto mt-6 max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:text-base">
+                Instant IMEI Services, VPN Accounts &amp; Digital Tools at Wholesale Pricing.
+                Built for resellers who want speed, transparency, and profit.
+              </p>
+
+              <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+                <Button size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
+                  <Link to="/login">
+                    Register as Reseller <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
+                  <a href="#services">View Services</a>
+                </Button>
+              </div>
             </div>
-
-            <h1 className="text-[2.25rem] font-extrabold leading-[1.15] tracking-tight text-foreground sm:text-[3.25rem]">
-              GSM Unlock &amp; Digital
-              <br className="hidden sm:block" />
-              {" "}Reseller Platform
-              <span className="text-primary"> in Myanmar</span>
-            </h1>
-
-            <p className="mx-auto mt-6 max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:text-base">
-              Instant IMEI Services, VPN Accounts &amp; Digital Tools at Wholesale Pricing.
-              Built for resellers who want speed, transparency, and profit.
-            </p>
-
-            <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <Button size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
-                <Link to="/login">
-                  Register as Reseller <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
-                <a href="#services">View Services</a>
-              </Button>
-            </div>
-          </div>
+          </ScrollReveal>
 
           {/* Trust Badges */}
-          <div className="relative mx-auto mt-20 max-w-4xl px-5 sm:px-8">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-              {trustBadges.map((b) => (
-                <div
-                  key={b.label}
-                  className="group flex flex-col items-center gap-2.5 rounded-2xl border border-border/60 bg-card p-5 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]"
-                >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/[0.08] transition-colors group-hover:bg-primary/[0.12]">
-                    <b.icon className="h-5 w-5 text-primary" />
-                  </div>
-                  <span className="text-sm font-semibold text-foreground">{b.label}</span>
-                  <span className="text-[11px] leading-snug text-muted-foreground">{b.desc}</span>
-                </div>
-              ))}
+          <ScrollReveal delay={200}>
+            <div className="relative mx-auto mt-20 max-w-4xl px-5 sm:px-8">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+                {trustBadges.map((b, i) => (
+                  <ScrollReveal key={b.label} delay={300 + i * 80}>
+                    <div
+                      className="group flex flex-col items-center gap-2.5 rounded-2xl border border-border/60 bg-card p-5 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]"
+                    >
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/[0.08] transition-colors group-hover:bg-primary/[0.12]">
+                        <b.icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <span className="text-sm font-semibold text-foreground">{b.label}</span>
+                      <span className="text-[11px] leading-snug text-muted-foreground">{b.desc}</span>
+                    </div>
+                  </ScrollReveal>
+                ))}
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
         </section>
 
         {/* ═══════════ TRUST NOTICE ═══════════ */}
         <section className="bg-background pb-16">
-          <div className="mx-auto max-w-3xl px-5 sm:px-8">
+          <ScrollReveal className="mx-auto max-w-3xl px-5 sm:px-8">
             <div className="flex gap-4 rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-5 dark:border-emerald-500/15 dark:bg-emerald-950/20 sm:p-6">
               <div className="flex-shrink-0 border-l-[3px] border-emerald-400 dark:border-emerald-500" />
               <div className="flex gap-3">
@@ -261,21 +291,23 @@ export default function LandingPage() {
                 </div>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
         </section>
 
         {/* ═══════════ SERVICES ═══════════ */}
         <section id="services" className="border-t border-border/40 bg-muted/20 py-20 sm:py-28">
           <div className="mx-auto max-w-6xl px-5 sm:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">Services</p>
-              <h2 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-[1.875rem]">
-                Our Unlock &amp; Digital Services
-              </h2>
-              <p className="mt-3 text-sm text-muted-foreground">
-                Everything you need to run a profitable digital reselling business.
-              </p>
-            </div>
+            <ScrollReveal>
+              <div className="mx-auto max-w-2xl text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">Services</p>
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-[1.875rem]">
+                  Our Unlock &amp; Digital Services
+                </h2>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Everything you need to run a profitable digital reselling business.
+                </p>
+              </div>
+            </ScrollReveal>
 
             {/* GSM */}
             <div className="mt-14">
@@ -283,17 +315,18 @@ export default function LandingPage() {
                 GSM &amp; IMEI Services
               </h3>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {gsmServices.map((s) => (
-                  <article
-                    key={s.title}
-                    className="group flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:border-primary/20"
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/[0.08] transition-colors group-hover:bg-primary/[0.12]">
-                      <s.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <h4 className="text-[15px] font-semibold text-foreground">{s.title}</h4>
-                    <p className="text-[13px] leading-relaxed text-muted-foreground">{s.text}</p>
-                  </article>
+                {gsmServices.map((s, i) => (
+                  <ScrollReveal key={s.title} delay={i * 80}>
+                    <article
+                      className="group flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:border-primary/20 h-full"
+                    >
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/[0.08] transition-colors group-hover:bg-primary/[0.12]">
+                        <s.icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <h4 className="text-[15px] font-semibold text-foreground">{s.title}</h4>
+                      <p className="text-[13px] leading-relaxed text-muted-foreground">{s.text}</p>
+                    </article>
+                  </ScrollReveal>
                 ))}
               </div>
             </div>
@@ -304,17 +337,18 @@ export default function LandingPage() {
                 Digital Accounts Wholesale
               </h3>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                {digitalServices.map((s) => (
-                  <article
-                    key={s.title}
-                    className="group flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:border-primary/20"
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/[0.08] transition-colors group-hover:bg-primary/[0.12]">
-                      <s.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <h4 className="text-[15px] font-semibold text-foreground">{s.title}</h4>
-                    <p className="text-[13px] leading-relaxed text-muted-foreground">{s.text}</p>
-                  </article>
+                {digitalServices.map((s, i) => (
+                  <ScrollReveal key={s.title} delay={i * 80}>
+                    <article
+                      className="group flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:border-primary/20 h-full"
+                    >
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/[0.08] transition-colors group-hover:bg-primary/[0.12]">
+                        <s.icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <h4 className="text-[15px] font-semibold text-foreground">{s.title}</h4>
+                      <p className="text-[13px] leading-relaxed text-muted-foreground">{s.text}</p>
+                    </article>
+                  </ScrollReveal>
                 ))}
               </div>
             </div>
@@ -341,41 +375,46 @@ export default function LandingPage() {
         {/* ═══════════ HOW IT WORKS ═══════════ */}
         <section id="how" className="py-20 sm:py-28">
           <div className="mx-auto max-w-4xl px-5 sm:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">How It Works</p>
-              <h2 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-[1.875rem]">
-                Start Reselling in 4 Simple Steps
-              </h2>
-            </div>
+            <ScrollReveal>
+              <div className="mx-auto max-w-2xl text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">How It Works</p>
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-[1.875rem]">
+                  Start Reselling in 4 Simple Steps
+                </h2>
+              </div>
+            </ScrollReveal>
 
             <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {steps.map((s, i) => (
-                <div
-                  key={s.title}
-                  className="relative flex flex-col items-center gap-4 rounded-2xl border border-border/60 bg-card px-5 pb-6 pt-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
-                >
-                  {/* Step number */}
-                  <div className="absolute -top-3.5 left-5 flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
-                    {i + 1}
+                <ScrollReveal key={s.title} delay={i * 100}>
+                  <div
+                    className="relative flex flex-col items-center gap-4 rounded-2xl border border-border/60 bg-card px-5 pb-6 pt-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)] h-full"
+                  >
+                    {/* Step number */}
+                    <div className="absolute -top-3.5 left-5 flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+                      {i + 1}
+                    </div>
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/[0.08]">
+                      <s.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <h4 className="text-[15px] font-semibold text-foreground">{s.title}</h4>
+                    <p className="text-[13px] leading-relaxed text-muted-foreground">{s.desc}</p>
                   </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/[0.08]">
-                    <s.icon className="h-6 w-6 text-primary" />
-                  </div>
-                  <h4 className="text-[15px] font-semibold text-foreground">{s.title}</h4>
-                  <p className="text-[13px] leading-relaxed text-muted-foreground">{s.desc}</p>
-                </div>
+                </ScrollReveal>
               ))}
             </div>
 
             {/* Inline CTA */}
-            <div className="mt-12 text-center">
-              <Button size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
-                <Link to="/login">
-                  Create Free Account <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
-              <p className="mt-3 text-xs text-muted-foreground">No monthly fees · Pay only for what you order</p>
-            </div>
+            <ScrollReveal delay={200}>
+              <div className="mt-12 text-center">
+                <Button size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
+                  <Link to="/login">
+                    Create Free Account <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+                <p className="mt-3 text-xs text-muted-foreground">No monthly fees · Pay only for what you order</p>
+              </div>
+            </ScrollReveal>
           </div>
         </section>
 
