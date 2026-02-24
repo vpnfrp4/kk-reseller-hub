@@ -391,6 +391,7 @@ export default function AdminProducts() {
           className="ml-auto gap-1.5 text-xs"
           onClick={async () => {
             if (!products || !confirm("Reset product order to alphabetical?")) return;
+            const previousOrder = products.map((p: any) => ({ id: p.id, sort_order: p.sort_order }));
             const sorted = [...products].sort((a: any, b: any) => a.name.localeCompare(b.name));
             const updated = sorted.map((p: any, i: number) => ({ ...p, sort_order: i }));
             queryClient.setQueryData(["admin-products"], updated);
@@ -398,7 +399,19 @@ export default function AdminProducts() {
               await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id);
             }
             queryClient.invalidateQueries({ queryKey: ["products"] });
-            toast.success(`Order reset to alphabetical — ${updated.length} product${updated.length === 1 ? "" : "s"} reordered`);
+            toast.success(`Order reset to alphabetical — ${updated.length} product${updated.length === 1 ? "" : "s"} reordered`, {
+              action: {
+                label: "Undo",
+                onClick: async () => {
+                  for (const p of previousOrder) {
+                    await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id);
+                  }
+                  queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+                  queryClient.invalidateQueries({ queryKey: ["products"] });
+                  toast.success("Order restored to previous arrangement");
+                },
+              },
+            });
           }}
         >
           <RotateCcw className="w-3.5 h-3.5" />
