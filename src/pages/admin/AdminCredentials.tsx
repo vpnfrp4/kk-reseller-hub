@@ -648,30 +648,51 @@ export default function AdminCredentials() {
             const paginated = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
             const unsoldOnPage = paginated.filter((c: any) => !c.is_sold);
             const allOnPageSelected = unsoldOnPage.length > 0 && unsoldOnPage.every((c: any) => selectedIds.has(c.id));
+            const allUnsoldFiltered = filtered.filter((c: any) => !c.is_sold);
+            const allFilteredSelected = allUnsoldFiltered.length > 0 && allUnsoldFiltered.every((c: any) => selectedIds.has(c.id));
             return (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="gap-1.5 text-muted-foreground"
-                onClick={() => {
-                  if (allOnPageSelected) {
-                    setSelectedIds(prev => {
-                      const next = new Set(prev);
-                      unsoldOnPage.forEach((c: any) => next.delete(c.id));
-                      return next;
-                    });
-                  } else {
-                    setSelectedIds(prev => {
-                      const next = new Set(prev);
-                      unsoldOnPage.forEach((c: any) => next.add(c.id));
-                      return next;
-                    });
-                  }
-                }}
-              >
-                <CheckCheck className="w-3.5 h-3.5" />
-                {allOnPageSelected ? "Deselect Page" : "Select Page"}
-              </Button>
+              <>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="gap-1.5 text-muted-foreground"
+                  onClick={() => {
+                    if (allOnPageSelected) {
+                      setSelectedIds(prev => {
+                        const next = new Set(prev);
+                        unsoldOnPage.forEach((c: any) => next.delete(c.id));
+                        return next;
+                      });
+                    } else {
+                      setSelectedIds(prev => {
+                        const next = new Set(prev);
+                        unsoldOnPage.forEach((c: any) => next.add(c.id));
+                        return next;
+                      });
+                    }
+                  }}
+                >
+                  <CheckCheck className="w-3.5 h-3.5" />
+                  {allOnPageSelected ? "Deselect Page" : "Select Page"}
+                </Button>
+                {allUnsoldFiltered.length > perPage && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="gap-1.5 text-muted-foreground"
+                    onClick={() => {
+                      if (allFilteredSelected) {
+                        setSelectedIds(new Set());
+                      } else {
+                        setSelectedIds(new Set(allUnsoldFiltered.map((c: any) => c.id)));
+                      }
+                    }}
+                  >
+                    <CheckCheck className="w-3.5 h-3.5" />
+                    {allFilteredSelected ? `Deselect All (${allUnsoldFiltered.length})` : `Select All (${allUnsoldFiltered.length})`}
+                  </Button>
+                )}
+              </>
             );
           })()}
           <Button
