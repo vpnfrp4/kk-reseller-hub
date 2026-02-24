@@ -5,17 +5,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
-  Package,
-  TrendingDown,
-  Wallet,
   AlertTriangle,
-  CheckCircle2,
   ChevronDown,
-  Zap,
-  Shield,
-  Clock,
-  RefreshCw,
-  Lock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -24,10 +15,8 @@ import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
 import ImportantNoticeModal from "@/components/products/ImportantNoticeModal";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
 import { cn } from "@/lib/utils";
-import { Money } from "@/components/shared";
 import FulfillmentModeSelector from "@/components/products/FulfillmentModeSelector";
 import { t } from "@/lib/i18n";
-import MmLabel from "@/components/shared/MmLabel";
 
 interface PurchaseResult {
   order_id: string;
@@ -38,18 +27,18 @@ interface PurchaseResult {
   unit_price?: number;
 }
 
-const WHAT_YOU_GET = [
-  { icon: Zap, mm: "ချက်ချင်းအသက်ဝင်", en: "Instant activation" },
-  { icon: Shield, mm: "တရားဝင်အကောင့်", en: "Official account" },
-  { icon: Clock, mm: "၂၄ နာရီအာမခံ", en: "24h warranty" },
-  { icon: RefreshCw, mm: "ပျက်ပါက အစားထိုးပေး", en: "Replacement if failed" },
-  { icon: Lock, mm: "လုံခြုံစွာပေးပို့", en: "Secure delivery" },
+const SPEC_ITEMS = [
+  { label: "Activation", mm: "ချက်ချင်းအသက်ဝင်" },
+  { label: "Account Type", mm: "တရားဝင်အကောင့်" },
+  { label: "Warranty", mm: "၂၄ နာရီအာမခံ" },
+  { label: "Replacement", mm: "ပျက်ပါက အစားထိုးပေး" },
+  { label: "Delivery", mm: "လုံခြုံစွာပေးပို့" },
 ];
 
 const NOTICES = [
-  { mm: "ပို့ပြီးနောက် ပြန်မအမ်းပါ", en: "No refund after delivery" },
+  { mm: "ပို့ပြီးနောက် ပြန်မအမ်းပါ", en: "Non-refundable after delivery" },
   { mm: "မှားရိုက်ပါက အာမခံပျက်", en: "Incorrect input voids warranty" },
-  { mm: "အတည်မပြုမီ ပြန်စစ်ပါ", en: "Double-check before confirming" },
+  { mm: "အတည်မပြုမီ ပြန်စစ်ပါ", en: "Verify all details before confirming" },
 ];
 
 export default function ProductDetailPage() {
@@ -195,7 +184,6 @@ export default function ProductDetailPage() {
     setTopUpOpen(true);
   };
 
-  // Fulfillment modes
   const productModes: string[] = product ? (Array.isArray(product.fulfillment_modes) ? (product.fulfillment_modes as any[]).map(String) : ["instant"]) : ["instant"];
   const deliveryTimeConfig: Record<string, string> = product?.delivery_time_config && typeof product.delivery_time_config === "object"
     ? product.delivery_time_config as Record<string, string>
@@ -252,7 +240,7 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="space-y-4 text-center py-20">
-        <p className="text-muted-foreground">ထုတ်ကုန်မတွေ့ပါ</p>
+        <p className="text-muted-foreground text-sm">ထုတ်ကုန်မတွေ့ပါ</p>
         <Button variant="outline" onClick={() => navigate("/dashboard/products")}>{t.nav.products.mm}သို့ ပြန်သွားမည်</Button>
       </div>
     );
@@ -267,69 +255,177 @@ export default function ProductDetailPage() {
   const profitPerUnit = product.retail_price - product.wholesale_price;
   const balance = profile?.balance || 0;
   const insufficientBalance = balance < product.wholesale_price;
-
   const currentDeliveryBadge = deliveryTimeConfig[effectiveMode] || "ချက်ချင်းပေးပို့";
 
   return (
-    <div className="space-y-default max-w-2xl mx-auto animate-fade-in">
+    <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
       <Breadcrumb items={[
         { label: t.nav.dashboard.mm, path: "/dashboard" },
         { label: t.nav.products.mm, path: "/dashboard/products" },
         { label: product.name },
       ]} />
 
-      {/* ═══ ABOVE THE FOLD — Hero Section ═══ */}
-      <div className="glass-card p-card lg:p-section space-y-card">
-        <div className="flex items-start justify-between gap-compact">
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-bold text-foreground leading-snug">{product.name}</h1>
-            <p className="text-sm text-primary font-medium mt-0.5">{product.duration}</p>
-          </div>
-          <span className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground px-2.5 py-1 rounded-md bg-muted/50 border border-border shrink-0">
-            {product.category}
-          </span>
-        </div>
-
-        {/* Price — Dominant */}
-        <div className="space-y-1">
-          <p className="text-4xl font-extrabold font-mono tabular-nums text-foreground tracking-tighter leading-none">
-            {product.wholesale_price.toLocaleString()}
-            <span className="text-sm font-medium text-muted-foreground ml-2">MMK</span>
-          </p>
-          {hasTiers && lowestTier && lowestTier.unit_price < product.wholesale_price && (
-            <p className="text-xs text-muted-foreground">
-              {t.products.from.mm}{" "}
-              <span className="font-mono font-semibold text-primary">
-                {lowestTier.unit_price.toLocaleString()}
-              </span>{" "}
-              MMK ({lowestTier.min_qty}+ {t.products.qty.mm})
+      {/* ═══ 1. SERVICE IDENTITY PANEL ═══ */}
+      <section className="rounded-xl border border-border bg-card p-6">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-1">
+              Service Details
             </p>
-          )}
+            <h1 className="text-lg font-bold text-foreground tracking-tight leading-snug">{product.name}</h1>
+          </div>
+          <div
+            className={cn(
+              "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-semibold tracking-wide",
+              isOutOfStock
+                ? "bg-destructive/8 text-destructive"
+                : isLowStock
+                ? "bg-warning/8 text-warning"
+                : "bg-primary/8 text-primary"
+            )}
+          >
+            <span className={cn("h-1.5 w-1.5 rounded-full", isOutOfStock ? "bg-destructive" : isLowStock ? "bg-warning" : "bg-primary")} />
+            {isOutOfStock ? t.products.outOfStock.mm : isLowStock ? `${product.stock} ${t.products.left.mm}` : `${product.stock} ${t.products.inStock.mm}`}
+          </div>
         </div>
 
-        {/* Stock + Delivery badges */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5">
-            <span
-              className={cn(
-                "w-2 h-2 rounded-full",
-                isOutOfStock ? "bg-destructive" : isLowStock ? "bg-warning animate-pulse" : "bg-success"
-              )}
-            />
-            <span
-              className={cn(
-                "text-xs font-semibold",
-                isOutOfStock ? "text-destructive" : isLowStock ? "text-warning" : "text-success"
-              )}
-            >
-              {isOutOfStock ? t.products.outOfStock.mm : isLowStock ? `${product.stock} ${t.products.left.mm}` : `${product.stock} ${t.products.inStock.mm}`}
-            </span>
+        {/* Key-value metadata */}
+        <div className="grid grid-cols-2 gap-y-2 gap-x-6 text-sm border-t border-border pt-4">
+          <div className="flex justify-between">
+            <span className="text-muted-foreground text-xs">Category</span>
+            <span className="font-medium text-foreground text-xs uppercase tracking-wider">{product.category}</span>
           </div>
-          <span className="text-border">·</span>
-          <span className="text-[11px] text-muted-foreground flex items-center gap-1">
-            {currentDeliveryBadge}
-          </span>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground text-xs">Duration</span>
+            <span className="font-medium text-foreground text-xs">{product.duration}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground text-xs">Delivery</span>
+            <span className="font-medium text-foreground text-xs">{currentDeliveryBadge}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-muted-foreground text-xs">Fulfillment</span>
+            <span className="font-medium text-foreground text-xs capitalize">{effectiveMode}</span>
+          </div>
         </div>
+      </section>
+
+      {/* ═══ 2. PRICING MATRIX TABLE ═══ */}
+      <section className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-border">
+          <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-0.5">
+            Pricing Structure
+          </p>
+          <p className="text-2xl font-bold font-mono tabular-nums text-foreground leading-none tracking-tight">
+            {product.wholesale_price.toLocaleString()}
+            <span className="text-xs font-medium text-muted-foreground ml-1.5">MMK / unit</span>
+          </p>
+        </div>
+
+        {/* Wholesale / Retail / Margin row */}
+        <div className="grid grid-cols-3 divide-x divide-border border-b border-border">
+          <div className="px-4 py-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Wholesale</p>
+            <p className="text-sm font-bold font-mono tabular-nums text-foreground mt-0.5">
+              {product.wholesale_price.toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">MMK</span>
+            </p>
+          </div>
+          <div className="px-4 py-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Retail</p>
+            <p className="text-sm font-bold font-mono tabular-nums text-foreground mt-0.5">
+              {product.retail_price.toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">MMK</span>
+            </p>
+          </div>
+          <div className="px-4 py-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Margin</p>
+            <p className={cn("text-sm font-bold font-mono tabular-nums mt-0.5", profitPerUnit > 0 ? "text-primary" : "text-muted-foreground")}>
+              {profitPerUnit > 0 ? "+" : ""}{profitPerUnit.toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">MMK</span>
+            </p>
+          </div>
+        </div>
+
+        {/* Volume tiers table */}
+        {hasTiers && (
+          <div>
+            <div className="grid grid-cols-3 gap-0 px-4 py-2 text-[10px] uppercase tracking-widest font-semibold text-muted-foreground border-b border-border bg-muted/30">
+              <span>Quantity</span>
+              <span>Unit Price</span>
+              <span>Tier</span>
+            </div>
+            {[...pricingTiers].sort((a: any, b: any) => a.min_qty - b.min_qty).map((tier: any, i: number) => {
+              const label = tier.max_qty ? `${tier.min_qty} – ${tier.max_qty}` : `${tier.min_qty}+`;
+              const isLowest = lowestTier && tier.unit_price === lowestTier.unit_price;
+              return (
+                <div key={i} className={cn(
+                  "grid grid-cols-3 gap-0 px-4 py-2.5 text-sm border-b border-border last:border-b-0",
+                  isLowest ? "bg-primary/[0.03]" : ""
+                )}>
+                  <span className="font-mono tabular-nums text-foreground text-xs">{label}</span>
+                  <span className={cn("font-mono tabular-nums font-semibold text-xs", isLowest ? "text-primary" : "text-foreground")}>
+                    {tier.unit_price.toLocaleString()} MMK
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {isLowest && <span className="font-semibold text-primary">Best value</span>}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* ═══ 3. SERVICE SPECIFICATION BLOCK ═══ */}
+      <section className="rounded-xl border border-border bg-card p-6">
+        <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-3">
+          Service Specifications
+        </p>
+        <div className="space-y-0 divide-y divide-border">
+          {SPEC_ITEMS.map((item, i) => (
+            <div key={i} className="flex items-center justify-between py-2.5">
+              <span className="text-xs text-muted-foreground">{item.label}</span>
+              <span className="text-xs font-medium text-foreground">{item.mm}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══ 4. IMPORTANT NOTICE — left-accent professional alert ═══ */}
+      <section className="rounded-xl border border-border bg-card overflow-hidden">
+        <button
+          onClick={() => setNoticeOpen(!noticeOpen)}
+          className="w-full px-6 py-4 flex items-center justify-between text-left"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="w-1 h-5 rounded-full bg-warning" />
+            <span className="text-xs font-semibold text-foreground uppercase tracking-wide">Important Notice</span>
+          </div>
+          <ChevronDown
+            className={cn(
+              "w-4 h-4 text-muted-foreground transition-transform duration-200",
+              noticeOpen && "rotate-180"
+            )}
+          />
+        </button>
+        {noticeOpen && (
+          <div className="px-6 pb-5 space-y-2 animate-fade-in">
+            {NOTICES.map((notice, i) => (
+              <div key={i} className="flex items-start gap-3 py-1.5">
+                <span className="w-1 h-1 rounded-full bg-warning/60 mt-1.5 shrink-0" />
+                <div>
+                  <span className="text-xs text-foreground">{notice.mm}</span>
+                  <span className="text-[10px] text-muted-foreground ml-2">({notice.en})</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ═══ 5. STRUCTURED ORDER CONFIGURATION ═══ */}
+      <section className="rounded-xl border border-border bg-card p-6 space-y-5">
+        <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">
+          Order Configuration
+        </p>
 
         {/* Fulfillment Mode Selector */}
         <FulfillmentModeSelector
@@ -346,11 +442,17 @@ export default function ProductDetailPage() {
           fieldErrors={fieldErrors}
         />
 
-        {/* Wallet awareness */}
+        {/* Wallet balance row */}
+        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-4 py-3">
+          <span className="text-xs text-muted-foreground">{t.detail.walletLabel.mm} Balance</span>
+          <span className="text-sm font-bold font-mono tabular-nums text-foreground">{balance.toLocaleString()} MMK</span>
+        </div>
+
+        {/* Insufficient balance warning */}
         {insufficientBalance && !isOutOfStock && (
-          <div className="rounded-[var(--radius-btn)] bg-warning/[0.06] border border-warning/20 p-compact flex items-center justify-between gap-compact">
+          <div className="flex items-center justify-between gap-3 rounded-lg border-l-2 border-warning bg-warning/[0.04] px-4 py-3">
             <div className="flex items-center gap-2 min-w-0">
-              <AlertTriangle className="w-4 h-4 text-warning shrink-0" />
+              <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0" />
               <p className="text-xs text-foreground">
                 {t.detail.insufficientBalance.mm}{" "}
                 <span className="text-muted-foreground">
@@ -360,16 +462,16 @@ export default function ProductDetailPage() {
             </div>
             <button
               onClick={() => handleTopUp(product.wholesale_price - balance)}
-              className="btn-glow px-3 py-1 text-[11px] font-semibold shrink-0"
+              className="px-3 py-1.5 text-[11px] font-semibold rounded-md bg-primary text-primary-foreground hover:brightness-90 transition-all shrink-0"
             >
               {t.wallet.topUp.mm}
             </button>
           </div>
         )}
 
-        {/* Primary CTA */}
+        {/* Primary action */}
         <Button
-          className="w-full h-12 rounded-[var(--radius-btn)] bg-primary text-primary-foreground font-semibold text-base hover:brightness-90 transition-all"
+          className="w-full h-11 rounded-lg font-semibold text-sm"
           onClick={handleBuyClick}
           disabled={isOutOfStock || purchasing}
         >
@@ -381,125 +483,17 @@ export default function ProductDetailPage() {
           ) : isOutOfStock ? (
             t.products.outOfStock.mm
           ) : (
-            t.products.buyNow.mm
+            <>Confirm Order — {product.wholesale_price.toLocaleString()} MMK</>
           )}
         </Button>
-
-        {/* Balance indicator */}
-        <p className="text-xs text-muted-foreground text-center">
-          {t.detail.walletLabel.mm}: <span className="font-mono font-semibold text-foreground">{balance.toLocaleString()} MMK</span>
-        </p>
-      </div>
-
-      {/* ═══ PROFIT INDICATOR ═══ */}
-      {profitPerUnit > 0 && (
-        <div className="glass-card p-card flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground">{t.detail.suggestedResell.mm}</p>
-            <p className="text-lg font-bold font-mono tabular-nums text-foreground">
-              {product.retail_price.toLocaleString()}
-              <span className="text-[11px] font-medium text-muted-foreground ml-1">MMK</span>
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-xs text-muted-foreground">{t.detail.profitPerUnit.mm}</p>
-            <p className="text-lg font-bold font-mono tabular-nums text-success">
-              +{profitPerUnit.toLocaleString()}
-              <span className="text-[11px] font-medium text-success/70 ml-1">MMK</span>
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* ═══ VOLUME PRICING ═══ */}
-      {hasTiers && (
-        <div className="glass-card p-card space-y-compact">
-          <div className="flex items-center gap-2">
-            <TrendingDown className="w-4 h-4 text-primary" />
-            <p className="text-sm font-semibold text-foreground">{t.detail.volumePricing.mm}</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {[...pricingTiers].sort((a: any, b: any) => a.min_qty - b.min_qty).map((tier: any, i: number) => {
-              const label = tier.max_qty
-                ? `${tier.min_qty}–${tier.max_qty}`
-                : `${tier.min_qty}+`;
-              const isLowest = lowestTier && tier.unit_price === lowestTier.unit_price;
-              return (
-                <div
-                  key={i}
-                  className={cn(
-                    "rounded-[var(--radius-btn)] p-3 text-center border transition-all",
-                    isLowest
-                      ? "bg-primary/[0.04] border-primary/20"
-                      : "bg-muted/20 border-border"
-                  )}
-                >
-                  <p className="text-[11px] text-muted-foreground mb-0.5">{label} {t.products.qty.mm}</p>
-                  <p className={cn("text-lg font-bold font-mono tabular-nums", isLowest ? "text-primary" : "text-foreground")}>
-                    {tier.unit_price.toLocaleString()}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">{t.detail.eachMmk.mm}</p>
-                  {isLowest && (
-                    <span className="text-[10px] font-semibold text-primary mt-0.5 inline-block">{t.detail.bestValue.mm}</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ═══ WHAT YOU GET ═══ */}
-      <div className="glass-card p-card space-y-compact">
-        <p className="text-sm font-semibold text-foreground">{t.detail.whatYouGet.mm}</p>
-        <div className="space-y-2">
-          {WHAT_YOU_GET.map((item, i) => (
-            <div key={i} className="flex items-center gap-2.5">
-              <item.icon className="w-4 h-4 text-success shrink-0" />
-              <span className="text-sm text-foreground">{item.mm}</span>
-              <span className="text-[10px] text-muted-foreground/60">({item.en})</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ═══ IMPORTANT NOTICE (Collapsible) ═══ */}
-      <div className="glass-card overflow-hidden">
-        <button
-          onClick={() => setNoticeOpen(!noticeOpen)}
-          className="w-full p-card flex items-center justify-between text-left"
-        >
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-warning" />
-            <span className="text-sm font-semibold text-foreground">{t.detail.importantNotice.mm}</span>
-          </div>
-          <ChevronDown
-            className={cn(
-              "w-4 h-4 text-muted-foreground transition-transform duration-200",
-              noticeOpen && "rotate-180"
-            )}
-          />
-        </button>
-        {noticeOpen && (
-          <div className="px-card pb-card space-y-2 animate-fade-in">
-            {NOTICES.map((notice, i) => (
-              <div key={i} className="flex items-start gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-warning/60 mt-1.5 shrink-0" />
-                <span className="text-sm text-muted-foreground">
-                  {notice.mm} <span className="text-[10px] text-muted-foreground/60">({notice.en})</span>
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      </section>
 
       {/* ═══ DESCRIPTION ═══ */}
       {product.description && (
-        <div className="glass-card p-card">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-compact">{t.detail.description.mm}</p>
+        <section className="rounded-xl border border-border bg-card p-6">
+          <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-2">Description</p>
           <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
-        </div>
+        </section>
       )}
 
       {/* Modals */}

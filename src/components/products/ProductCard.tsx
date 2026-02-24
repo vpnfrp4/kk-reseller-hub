@@ -1,9 +1,8 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Package, Zap, TrendingUp } from "lucide-react";
-import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { t } from "@/lib/i18n";
+import { ChevronRight } from "lucide-react";
 
 interface PricingTier {
   min_qty: number;
@@ -20,158 +19,131 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, index, isPurchasing, onBuyClick, pricingTiers = [] }: ProductCardProps) {
-  const [imgError, setImgError] = useState(false);
-
-  const hasTiers = pricingTiers.length > 0;
-  const lowestTier = hasTiers ? [...pricingTiers].sort((a, b) => a.unit_price - b.unit_price)[0] : null;
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock > 0 && product.stock <= 5;
   const profitPerUnit = product.retail_price - product.wholesale_price;
-  const showProfit = profitPerUnit > 0;
-  const hasImage = product.image_url && !imgError;
+  const hasTiers = pricingTiers.length > 0;
+  const lowestTier = hasTiers ? [...pricingTiers].sort((a, b) => a.unit_price - b.unit_price)[0] : null;
 
   return (
     <div
-      className="group relative flex flex-col rounded-2xl border border-border/60 bg-card opacity-0 animate-stagger-in shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-200 hover:shadow-[0_4px_20px_rgba(0,0,0,0.07)] hover:border-primary/20 overflow-hidden"
-      style={{ animationDelay: `${index * 0.04}s` }}
+      className="group relative rounded-xl border border-border bg-card opacity-0 animate-stagger-in transition-colors duration-150 hover:border-primary/30"
+      style={{ animationDelay: `${index * 0.03}s` }}
     >
-      {/* Stock Badge — absolute top-right */}
-      <div className="absolute top-3 right-3 z-10">
-        <span
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold backdrop-blur-sm",
-            isOutOfStock
-              ? "bg-destructive/10 text-destructive border border-destructive/20"
-              : isLowStock
-              ? "bg-amber-50 text-amber-700 border border-amber-200/60 dark:bg-amber-950/40 dark:text-amber-400 dark:border-amber-500/20"
-              : "bg-emerald-50 text-emerald-700 border border-emerald-200/60 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-500/20"
-          )}
-        >
-          <span
-            className={cn(
-              "h-1.5 w-1.5 rounded-full",
-              isOutOfStock ? "bg-destructive" : isLowStock ? "bg-amber-500" : "bg-emerald-500"
-            )}
-          />
-          {isOutOfStock
-            ? t.products.outOfStock.mm
-            : isLowStock
-            ? `${product.stock} ${t.products.left.mm}`
-            : `${product.stock} ${t.products.inStock.mm}`}
-        </span>
-      </div>
-
-      {/* Product Image */}
-      <Link to={`/dashboard/products/${product.id}`} className="block">
-        <div className="relative w-full h-[160px] bg-muted/20 flex items-center justify-center overflow-hidden">
-          {hasImage ? (
-            <img
-              src={product.image_url}
-              alt={product.name}
-              loading="lazy"
-              onError={() => setImgError(true)}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-            />
-          ) : (
-            <div className="flex flex-col items-center gap-2 text-muted-foreground/30">
-              <Package className="w-10 h-10" strokeWidth={1} />
-              <span className="text-[10px] font-semibold uppercase tracking-widest">
-                {product.category}
-              </span>
-            </div>
-          )}
-          {/* Bottom gradient overlay for readability */}
-          {hasImage && (
-            <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-card/60 to-transparent" />
-          )}
-        </div>
-      </Link>
-
-      {/* Content */}
-      <div className="flex flex-1 flex-col p-5">
-        {/* Header row */}
-        <div className="flex items-start justify-between gap-2 mb-3">
+      <div className="p-5 sm:p-6">
+        {/* Row 1: Service Identity */}
+        <div className="flex items-start justify-between gap-4 mb-4">
           <div className="min-w-0 flex-1">
             <Link to={`/dashboard/products/${product.id}`}>
-              <h3 className="text-[15px] font-semibold leading-snug text-foreground transition-colors hover:text-primary truncate">
+              <h3 className="text-sm font-semibold text-foreground leading-tight tracking-tight hover:text-primary transition-colors">
                 {product.name}
               </h3>
             </Link>
-            <p className="mt-0.5 text-xs text-muted-foreground">{product.duration}</p>
+            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+              <span>{product.duration}</span>
+              <span className="text-border">·</span>
+              <span className="uppercase tracking-wider text-[10px] font-medium">{product.category}</span>
+            </div>
           </div>
-          <span className="shrink-0 rounded-lg border border-border bg-muted/40 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {product.category}
-          </span>
+          {/* Status indicator */}
+          <div
+            className={cn(
+              "shrink-0 flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-semibold tracking-wide",
+              isOutOfStock
+                ? "bg-destructive/8 text-destructive"
+                : isLowStock
+                ? "bg-warning/8 text-warning"
+                : "bg-primary/8 text-primary"
+            )}
+          >
+            <span
+              className={cn(
+                "h-1.5 w-1.5 rounded-full",
+                isOutOfStock ? "bg-destructive" : isLowStock ? "bg-warning" : "bg-primary"
+              )}
+            />
+            {isOutOfStock
+              ? t.products.outOfStock.mm
+              : isLowStock
+              ? `${product.stock} ${t.products.left.mm}`
+              : `${product.stock} ${t.products.inStock.mm}`}
+          </div>
         </div>
 
-        {/* Pricing block */}
-        <div className="mb-3">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-2xl font-bold tabular-nums tracking-tight text-foreground">
+        {/* Row 2: Pricing Data */}
+        <div className="grid grid-cols-3 gap-3 mb-4 rounded-lg border border-border/60 bg-muted/20 p-3">
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+              Wholesale
+            </p>
+            <p className="text-base font-bold font-mono tabular-nums text-foreground leading-none">
               {product.wholesale_price.toLocaleString()}
-            </span>
-            <span className="text-[11px] font-medium text-muted-foreground">MMK</span>
+              <span className="text-[10px] font-normal text-muted-foreground ml-1">MMK</span>
+            </p>
           </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+              Retail
+            </p>
+            <p className="text-base font-bold font-mono tabular-nums text-foreground leading-none">
+              {product.retail_price.toLocaleString()}
+              <span className="text-[10px] font-normal text-muted-foreground ml-1">MMK</span>
+            </p>
+          </div>
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+              Margin
+            </p>
+            <p className={cn(
+              "text-base font-bold font-mono tabular-nums leading-none",
+              profitPerUnit > 0 ? "text-primary" : "text-muted-foreground"
+            )}>
+              {profitPerUnit > 0 ? "+" : ""}{profitPerUnit.toLocaleString()}
+              <span className="text-[10px] font-normal text-muted-foreground ml-1">MMK</span>
+            </p>
+          </div>
+        </div>
 
-          {hasTiers && lowestTier && lowestTier.unit_price < product.wholesale_price && (
-            <div className="mt-1.5 flex items-center gap-1.5">
-              <Zap className="h-3 w-3 text-primary" />
+        {/* Row 3: Volume note + Actions */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            {hasTiers && lowestTier && lowestTier.unit_price < product.wholesale_price && (
               <p className="text-[11px] text-muted-foreground">
-                {t.products.from.mm}{" "}
-                <span className="font-semibold tabular-nums text-primary">
+                Volume: {t.products.from.mm}{" "}
+                <span className="font-mono font-semibold text-primary">
                   {lowestTier.unit_price.toLocaleString()}
                 </span>{" "}
                 MMK ({lowestTier.min_qty}+ {t.products.qty.mm})
               </p>
-            </div>
-          )}
-        </div>
-
-        {/* Profit margin */}
-        {showProfit && (
-          <div className="mb-4 flex items-center gap-2 rounded-xl border border-emerald-200/50 bg-emerald-50/40 px-3 py-2 dark:border-emerald-500/15 dark:bg-emerald-950/20">
-            <TrendingUp className="h-3.5 w-3.5 flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
-            <p className="text-[11px] text-muted-foreground">
-              {t.products.resellAt.mm}{" "}
-              <span className="font-semibold tabular-nums text-foreground">
-                {product.retail_price.toLocaleString()}
-              </span>{" "}
-              &middot; {t.products.profit.mm}{" "}
-              <span className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-                +{profitPerUnit.toLocaleString()}
-              </span>{" "}
-              {t.products.perUnit.mm}
-            </p>
-          </div>
-        )}
-
-        {/* Actions — pushed to bottom */}
-        <div className="mt-auto space-y-2 pt-1">
-          <Button
-            className="w-full h-10 rounded-xl text-sm font-semibold"
-            onClick={() => onBuyClick(product)}
-            disabled={isOutOfStock || isPurchasing}
-          >
-            {isPurchasing ? (
-              <>
-                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                {t.products.processing.mm}
-              </>
-            ) : isOutOfStock ? (
-              t.products.outOfStock.mm
-            ) : (
-              t.products.buyNow.mm
             )}
-          </Button>
-          <Link
-            to={`/dashboard/products/${product.id}`}
-            className="block text-center text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
-          >
-            {t.products.quickView.mm}{" "}
-            <span className="text-[10px] text-muted-foreground/50">
-              ({t.products.quickView.en})
-            </span>
-          </Link>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <Button
+              size="sm"
+              className="h-8 rounded-lg px-4 text-xs font-semibold"
+              onClick={() => onBuyClick(product)}
+              disabled={isOutOfStock || isPurchasing}
+            >
+              {isPurchasing ? (
+                <>
+                  <div className="mr-1.5 h-3 w-3 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                  {t.products.processing.mm}
+                </>
+              ) : isOutOfStock ? (
+                t.products.outOfStock.mm
+              ) : (
+                t.products.buyNow.mm
+              )}
+            </Button>
+            <Link
+              to={`/dashboard/products/${product.id}`}
+              className="inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-medium text-muted-foreground border border-border bg-card hover:bg-muted/50 hover:text-foreground transition-colors"
+            >
+              Details
+              <ChevronRight className="w-3 h-3" />
+            </Link>
+          </div>
         </div>
       </div>
     </div>
