@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import OrderDetailModal from "@/components/admin/OrderDetailModal";
 import { DataCard, Money } from "@/components/shared";
 
-const STATUS_OPTIONS = ["all", "delivered", "pending", "cancelled"] as const;
+const STATUS_OPTIONS = ["all", "delivered", "pending", "pending_creation", "pending_review", "cancelled"] as const;
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 
 export default function AdminOrders() {

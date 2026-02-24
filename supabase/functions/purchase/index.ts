@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
-    const { product_id, quantity } = await req.json();
+    const { product_id, quantity, fulfillment_mode, custom_fields } = await req.json();
 
     if (!product_id) {
       return new Response(JSON.stringify({ success: false, error: "product_id is required" }), {
@@ -46,6 +46,7 @@ Deno.serve(async (req) => {
     }
 
     const qty = Math.max(1, Math.min(100, parseInt(quantity) || 1));
+    const mode = fulfillment_mode || "instant";
 
     // Call the atomic purchase function using service role for SECURITY DEFINER
     const serviceClient = createClient(
@@ -60,7 +61,6 @@ Deno.serve(async (req) => {
     });
 
     if (error) {
-      // Always return 200 with error in body to avoid "Edge Function non-2xx"
       return new Response(JSON.stringify({ success: false, error: error.message }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -68,6 +68,49 @@ Deno.serve(async (req) => {
     }
 
     const result = data as Record<string, unknown>;
+
+    // If purchase succeeded, update the order with fulfillment metadata
+    if (result.success && result.order_id) {
+      // Determine order status based on fulfillment mode
+      let orderStatus = "delivered";
+      if (mode === "custom_username" || mode === "imei") {
+        orderStatus = "pending_creation";
+      } else if (mode === "manual") {
+        orderStatus = "pending_review";
+      }
+
+      // For non-instant modes, don't auto-deduct stock (revert stock deduction)
+      if (mode === "manual") {
+        // Revert the stock deduction done by process_purchase
+        await serviceClient
+          .from("products")
+          .update({ stock: undefined } as any)
+          .eq("id", product_id);
+        // Actually, better to just update using raw increment
+        const { data: prod } = await serviceClient
+          .from("products")
+          .select("stock")
+          .eq("id", product_id)
+          .single();
+        if (prod) {
+          await serviceClient
+            .from("products")
+            .update({ stock: prod.stock + qty } as any)
+            .eq("id", product_id);
+        }
+      }
+
+      // Update order with fulfillment metadata and correct status
+      await serviceClient
+        .from("orders")
+        .update({
+          fulfillment_mode: mode,
+          custom_fields_data: custom_fields || null,
+          status: orderStatus,
+        } as any)
+        .eq("id", result.order_id);
+    }
+
     return new Response(JSON.stringify(result), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
