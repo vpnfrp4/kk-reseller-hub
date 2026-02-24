@@ -637,21 +637,29 @@ export default function AdminCredentials() {
       {/* Floating selection bar */}
       {selectedIds.size > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-card border border-border rounded-xl shadow-lg px-5 py-3 flex items-center gap-4 animate-fade-in">
-          <span className="text-sm font-medium text-foreground">
-            {selectedIds.size} selected
-          </span>
-          <div className="w-px h-5 bg-border" />
           {(() => {
             const filtered = filterCredentials(credentials || []);
             const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
             const currentPage = Math.min(page, totalPages);
             const paginated = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
+            const pageIds = new Set(paginated.map((c: any) => c.id));
+            const selectedOnPage = Array.from(selectedIds).filter(id => pageIds.has(id)).length;
+            const selectedOtherPages = selectedIds.size - selectedOnPage;
             const unsoldOnPage = paginated.filter((c: any) => !c.is_sold);
             const allOnPageSelected = unsoldOnPage.length > 0 && unsoldOnPage.every((c: any) => selectedIds.has(c.id));
             const allUnsoldFiltered = filtered.filter((c: any) => !c.is_sold);
             const allFilteredSelected = allUnsoldFiltered.length > 0 && allUnsoldFiltered.every((c: any) => selectedIds.has(c.id));
             return (
               <>
+                <span className="text-sm font-medium text-foreground">
+                  {selectedIds.size} selected
+                  {selectedOtherPages > 0 && (
+                    <span className="text-xs text-muted-foreground ml-1">
+                      ({selectedOnPage} on this page, {selectedOtherPages} on other pages)
+                    </span>
+                  )}
+                </span>
+                <div className="w-px h-5 bg-border" />
                 <Button
                   size="sm"
                   variant="ghost"
