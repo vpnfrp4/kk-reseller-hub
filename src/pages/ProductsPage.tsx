@@ -10,6 +10,7 @@ import ProductCard from "@/components/products/ProductCard";
 import ProductCardSkeleton from "@/components/products/ProductCardSkeleton";
 import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
 import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
+import TopUpDialog from "@/components/wallet/TopUpDialog";
 
 interface PurchaseResult {
   order_id: string;
@@ -23,7 +24,7 @@ interface PurchaseResult {
 const PAGE_SIZE = 9;
 
 export default function ProductsPage() {
-  const { profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
   const [purchasing, setPurchasing] = useState<string | null>(null);
   const [result, setResult] = useState<PurchaseResult | null>(null);
@@ -36,6 +37,10 @@ export default function ProductsPage() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+
+  // Smart top-up state
+  const [topUpOpen, setTopUpOpen] = useState(false);
+  const [topUpDefaultAmount, setTopUpDefaultAmount] = useState<number | undefined>();
 
   useEffect(() => {
     const handleScroll = () => setShowScrollTop(window.scrollY > 400);
@@ -57,7 +62,6 @@ export default function ProductsPage() {
     },
   });
 
-  // Fetch all pricing tiers
   const { data: allTiers } = useQuery({
     queryKey: ["pricing-tiers"],
     queryFn: async () => {
@@ -126,8 +130,12 @@ export default function ProductsPage() {
     setAgreedTerms(false);
   };
 
+  const handleTopUp = (amount: number) => {
+    setTopUpDefaultAmount(amount);
+    setTopUpOpen(true);
+  };
+
   const handleBuy = async (product: any, quantity: number = 1) => {
-    // Calculate savings before clearing confirmProduct
     const tiers = getTiersForProduct(product.id);
     const highestTierPrice = tiers.length > 0 ? Math.max(...tiers.map((t: any) => t.unit_price)) : product.wholesale_price;
     const sortedTiers = [...tiers].sort((a: any, b: any) => b.min_qty - a.min_qty);
@@ -231,12 +239,23 @@ export default function ProductsPage() {
         onConfirm={handleBuy}
         onClose={() => setConfirmProduct(null)}
         pricingTiers={confirmProduct ? getTiersForProduct(confirmProduct.id) : []}
+        userBalance={profile?.balance || 0}
+        onTopUp={handleTopUp}
       />
 
       <PurchaseSuccessModal
         result={result}
         onClose={() => { setResult(null); setLastSavings(0); }}
         totalSavings={lastSavings}
+      />
+
+      {/* Hidden TopUpDialog triggered from insufficient balance prompt */}
+      <TopUpDialog
+        userId={user?.id}
+        defaultAmount={topUpDefaultAmount}
+        open={topUpOpen}
+        onOpenChange={setTopUpOpen}
+        hideTrigger
       />
     </div>
 
