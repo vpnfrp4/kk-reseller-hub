@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -20,6 +20,44 @@ import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 
 const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
+
+function UndoToast({ id, duration, message, onUndo }: { id: string | number; duration: number; message: string; onUndo: () => void }) {
+  const [progress, setProgress] = useState(100);
+
+  useEffect(() => {
+    const start = Date.now();
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - start;
+      const remaining = Math.max(0, 100 - (elapsed / duration) * 100);
+      setProgress(remaining);
+      if (remaining <= 0) clearInterval(interval);
+    }, 50);
+    return () => clearInterval(interval);
+  }, [duration]);
+
+  return (
+    <div className="w-[356px] rounded-lg border border-border bg-background text-foreground shadow-lg overflow-hidden">
+      <div className="flex items-center justify-between gap-2 p-4 pb-3">
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-primary">✓</span>
+          <span>{message}</span>
+        </div>
+        <button
+          onClick={onUndo}
+          className="shrink-0 rounded-md border border-border bg-transparent px-3 py-1 text-xs font-medium hover:bg-muted transition-colors"
+        >
+          Undo
+        </button>
+      </div>
+      <div className="h-1 w-full bg-muted">
+        <div
+          className="h-full bg-primary transition-none"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 export default function AdminProducts() {
   const queryClient = useQueryClient();
@@ -399,20 +437,23 @@ export default function AdminProducts() {
               await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id);
             }
             queryClient.invalidateQueries({ queryKey: ["products"] });
-            toast.success(`Order reset to alphabetical — ${updated.length} product${updated.length === 1 ? "" : "s"} reordered`, {
-              duration: 10000,
-              action: {
-                label: "Undo",
-                onClick: async () => {
+            const DURATION = 10000;
+            toast.custom((id) => (
+              <UndoToast
+                id={id}
+                duration={DURATION}
+                message={`Order reset to alphabetical — ${updated.length} product${updated.length === 1 ? "" : "s"} reordered`}
+                onUndo={async () => {
+                  toast.dismiss(id);
                   for (const p of previousOrder) {
                     await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id);
                   }
                   queryClient.invalidateQueries({ queryKey: ["admin-products"] });
                   queryClient.invalidateQueries({ queryKey: ["products"] });
                   toast.success("Order restored to previous arrangement");
-                },
-              },
-            });
+                }}
+              />
+            ), { duration: DURATION });
           }}
         >
           <RotateCcw className="w-3.5 h-3.5" />
