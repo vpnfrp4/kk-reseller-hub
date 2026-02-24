@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Crown, Eye, EyeOff, ArrowRight } from "lucide-react";
-import GoldParticles from "@/components/GoldParticles";
+import AccentParticles from "@/components/AccentParticles";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -84,7 +84,7 @@ export default function Login() {
       </div>
 
       {/* Subtle particle animation — green accent */}
-      <GoldParticles />
+      <AccentParticles />
 
       <div className="w-full max-w-md relative z-10">
         {/* Branding */}

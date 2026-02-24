@@ -11,7 +11,7 @@ interface Particle {
   hue: number;
 }
 
-export default function GoldParticles() {
+export default function AccentParticles() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
