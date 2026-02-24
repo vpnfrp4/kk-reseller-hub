@@ -15,7 +15,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download, Upload, AlertTriangle } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download, Upload, AlertTriangle, Pencil, X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
 
@@ -60,6 +60,21 @@ export default function AdminCredentials() {
   const [page, setPage] = useState(1);
   const perPage = 20;
   const [searchQuery, setSearchQuery] = useState("");
+
+  const [editingExpiryId, setEditingExpiryId] = useState<string | null>(null);
+  const [editingExpiryValue, setEditingExpiryValue] = useState("");
+
+  const handleUpdateExpiry = async (id: string) => {
+    const newValue = editingExpiryValue ? new Date(editingExpiryValue).toISOString() : null;
+    const { error } = await supabase
+      .from("product_credentials")
+      .update({ expires_at: newValue } as any)
+      .eq("id", id);
+    if (error) { toast.error(error.message); return; }
+    toast.success(newValue ? "Expiry date updated" : "Expiry date removed");
+    queryClient.invalidateQueries({ queryKey: ["admin-credentials"] });
+    setEditingExpiryId(null);
+  };
 
   useEffect(() => {
     const p = searchParams.get("product");
@@ -377,7 +392,36 @@ export default function AdminCredentials() {
                       {c.is_sold ? "Sold" : "Available"}
                     </span>
                   </td>
-                  <td className="p-4 text-sm">{formatExpiry(c.expires_at)}</td>
+                  <td className="p-4 text-sm">
+                    {editingExpiryId === c.id ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          type="date"
+                          value={editingExpiryValue}
+                          onChange={(e) => setEditingExpiryValue(e.target.value)}
+                          className="h-7 w-36 text-xs bg-muted/50 border-border"
+                        />
+                        <button onClick={() => handleUpdateExpiry(c.id)} className="p-1 rounded hover:bg-primary/10 text-primary transition-colors">
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button onClick={() => setEditingExpiryId(null)} className="p-1 rounded hover:bg-muted text-muted-foreground transition-colors">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setEditingExpiryId(c.id);
+                          setEditingExpiryValue(c.expires_at ? new Date(c.expires_at).toISOString().slice(0, 10) : "");
+                        }}
+                        className="flex items-center gap-1 group cursor-pointer"
+                        title="Click to edit expiry date"
+                      >
+                        {formatExpiry(c.expires_at)}
+                        <Pencil className="w-3 h-3 text-muted-foreground/0 group-hover:text-muted-foreground transition-colors" />
+                      </button>
+                    )}
+                  </td>
                   <td className="p-4 text-sm text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</td>
                   <td className="p-4 text-center">
                     {!c.is_sold && (
