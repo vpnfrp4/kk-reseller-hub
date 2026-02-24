@@ -20,6 +20,7 @@ import { Progress } from "@/components/ui/progress";
 import BulkImageUpload from "@/components/admin/BulkImageUpload";
 import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
+import { DataCard, Money } from "@/components/shared";
 
 const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
 
@@ -287,11 +288,11 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <div className="flex items-center justify-between animate-fade-in">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Products</h1>
-          <p className="text-muted-foreground text-sm">Manage digital service products</p>
+          <h1 className="text-h1 text-foreground">Products</h1>
+          <p className="text-caption text-muted-foreground">Manage digital service products</p>
         </div>
         <div className="flex gap-2">
           <BulkTierDialog />
@@ -460,7 +461,7 @@ export default function AdminProducts() {
         </Button>
       </div>
 
-      <div className="glass-card overflow-hidden animate-fade-in">
+      <DataCard noPadding className="animate-fade-in">
         <div className="overflow-x-auto">
           <DragDropContext onDragEnd={handleDragEnd}>
             <table className="premium-table">
@@ -507,8 +508,8 @@ export default function AdminProducts() {
                               </td>
                               <td className="p-4 text-sm text-muted-foreground">{p.category}</td>
                               <td className="p-4 text-sm text-muted-foreground">{p.duration}</td>
-                              <td className="p-4 text-sm font-mono text-right text-muted-foreground">{p.retail_price.toLocaleString()}</td>
-                              <td className="p-4 text-sm font-mono text-right text-foreground">{p.wholesale_price.toLocaleString()}</td>
+                              <td className="p-4 text-sm text-right"><Money amount={p.retail_price} className="text-muted-foreground" /></td>
+                              <td className="p-4 text-sm text-right"><Money amount={p.wholesale_price} /></td>
                               <td className="p-4 text-sm font-mono text-center text-foreground">{p.stock}</td>
                               <td className="p-4 text-center">
                                 <span className={`text-xs font-mono px-2 py-1 rounded-full ${
@@ -543,7 +544,7 @@ export default function AdminProducts() {
             </table>
           </DragDropContext>
         </div>
-      </div>
+      </DataCard>
     </div>
   );
 }
