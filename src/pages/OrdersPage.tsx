@@ -11,6 +11,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { DataCard, Money, ResponsiveTable } from "@/components/shared";
+import type { Column } from "@/components/shared";
 
 const PAGE_SIZE = 10;
 
@@ -106,8 +108,88 @@ export default function OrdersPage() {
 
   const hasFilters = search || status !== "all" || dateFrom || dateTo;
 
+  const columns: Column<any>[] = [
+    {
+      key: "id",
+      label: "Order ID",
+      hideOnMobile: true,
+      render: (row) => <span className="font-mono text-muted-foreground">{row.id.slice(0, 8)}</span>,
+    },
+    {
+      key: "product_name",
+      label: "Product",
+      priority: true,
+    },
+    {
+      key: "credentials",
+      label: "Credentials",
+      render: (row) => (
+        <div className="flex items-center gap-2">
+          <code className="text-xs font-mono text-muted-foreground bg-primary/5 border border-primary/10 px-2.5 py-1 rounded-md truncate max-w-[200px]">
+            {row.credentials}
+          </code>
+          <button
+            onClick={(e) => { e.stopPropagation(); copyCredentials(row.id, row.credentials); }}
+            className="text-muted-foreground hover:text-primary transition-colors duration-200"
+          >
+            {copiedId === row.id ? (
+              <CheckCircle2 className="w-4 h-4 text-success" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
+          </button>
+        </div>
+      ),
+    },
+    {
+      key: "price",
+      label: "Price",
+      align: "right" as const,
+      render: (row) => <Money amount={row.price} className="gold-text" />,
+    },
+    {
+      key: "created_at",
+      label: "Date",
+      hideOnMobile: true,
+      render: (row) => <span className="text-muted-foreground">{new Date(row.created_at).toLocaleDateString()}</span>,
+    },
+    {
+      key: "status",
+      label: "Status",
+      align: "center" as const,
+      render: (row) => (
+        <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+          row.status === "delivered" ? "badge-delivered" :
+          row.status === "pending" ? "badge-pending" :
+          "badge-cancelled"
+        }`}>{row.status}</span>
+      ),
+    },
+  ];
+
+  const paginationFooter = totalCount > PAGE_SIZE ? (
+    <div className="flex items-center justify-between">
+      <p className="text-xs text-muted-foreground">
+        Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
+      </p>
+      <div className="flex items-center gap-1">
+        <Button variant="ghost" size="icon" className="h-8 w-8" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        {Array.from({ length: totalPages }, (_, i) => (
+          <Button key={i} variant={i === page ? "default" : "ghost"} size="icon" className="h-8 w-8 text-xs" onClick={() => setPage(i)}>
+            {i + 1}
+          </Button>
+        ))}
+        <Button variant="ghost" size="icon" className="h-8 w-8" disabled={page >= totalPages - 1} onClick={() => setPage((p) => p + 1)}>
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  ) : undefined;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <Breadcrumb items={[
         { label: "Dashboard", path: "/dashboard" },
         { label: "Orders" },
@@ -116,8 +198,8 @@ export default function OrdersPage() {
       <div className="animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Order History</h1>
-            <p className="text-muted-foreground text-sm">View all your previous purchases</p>
+            <h1 className="text-h1 text-foreground">Order History</h1>
+            <p className="text-caption text-muted-foreground">View all your previous purchases</p>
           </div>
           <Button onClick={exportCSV} size="sm" className="gap-2 btn-glass">
             <Download className="w-4 h-4 text-primary" />
@@ -127,200 +209,83 @@ export default function OrdersPage() {
       </div>
 
       {/* Filters */}
-      <div className="glass-card p-4 animate-fade-in flex flex-wrap gap-3 items-end" style={{ animationDelay: "0.05s" }}>
-        <div className="flex-1 min-w-[180px]">
-          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Search</label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Product name..."
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-              className="pl-9 h-9"
-            />
-          </div>
-        </div>
-
-        <div className="min-w-[140px]">
-          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Status</label>
-          <Select value={status} onValueChange={(v) => { setStatus(v); setPage(0); }}>
-            <SelectTrigger className="h-9">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All statuses</SelectItem>
-              <SelectItem value="delivered">Delivered</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="min-w-[140px]">
-          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">From</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
-                <CalendarIcon className="w-4 h-4 mr-2" />
-                {dateFrom ? format(dateFrom, "PP") : "Start date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={dateFrom} onSelect={(d) => { setDateFrom(d); setPage(0); }} initialFocus className="p-3 pointer-events-auto" />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        <div className="min-w-[140px]">
-          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">To</label>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
-                <CalendarIcon className="w-4 h-4 mr-2" />
-                {dateTo ? format(dateTo, "PP") : "End date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="single" selected={dateTo} onSelect={(d) => { setDateTo(d); setPage(0); }} initialFocus className="p-3 pointer-events-auto" />
-            </PopoverContent>
-          </Popover>
-        </div>
-
-        {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-9 gap-1 text-muted-foreground hover:text-destructive" onClick={clearFilters}>
-            <X className="w-4 h-4" />
-            Clear
-          </Button>
-        )}
-      </div>
-
-      {/* Table */}
-      <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.1s" }}>
-        <div className="hidden md:block overflow-x-auto">
-          <table className="premium-table">
-            <thead>
-              <tr>
-                <th className="p-4">Order ID</th>
-                <th className="p-4">Product</th>
-                <th className="p-4">Credentials</th>
-                <th className="text-right p-4">Price</th>
-                <th className="p-4">Date</th>
-                <th className="text-center p-4">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(!orders || orders.length === 0) ? (
-                <tr><td colSpan={6} className="p-8 text-center text-sm text-muted-foreground">
-                  {hasFilters ? "No orders match your filters" : "No orders yet"}
-                </td></tr>
-              ) : orders.map((order: any, i: number) => (
-                <tr key={order.id} className="opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.04}s` }}>
-                  <td className="p-4 text-sm font-mono text-muted-foreground">{order.id.slice(0, 8)}</td>
-                  <td className="p-4 text-sm font-medium text-foreground">{order.product_name}</td>
-                  <td className="p-4">
-                    <div className="flex items-center gap-2">
-                      <code className="text-xs font-mono text-muted-foreground bg-primary/5 border border-primary/10 px-2.5 py-1 rounded-md">
-                        {order.credentials}
-                      </code>
-                      <button
-                        onClick={() => copyCredentials(order.id, order.credentials)}
-                        className="text-muted-foreground hover:text-primary transition-colors duration-200"
-                      >
-                        {copiedId === order.id ? (
-                          <CheckCircle2 className="w-4 h-4 text-success" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                  </td>
-                  <td className="p-4 text-sm font-mono text-right gold-text font-semibold">{order.price.toLocaleString()} MMK</td>
-                  <td className="p-4 text-sm text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</td>
-                  <td className="p-4 text-center">
-                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
-                      order.status === "delivered" ? "badge-delivered" :
-                      order.status === "pending" ? "badge-pending" :
-                      "badge-cancelled"
-                    }`}>{order.status}</span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="md:hidden divide-y divide-border/30">
-          {(!orders || orders.length === 0) ? (
-            <p className="p-8 text-center text-sm text-muted-foreground">
-              {hasFilters ? "No orders match your filters" : "No orders yet"}
-            </p>
-          ) : orders.map((order: any) => (
-            <div key={order.id} className="p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-foreground">{order.product_name}</p>
-                <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
-                  order.status === "delivered" ? "badge-delivered" :
-                  order.status === "pending" ? "badge-pending" :
-                  "badge-cancelled"
-                }`}>{order.status}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <code className="text-xs font-mono text-muted-foreground bg-primary/5 border border-primary/10 px-2.5 py-1 rounded-md flex-1 truncate">
-                  {order.credentials}
-                </code>
-                <button
-                  onClick={() => copyCredentials(order.id, order.credentials)}
-                  className="text-muted-foreground hover:text-primary"
-                >
-                  {copiedId === order.id ? <CheckCircle2 className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
-                </button>
-              </div>
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span>{new Date(order.created_at).toLocaleDateString()}</span>
-                <span className="font-mono gold-text font-semibold">{order.price.toLocaleString()} MMK</span>
-              </div>
+      <DataCard className="animate-fade-in" noPadding>
+        <div className="p-card flex flex-wrap gap-default items-end">
+          <div className="flex-1 min-w-[180px]">
+            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">Search</label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Product name..."
+                value={search}
+                onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                className="pl-9 h-9"
+              />
             </div>
-          ))}
-        </div>
+          </div>
 
-        {totalCount > PAGE_SIZE && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-border/50">
-            <p className="text-xs text-muted-foreground">
-              Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
-            </p>
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                disabled={page === 0}
-                onClick={() => setPage((p) => p - 1)}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              {Array.from({ length: totalPages }, (_, i) => (
-                <Button
-                  key={i}
-                  variant={i === page ? "default" : "ghost"}
-                  size="icon"
-                  className="h-8 w-8 text-xs"
-                  onClick={() => setPage(i)}
-                >
-                  {i + 1}
+          <div className="min-w-[140px]">
+            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">Status</label>
+            <Select value={status} onValueChange={(v) => { setStatus(v); setPage(0); }}>
+              <SelectTrigger className="h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="delivered">Delivered</SelectItem>
+                <SelectItem value="pending">Pending</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="min-w-[140px]">
+            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">From</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
+                  <CalendarIcon className="w-4 h-4 mr-2" />
+                  {dateFrom ? format(dateFrom, "PP") : "Start date"}
                 </Button>
-              ))}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                disabled={page >= totalPages - 1}
-                onClick={() => setPage((p) => p + 1)}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
-            </div>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={dateFrom} onSelect={(d) => { setDateFrom(d); setPage(0); }} initialFocus className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
           </div>
-        )}
-      </div>
+
+          <div className="min-w-[140px]">
+            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">To</label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
+                  <CalendarIcon className="w-4 h-4 mr-2" />
+                  {dateTo ? format(dateTo, "PP") : "End date"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar mode="single" selected={dateTo} onSelect={(d) => { setDateTo(d); setPage(0); }} initialFocus className="p-3 pointer-events-auto" />
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          {hasFilters && (
+            <Button variant="ghost" size="sm" className="h-9 gap-1 text-muted-foreground hover:text-destructive" onClick={clearFilters}>
+              <X className="w-4 h-4" />
+              Clear
+            </Button>
+          )}
+        </div>
+      </DataCard>
+
+      {/* Orders Table */}
+      <DataCard noPadding className="animate-fade-in" footer={paginationFooter}>
+        <ResponsiveTable
+          columns={columns}
+          data={orders || []}
+          keyExtractor={(row) => row.id}
+          emptyMessage={hasFilters ? "No orders match your filters" : "No orders yet"}
+        />
+      </DataCard>
     </div>
   );
 }
