@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { CheckCircle2, XCircle, Clock, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { DataCard, Money, ResponsiveTable } from "@/components/shared";
+import type { Column } from "@/components/shared";
 
 interface TopupTransaction {
   id: string;
@@ -51,7 +53,6 @@ export default function AdminTopups() {
   const { data: transactions, isLoading } = useQuery({
     queryKey: ["admin-topups"],
     queryFn: async () => {
-      // Fetch topup transactions
       const { data: txData, error: txError } = await supabase
         .from("wallet_transactions")
         .select("*")
@@ -61,7 +62,6 @@ export default function AdminTopups() {
       if (txError) throw txError;
       if (!txData || txData.length === 0) return [];
 
-      // Fetch profile info for all unique user_ids
       const userIds = [...new Set(txData.map((t) => t.user_id))];
       const { data: profiles } = await supabase
         .from("profiles")
@@ -115,40 +115,81 @@ export default function AdminTopups() {
   const pending = (transactions || []).filter((t) => t.status === "pending");
   const processed = (transactions || []).filter((t) => t.status !== "pending");
 
+  const processedColumns: Column<TopupTransaction>[] = [
+    {
+      key: "reseller_name",
+      label: "Reseller",
+      priority: true,
+    },
+    {
+      key: "amount",
+      label: "Amount",
+      align: "right" as const,
+      render: (row) => (
+        <span className="text-success font-semibold">
+          +<Money amount={row.amount} className="inline" />
+        </span>
+      ),
+    },
+    {
+      key: "method",
+      label: "Method",
+      hideOnMobile: true,
+      render: (row) => <span className="text-muted-foreground">{row.method || "—"}</span>,
+    },
+    {
+      key: "created_at",
+      label: "Date",
+      hideOnMobile: true,
+      render: (row) => <span className="text-muted-foreground">{new Date(row.created_at).toLocaleDateString()}</span>,
+    },
+    {
+      key: "status",
+      label: "Status",
+      align: "center" as const,
+      render: (row) => (
+        <span className={`text-[11px] px-2.5 py-1 rounded-full ${row.status === "approved" ? "badge-delivered" : "badge-cancelled"}`}>
+          {row.status}
+        </span>
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-section">
       <div className="animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Wallet Top-ups</h1>
-        <p className="text-muted-foreground text-sm">Review and approve reseller top-up requests</p>
+        <h1 className="text-h1 text-foreground">Wallet Top-ups</h1>
+        <p className="text-caption text-muted-foreground">Review and approve reseller top-up requests</p>
       </div>
 
       {/* Pending */}
-      <div className="space-y-3 animate-fade-in">
-        <h3 className="text-sm font-semibold text-warning flex items-center gap-2">
-          <Clock className="w-4 h-4" /> Pending ({pending.length})
-        </h3>
+      <DataCard
+        title={`Pending (${pending.length})`}
+        className="animate-fade-in"
+        actions={<Clock className="w-4 h-4 text-warning" />}
+      >
         {pending.length === 0 ? (
-          <div className="glass-card p-8 text-center text-sm text-muted-foreground">
+          <p className="text-center text-sm text-muted-foreground py-card">
             {isLoading ? "Loading..." : "No pending top-ups"}
-          </div>
+          </p>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-compact">
             {pending.map((tx) => (
-              <div key={tx.id} className="glass-card p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div key={tx.id} className="glass-card p-default flex flex-col sm:flex-row sm:items-center justify-between gap-default">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">
                     {tx.reseller_name}{" "}
                     <span className="text-muted-foreground font-normal">({tx.reseller_email})</span>
                   </p>
-                  <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-default mt-micro text-xs text-muted-foreground">
                     <span className="font-mono font-semibold text-foreground text-base">
-                      +{tx.amount.toLocaleString()} MMK
+                      +<Money amount={tx.amount} className="inline text-base" />
                     </span>
                     <span>via {tx.method}</span>
                     <span>{new Date(tx.created_at).toLocaleDateString()}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-tight">
                   {tx.screenshot_url && (
                     <Button variant="outline" size="sm" onClick={() => viewScreenshot(tx.screenshot_url!)} className="gap-1 text-xs">
                       <ImageIcon className="w-3 h-3" />
@@ -179,44 +220,17 @@ export default function AdminTopups() {
             ))}
           </div>
         )}
-      </div>
+      </DataCard>
 
       {/* Processed */}
-      <div className="space-y-3 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-        <h3 className="text-sm font-semibold text-muted-foreground">Processed</h3>
-        <div className="glass-card overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="premium-table">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Reseller</th>
-                  <th className="text-right text-xs font-medium text-muted-foreground p-4">Amount</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Method</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Date</th>
-                  <th className="text-center text-xs font-medium text-muted-foreground p-4">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {processed.length === 0 ? (
-                  <tr><td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">No processed transactions</td></tr>
-                ) : processed.map((tx) => (
-                  <tr key={tx.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                    <td className="p-4 text-sm text-foreground">{tx.reseller_name}</td>
-                    <td className="p-4 text-sm font-mono text-right text-foreground">+{tx.amount.toLocaleString()}</td>
-                    <td className="p-4 text-sm text-muted-foreground">{tx.method}</td>
-                    <td className="p-4 text-sm text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</td>
-                     <td className="p-4 text-center">
-                      <span className={`text-[11px] px-2.5 py-1 rounded-full ${tx.status === "approved" ? "badge-delivered" : "badge-cancelled"}`}>
-                        {tx.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+      <DataCard title="Processed" noPadding className="animate-fade-in">
+        <ResponsiveTable
+          columns={processedColumns}
+          data={processed}
+          keyExtractor={(row) => row.id}
+          emptyMessage="No processed transactions"
+        />
+      </DataCard>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={!!confirmDialog} onOpenChange={(open) => !open && setConfirmDialog(null)}>

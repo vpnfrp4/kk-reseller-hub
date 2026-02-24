@@ -1,7 +1,7 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Filter, ShoppingCart, ChevronLeft, ChevronRight, CheckSquare, Square, MinusSquare } from "lucide-react";
+import { Search, Filter, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import OrderDetailModal from "@/components/admin/OrderDetailModal";
+import { DataCard, Money } from "@/components/shared";
 
 const STATUS_OPTIONS = ["all", "delivered", "pending", "cancelled"] as const;
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
@@ -72,7 +73,6 @@ export default function AdminOrders() {
     });
   }, [orders, search, statusFilter]);
 
-  // Reset to page 1 when filters change
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
   if (safePage !== page) setPage(safePage);
@@ -153,15 +153,44 @@ export default function AdminOrders() {
     );
   };
 
+  const paginationFooter = (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <span>Rows per page:</span>
+        <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
+          <SelectTrigger className="w-[70px] h-8 text-xs bg-card border-border">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PAGE_SIZE_OPTIONS.map((size) => (
+              <SelectItem key={size} value={String(size)}>{size}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-muted-foreground">
+          {filtered.length === 0 ? "0" : `${(safePage - 1) * pageSize + 1}–${Math.min(safePage * pageSize, filtered.length)}`} of {filtered.length}
+        </span>
+        <Button variant="ghost" size="icon" className="h-8 w-8" disabled={safePage <= 1} onClick={() => setPage((p) => p - 1)}>
+          <ChevronLeft className="w-4 h-4" />
+        </Button>
+        <Button variant="ghost" size="icon" className="h-8 w-8" disabled={safePage >= totalPages} onClick={() => setPage((p) => p + 1)}>
+          <ChevronRight className="w-4 h-4" />
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-section">
       <div className="animate-fade-in">
-        <h1 className="text-2xl font-bold text-foreground">Order Management</h1>
-        <p className="text-muted-foreground text-sm">Search, filter, and manage all orders</p>
+        <h1 className="text-h1 text-foreground">Order Management</h1>
+        <p className="text-caption text-muted-foreground">Search, filter, and manage all orders</p>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+      <div className="flex flex-col sm:flex-row gap-default animate-fade-in">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
@@ -187,54 +216,56 @@ export default function AdminOrders() {
       </div>
 
       {/* Summary */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: "0.15s" }}>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground animate-fade-in">
         <ShoppingCart className="w-4 h-4" />
         <span>{filtered.length} order{filtered.length !== 1 ? "s" : ""} found</span>
       </div>
 
       {/* Bulk Actions */}
       {selectedIds.size > 0 && (
-        <div className="flex items-center gap-3 glass-card p-3 animate-fade-in">
-          <span className="text-sm text-foreground font-medium">{selectedIds.size} selected</span>
-          <div className="flex gap-2 ml-auto">
-            {["delivered", "pending", "cancelled"].map((s) => (
-              <Button
-                key={s}
-                size="sm"
-                variant="outline"
-                className="text-xs h-8"
-                disabled={bulkUpdating}
-                onClick={() => handleBulkStatusChange(s)}
-              >
-                Mark {s.charAt(0).toUpperCase() + s.slice(1)}
+        <DataCard className="animate-fade-in">
+          <div className="flex items-center gap-3">
+            <span className="text-sm text-foreground font-medium">{selectedIds.size} selected</span>
+            <div className="flex gap-2 ml-auto">
+              {["delivered", "pending", "cancelled"].map((s) => (
+                <Button
+                  key={s}
+                  size="sm"
+                  variant="outline"
+                  className="text-xs h-8"
+                  disabled={bulkUpdating}
+                  onClick={() => handleBulkStatusChange(s)}
+                >
+                  Mark {s.charAt(0).toUpperCase() + s.slice(1)}
+                </Button>
+              ))}
+              <Button size="sm" variant="ghost" className="text-xs h-8" onClick={() => setSelectedIds(new Set())}>
+                Clear
               </Button>
-            ))}
-            <Button size="sm" variant="ghost" className="text-xs h-8" onClick={() => setSelectedIds(new Set())}>
-              Clear
-            </Button>
+            </div>
           </div>
-        </div>
+        </DataCard>
       )}
 
-      {/* Table */}
-      <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s" }}>
+      {/* Table — custom table kept for checkbox column & inline status select */}
+      <DataCard noPadding className="animate-fade-in" footer={paginationFooter}>
         <div className="overflow-x-auto">
           <table className="premium-table">
             <thead>
-              <tr className="border-b border-border">
-                <th className="p-4 w-10">
+              <tr>
+                <th className="w-10 pl-4">
                   <Checkbox
                     checked={allPageSelected ? true : somePageSelected ? "indeterminate" : false}
                     onCheckedChange={toggleSelectAll}
                   />
                 </th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Order ID</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Product</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">User</th>
-                <th className="text-right text-xs font-medium text-muted-foreground p-4">Price</th>
-                <th className="text-center text-xs font-medium text-muted-foreground p-4">Status</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Date</th>
-                <th className="text-center text-xs font-medium text-muted-foreground p-4">Actions</th>
+                <th>Order ID</th>
+                <th>Product</th>
+                <th>User</th>
+                <th className="text-right">Price</th>
+                <th className="text-center">Status</th>
+                <th>Date</th>
+                <th className="text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -252,27 +283,27 @@ export default function AdminOrders() {
                 </tr>
               ) : (
                 paginatedOrders.map((o: any) => (
-                  <tr key={o.id} className={`border-b border-border/50 hover:bg-muted/30 transition-colors ${selectedIds.has(o.id) ? "bg-primary/5" : ""}`}>
-                    <td className="p-4 w-10">
+                  <tr key={o.id} className={`${selectedIds.has(o.id) ? "bg-primary/5" : ""}`}>
+                    <td className="p-default w-10 pl-4">
                       <Checkbox
                         checked={selectedIds.has(o.id)}
                         onCheckedChange={() => toggleSelect(o.id)}
                       />
                     </td>
-                    <td className="p-4 text-xs font-mono text-muted-foreground cursor-pointer hover:text-primary" onClick={() => setDetailOrder(o)}>{o.id.slice(0, 8)}…</td>
-                    <td className="p-4 text-sm font-medium text-foreground">{o.product_name}</td>
-                    <td className="p-4">
+                    <td className="p-default text-xs font-mono text-muted-foreground cursor-pointer hover:text-primary" onClick={() => setDetailOrder(o)}>{o.id.slice(0, 8)}…</td>
+                    <td className="p-default text-sm font-medium text-foreground">{o.product_name}</td>
+                    <td className="p-default">
                       <p className="text-sm text-foreground">{o.profile?.name || "—"}</p>
                       <p className="text-xs text-muted-foreground">{o.profile?.email || "Unknown"}</p>
                     </td>
-                    <td className="p-4 text-sm font-mono text-right text-foreground">
-                      {o.price.toLocaleString()} MMK
+                    <td className="p-default text-right">
+                      <Money amount={o.price} />
                     </td>
-                    <td className="p-4 text-center">{statusBadge(o.status)}</td>
-                    <td className="p-4 text-sm text-muted-foreground">
+                    <td className="p-default text-center">{statusBadge(o.status)}</td>
+                    <td className="p-default text-sm text-muted-foreground">
                       {new Date(o.created_at).toLocaleDateString()}
                     </td>
-                    <td className="p-4 text-center">
+                    <td className="p-default text-center">
                       <div className="flex items-center justify-center gap-1.5">
                         <Button
                           size="sm"
@@ -304,48 +335,8 @@ export default function AdminOrders() {
             </tbody>
           </table>
         </div>
+      </DataCard>
 
-        {/* Pagination */}
-        <div className="flex items-center justify-between border-t border-border px-4 py-3">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Rows per page:</span>
-            <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
-              <SelectTrigger className="w-[70px] h-8 text-xs bg-card border-border">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PAGE_SIZE_OPTIONS.map((size) => (
-                  <SelectItem key={size} value={String(size)}>{size}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              {filtered.length === 0 ? "0" : `${(safePage - 1) * pageSize + 1}–${Math.min(safePage * pageSize, filtered.length)}`} of {filtered.length}
-            </span>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              disabled={safePage <= 1}
-              onClick={() => setPage((p) => p - 1)}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8"
-              disabled={safePage >= totalPages}
-              onClick={() => setPage((p) => p + 1)}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
       <OrderDetailModal
         order={detailOrder}
         open={!!detailOrder}
