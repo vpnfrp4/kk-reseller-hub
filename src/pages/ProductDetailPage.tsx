@@ -44,14 +44,25 @@ export default function ProductDetailPage() {
     enabled: !!id,
   });
 
+  const mapErrorMessage = (msg: string): string => {
+    const lower = msg.toLowerCase();
+    if (lower.includes("out of stock") || lower.includes("no credentials available")) {
+      return "လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)";
+    }
+    if (lower.includes("insufficient balance")) {
+      return "လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပေးပါရန်။ (Insufficient Balance)";
+    }
+    return msg;
+  };
+
   const handleBuy = async () => {
     if (!product) return;
     if ((profile?.balance || 0) < product.wholesale_price) {
-      toast.error("Insufficient balance. Please top up your wallet.");
+      toast.error("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပေးပါရန်။ (Insufficient Balance)");
       return;
     }
     if (product.stock <= 0) {
-      toast.error("This product is currently out of stock.");
+      toast.error("လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)");
       return;
     }
 
@@ -61,8 +72,8 @@ export default function ProductDetailPage() {
         body: { product_id: product.id },
       });
       if (error) throw new Error(error.message);
-      if (data?.error) {
-        toast.error(data.error);
+      if (data && !data.success) {
+        toast.error(mapErrorMessage(data.error as string));
         return;
       }
       setResult(data as PurchaseResult);
@@ -74,7 +85,7 @@ export default function ProductDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
       refreshProfile();
     } catch (err: any) {
-      toast.error(err.message || "Purchase failed. Please try again.");
+      toast.error(mapErrorMessage(err.message || "Purchase failed. Please try again."));
     } finally {
       setPurchasing(false);
     }
