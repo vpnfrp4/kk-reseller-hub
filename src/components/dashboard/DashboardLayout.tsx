@@ -17,14 +17,15 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationSettings from "@/components/NotificationSettings";
+import { t } from "@/lib/i18n";
 
 const navItems = [
-  { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-  { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
-  { label: "Products", icon: ShoppingBag, path: "/dashboard/products" },
-  { label: "Orders", icon: ClipboardList, path: "/dashboard/orders" },
-  { label: "Notifications", icon: Bell, path: "/dashboard/notifications" },
-  { label: "Settings", icon: Settings, path: "/dashboard/settings" },
+  { mm: t.nav.dashboard.mm, en: t.nav.dashboard.en, icon: LayoutDashboard, path: "/dashboard" },
+  { mm: t.nav.wallet.mm, en: t.nav.wallet.en, icon: Wallet, path: "/dashboard/wallet" },
+  { mm: t.nav.products.mm, en: t.nav.products.en, icon: ShoppingBag, path: "/dashboard/products" },
+  { mm: t.nav.orders.mm, en: t.nav.orders.en, icon: ClipboardList, path: "/dashboard/orders" },
+  { mm: t.nav.notifications.mm, en: t.nav.notifications.en, icon: Bell, path: "/dashboard/notifications" },
+  { mm: t.nav.settings.mm, en: t.nav.settings.en, icon: Settings, path: "/dashboard/settings" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -66,7 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         />
       )}
 
-      {/* Sidebar — clean white panel */}
+      {/* Sidebar */}
       <aside
         className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex flex-col transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
@@ -80,7 +81,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
             <div>
               <span className="text-lg font-bold text-foreground tracking-tight">KKTech</span>
-              <span className="text-[10px] block text-primary font-semibold uppercase tracking-[0.2em]">Reseller</span>
+              <span className="text-[10px] block text-primary font-semibold uppercase tracking-[0.2em]">{t.nav.reseller.mm}</span>
             </div>
           </Link>
         </div>
@@ -104,8 +105,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   className={`w-[18px] h-[18px] ${active ? "text-primary" : ""}`}
                   strokeWidth={active ? 2 : 1.5}
                 />
-                {item.label}
-                {item.label === "Notifications" && unreadCount > 0 && (
+                <div className="flex-1 min-w-0">
+                  <span className="block leading-tight">{item.mm}</span>
+                  <span className="block text-[9px] text-muted-foreground/60 font-normal">{item.en}</span>
+                </div>
+                {item.en === "Notifications" && unreadCount > 0 && (
                   <span className="ml-auto px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-primary text-primary-foreground min-w-[18px] text-center">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
@@ -124,7 +128,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200"
             >
               <ArrowLeftRight className="w-[18px] h-[18px]" strokeWidth={1.5} />
-              Admin Panel
+              <div>
+                <span className="block leading-tight">{t.nav.adminPanel.mm}</span>
+                <span className="block text-[9px] text-muted-foreground/60 font-normal">{t.nav.adminPanel.en}</span>
+              </div>
             </Link>
           )}
 
@@ -144,7 +151,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             onClick={handleLogout}
           >
             <LogOut className="w-[18px] h-[18px] mr-3" strokeWidth={1.5} />
-            Sign Out
+            <div className="text-left">
+              <span className="block text-sm leading-tight">{t.nav.signOut.mm}</span>
+              <span className="block text-[9px] text-muted-foreground/60 font-normal">{t.nav.signOut.en}</span>
+            </div>
           </Button>
         </div>
       </aside>
@@ -162,7 +172,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
             <div className="hidden lg:block">
               <h2 className="text-sm font-semibold text-foreground leading-tight">
-                {navItems.find((i) => i.path === location.pathname)?.label || "Dashboard"}
+                {navItems.find((i) => i.path === location.pathname)?.mm || "Dashboard"}
               </h2>
             </div>
           </div>
@@ -182,7 +192,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <footer className="border-t border-border px-4 lg:px-8 py-3 text-center">
           <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors duration-200">
-            Terms and Conditions
+            {t.common.termsAndConditions.mm} <span className="text-[10px] text-muted-foreground/50">({t.common.termsAndConditions.en})</span>
           </Link>
         </footer>
       </div>
