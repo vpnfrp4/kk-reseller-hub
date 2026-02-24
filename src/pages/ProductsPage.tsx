@@ -16,6 +16,8 @@ interface PurchaseResult {
   credentials: string;
   product_name: string;
   price: number;
+  quantity?: number;
+  unit_price?: number;
 }
 
 const PAGE_SIZE = 9;
@@ -54,6 +56,22 @@ export default function ProductsPage() {
     },
   });
 
+  // Fetch all pricing tiers
+  const { data: allTiers } = useQuery({
+    queryKey: ["pricing-tiers"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("pricing_tiers")
+        .select("*")
+        .order("min_qty", { ascending: true });
+      return data || [];
+    },
+  });
+
+  const getTiersForProduct = (productId: string) => {
+    return (allTiers || []).filter((t: any) => t.product_id === productId);
+  };
+
   const filtered = (products || [])
     .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
     .filter((p: any) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
@@ -63,7 +81,6 @@ export default function ProductsPage() {
       return a.name.localeCompare(b.name);
     });
 
-  // Reset visible count when filters change
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [activeCategory, searchQuery, sortBy]);
@@ -71,7 +88,6 @@ export default function ProductsPage() {
   const hasMore = visibleCount < filtered.length;
   const visibleProducts = filtered.slice(0, visibleCount);
 
-  // Intersection Observer for infinite scroll
   const loadMore = useCallback(() => {
     setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filtered.length));
   }, [filtered.length]);
@@ -79,23 +95,19 @@ export default function ProductsPage() {
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
-
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          loadMore();
-        }
+        if (entries[0].isIntersecting && hasMore) loadMore();
       },
       { rootMargin: "200px" }
     );
-
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [hasMore, loadMore]);
 
   const mapErrorMessage = (msg: string): string => {
     const lower = msg.toLowerCase();
-    if (lower.includes("out of stock") || lower.includes("no credentials available")) {
+    if (lower.includes("out of stock") || lower.includes("no credentials available") || lower.includes("not enough stock")) {
       return "လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)";
     }
     if (lower.includes("insufficient balance")) {
@@ -105,10 +117,6 @@ export default function ProductsPage() {
   };
 
   const handleBuyClick = (product: any) => {
-    if ((profile?.balance || 0) < product.wholesale_price) {
-      toast.error("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပေးပါရန်။ (Insufficient Balance)");
-      return;
-    }
     if (product.stock <= 0) {
       toast.error("လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)");
       return;
@@ -117,13 +125,13 @@ export default function ProductsPage() {
     setAgreedTerms(false);
   };
 
-  const handleBuy = async (product: any) => {
+  const handleBuy = async (product: any, quantity: number = 1) => {
     setConfirmProduct(null);
     setPurchasing(product.id);
 
     try {
       const { data, error } = await supabase.functions.invoke("purchase", {
-        body: { product_id: product.id },
+        body: { product_id: product.id, quantity },
       });
 
       if (error) throw new Error(error.message);
@@ -188,12 +196,12 @@ export default function ProductsPage() {
               index={i}
               isPurchasing={purchasing === product.id}
               onBuyClick={handleBuyClick}
+              pricingTiers={getTiersForProduct(product.id)}
             />
           ))
         )}
       </div>
 
-      {/* Infinite scroll sentinel */}
       {!isLoading && hasMore && (
         <div ref={sentinelRef} className="flex justify-center py-6">
           <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
@@ -212,6 +220,7 @@ export default function ProductsPage() {
         onAgreedTermsChange={setAgreedTerms}
         onConfirm={handleBuy}
         onClose={() => setConfirmProduct(null)}
+        pricingTiers={confirmProduct ? getTiersForProduct(confirmProduct.id) : []}
       />
 
       <PurchaseSuccessModal
@@ -220,7 +229,6 @@ export default function ProductsPage() {
       />
     </div>
 
-    {/* Scroll to top button */}
     <button
       onClick={scrollToTop}
       className={`fixed bottom-6 right-6 z-50 p-3 rounded-full btn-glow shadow-lg transition-all duration-300 ${
