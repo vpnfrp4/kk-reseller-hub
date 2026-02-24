@@ -26,6 +26,7 @@ import {
   Image as ImageIcon,
   Copy,
 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
 export default function WalletPage() {
   const { user, profile } = useAuth();
@@ -199,6 +200,7 @@ export default function WalletPage() {
                           navigator.clipboard.writeText(id);
                           setCopied(true);
                           setTimeout(() => setCopied(false), 1500);
+                          toast({ title: "Copied!", description: `Pay ID ${id} copied to clipboard.` });
                         }}
                         className="flex items-center gap-1.5 font-mono font-semibold text-foreground hover:text-primary transition-colors"
                         title="Copy to clipboard"
