@@ -24,6 +24,7 @@ import CrossFade from "@/components/CrossFade";
 import { format, subDays } from "date-fns";
 import { PageContainer, Money } from "@/components/shared";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
+import MiniSparkline from "@/components/admin/MiniSparkline";
 import { cn } from "@/lib/utils";
 
 const LOW_BALANCE_THRESHOLD = 20000;
@@ -134,6 +135,30 @@ export default function DashboardHome() {
     },
   });
 
+  // 7-day spending sparkline
+  const { data: sparklineData } = useQuery({
+    queryKey: ["spending-sparkline-7d"],
+    queryFn: async () => {
+      const sevenDaysAgo = subDays(new Date(), 6).toISOString();
+      const { data } = await supabase
+        .from("orders")
+        .select("price, created_at")
+        .gte("created_at", sevenDaysAgo)
+        .order("created_at", { ascending: true });
+
+      // Bucket into 7 days
+      const days: Record<string, number> = {};
+      for (let i = 6; i >= 0; i--) {
+        days[format(subDays(new Date(), i), "yyyy-MM-dd")] = 0;
+      }
+      (data || []).forEach((row: any) => {
+        const key = format(new Date(row.created_at), "yyyy-MM-dd");
+        if (key in days) days[key] += Number(row.price);
+      });
+      return Object.values(days);
+    },
+  });
+
   const balance = profile?.balance || 0;
   const displayBalance = useCountUp(balance, 800);
   const isLowBalance = balance < LOW_BALANCE_THRESHOLD;
@@ -240,6 +265,26 @@ export default function DashboardHome() {
               </p>
             </div>
           </CrossFade>
+
+          {/* Center: 7-Day Spending Sparkline */}
+          <div className="hidden md:flex flex-col items-center gap-1 shrink-0">
+            {sparklineData && sparklineData.length > 1 ? (
+              <>
+                <MiniSparkline
+                  data={sparklineData}
+                  width={120}
+                  height={40}
+                  color="hsl(var(--primary-glow))"
+                  className="opacity-80"
+                />
+                <span className="text-[10px] font-medium text-muted-foreground/60 uppercase tracking-wider">
+                  7-Day Spending
+                </span>
+              </>
+            ) : (
+              <div className="w-[120px] h-[40px] rounded bg-muted/10" />
+            )}
+          </div>
 
           {/* Right: CTAs */}
           <div className="flex flex-col sm:flex-row gap-compact shrink-0">
