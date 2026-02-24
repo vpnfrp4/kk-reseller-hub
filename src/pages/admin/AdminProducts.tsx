@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, KeyRound, Upload, X, ImageIcon } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
+import BulkImageUpload from "@/components/admin/BulkImageUpload";
 import { toast } from "sonner";
 
 const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
@@ -228,10 +229,12 @@ export default function AdminProducts() {
           <h1 className="text-2xl font-bold text-foreground">Products</h1>
           <p className="text-muted-foreground text-sm">Manage digital service products</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(v) => { setDialogOpen(v); if (!v) resetForm(); }}>
-          <DialogTrigger asChild>
-            <Button className="btn-glow gap-2"><Plus className="w-4 h-4" />Add Product</Button>
-          </DialogTrigger>
+        <div className="flex gap-2">
+          <BulkImageUpload products={(products || []).map((p: any) => ({ id: p.id, name: p.name, icon: p.icon, image_url: p.image_url }))} />
+          <Dialog open={dialogOpen} onOpenChange={(v) => { setDialogOpen(v); if (!v) resetForm(); }}>
+            <DialogTrigger asChild>
+              <Button className="btn-glow gap-2"><Plus className="w-4 h-4" />Add Product</Button>
+            </DialogTrigger>
           <DialogContent className="bg-card border-border max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-foreground">{editing ? "Edit" : "New"} Product</DialogTitle>
@@ -341,6 +344,7 @@ export default function AdminProducts() {
             </form>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <div className="flex gap-2 animate-fade-in">
