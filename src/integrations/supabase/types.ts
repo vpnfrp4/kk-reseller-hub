@@ -85,6 +85,41 @@ export type Database = {
           },
         ]
       }
+      pricing_tiers: {
+        Row: {
+          created_at: string
+          id: string
+          max_qty: number | null
+          min_qty: number
+          product_id: string
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_qty?: number | null
+          min_qty?: number
+          product_id: string
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_qty?: number | null
+          min_qty?: number
+          product_id?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pricing_tiers_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_credentials: {
         Row: {
           created_at: string
@@ -273,10 +308,16 @@ export type Database = {
         }
         Returns: boolean
       }
-      process_purchase: {
-        Args: { p_product_id: string; p_user_id: string }
-        Returns: Json
-      }
+      process_purchase:
+        | { Args: { p_product_id: string; p_user_id: string }; Returns: Json }
+        | {
+            Args: {
+              p_product_id: string
+              p_quantity?: number
+              p_user_id: string
+            }
+            Returns: Json
+          }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
