@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
+import { t } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Package, Loader2, ArrowUp } from "lucide-react";
@@ -185,13 +186,14 @@ export default function ProductsPage() {
     <>
     <div className="space-y-8">
       <Breadcrumb items={[
-        { label: "Dashboard", path: "/dashboard" },
-        { label: "Products" },
+        { label: t.nav.dashboard.mm, path: "/dashboard" },
+        { label: t.products.title.mm },
       ]} />
 
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Products</h1>
-        <p className="text-muted-foreground text-sm mt-1">Wholesale catalog</p>
+        <h1 className="text-2xl font-bold text-foreground">{t.products.title.mm}</h1>
+        <p className="text-[10px] text-muted-foreground/60">{t.products.title.en}</p>
+        <p className="text-muted-foreground text-sm mt-1">{t.products.subtitle.mm}</p>
       </div>
 
       <ProductFilters
@@ -212,8 +214,8 @@ export default function ProductsPage() {
         ) : filtered.length === 0 ? (
           <div className="col-span-full bg-card border border-border rounded-2xl p-12 text-center" style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
             <Package className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-foreground font-medium">No products found</p>
-            <p className="text-sm text-muted-foreground mt-1">Try adjusting your search or filter</p>
+            <p className="text-foreground font-medium">{t.products.noProducts.mm}</p>
+            <p className="text-sm text-muted-foreground mt-1">{t.products.adjustFilter.mm}</p>
           </div>
         ) : (
           visibleProducts.map((product: any, i: number) => (
@@ -237,7 +239,7 @@ export default function ProductsPage() {
 
       {!isLoading && filtered.length > 0 && (
         <p className="text-center text-xs text-muted-foreground">
-          Showing {visibleProducts.length} of {filtered.length} products
+          {t.products.showing.mm} {visibleProducts.length} / {filtered.length}
         </p>
       )}
 
