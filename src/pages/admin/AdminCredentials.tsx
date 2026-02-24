@@ -283,25 +283,7 @@ export default function AdminCredentials() {
           >
             <Download className="w-4 h-4" />Export CSV
           </Button>
-          {selectedIds.size > 0 && (
-            <>
-              <Button
-                variant="outline"
-                className="gap-2"
-                onClick={() => setBulkExpiryOpen(true)}
-              >
-                <Pencil className="w-4 h-4" />Set Expiry ({selectedIds.size})
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 text-muted-foreground"
-                onClick={() => setSelectedIds(new Set())}
-              >
-                <X className="w-3.5 h-3.5" />Clear Selection
-              </Button>
-            </>
-          )}
+          
           <Button
             variant="outline"
             className="gap-2 text-destructive hover:text-destructive"
@@ -594,6 +576,31 @@ export default function AdminCredentials() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Floating selection bar */}
+      {selectedIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-card border border-border rounded-xl shadow-lg px-5 py-3 flex items-center gap-4 animate-fade-in">
+          <span className="text-sm font-medium text-foreground">
+            {selectedIds.size} selected
+          </span>
+          <div className="w-px h-5 bg-border" />
+          <Button
+            size="sm"
+            className="gap-1.5 btn-glow"
+            onClick={() => setBulkExpiryOpen(true)}
+          >
+            <Pencil className="w-3.5 h-3.5" />Set Expiry
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="gap-1.5 text-muted-foreground"
+            onClick={() => setSelectedIds(new Set())}
+          >
+            <X className="w-3.5 h-3.5" />Clear
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
