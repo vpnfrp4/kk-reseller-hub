@@ -445,6 +445,9 @@ export default function LandingPage() {
             <a href="#faq" className="text-foreground hover:text-primary transition-colors">
               FAQ
             </a>
+            <Link to="/tools/imei-check" className="text-foreground hover:text-primary transition-colors">
+              Free IMEI Checker
+            </Link>
             <Link to="/login" className="text-foreground hover:text-primary transition-colors">
               Reseller Login
             </Link>

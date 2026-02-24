@@ -24,6 +24,7 @@ import AdminTopups from "./pages/admin/AdminTopups";
 import AdminResellers from "./pages/admin/AdminResellers";
 import AdminOrders from "./pages/admin/AdminOrders";
 import LandingPage from "./pages/LandingPage";
+import ImeiCheckPage from "./pages/ImeiCheckPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -71,6 +72,7 @@ function AppRoutes() {
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/terms" element={<TermsPage />} />
+      <Route path="/tools/imei-check" element={<ImeiCheckPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
       <Route path="/dashboard/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet/topup-status" element={<ProtectedRoute><TopUpStatusPage /></ProtectedRoute>} />
