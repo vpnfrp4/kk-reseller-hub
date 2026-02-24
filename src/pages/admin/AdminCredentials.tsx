@@ -15,8 +15,22 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download, Upload } from "lucide-react";
+import { Plus, Trash2, ChevronLeft, ChevronRight, Search, Download, Upload, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+
+const EXPIRY_WARNING_DAYS = 7;
+
+function isNearExpiry(expiresAt: string | null): boolean {
+  if (!expiresAt) return false;
+  const diff = new Date(expiresAt).getTime() - Date.now();
+  return diff > 0 && diff <= EXPIRY_WARNING_DAYS * 24 * 60 * 60 * 1000;
+}
+
+function isExpired(expiresAt: string | null): boolean {
+  if (!expiresAt) return false;
+  return new Date(expiresAt).getTime() <= Date.now();
+}
 
 export default function AdminCredentials() {
   const queryClient = useQueryClient();
@@ -35,12 +49,14 @@ export default function AdminCredentials() {
       .subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [queryClient]);
+
   const [searchParams, setSearchParams] = useSearchParams();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [filterProduct, setFilterProduct] = useState(searchParams.get("product") || "");
   const [selectedProduct, setSelectedProduct] = useState("");
   const [bulkCredentials, setBulkCredentials] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "available" | "sold">("all");
+  const [expiryDate, setExpiryDate] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "available" | "sold" | "expiring">("all");
   const [page, setPage] = useState(1);
   const perPage = 20;
   const [searchQuery, setSearchQuery] = useState("");
@@ -77,12 +93,12 @@ export default function AdminCredentials() {
     const inserts = lines.map((cred) => ({
       product_id: selectedProduct,
       credentials: cred.trim(),
+      ...(expiryDate ? { expires_at: new Date(expiryDate).toISOString() } : {}),
     }));
 
-    const { error } = await supabase.from("product_credentials").insert(inserts);
+    const { error } = await supabase.from("product_credentials").insert(inserts as any);
     if (error) { toast.error(error.message); return; }
 
-    // Update product stock
     const { data: product } = await supabase.from("products").select("stock").eq("id", selectedProduct).single();
     if (product) {
       await supabase.from("products").update({ stock: product.stock + lines.length }).eq("id", selectedProduct);
@@ -94,6 +110,7 @@ export default function AdminCredentials() {
     setDialogOpen(false);
     setBulkCredentials("");
     setSelectedProduct("");
+    setExpiryDate("");
   };
 
   const handleCSVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -107,16 +124,12 @@ export default function AdminCredentials() {
     reader.onload = (ev) => {
       const text = ev.target?.result as string;
       if (!text?.trim()) { toast.error("File is empty"); return; }
-      // Parse CSV: support single column or multi-column (take first column)
       const lines = text.trim().split("\n").filter(Boolean);
-      // Skip header if it looks like one
       const firstLine = lines[0].toLowerCase().trim();
       const startIdx = (firstLine.includes("credential") || firstLine.includes("email") || firstLine.includes("account")) ? 1 : 0;
       const creds = lines.slice(startIdx).map((line) => {
-        // Handle quoted CSV values and take the first meaningful column
         const trimmed = line.trim();
         if (!trimmed) return "";
-        // Simple CSV parse: split by comma, take first non-empty field
         const parts = trimmed.split(",").map(p => p.trim().replace(/^"|"$/g, ""));
         return parts[0] || trimmed;
       }).filter(Boolean);
@@ -126,7 +139,6 @@ export default function AdminCredentials() {
       toast.success(`${creds.length} credential(s) loaded from file`);
     };
     reader.readAsText(file);
-    // Reset input so same file can be re-uploaded
     e.target.value = "";
   };
 
@@ -141,6 +153,7 @@ export default function AdminCredentials() {
   const [bulkDeleteOpen, setBulkDeleteOpen] = useState(false);
   const [bulkDeleting, setBulkDeleting] = useState(false);
   const soldCount = (credentials || []).filter((c: any) => c.is_sold).length;
+  const expiringCount = (credentials || []).filter((c: any) => !c.is_sold && (isNearExpiry(c.expires_at) || isExpired(c.expires_at))).length;
 
   const handleBulkDeleteSold = async () => {
     setBulkDeleting(true);
@@ -151,6 +164,40 @@ export default function AdminCredentials() {
     if (error) { toast.error(error.message); return; }
     toast.success(`${soldIds.length} sold credential(s) deleted`);
     queryClient.invalidateQueries({ queryKey: ["admin-credentials"] });
+  };
+
+  const filterCredentials = (list: any[]) => {
+    const q = searchQuery.toLowerCase();
+    return list.filter((c: any) =>
+      (!filterProduct || c.product_id === filterProduct) &&
+      (statusFilter === "all"
+        || (statusFilter === "available" ? !c.is_sold : false)
+        || (statusFilter === "sold" ? c.is_sold : false)
+        || (statusFilter === "expiring" ? (!c.is_sold && (isNearExpiry(c.expires_at) || isExpired(c.expires_at))) : false)
+      ) &&
+      (!q || c.credentials.toLowerCase().includes(q))
+    );
+  };
+
+  const getRowHighlight = (c: any) => {
+    if (c.is_sold) return "";
+    if (isExpired(c.expires_at)) return "bg-destructive/10 border-l-2 border-l-destructive";
+    if (isNearExpiry(c.expires_at)) return "bg-destructive/5 border-l-2 border-l-destructive/60";
+    return "";
+  };
+
+  const formatExpiry = (expiresAt: string | null) => {
+    if (!expiresAt) return <span className="text-muted-foreground/50">—</span>;
+    const date = new Date(expiresAt);
+    const expired = isExpired(expiresAt);
+    const nearExpiry = isNearExpiry(expiresAt);
+    return (
+      <span className={`flex items-center gap-1 ${expired ? "text-destructive font-semibold" : nearExpiry ? "text-destructive" : "text-muted-foreground"}`}>
+        {(expired || nearExpiry) && <AlertTriangle className="w-3 h-3" />}
+        {format(date, "MMM d, yyyy")}
+        {expired && <span className="text-[10px] ml-1">(expired)</span>}
+      </span>
+    );
   };
 
   return (
@@ -165,15 +212,10 @@ export default function AdminCredentials() {
             variant="outline"
             className="gap-2"
             onClick={() => {
-              const q = searchQuery.toLowerCase();
-              const filtered = (credentials || []).filter((c: any) =>
-                (!filterProduct || c.product_id === filterProduct) &&
-                (statusFilter === "all" || (statusFilter === "available" ? !c.is_sold : c.is_sold)) &&
-                (!q || c.credentials.toLowerCase().includes(q))
-              );
+              const filtered = filterCredentials(credentials || []);
               if (filtered.length === 0) { toast.error("No credentials to export"); return; }
-              const csv = "Product,Credentials,Status,Added\n" + filtered.map((c: any) =>
-                `"${(c.products as any)?.name || "Unknown"} - ${(c.products as any)?.duration || ""}","${c.credentials}","${c.is_sold ? "Sold" : "Available"}","${new Date(c.created_at).toLocaleDateString()}"`
+              const csv = "Product,Credentials,Status,Expiry,Added\n" + filtered.map((c: any) =>
+                `"${(c.products as any)?.name || "Unknown"} - ${(c.products as any)?.duration || ""}","${c.credentials}","${c.is_sold ? "Sold" : "Available"}","${c.expires_at ? format(new Date(c.expires_at), "yyyy-MM-dd") : ""}","${new Date(c.created_at).toLocaleDateString()}"`
               ).join("\n");
               const blob = new Blob([csv], { type: "text/csv" });
               const url = URL.createObjectURL(blob);
@@ -216,6 +258,19 @@ export default function AdminCredentials() {
                     <option key={p.id} value={p.id}>{p.icon} {p.name} - {p.duration}</option>
                   ))}
                 </select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-muted-foreground text-xs">Expiry Date (optional)</Label>
+                <Input
+                  type="date"
+                  value={expiryDate}
+                  onChange={(e) => setExpiryDate(e.target.value)}
+                  className="bg-muted/50 border-border text-sm"
+                  min={new Date().toISOString().slice(0, 10)}
+                />
+                <p className="text-[10px] text-muted-foreground">
+                  Credentials expiring within {EXPIRY_WARNING_DAYS} days will be highlighted
+                </p>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -265,14 +320,16 @@ export default function AdminCredentials() {
       </div>
 
       <div className="flex gap-2 animate-fade-in">
-        {(["all", "available", "sold"] as const).map((s) => (
+        {(["all", "available", "sold", "expiring"] as const).map((s) => (
           <button
             key={s}
             onClick={() => { setStatusFilter(s); setPage(1); }}
             className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
               statusFilter === s ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
             }`}
-          >{s === "all" ? "All Status" : s === "available" ? "Available" : "Sold"}</button>
+          >
+            {s === "all" ? "All Status" : s === "available" ? "Available" : s === "sold" ? "Sold" : `Expiring (${expiringCount})`}
+          </button>
         ))}
       </div>
 
@@ -294,25 +351,21 @@ export default function AdminCredentials() {
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Product</th>
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Credentials</th>
                 <th className="text-center text-xs font-medium text-muted-foreground p-4">Status</th>
+                <th className="text-left text-xs font-medium text-muted-foreground p-4">Expiry</th>
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Added</th>
                 <th className="text-center text-xs font-medium text-muted-foreground p-4">Actions</th>
               </tr>
             </thead>
             <tbody>
               {(() => {
-                const q = searchQuery.toLowerCase();
-                const filtered = (credentials || []).filter((c: any) =>
-                  (!filterProduct || c.product_id === filterProduct) &&
-                  (statusFilter === "all" || (statusFilter === "available" ? !c.is_sold : c.is_sold)) &&
-                  (!q || c.credentials.toLowerCase().includes(q))
-                );
+                const filtered = filterCredentials(credentials || []);
                 const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
                 const currentPage = Math.min(page, totalPages);
                 const paginated = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
                 return paginated.length === 0 ? (
-                <tr><td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">No credentials found</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-sm text-muted-foreground">No credentials found</td></tr>
               ) : paginated.map((c: any) => (
-                <tr key={c.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                <tr key={c.id} className={`border-b border-border/50 hover:bg-muted/30 transition-colors ${getRowHighlight(c)}`}>
                   <td className="p-4 text-sm text-foreground">
                     {(c.products as any)?.name || "Unknown"} - {(c.products as any)?.duration || ""}
                   </td>
@@ -324,6 +377,7 @@ export default function AdminCredentials() {
                       {c.is_sold ? "Sold" : "Available"}
                     </span>
                   </td>
+                  <td className="p-4 text-sm">{formatExpiry(c.expires_at)}</td>
                   <td className="p-4 text-sm text-muted-foreground">{new Date(c.created_at).toLocaleDateString()}</td>
                   <td className="p-4 text-center">
                     {!c.is_sold && (
@@ -339,12 +393,7 @@ export default function AdminCredentials() {
           </table>
         </div>
         {(() => {
-          const q = searchQuery.toLowerCase();
-          const filtered = (credentials || []).filter((c: any) =>
-            (!filterProduct || c.product_id === filterProduct) &&
-            (statusFilter === "all" || (statusFilter === "available" ? !c.is_sold : c.is_sold)) &&
-            (!q || c.credentials.toLowerCase().includes(q))
-          );
+          const filtered = filterCredentials(credentials || []);
           const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
           if (totalPages <= 1) return null;
           const currentPage = Math.min(page, totalPages);

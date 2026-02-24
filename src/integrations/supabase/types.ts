@@ -59,6 +59,7 @@ export type Database = {
         Row: {
           created_at: string
           credentials: string
+          expires_at: string | null
           id: string
           is_sold: boolean
           product_id: string
@@ -68,6 +69,7 @@ export type Database = {
         Insert: {
           created_at?: string
           credentials: string
+          expires_at?: string | null
           id?: string
           is_sold?: boolean
           product_id: string
@@ -77,6 +79,7 @@ export type Database = {
         Update: {
           created_at?: string
           credentials?: string
+          expires_at?: string | null
           id?: string
           is_sold?: boolean
           product_id?: string
