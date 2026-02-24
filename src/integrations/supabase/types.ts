@@ -104,6 +104,7 @@ export type Database = {
           image_url: string | null
           name: string
           retail_price: number
+          sort_order: number
           stock: number
           wholesale_price: number
         }
@@ -117,6 +118,7 @@ export type Database = {
           image_url?: string | null
           name: string
           retail_price: number
+          sort_order?: number
           stock?: number
           wholesale_price: number
         }
@@ -130,6 +132,7 @@ export type Database = {
           image_url?: string | null
           name?: string
           retail_price?: number
+          sort_order?: number
           stock?: number
           wholesale_price?: number
         }

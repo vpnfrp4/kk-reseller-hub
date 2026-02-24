@@ -13,10 +13,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, ImageIcon, GripVertical } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import BulkImageUpload from "@/components/admin/BulkImageUpload";
 import { toast } from "sonner";
+import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 
 const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
 
@@ -40,7 +41,7 @@ export default function AdminProducts() {
   const { data: products } = useQuery({
     queryKey: ["admin-products"],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("*").order("created_at", { ascending: false });
+      const { data } = await supabase.from("products").select("*").order("sort_order", { ascending: true });
       return data || [];
     },
   });
@@ -222,6 +223,29 @@ export default function AdminProducts() {
     queryClient.invalidateQueries({ queryKey: ["admin-products"] });
   };
 
+  const handleDragEnd = async (result: DropResult) => {
+    if (!result.destination || !products) return;
+    const filtered = activeCategory === "All"
+      ? [...products]
+      : products.filter((p: any) => p.category === activeCategory);
+    const [moved] = filtered.splice(result.source.index, 1);
+    filtered.splice(result.destination.index, 0, moved);
+
+    // Optimistic update
+    const updatedProducts = products.map((p: any) => {
+      const newIndex = filtered.findIndex((f: any) => f.id === p.id);
+      if (newIndex !== -1) return { ...p, sort_order: newIndex };
+      return p;
+    });
+    queryClient.setQueryData(["admin-products"], updatedProducts.sort((a: any, b: any) => a.sort_order - b.sort_order));
+
+    // Persist
+    const updates = filtered.map((p: any, i: number) => ({ id: p.id, sort_order: i }));
+    for (const u of updates) {
+      await supabase.from("products").update({ sort_order: u.sort_order } as any).eq("id", u.id);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between animate-fade-in">
@@ -365,67 +389,85 @@ export default function AdminProducts() {
 
       <div className="glass-card overflow-hidden animate-fade-in">
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border">
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Product</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Category</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Duration</th>
-                <th className="text-right text-xs font-medium text-muted-foreground p-4">Retail</th>
-                <th className="text-right text-xs font-medium text-muted-foreground p-4">Wholesale</th>
-                <th className="text-center text-xs font-medium text-muted-foreground p-4">Stock</th>
-                <th className="text-center text-xs font-medium text-muted-foreground p-4">Credentials</th>
-                <th className="text-center text-xs font-medium text-muted-foreground p-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(products || [])
-                .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
-                .map((p: any) => {
-                const cc = credentialCounts?.[p.id];
-                return (
-                <tr key={p.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      {p.image_url ? (
-                        <img src={p.image_url} alt={p.name} className="w-9 h-9 rounded-lg object-cover border border-border/50" />
-                      ) : (
-                        <span className="text-lg">{p.icon}</span>
-                      )}
-                      <span className="text-sm font-medium text-foreground">{p.name}</span>
-                    </div>
-                  </td>
-                  <td className="p-4 text-sm text-muted-foreground">{p.category}</td>
-                  <td className="p-4 text-sm text-muted-foreground">{p.duration}</td>
-                  <td className="p-4 text-sm font-mono text-right text-muted-foreground">{p.retail_price.toLocaleString()}</td>
-                  <td className="p-4 text-sm font-mono text-right text-foreground">{p.wholesale_price.toLocaleString()}</td>
-                  <td className="p-4 text-sm font-mono text-center text-foreground">{p.stock}</td>
-                  <td className="p-4 text-center">
-                    <span className={`text-xs font-mono px-2 py-1 rounded-full ${
-                      cc && cc.available > 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
-                    }`}>
-                      {cc ? `${cc.available}/${cc.total}` : "0/0"}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center justify-center gap-2">
-                      <Link to={`/admin/credentials?product=${p.id}`} className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="View credentials">
-                        <KeyRound className="w-4 h-4" />
-                      </Link>
-                      <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+          <DragDropContext onDragEnd={handleDragEnd}>
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border">
+                  <th className="w-10 p-4"></th>
+                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Product</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Category</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Duration</th>
+                  <th className="text-right text-xs font-medium text-muted-foreground p-4">Retail</th>
+                  <th className="text-right text-xs font-medium text-muted-foreground p-4">Wholesale</th>
+                  <th className="text-center text-xs font-medium text-muted-foreground p-4">Stock</th>
+                  <th className="text-center text-xs font-medium text-muted-foreground p-4">Credentials</th>
+                  <th className="text-center text-xs font-medium text-muted-foreground p-4">Actions</th>
                 </tr>
-                );
-              })}
-
-            </tbody>
-          </table>
+              </thead>
+              <Droppable droppableId="products">
+                {(provided) => (
+                  <tbody ref={provided.innerRef} {...provided.droppableProps}>
+                    {(products || [])
+                      .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
+                      .map((p: any, index: number) => {
+                      const cc = credentialCounts?.[p.id];
+                      return (
+                        <Draggable key={p.id} draggableId={p.id} index={index}>
+                          {(provided, snapshot) => (
+                            <tr
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`border-b border-border/50 transition-colors ${snapshot.isDragging ? "bg-muted/60 shadow-lg" : "hover:bg-muted/30"}`}
+                            >
+                              <td className="p-4" {...provided.dragHandleProps}>
+                                <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center gap-3">
+                                  {p.image_url ? (
+                                    <img src={p.image_url} alt={p.name} className="w-9 h-9 rounded-lg object-cover border border-border/50" />
+                                  ) : (
+                                    <span className="text-lg">{p.icon}</span>
+                                  )}
+                                  <span className="text-sm font-medium text-foreground">{p.name}</span>
+                                </div>
+                              </td>
+                              <td className="p-4 text-sm text-muted-foreground">{p.category}</td>
+                              <td className="p-4 text-sm text-muted-foreground">{p.duration}</td>
+                              <td className="p-4 text-sm font-mono text-right text-muted-foreground">{p.retail_price.toLocaleString()}</td>
+                              <td className="p-4 text-sm font-mono text-right text-foreground">{p.wholesale_price.toLocaleString()}</td>
+                              <td className="p-4 text-sm font-mono text-center text-foreground">{p.stock}</td>
+                              <td className="p-4 text-center">
+                                <span className={`text-xs font-mono px-2 py-1 rounded-full ${
+                                  cc && cc.available > 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
+                                }`}>
+                                  {cc ? `${cc.available}/${cc.total}` : "0/0"}
+                                </span>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex items-center justify-center gap-2">
+                                  <Link to={`/admin/credentials?product=${p.id}`} className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="View credentials">
+                                    <KeyRound className="w-4 h-4" />
+                                  </Link>
+                                  <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                                    <Pencil className="w-4 h-4" />
+                                  </button>
+                                  <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                        </Draggable>
+                      );
+                    })}
+                    {provided.placeholder}
+                  </tbody>
+                )}
+              </Droppable>
+            </table>
+          </DragDropContext>
         </div>
       </div>
     </div>
