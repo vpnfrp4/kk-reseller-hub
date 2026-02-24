@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, KeyRound, Upload, X, ImageIcon } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
 
 const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
@@ -24,6 +25,8 @@ export default function AdminProducts() {
   const [editing, setEditing] = useState<any>(null);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadStage, setUploadStage] = useState<"idle" | "compressing" | "uploading">("idle");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -111,16 +114,35 @@ export default function AdminProducts() {
     }
 
     setUploading(true);
+    setUploadProgress(0);
+    setUploadStage("compressing");
     const fileName = `${crypto.randomUUID()}.webp`;
 
     try {
+      // Simulate compression progress
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => Math.min(prev + 8, 40));
+      }, 80);
+
       const compressed = await compressImage(file);
+      clearInterval(progressInterval);
+      setUploadProgress(50);
+      setUploadStage("uploading");
+
+      // Simulate upload progress
+      const uploadInterval = setInterval(() => {
+        setUploadProgress((prev) => Math.min(prev + 5, 90));
+      }, 100);
+
       const { error: uploadError } = await supabase.storage
         .from("product-images")
         .upload(fileName, compressed, { contentType: "image/webp", upsert: true });
 
+      clearInterval(uploadInterval);
+
       if (uploadError) throw uploadError;
 
+      setUploadProgress(100);
       const { data: urlData } = supabase.storage
         .from("product-images")
         .getPublicUrl(fileName);
@@ -132,6 +154,8 @@ export default function AdminProducts() {
       toast.error(err.message || "Upload failed");
     } finally {
       setUploading(false);
+      setUploadStage("idle");
+      setUploadProgress(0);
       if (fileInputRef.current) fileInputRef.current.value = "";
     }
   }, []);
@@ -242,11 +266,21 @@ export default function AdminProducts() {
                     }`}
                   >
                     {uploading ? (
-                      <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                      <div className="w-full px-6 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="text-foreground font-medium">
+                            {uploadStage === "compressing" ? "Compressing…" : "Uploading…"}
+                          </span>
+                          <span className="text-muted-foreground font-mono">{uploadProgress}%</span>
+                        </div>
+                        <Progress value={uploadProgress} className="h-1.5" />
+                      </div>
                     ) : (
                       <Upload className="w-5 h-5" />
                     )}
-                    <span className="text-xs">{uploading ? "Uploading..." : isDragging ? "Drop image here" : "Click or drag image here"}</span>
+                    {!uploading && (
+                      <span className="text-xs">{isDragging ? "Drop image here" : "Click or drag image here"}</span>
+                    )}
                   </button>
                 )}
                 <input
