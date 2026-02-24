@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Activity, ShoppingCart, Wallet, Zap } from "lucide-react";
+import { DataCard } from "@/components/shared";
 
 interface FeedEvent {
   id: string;
@@ -126,24 +127,20 @@ export default function LiveActivityFeed() {
   }, [events]);
 
   return (
-    <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-      <div className="flex items-center gap-3 mb-5">
-        <div className="relative">
-          <Activity className="w-5 h-5 text-primary" strokeWidth={1.5} />
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-success animate-pulse" />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold text-foreground">Live Activity</h2>
-          <p className="text-xs text-muted-foreground">Real-time orders and top-ups</p>
-        </div>
-        <div className="ml-auto flex items-center gap-1.5">
+    <DataCard
+      title="Live Activity"
+      description="Real-time orders and top-ups"
+      className="animate-fade-in [animation-delay:0.3s]"
+      actions={
+        <div className="flex items-center gap-1.5">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-success" />
           </span>
           <span className="text-[10px] text-success font-medium uppercase tracking-wider">Live</span>
         </div>
-      </div>
+      }
+    >
 
       {events.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-8">
@@ -210,6 +207,6 @@ export default function LiveActivityFeed() {
           ))}
         </div>
       )}
-    </div>
+    </DataCard>
   );
 }

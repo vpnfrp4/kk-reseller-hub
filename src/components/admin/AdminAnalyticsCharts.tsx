@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { AreaChart, Area, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { format, subDays } from "date-fns";
 import { DollarSign, Users, ShoppingCart, TrendingUp } from "lucide-react";
+import { StatCard, DataCard } from "@/components/shared";
 
 function buildChartDays(rawData: any[], dateKey: string, valueKey: string) {
   const days: Record<string, number> = {};
@@ -112,23 +113,24 @@ export default function AdminAnalyticsCharts() {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="space-y-section">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-default">
         {summaryCards.map((card, i) => (
-          <div key={card.label} className="stat-card animate-fade-in" style={{ animationDelay: `${i * 0.08}s` }}>
-            <div className="flex items-center gap-3 mb-3">
-              <card.icon className={`w-5 h-5 ${card.color}`} />
-              <span className="text-sm text-muted-foreground">{card.label}</span>
-            </div>
-            <p className="text-2xl font-bold font-mono text-foreground">{card.value}</p>
-          </div>
+          <StatCard
+            key={card.label}
+            label={card.label}
+            value={card.value}
+            icon={card.icon}
+            iconColor={card.color}
+            animate
+            delay={i * 0.08}
+          />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-default">
         {/* Revenue Chart */}
-        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.3s" }}>
-          <h3 className="font-semibold text-foreground mb-4">Revenue (Last 30 Days)</h3>
+        <DataCard title="Revenue (Last 30 Days)" className="animate-fade-in [animation-delay:0.3s]">
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={revenueChart} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -146,11 +148,10 @@ export default function AdminAnalyticsCharts() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </DataCard>
 
         {/* Sales Chart */}
-        <div className="glass-card p-6 animate-fade-in" style={{ animationDelay: "0.35s" }}>
-          <h3 className="font-semibold text-foreground mb-4">Sales Volume (Last 30 Days)</h3>
+        <DataCard title="Sales Volume (Last 30 Days)" className="animate-fade-in [animation-delay:0.35s]">
           <div className="h-[220px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={salesChart} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -162,11 +163,10 @@ export default function AdminAnalyticsCharts() {
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </DataCard>
 
         {/* New Users Chart */}
-        <div className="glass-card p-6 animate-fade-in lg:col-span-2" style={{ animationDelay: "0.4s" }}>
-          <h3 className="font-semibold text-foreground mb-4">New Users (Last 30 Days)</h3>
+        <DataCard title="New Users (Last 30 Days)" className="animate-fade-in [animation-delay:0.4s] lg:col-span-2">
           <div className="h-[200px]">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={signupsChart} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
@@ -178,7 +178,7 @@ export default function AdminAnalyticsCharts() {
               </LineChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </DataCard>
       </div>
     </div>
   );
