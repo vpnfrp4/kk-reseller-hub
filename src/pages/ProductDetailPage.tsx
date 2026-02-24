@@ -4,15 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Package, ShoppingCart, Copy, CheckCircle2 } from "lucide-react";
+import { Package, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
+import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
 
 interface PurchaseResult {
   order_id: string;
@@ -28,7 +24,9 @@ export default function ProductDetailPage() {
   const navigate = useNavigate();
   const [purchasing, setPurchasing] = useState(false);
   const [result, setResult] = useState<PurchaseResult | null>(null);
-  const [copied, setCopied] = useState(false);
+  
+  const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
+  const [agreedTerms, setAgreedTerms] = useState(false);
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -55,7 +53,7 @@ export default function ProductDetailPage() {
     return msg;
   };
 
-  const handleBuy = async () => {
+  const handleBuyClick = () => {
     if (!product) return;
     if ((profile?.balance || 0) < product.wholesale_price) {
       toast.error("လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပေးပါရန်။ (Insufficient Balance)");
@@ -65,11 +63,16 @@ export default function ProductDetailPage() {
       toast.error("လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)");
       return;
     }
+    setConfirmProduct(product);
+    setAgreedTerms(false);
+  };
 
+  const handleBuy = async (prod: any) => {
+    setConfirmProduct(null);
     setPurchasing(true);
     try {
       const { data, error } = await supabase.functions.invoke("purchase", {
-        body: { product_id: product.id },
+        body: { product_id: prod.id },
       });
       if (error) throw new Error(error.message);
       if (data && !data.success) {
@@ -91,11 +94,6 @@ export default function ProductDetailPage() {
     }
   };
 
-  const copyCredentials = (creds: string) => {
-    navigator.clipboard.writeText(creds);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   if (isLoading) {
     return (
@@ -189,7 +187,7 @@ export default function ProductDetailPage() {
 
         <Button
           className="w-full btn-glow gap-2 h-12 text-base"
-          onClick={handleBuy}
+          onClick={handleBuyClick}
           disabled={product.stock === 0 || purchasing}
         >
           {purchasing ? (
@@ -208,46 +206,18 @@ export default function ProductDetailPage() {
         </Button>
       </div>
 
-      {/* Purchase Success Dialog */}
-      <Dialog open={!!result} onOpenChange={() => setResult(null)}>
-        <DialogContent className="bg-card border-border/50 max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-foreground flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-success" />
-              Purchase Successful!
-            </DialogTitle>
-          </DialogHeader>
-          {result && (
-            <div className="space-y-4">
-              <div className="stat-card">
-                <p className="text-sm text-muted-foreground mb-1">Product</p>
-                <p className="text-foreground font-semibold">{result.product_name}</p>
-              </div>
-              <div className="stat-card">
-                <p className="text-sm text-muted-foreground mb-2">Account Credentials</p>
-                <div className="flex items-center gap-2">
-                  <code className="flex-1 text-sm font-mono gold-text bg-primary/10 border border-primary/20 px-3 py-2 rounded-lg break-all">
-                    {result.credentials}
-                  </code>
-                  <button
-                    onClick={() => copyCredentials(result.credentials)}
-                    className="p-2 rounded-lg bg-muted hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors duration-200"
-                  >
-                    {copied ? <CheckCircle2 className="w-4 h-4 text-success" /> : <Copy className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Amount Charged</span>
-                <span className="font-mono font-semibold gold-text">{result.price.toLocaleString()} MMK</span>
-              </div>
-              <p className="text-xs text-muted-foreground text-center">
-                These credentials are also saved in your Order History.
-              </p>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      <PurchaseConfirmModal
+        product={confirmProduct}
+        agreedTerms={agreedTerms}
+        onAgreedTermsChange={setAgreedTerms}
+        onConfirm={handleBuy}
+        onClose={() => setConfirmProduct(null)}
+      />
+
+      <PurchaseSuccessModal
+        result={result}
+        onClose={() => setResult(null)}
+      />
     </div>
   );
 }
