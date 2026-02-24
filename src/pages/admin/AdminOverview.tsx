@@ -277,7 +277,7 @@ export default function AdminOverview() {
             const pAvailPct = pTotal > 0 ? (p.available / pTotal) * 100 : 0;
             return (
               <div key={p.name} className="flex items-center gap-3">
-                <span className="text-lg w-7 text-center">{p.icon}</span>
+                <span className="text-lg w-7 text-center shrink-0">{p.icon}</span>
                 <span className="text-sm text-foreground font-medium min-w-[120px]">{p.name}</span>
                 <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden">
                   <div

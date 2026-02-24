@@ -141,13 +141,13 @@ export default function AdminOrders() {
   const somePageSelected = pageIds.some((id: string) => selectedIds.has(id));
 
   const statusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      delivered: "bg-success/10 text-success",
-      pending: "bg-warning/10 text-warning",
-      cancelled: "bg-destructive/10 text-destructive",
+    const badgeClass: Record<string, string> = {
+      delivered: "badge-delivered",
+      pending: "badge-pending",
+      cancelled: "badge-cancelled",
     };
     return (
-      <span className={`text-[11px] px-2.5 py-1 rounded-full font-medium ${styles[status] || "bg-muted text-muted-foreground"}`}>
+      <span className={`text-[11px] px-2.5 py-1 rounded-full ${badgeClass[status] || "bg-muted text-muted-foreground"}`}>
         {status}
       </span>
     );
@@ -219,7 +219,7 @@ export default function AdminOrders() {
       {/* Table */}
       <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s" }}>
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="premium-table">
             <thead>
               <tr className="border-b border-border">
                 <th className="p-4 w-10">

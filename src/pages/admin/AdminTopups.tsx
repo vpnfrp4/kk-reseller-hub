@@ -186,7 +186,7 @@ export default function AdminTopups() {
         <h3 className="text-sm font-semibold text-muted-foreground">Processed</h3>
         <div className="glass-card overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full">
+            <table className="premium-table">
               <thead>
                 <tr className="border-b border-border">
                   <th className="text-left text-xs font-medium text-muted-foreground p-4">Reseller</th>
@@ -205,8 +205,8 @@ export default function AdminTopups() {
                     <td className="p-4 text-sm font-mono text-right text-foreground">+{tx.amount.toLocaleString()}</td>
                     <td className="p-4 text-sm text-muted-foreground">{tx.method}</td>
                     <td className="p-4 text-sm text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</td>
-                    <td className="p-4 text-center">
-                      <span className={`text-xs px-2 py-1 rounded-full ${tx.status === "approved" ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
+                     <td className="p-4 text-center">
+                      <span className={`text-[11px] px-2.5 py-1 rounded-full ${tx.status === "approved" ? "badge-delivered" : "badge-cancelled"}`}>
                         {tx.status}
                       </span>
                     </td>
