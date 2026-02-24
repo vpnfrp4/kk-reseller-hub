@@ -13,6 +13,7 @@ import { useState } from "react";
 import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
 import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
 import ImportantNoticeModal from "@/components/products/ImportantNoticeModal";
+import StructuredDescription from "@/components/products/StructuredDescription";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
 import { cn } from "@/lib/utils";
 import FulfillmentModeSelector from "@/components/products/FulfillmentModeSelector";
@@ -490,10 +491,7 @@ export default function ProductDetailPage() {
 
       {/* ═══ DESCRIPTION ═══ */}
       {product.description && (
-        <section className="rounded-xl border border-border bg-card p-6">
-          <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-2">Description</p>
-          <p className="text-sm text-muted-foreground leading-relaxed">{product.description}</p>
-        </section>
+        <StructuredDescription description={product.description} />
       )}
 
       {/* Modals */}
