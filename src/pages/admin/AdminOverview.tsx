@@ -303,8 +303,13 @@ export default function AdminOverview() {
             </Button>
           </Link>
           <Link to="/admin/topups">
-            <Button size="sm" variant="outline" className="btn-glass gap-1.5 h-8 text-xs">
+            <Button size="sm" variant="outline" className="btn-glass gap-1.5 h-8 text-xs relative">
               <CheckCircle2 className="w-3.5 h-3.5" />Approve Top-ups
+              {(stats?.pendingTopups || 0) > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1 animate-pulse">
+                  {stats.pendingTopups}
+                </span>
+              )}
             </Button>
           </Link>
           <Link to="/admin/orders">
