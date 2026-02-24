@@ -137,6 +137,13 @@ export default function ProductDetailPage() {
         continue;
       }
       if (value) {
+        if (field.field_type === "select") {
+          const opts = Array.isArray(field.options) ? field.options : [];
+          if (opts.length > 0 && !opts.includes(value)) {
+            errors[field.field_name] = "မှန်ကန်သောရွေးချယ်မှု ရွေးပါ";
+            continue;
+          }
+        }
         if (field.min_length && value.length < field.min_length) {
           errors[field.field_name] = `အနည်းဆုံး ${field.min_length} လုံး`;
           continue;
