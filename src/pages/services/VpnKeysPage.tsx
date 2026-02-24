@@ -19,6 +19,7 @@ const specs = [
   { label: "Delivery Method", value: "Instant — Key in Dashboard" },
   { label: "Warranty", value: "Replacement if key fails on first activation" },
   { label: "Multi-Device", value: "Yes — Plans cover multiple devices" },
+  { label: "Pricing Tiers", value: "Up to 35% off on bulk orders — tiered wholesale discounts" },
 ];
 
 const notice = "VPN keys are region-sensitive. Some keys may only activate in specific regions depending on the provider. Verify compatibility with your customer's location before reselling. Expired or previously activated keys are not eligible for replacement.";
