@@ -267,8 +267,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ═══════════ WHY CHOOSE US ═══════════ */}
-        <section id="why" className="py-16 sm:py-24">
+        {/* ═══════════ WHY CHOOSE US (visually hidden, SEO indexed) ═══════════ */}
+        <section id="why" className="sr-only" aria-hidden="false">
           <div className="mx-auto max-w-4xl px-4 sm:px-6">
             <h2 className="text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               Why Choose KKTech Reseller Platform?
@@ -311,8 +311,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ═══════════ SEO CONTENT BLOCK ═══════════ */}
-        <section className="py-16 sm:py-24">
+        {/* ═══════════ SEO CONTENT BLOCK (visually hidden, SEO indexed) ═══════════ */}
+        <section className="sr-only" aria-hidden="false">
           <div className="prose prose-sm mx-auto max-w-3xl px-4 text-muted-foreground sm:px-6 [&_h2]:text-foreground [&_h3]:text-foreground [&_strong]:text-foreground">
             <h2 className="text-2xl font-bold tracking-tight">
               Myanmar's Trusted GSM Unlock Server &amp; Digital Reseller Hub
@@ -378,8 +378,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ═══════════ FAQ ═══════════ */}
-        <section id="faq" className="bg-muted/30 py-16 sm:py-24">
+        {/* ═══════════ FAQ (visually hidden, SEO indexed) ═══════════ */}
+        <section id="faq" className="sr-only" aria-hidden="false">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
             <h2 className="mb-8 text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               Frequently Asked Questions
@@ -403,8 +403,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ═══════════ CTA ═══════════ */}
-        <section className="py-16 sm:py-24">
+        {/* ═══════════ CTA (visually hidden, SEO indexed) ═══════════ */}
+        <section className="sr-only" aria-hidden="false">
           <div className="mx-auto max-w-2xl px-4 text-center sm:px-6">
             <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               Start Reselling Today
