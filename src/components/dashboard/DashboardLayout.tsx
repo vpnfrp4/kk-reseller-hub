@@ -12,6 +12,7 @@ import {
   Menu,
   Crown,
   ShieldCheck,
+  ArrowLeftRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationSettings from "@/components/NotificationSettings";
@@ -51,24 +52,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         />
       )}
 
+      {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card/90 backdrop-blur-xl border-r border-border/50 flex flex-col transition-transform duration-300 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card/60 backdrop-blur-2xl border-r border-border/40 flex flex-col transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="p-6 border-b border-border/50">
-          <Link to="/dashboard" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center btn-glow">
-              <Crown className="w-5 h-5 text-primary-foreground" />
+        {/* Logo */}
+        <div className="p-6 border-b border-border/30">
+          <Link to="/dashboard" className="flex items-center gap-3 group">
+            <div
+              className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden"
+              style={{ background: "var(--gradient-gold)" }}
+            >
+              <Crown className="w-5 h-5 text-primary-foreground relative z-10" />
             </div>
             <div>
               <span className="text-lg font-bold text-foreground tracking-tight">KKTech</span>
-              <span className="text-[10px] block text-primary font-medium uppercase tracking-widest">Reseller</span>
+              <span className="text-[10px] block gold-text font-bold uppercase tracking-[0.2em]">Reseller</span>
             </div>
           </Link>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        {/* Navigation */}
+        <nav className="flex-1 p-3 space-y-0.5 mt-2">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
             return (
@@ -76,38 +83,40 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   active
                     ? "bg-primary/10 text-primary nav-active-indicator"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                 }`}
               >
-                <item.icon className={`w-5 h-5 ${active ? "text-primary" : ""}`} />
+                <item.icon
+                  className={`w-[18px] h-[18px] ${active ? "text-primary" : ""}`}
+                  strokeWidth={active ? 2 : 1.5}
+                />
                 {item.label}
-                {active && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary animate-pulse-glow" />
-                )}
               </Link>
             );
           })}
         </nav>
 
-        {isAdmin && (
-          <div className="px-4 pb-2">
+        {/* Footer */}
+        <div className="p-3 border-t border-border/30 space-y-0.5">
+          {isAdmin && (
             <Link
               to="/admin"
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-destructive bg-destructive/10 hover:bg-destructive/20 transition-colors duration-200"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all duration-200"
             >
-              <ShieldCheck className="w-5 h-5" />
+              <ArrowLeftRight className="w-[18px] h-[18px]" strokeWidth={1.5} />
               Admin Panel
             </Link>
-          </div>
-        )}
+          )}
 
-        <div className="p-4 border-t border-border/50">
-          <div className="flex items-center gap-3 px-3 py-2 mb-2">
-            <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold btn-glow">
+          <div className="flex items-center gap-3 px-3 py-2 mt-2">
+            <div
+              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
+              style={{ background: "var(--gradient-gold)", color: "hsl(var(--primary-foreground))" }}
+            >
               {profile?.name?.charAt(0) || "R"}
             </div>
             <div className="flex-1 min-w-0">
@@ -115,33 +124,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <p className="text-xs text-muted-foreground truncate">{profile?.email}</p>
             </div>
           </div>
+
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-destructive"
+            className="w-full justify-start text-muted-foreground hover:text-destructive h-10 px-4"
             onClick={handleLogout}
           >
-            <LogOut className="w-4 h-4 mr-2" />
+            <LogOut className="w-[18px] h-[18px] mr-3" strokeWidth={1.5} />
             Sign Out
           </Button>
         </div>
       </aside>
 
+      {/* Main Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 border-b border-border/50 flex items-center justify-between px-4 lg:px-8 bg-card/50 backdrop-blur-xl sticky top-0 z-30">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-
-          <div className="hidden lg:block">
-            <h2 className="text-lg font-semibold text-foreground">
-              {navItems.find((i) => i.path === location.pathname)?.label || "Dashboard"}
-            </h2>
+        {/* Header */}
+        <header className="h-16 border-b border-border/30 flex items-center justify-between px-4 lg:px-8 bg-card/40 backdrop-blur-2xl sticky top-0 z-30 admin-header">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+            >
+              <Menu className="w-5 h-5" strokeWidth={1.5} />
+            </button>
+            <div className="hidden lg:block">
+              <h2 className="text-base font-semibold text-foreground leading-tight">
+                {navItems.find((i) => i.path === location.pathname)?.label || "Dashboard"}
+              </h2>
+            </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <ThemeToggle />
             <NotificationSettings />
             <div className="glass-card !p-2 !px-4 flex items-center gap-2 !rounded-full">
@@ -153,11 +166,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 overflow-auto">
-          {children}
-        </main>
+        <main className="flex-1 p-4 lg:p-8 overflow-auto">{children}</main>
 
-        <footer className="border-t border-border/50 px-4 lg:px-8 py-3 text-center">
+        <footer className="border-t border-border/30 px-4 lg:px-8 py-3 text-center">
           <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors duration-200">
             Terms and Conditions
           </Link>

@@ -257,32 +257,33 @@ export default function WalletPage() {
         </div>
 
         <div className="hidden md:block overflow-x-auto">
-          <table className="w-full">
+          <table className="premium-table">
             <thead>
-              <tr className="border-b border-border/50">
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Date</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Description</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Method</th>
-                <th className="text-right text-xs font-medium text-muted-foreground p-4">Amount</th>
-                <th className="text-center text-xs font-medium text-muted-foreground p-4">Status</th>
+              <tr>
+                <th className="p-4">Date</th>
+                <th className="p-4">Description</th>
+                <th className="p-4">Method</th>
+                <th className="text-right p-4">Amount</th>
+                <th className="text-center p-4">Status</th>
               </tr>
             </thead>
             <tbody>
               {(!transactions || transactions.length === 0) ? (
                 <tr><td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">No transactions yet</td></tr>
               ) : transactions.map((tx: any) => (
-                <tr key={tx.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors duration-200">
+                <tr key={tx.id}>
                   <td className="p-4 text-sm text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</td>
                   <td className="p-4 text-sm font-medium text-foreground">{tx.description}</td>
                   <td className="p-4 text-sm text-muted-foreground">{tx.method || "—"}</td>
                   <td className={`p-4 text-sm font-mono font-semibold text-right ${tx.type === "topup" ? "text-success" : "text-foreground"}`}>
                     {tx.type === "topup" ? "+" : "-"}{Math.abs(tx.amount).toLocaleString()}
                   </td>
-                  <td className="p-4">
-                    <div className="flex items-center justify-center gap-1.5">
-                      {statusIcon(tx.status)}
-                      <span className="text-xs capitalize text-muted-foreground">{tx.status}</span>
-                    </div>
+                  <td className="p-4 text-center">
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                      tx.status === "approved" ? "badge-delivered" :
+                      tx.status === "pending" ? "badge-pending" :
+                      "badge-cancelled"
+                    }`}>{tx.status}</span>
                   </td>
                 </tr>
               ))}

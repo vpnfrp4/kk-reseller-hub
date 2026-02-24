@@ -119,7 +119,7 @@ export default function OrdersPage() {
             <h1 className="text-2xl font-bold text-foreground">Order History</h1>
             <p className="text-muted-foreground text-sm">View all your previous purchases</p>
           </div>
-          <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2 border-primary/20 hover:border-primary/40">
+          <Button onClick={exportCSV} size="sm" className="gap-2 btn-glass">
             <Download className="w-4 h-4 text-primary" />
             Export CSV
           </Button>
@@ -196,15 +196,15 @@ export default function OrdersPage() {
       {/* Table */}
       <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.1s" }}>
         <div className="hidden md:block overflow-x-auto">
-          <table className="w-full">
+          <table className="premium-table">
             <thead>
-              <tr className="border-b border-border/50">
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Order ID</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Product</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Credentials</th>
-                <th className="text-right text-xs font-medium text-muted-foreground p-4">Price</th>
-                <th className="text-left text-xs font-medium text-muted-foreground p-4">Date</th>
-                <th className="text-center text-xs font-medium text-muted-foreground p-4">Status</th>
+              <tr>
+                <th className="p-4">Order ID</th>
+                <th className="p-4">Product</th>
+                <th className="p-4">Credentials</th>
+                <th className="text-right p-4">Price</th>
+                <th className="p-4">Date</th>
+                <th className="text-center p-4">Status</th>
               </tr>
             </thead>
             <tbody>
@@ -213,12 +213,12 @@ export default function OrdersPage() {
                   {hasFilters ? "No orders match your filters" : "No orders yet"}
                 </td></tr>
               ) : orders.map((order: any) => (
-                <tr key={order.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors duration-200">
+                <tr key={order.id}>
                   <td className="p-4 text-sm font-mono text-muted-foreground">{order.id.slice(0, 8)}</td>
                   <td className="p-4 text-sm font-medium text-foreground">{order.product_name}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      <code className="text-xs font-mono text-muted-foreground bg-muted/50 px-2 py-1 rounded">
+                      <code className="text-xs font-mono text-muted-foreground bg-primary/5 border border-primary/10 px-2.5 py-1 rounded-md">
                         {order.credentials}
                       </code>
                       <button
@@ -236,7 +236,11 @@ export default function OrdersPage() {
                   <td className="p-4 text-sm font-mono text-right gold-text font-semibold">{order.price.toLocaleString()} MMK</td>
                   <td className="p-4 text-sm text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</td>
                   <td className="p-4 text-center">
-                    <span className="text-xs px-2 py-1 rounded-full bg-success/10 text-success">{order.status}</span>
+                    <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
+                      order.status === "delivered" ? "badge-delivered" :
+                      order.status === "pending" ? "badge-pending" :
+                      "badge-cancelled"
+                    }`}>{order.status}</span>
                   </td>
                 </tr>
               ))}
@@ -253,10 +257,14 @@ export default function OrdersPage() {
             <div key={order.id} className="p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium text-foreground">{order.product_name}</p>
-                <span className="text-xs px-2 py-0.5 rounded-full bg-success/10 text-success">{order.status}</span>
+                <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
+                  order.status === "delivered" ? "badge-delivered" :
+                  order.status === "pending" ? "badge-pending" :
+                  "badge-cancelled"
+                }`}>{order.status}</span>
               </div>
               <div className="flex items-center gap-2">
-                <code className="text-xs font-mono text-muted-foreground bg-muted/50 px-2 py-1 rounded flex-1 truncate">
+                <code className="text-xs font-mono text-muted-foreground bg-primary/5 border border-primary/10 px-2.5 py-1 rounded-md flex-1 truncate">
                   {order.credentials}
                 </code>
                 <button
