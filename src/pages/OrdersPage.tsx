@@ -212,8 +212,8 @@ export default function OrdersPage() {
                 <tr><td colSpan={6} className="p-8 text-center text-sm text-muted-foreground">
                   {hasFilters ? "No orders match your filters" : "No orders yet"}
                 </td></tr>
-              ) : orders.map((order: any) => (
-                <tr key={order.id}>
+              ) : orders.map((order: any, i: number) => (
+                <tr key={order.id} className="opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.04}s` }}>
                   <td className="p-4 text-sm font-mono text-muted-foreground">{order.id.slice(0, 8)}</td>
                   <td className="p-4 text-sm font-medium text-foreground">{order.product_name}</td>
                   <td className="p-4">
