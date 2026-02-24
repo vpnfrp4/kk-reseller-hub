@@ -3,6 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Zap, User, Smartphone, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -119,27 +126,55 @@ export default function FulfillmentModeSelector({
                 {field.field_name}
                 {field.required && <span className="text-destructive ml-0.5">*</span>}
               </Label>
-              <Input
-                type={field.field_type === "email" ? "email" : field.field_type === "number" ? "number" : "text"}
-                value={customFieldValues[field.field_name] || ""}
-                onChange={(e) => onCustomFieldChange(field.field_name, e.target.value)}
-                placeholder={`Enter ${field.field_name.toLowerCase()}`}
-                minLength={field.min_length || undefined}
-                maxLength={field.max_length || undefined}
-                className={cn(
-                  "bg-muted/50 border-border",
-                  fieldErrors[field.field_name] && "border-destructive"
-                )}
-              />
-              {fieldErrors[field.field_name] && (
-                <p className="text-[11px] text-destructive">{fieldErrors[field.field_name]}</p>
-              )}
-              {(field.min_length || field.max_length) && (
-                <p className="text-[10px] text-muted-foreground">
-                  {field.min_length ? `Min: ${field.min_length} chars` : ""}
-                  {field.min_length && field.max_length ? " · " : ""}
-                  {field.max_length ? `Max: ${field.max_length} chars` : ""}
-                </p>
+              {field.field_type === "select" && Array.isArray(field.options) && field.options.length > 0 ? (
+                <>
+                  <Select
+                    value={customFieldValues[field.field_name] || ""}
+                    onValueChange={(val) => onCustomFieldChange(field.field_name, val)}
+                  >
+                    <SelectTrigger
+                      className={cn(
+                        "bg-muted/50 border-border",
+                        fieldErrors[field.field_name] && "border-destructive"
+                      )}
+                    >
+                      <SelectValue placeholder={`${field.field_name} ရွေးပါ`} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border z-50">
+                      {(field.options as string[]).map((opt: string) => (
+                        <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {fieldErrors[field.field_name] && (
+                    <p className="text-[11px] text-destructive">{fieldErrors[field.field_name]}</p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <Input
+                    type={field.field_type === "email" ? "email" : field.field_type === "number" ? "number" : "text"}
+                    value={customFieldValues[field.field_name] || ""}
+                    onChange={(e) => onCustomFieldChange(field.field_name, e.target.value)}
+                    placeholder={`Enter ${field.field_name.toLowerCase()}`}
+                    minLength={field.min_length || undefined}
+                    maxLength={field.max_length || undefined}
+                    className={cn(
+                      "bg-muted/50 border-border",
+                      fieldErrors[field.field_name] && "border-destructive"
+                    )}
+                  />
+                  {fieldErrors[field.field_name] && (
+                    <p className="text-[11px] text-destructive">{fieldErrors[field.field_name]}</p>
+                  )}
+                  {(field.min_length || field.max_length) && (
+                    <p className="text-[10px] text-muted-foreground">
+                      {field.min_length ? `Min: ${field.min_length} chars` : ""}
+                      {field.min_length && field.max_length ? " · " : ""}
+                      {field.max_length ? `Max: ${field.max_length} chars` : ""}
+                    </p>
+                  )}
+                </>
               )}
             </div>
           ))}
