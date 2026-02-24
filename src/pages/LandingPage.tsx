@@ -23,6 +23,7 @@ import {
   X,
   Send,
   Phone,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,10 +35,10 @@ import {
 
 /* ───────── TRUST BADGES ───────── */
 const trustBadges = [
-  { icon: Zap, label: "Instant Delivery" },
-  { icon: BarChart3, label: "Wholesale Pricing" },
-  { icon: Clock, label: "24/7 Processing" },
-  { icon: Shield, label: "Secure Wallet" },
+  { icon: Zap, label: "Instant Delivery", desc: "Most orders processed in seconds" },
+  { icon: BarChart3, label: "Wholesale Pricing", desc: "Volume-based tier discounts" },
+  { icon: Clock, label: "24/7 Processing", desc: "Automated order fulfillment" },
+  { icon: Shield, label: "Secure Wallet", desc: "Protected balance with fraud detection" },
 ];
 
 /* ───────── SERVICES ───────── */
@@ -149,7 +150,7 @@ function FaqJsonLd() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   LANDING PAGE
+   LANDING PAGE — Modern SaaS Design
    ═══════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [contactOpen, setContactOpen] = useState(false);
@@ -159,24 +160,24 @@ export default function LandingPage() {
       <FaqJsonLd />
 
       {/* ─── NAV ─── */}
-      <header className="sticky top-0 z-50 border-b border-border bg-card/90 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
-          <span className="text-lg font-bold tracking-tight text-foreground">
+      <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
+          <Link to="/" className="text-xl font-extrabold tracking-tight text-foreground">
             KK<span className="text-primary">Tech</span>
-          </span>
-          <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
-            <a href="#services" className="hover:text-foreground transition-colors">Services</a>
-            <Link to="/services/imei-unlock" className="hover:text-foreground transition-colors">IMEI Unlock</Link>
-            <Link to="/services/vpn-keys" className="hover:text-foreground transition-colors">VPN Keys</Link>
-            <Link to="/services/capcut-pro" className="hover:text-foreground transition-colors">CapCut Pro</Link>
-            <Link to="/tools/imei-check" className="hover:text-foreground transition-colors">IMEI Checker</Link>
+          </Link>
+          <nav className="hidden items-center gap-8 text-[13px] font-medium text-muted-foreground md:flex">
+            <a href="#services" className="transition-colors hover:text-foreground">Services</a>
+            <Link to="/services/imei-unlock" className="transition-colors hover:text-foreground">IMEI Unlock</Link>
+            <Link to="/services/vpn-keys" className="transition-colors hover:text-foreground">VPN Keys</Link>
+            <Link to="/services/capcut-pro" className="transition-colors hover:text-foreground">CapCut Pro</Link>
+            <Link to="/tools/imei-check" className="transition-colors hover:text-foreground">IMEI Checker</Link>
           </nav>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" asChild>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" className="text-[13px]" asChild>
               <Link to="/login">Log In</Link>
             </Button>
-            <Button size="sm" asChild>
-              <Link to="/login">Register</Link>
+            <Button size="sm" className="text-[13px] px-5" asChild>
+              <Link to="/login">Get Started</Link>
             </Button>
           </div>
         </div>
@@ -184,40 +185,59 @@ export default function LandingPage() {
 
       <main>
         {/* ═══════════ HERO ═══════════ */}
-        <section className="relative overflow-hidden bg-background py-20 sm:py-28">
-          {/* subtle radial glow */}
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-            <div className="h-[500px] w-[500px] rounded-full bg-primary/5 blur-[120px]" />
+        <section className="relative overflow-hidden bg-background pb-16 pt-20 sm:pb-28 sm:pt-32">
+          {/* Background decoration */}
+          <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2">
+            <div className="h-[600px] w-[600px] rounded-full bg-primary/[0.04] blur-[100px]" />
+          </div>
+          <div className="pointer-events-none absolute -bottom-20 -right-20 hidden sm:block">
+            <div className="h-[300px] w-[300px] rounded-full bg-primary/[0.03] blur-[80px]" />
           </div>
 
-          <div className="relative mx-auto max-w-4xl px-4 text-center sm:px-6">
-            <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-5xl">
-              GSM Unlock &amp; Digital Reseller Platform in Myanmar
+          <div className="relative mx-auto max-w-3xl px-5 text-center sm:px-8">
+            {/* Badge */}
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] px-4 py-1.5">
+              <div className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-xs font-medium text-primary">Trusted by 500+ Myanmar Resellers</span>
+            </div>
+
+            <h1 className="text-[2.25rem] font-extrabold leading-[1.15] tracking-tight text-foreground sm:text-[3.25rem]">
+              GSM Unlock &amp; Digital
+              <br className="hidden sm:block" />
+              {" "}Reseller Platform
+              <span className="text-primary"> in Myanmar</span>
             </h1>
-            <p className="mx-auto mt-5 max-w-2xl text-base text-muted-foreground sm:text-lg">
-              Instant IMEI Services, VPN Accounts &amp; Digital Tools at Wholesale Pricing
+
+            <p className="mx-auto mt-6 max-w-xl text-[15px] leading-relaxed text-muted-foreground sm:text-base">
+              Instant IMEI Services, VPN Accounts &amp; Digital Tools at Wholesale Pricing.
+              Built for resellers who want speed, transparency, and profit.
             </p>
 
-            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <Button size="lg" asChild>
+            <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
+              <Button size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
                 <Link to="/login">
-                  Register as Reseller <ChevronRight className="ml-1 h-4 w-4" />
+                  Register as Reseller <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button variant="outline" size="lg" asChild>
+              <Button variant="outline" size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
                 <a href="#services">View Services</a>
               </Button>
             </div>
+          </div>
 
-            {/* Trust Badges */}
-            <div className="mt-12 grid grid-cols-2 gap-4 sm:grid-cols-4">
+          {/* Trust Badges */}
+          <div className="relative mx-auto mt-20 max-w-4xl px-5 sm:px-8">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
               {trustBadges.map((b) => (
                 <div
                   key={b.label}
-                  className="flex flex-col items-center gap-2 rounded-card border border-border bg-card p-4 shadow-luxury"
+                  className="group flex flex-col items-center gap-2.5 rounded-2xl border border-border/60 bg-card p-5 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-shadow hover:shadow-[0_4px_12px_rgba(0,0,0,0.06)]"
                 >
-                  <b.icon className="h-6 w-6 text-primary" />
-                  <span className="text-xs font-semibold text-foreground">{b.label}</span>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/[0.08] transition-colors group-hover:bg-primary/[0.12]">
+                    <b.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <span className="text-sm font-semibold text-foreground">{b.label}</span>
+                  <span className="text-[11px] leading-snug text-muted-foreground">{b.desc}</span>
                 </div>
               ))}
             </div>
@@ -225,44 +245,58 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ SERVICES ═══════════ */}
-        <section id="services" className="bg-muted/30 py-16 sm:py-24">
-          <div className="mx-auto max-w-6xl px-4 sm:px-6">
-            <h2 className="text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              Our Unlock &amp; Digital Services
-            </h2>
+        <section id="services" className="border-t border-border/40 bg-muted/20 py-20 sm:py-28">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">Services</p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-[1.875rem]">
+                Our Unlock &amp; Digital Services
+              </h2>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Everything you need to run a profitable digital reselling business.
+              </p>
+            </div>
 
             {/* GSM */}
-            <h3 className="mb-4 mt-12 text-lg font-semibold text-foreground">
-              GSM &amp; IMEI Services
-            </h3>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {gsmServices.map((s) => (
-                <article
-                  key={s.title}
-                  className="flex flex-col gap-3 rounded-card border border-border bg-card p-5 shadow-luxury hover-lift"
-                >
-                  <s.icon className="h-8 w-8 text-primary" />
-                  <h4 className="font-semibold text-foreground">{s.title}</h4>
-                  <p className="text-sm leading-relaxed text-muted-foreground">{s.text}</p>
-                </article>
-              ))}
+            <div className="mt-14">
+              <h3 className="mb-5 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                GSM &amp; IMEI Services
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {gsmServices.map((s) => (
+                  <article
+                    key={s.title}
+                    className="group flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:border-primary/20"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/[0.08] transition-colors group-hover:bg-primary/[0.12]">
+                      <s.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <h4 className="text-[15px] font-semibold text-foreground">{s.title}</h4>
+                    <p className="text-[13px] leading-relaxed text-muted-foreground">{s.text}</p>
+                  </article>
+                ))}
+              </div>
             </div>
 
             {/* Digital */}
-            <h3 className="mb-4 mt-12 text-lg font-semibold text-foreground">
-              Digital Accounts Wholesale
-            </h3>
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-              {digitalServices.map((s) => (
-                <article
-                  key={s.title}
-                  className="flex flex-col gap-3 rounded-card border border-border bg-card p-5 shadow-luxury hover-lift"
-                >
-                  <s.icon className="h-8 w-8 text-primary" />
-                  <h4 className="font-semibold text-foreground">{s.title}</h4>
-                  <p className="text-sm leading-relaxed text-muted-foreground">{s.text}</p>
-                </article>
-              ))}
+            <div className="mt-14">
+              <h3 className="mb-5 text-xs font-semibold uppercase tracking-[0.15em] text-muted-foreground">
+                Digital Accounts Wholesale
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                {digitalServices.map((s) => (
+                  <article
+                    key={s.title}
+                    className="group flex flex-col gap-3 rounded-2xl border border-border/60 bg-card p-6 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all hover:shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:border-primary/20"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/[0.08] transition-colors group-hover:bg-primary/[0.12]">
+                      <s.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <h4 className="text-[15px] font-semibold text-foreground">{s.title}</h4>
+                    <p className="text-[13px] leading-relaxed text-muted-foreground">{s.text}</p>
+                  </article>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -275,10 +309,7 @@ export default function LandingPage() {
             </h2>
             <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {reasons.map((r) => (
-                <div
-                  key={r.text}
-                  className="flex items-start gap-3 rounded-card border border-border bg-card p-5 shadow-luxury"
-                >
+                <div key={r.text} className="flex items-start gap-3 rounded-card border border-border bg-card p-5 shadow-luxury">
                   <r.icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
                   <span className="text-sm font-medium text-foreground">{r.text}</span>
                 </div>
@@ -288,25 +319,42 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ HOW IT WORKS ═══════════ */}
-        <section id="how" className="bg-muted/30 py-16 sm:py-24">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6">
-            <h2 className="text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              How Our Reseller System Works
-            </h2>
-            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <section id="how" className="py-20 sm:py-28">
+          <div className="mx-auto max-w-4xl px-5 sm:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-primary">How It Works</p>
+              <h2 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-[1.875rem]">
+                Start Reselling in 4 Simple Steps
+              </h2>
+            </div>
+
+            <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {steps.map((s, i) => (
                 <div
                   key={s.title}
-                  className="relative flex flex-col items-center gap-3 rounded-card border border-border bg-card p-6 text-center shadow-luxury"
+                  className="relative flex flex-col items-center gap-4 rounded-2xl border border-border/60 bg-card px-5 pb-6 pt-8 text-center shadow-[0_1px_3px_rgba(0,0,0,0.04)]"
                 >
-                  <span className="absolute -top-3 left-4 rounded-full bg-primary px-2.5 py-0.5 text-xs font-bold text-primary-foreground">
+                  {/* Step number */}
+                  <div className="absolute -top-3.5 left-5 flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
                     {i + 1}
-                  </span>
-                  <s.icon className="h-8 w-8 text-primary" />
-                  <h4 className="font-semibold text-foreground">{s.title}</h4>
-                  <p className="text-sm text-muted-foreground">{s.desc}</p>
+                  </div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/[0.08]">
+                    <s.icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h4 className="text-[15px] font-semibold text-foreground">{s.title}</h4>
+                  <p className="text-[13px] leading-relaxed text-muted-foreground">{s.desc}</p>
                 </div>
               ))}
+            </div>
+
+            {/* Inline CTA */}
+            <div className="mt-12 text-center">
+              <Button size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
+                <Link to="/login">
+                  Create Free Account <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+              <p className="mt-3 text-xs text-muted-foreground">No monthly fees · Pay only for what you order</p>
             </div>
           </div>
         </section>
@@ -422,57 +470,43 @@ export default function LandingPage() {
       </main>
 
       {/* ═══════════ FOOTER ═══════════ */}
-      <footer className="border-t border-border bg-card py-10">
-        <div className="mx-auto grid max-w-6xl gap-8 px-4 sm:grid-cols-3 sm:px-6">
+      <footer className="border-t border-border/60 bg-card/50 py-12">
+        <div className="mx-auto grid max-w-6xl gap-10 px-5 sm:grid-cols-3 sm:px-8">
           {/* Brand */}
           <div>
-            <span className="text-lg font-bold text-foreground">
+            <span className="text-xl font-extrabold text-foreground">
               KK<span className="text-primary">Tech</span>
             </span>
-            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+            <p className="mt-3 max-w-xs text-[13px] leading-relaxed text-muted-foreground">
               Myanmar's wholesale GSM unlock server and digital accounts reseller platform.
               Instant IMEI services, VPN keys, and premium digital tools at competitive pricing.
             </p>
           </div>
 
           {/* Links */}
-          <div className="flex flex-col gap-1.5 text-sm">
-            <span className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="flex flex-col gap-2 text-[13px]">
+            <span className="mb-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
               Quick Links
             </span>
-            <a href="#services" className="text-foreground hover:text-primary transition-colors">
-              Services
-            </a>
-            <a href="#faq" className="text-foreground hover:text-primary transition-colors">
-              FAQ
-            </a>
-            <Link to="/tools/imei-check" className="text-foreground hover:text-primary transition-colors">
-              Free IMEI Checker
-            </Link>
-            <Link to="/login" className="text-foreground hover:text-primary transition-colors">
-              Reseller Login
-            </Link>
+            <a href="#services" className="text-foreground/80 transition-colors hover:text-primary">Services</a>
+            <a href="#faq" className="text-foreground/80 transition-colors hover:text-primary">FAQ</a>
+            <Link to="/tools/imei-check" className="text-foreground/80 transition-colors hover:text-primary">Free IMEI Checker</Link>
+            <Link to="/login" className="text-foreground/80 transition-colors hover:text-primary">Reseller Login</Link>
           </div>
 
           {/* Policies */}
-          <div className="flex flex-col gap-1.5 text-sm">
-            <span className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <div className="flex flex-col gap-2 text-[13px]">
+            <span className="mb-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-muted-foreground">
               Policies
             </span>
-            <Link to="/terms" className="text-foreground hover:text-primary transition-colors">
-              Terms &amp; Conditions
-            </Link>
-            <Link to="/terms" className="text-foreground hover:text-primary transition-colors">
-              Privacy Policy
-            </Link>
-            <Link to="/terms" className="text-foreground hover:text-primary transition-colors">
-              Refund Policy
-            </Link>
+            <Link to="/terms" className="text-foreground/80 transition-colors hover:text-primary">Terms &amp; Conditions</Link>
+            <Link to="/terms" className="text-foreground/80 transition-colors hover:text-primary">Privacy Policy</Link>
+            <Link to="/terms" className="text-foreground/80 transition-colors hover:text-primary">Refund Policy</Link>
           </div>
         </div>
 
-        <div className="mx-auto mt-8 max-w-6xl border-t border-border px-4 pt-6 sm:px-6">
-          <p className="text-center text-xs text-muted-foreground">
+        <div className="mx-auto mt-10 max-w-6xl border-t border-border/40 px-5 pt-6 sm:px-8">
+          <p className="text-center text-[11px] text-muted-foreground">
             © {new Date().getFullYear()} KKTech. All rights reserved.
           </p>
         </div>
