@@ -1,45 +1,20 @@
-import { useState } from "react";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useCountUp } from "@/hooks/use-count-up";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { useQuery } from "@tanstack/react-query";
+import TopUpDialog from "@/components/wallet/TopUpDialog";
 import {
   Wallet,
-  Plus,
-  Upload,
   ArrowUpRight,
   ArrowDownRight,
   Clock,
   CheckCircle2,
   XCircle,
-  Image as ImageIcon,
-  Copy,
 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
 
 export default function WalletPage() {
   const { user, profile } = useAuth();
-  const queryClient = useQueryClient();
-  const [topupAmount, setTopupAmount] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState<"kpay" | "wavepay">("kpay");
-  const [screenshot, setScreenshot] = useState<File | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const presetAmounts = [10000, 30000, 50000, 100000];
 
   const { data: transactions } = useQuery({
     queryKey: ["wallet-transactions"],
@@ -51,46 +26,6 @@ export default function WalletPage() {
       return data || [];
     },
   });
-
-  const handleSubmitTopup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!topupAmount || !screenshot || !user) return;
-    setUploading(true);
-
-    try {
-      const fileExt = screenshot.name.split(".").pop();
-      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage
-        .from("payment-screenshots")
-        .upload(filePath, screenshot);
-
-      if (uploadError) throw uploadError;
-
-      await supabase.from("wallet_transactions").insert({
-        user_id: user.id,
-        type: "topup",
-        amount: parseInt(topupAmount),
-        status: "pending",
-        method: paymentMethod === "kpay" ? "KPay" : "WavePay",
-        description: `Wallet Top-up via ${paymentMethod === "kpay" ? "KPay" : "WavePay"}`,
-        screenshot_url: filePath,
-      });
-
-      setSubmitted(true);
-      queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] });
-
-      setTimeout(() => {
-        setSubmitted(false);
-        setDialogOpen(false);
-        setTopupAmount("");
-        setScreenshot(null);
-      }, 2500);
-    } catch (err) {
-      console.error("Top-up error:", err);
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const statusIcon = (status: string) => {
     if (status === "approved") return <CheckCircle2 className="w-4 h-4 text-success" />;
@@ -116,139 +51,7 @@ export default function WalletPage() {
           <h1 className="text-2xl font-bold text-foreground">Wallet</h1>
           <p className="text-muted-foreground text-sm">Manage your credit balance</p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="btn-glow gap-2">
-              <Plus className="w-4 h-4" />
-              Top Up
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-card border-border/50 max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-foreground">Top Up Wallet</DialogTitle>
-            </DialogHeader>
-
-            {submitted ? (
-              <div className="text-center py-8 space-y-3">
-                <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
-                <p className="text-foreground font-semibold">Top-up request submitted!</p>
-                <p className="text-sm text-muted-foreground">We'll review your payment and credit your account shortly.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmitTopup} className="space-y-5">
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground">Amount (MMK)</Label>
-                  <Input
-                    type="number"
-                    placeholder="Enter amount"
-                    value={topupAmount}
-                    onChange={(e) => setTopupAmount(e.target.value)}
-                    className="bg-muted/50 border-border font-mono"
-                    required
-                    min={1000}
-                  />
-                  <div className="flex gap-2 flex-wrap">
-                    {presetAmounts.map((amt) => (
-                      <button
-                        key={amt}
-                        type="button"
-                        onClick={() => setTopupAmount(amt.toString())}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
-                          topupAmount === amt.toString()
-                            ? "btn-glow"
-                            : "bg-muted text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {amt.toLocaleString()}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground">Payment Method</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    {(["kpay", "wavepay"] as const).map((method) => (
-                      <button
-                        key={method}
-                        type="button"
-                        onClick={() => setPaymentMethod(method)}
-                        className={`p-3 rounded-lg border text-center text-sm font-medium transition-all duration-200 ${
-                          paymentMethod === method
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border bg-muted/30 text-muted-foreground hover:border-muted-foreground"
-                        }`}
-                      >
-                        {method === "kpay" ? "KPay" : "WavePay"}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Payment Account Info */}
-                <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-2">
-                  <p className="text-xs font-semibold text-primary flex items-center gap-1.5">
-                    💰 {paymentMethod === "kpay" ? "KBZ Pay" : "Wave Pay"} — Send to:
-                  </p>
-                  <div className="space-y-1.5 text-sm">
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Pay ID:</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const id = paymentMethod === "kpay" ? "09787313137" : "09777818691";
-                          navigator.clipboard.writeText(id);
-                          setCopied(true);
-                          setTimeout(() => setCopied(false), 1500);
-                          toast({ title: "Copied!", description: `Pay ID ${id} copied to clipboard.` });
-                        }}
-                        className="flex items-center gap-1.5 font-mono font-semibold text-foreground hover:text-primary transition-colors"
-                        title="Copy to clipboard"
-                      >
-                        {paymentMethod === "kpay" ? "09787313137" : "09777818691"}
-                        {copied ? <CheckCircle2 className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5 text-muted-foreground" />}
-                      </button>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Name:</span>
-                      <span className="font-medium text-foreground">
-                        {paymentMethod === "kpay" ? "Htun Arkar Kyaw" : "Hnin Thet Wai"}
-                      </span>
-                    </div>
-                  </div>
-                  <p className="text-[10px] text-muted-foreground mt-1">✅ Official Account Only</p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="text-muted-foreground">Payment Screenshot</Label>
-                  <label className="flex flex-col items-center gap-2 p-6 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors duration-200 bg-muted/20">
-                    {screenshot ? (
-                      <>
-                        <ImageIcon className="w-8 h-8 text-success" />
-                        <span className="text-sm text-foreground">{screenshot.name}</span>
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="w-8 h-8 text-muted-foreground" />
-                        <span className="text-sm text-muted-foreground">Click to upload screenshot</span>
-                      </>
-                    )}
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
-                    />
-                  </label>
-                </div>
-
-                <Button type="submit" className="w-full btn-glow" disabled={!topupAmount || !screenshot || uploading}>
-                  {uploading ? "Submitting..." : "Submit Top-up Request"}
-                </Button>
-              </form>
-            )}
-          </DialogContent>
-        </Dialog>
+        <TopUpDialog userId={user?.id} />
       </div>
 
       {/* Wallet Hero */}
