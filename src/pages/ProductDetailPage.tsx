@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
 import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
+import ImportantNoticeModal from "@/components/products/ImportantNoticeModal";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
 
 interface PurchaseResult {
@@ -29,6 +30,7 @@ export default function ProductDetailPage() {
   const [result, setResult] = useState<PurchaseResult | null>(null);
   
   const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
+  const [noticeProduct, setNoticeProduct] = useState<any | null>(null);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [lastSavings, setLastSavings] = useState(0);
 
@@ -80,7 +82,12 @@ export default function ProductDetailPage() {
       toast.error("လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)");
       return;
     }
-    setConfirmProduct(product);
+    setNoticeProduct(product);
+  };
+
+  const handleNoticeConfirm = () => {
+    setConfirmProduct(noticeProduct);
+    setNoticeProduct(null);
     setAgreedTerms(false);
   };
 
@@ -287,6 +294,12 @@ export default function ProductDetailPage() {
         pricingTiers={pricingTiers as any[]}
         userBalance={profile?.balance || 0}
         onTopUp={handleTopUp}
+      />
+
+      <ImportantNoticeModal
+        open={!!noticeProduct}
+        onContinue={handleNoticeConfirm}
+        onCancel={() => setNoticeProduct(null)}
       />
 
       <PurchaseSuccessModal
