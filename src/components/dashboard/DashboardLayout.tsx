@@ -84,7 +84,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                onPointerDown={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  e.currentTarget.style.setProperty("--ripple-x", `${e.clientX - rect.left}px`);
+                  e.currentTarget.style.setProperty("--ripple-y", `${e.clientY - rect.top}px`);
+                }}
+                className={`nav-ripple flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   active
                     ? "bg-primary/10 text-primary nav-active-indicator"
                     : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
