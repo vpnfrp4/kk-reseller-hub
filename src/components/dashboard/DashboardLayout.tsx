@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +14,7 @@ import {
   Crown,
   ShieldCheck,
   ArrowLeftRight,
+  Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationSettings from "@/components/NotificationSettings";
@@ -23,6 +25,7 @@ const navItems = [
   { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
   { label: "Products", icon: ShoppingBag, path: "/dashboard/products" },
   { label: "Orders", icon: ClipboardList, path: "/dashboard/orders" },
+  { label: "Notifications", icon: Bell, path: "/dashboard/notifications" },
   { label: "Settings", icon: Settings, path: "/dashboard/settings" },
 ];
 
@@ -37,6 +40,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     if (!user) return;
     supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
   }, [user]);
+
+  const { data: unreadCount = 0 } = useQuery({
+    queryKey: ["notifications-unread-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("is_read", false);
+      return count || 0;
+    },
+    enabled: !!user,
+    refetchInterval: 30000,
+  });
 
   const handleLogout = async () => {
     await logout();
@@ -100,6 +116,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   strokeWidth={active ? 2 : 1.5}
                 />
                 {item.label}
+                {item.label === "Notifications" && unreadCount > 0 && (
+                  <span className="ml-auto px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-primary text-primary-foreground min-w-[18px] text-center">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}

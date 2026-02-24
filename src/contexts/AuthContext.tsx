@@ -96,6 +96,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 `${added.toLocaleString()} MMK has been added to your wallet.`,
                 "success"
               );
+              // Persist notification to database
+              supabase.from("notifications").insert({
+                user_id: newData.user_id,
+                title: "Top-Up Approved",
+                body: `${added.toLocaleString()} MMK has been added to your wallet.`,
+                type: "success",
+              }).then(() => {});
             }
             return { ...prev, ...newData };
           });
