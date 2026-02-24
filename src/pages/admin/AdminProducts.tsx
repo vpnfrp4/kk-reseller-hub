@@ -398,7 +398,7 @@ export default function AdminProducts() {
               await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id);
             }
             queryClient.invalidateQueries({ queryKey: ["products"] });
-            toast.success("Order reset to alphabetical");
+            toast.success(`Order reset to alphabetical — ${updated.length} product${updated.length === 1 ? "" : "s"} reordered`);
           }}
         >
           <RotateCcw className="w-3.5 h-3.5" />
