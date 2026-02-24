@@ -24,6 +24,12 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
   const lowestTier = hasTiers
     ? [...pricingTiers].sort((a, b) => a.unit_price - b.unit_price)[0]
     : null;
+  const highestTier = hasTiers
+    ? [...pricingTiers].sort((a, b) => b.unit_price - a.unit_price)[0]
+    : null;
+  const maxDiscountPct = hasTiers && highestTier && lowestTier && highestTier.unit_price > 0
+    ? Math.round(((highestTier.unit_price - lowestTier.unit_price) / highestTier.unit_price) * 100)
+    : 0;
 
   return (
     <div
@@ -43,10 +49,22 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
             <span className="absolute top-2.5 right-2.5 text-[10px] uppercase tracking-widest gold-text font-semibold px-2.5 py-1 rounded-full bg-card/80 backdrop-blur-sm border border-primary/20">
               {product.category}
             </span>
+            {maxDiscountPct > 0 && (
+              <span className="absolute top-2.5 left-2.5 text-[10px] font-bold px-2 py-1 rounded-full bg-success text-success-foreground shadow-sm">
+                Save up to {maxDiscountPct}%
+              </span>
+            )}
           </div>
         ) : (
           <div className="flex items-start justify-between p-6 pb-0">
-            <div className="text-3xl">{product.icon}</div>
+            <div className="flex items-center gap-2">
+              <div className="text-3xl">{product.icon}</div>
+              {maxDiscountPct > 0 && (
+                <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-success text-success-foreground">
+                  Save up to {maxDiscountPct}%
+                </span>
+              )}
+            </div>
             <span className="text-[10px] uppercase tracking-widest gold-text font-semibold px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
               {product.category}
             </span>
