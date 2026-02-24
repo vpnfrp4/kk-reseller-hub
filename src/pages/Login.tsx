@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Crown, Eye, EyeOff, ArrowRight } from "lucide-react";
+import GoldParticles from "@/components/GoldParticles";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -66,6 +67,9 @@ export default function Login() {
         <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[130px] opacity-20" style={{ background: "radial-gradient(circle, hsl(224 76% 33% / 0.15), transparent 70%)" }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full blur-[100px] opacity-10" style={{ background: "radial-gradient(circle, hsl(43 76% 47% / 0.2), transparent 70%)" }} />
       </div>
+
+      {/* Gold particle animation */}
+      <GoldParticles />
 
       <div className="w-full max-w-md relative z-10">
         {/* Branding */}
