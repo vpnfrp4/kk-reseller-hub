@@ -11,7 +11,10 @@ import {
   Clock,
   CheckCircle2,
   XCircle,
+  Download,
 } from "lucide-react";
+import { downloadReceipt } from "@/lib/receipt";
+import { Button } from "@/components/ui/button";
 
 export default function WalletPage() {
   const { user, profile } = useAuth();
@@ -105,11 +108,12 @@ export default function WalletPage() {
                 <th className="p-4">Method</th>
                 <th className="text-right p-4">Amount</th>
                 <th className="text-center p-4">Status</th>
+                <th className="p-4"></th>
               </tr>
             </thead>
             <tbody>
               {(!transactions || transactions.length === 0) ? (
-                <tr><td colSpan={5} className="p-8 text-center text-sm text-muted-foreground">No transactions yet</td></tr>
+                <tr><td colSpan={6} className="p-8 text-center text-sm text-muted-foreground">No transactions yet</td></tr>
               ) : transactions.map((tx: any, i: number) => (
                 <tr key={tx.id} className="opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.04}s` }}>
                   <td className="p-4 text-sm text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}</td>
@@ -124,6 +128,19 @@ export default function WalletPage() {
                       tx.status === "pending" ? "badge-pending" :
                       "badge-cancelled"
                     }`}>{tx.status}</span>
+                  </td>
+                  <td className="p-4">
+                    {tx.type === "topup" && tx.status === "approved" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => downloadReceipt(tx, profile?.name || profile?.email || "User")}
+                        title="Download receipt"
+                      >
+                        <Download className="w-4 h-4 text-primary" />
+                      </Button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -143,9 +160,19 @@ export default function WalletPage() {
                   <p className="text-xs text-muted-foreground">{new Date(tx.created_at).toLocaleDateString()}{tx.method ? ` · ${tx.method}` : ""}</p>
                 </div>
               </div>
-              <p className={`text-sm font-mono font-semibold ${tx.type === "topup" ? "text-success" : "text-foreground"}`}>
-                {tx.type === "topup" ? "+" : "-"}{Math.abs(tx.amount).toLocaleString()}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className={`text-sm font-mono font-semibold ${tx.type === "topup" ? "text-success" : "text-foreground"}`}>
+                  {tx.type === "topup" ? "+" : "-"}{Math.abs(tx.amount).toLocaleString()}
+                </p>
+                {tx.type === "topup" && tx.status === "approved" && (
+                  <button
+                    onClick={() => downloadReceipt(tx, profile?.name || profile?.email || "User")}
+                    className="p-1 rounded hover:bg-muted transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5 text-primary" />
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
