@@ -11,6 +11,17 @@ const features = [
   { icon: TrendingUp, title: "High Demand Product", text: "CapCut is the #1 video editor in Myanmar. Reselling Pro accounts is one of the highest-margin digital products available." },
 ];
 
+const specs = [
+  { label: "Activation Type", value: "Premium Subscription Credentials" },
+  { label: "Account Type", value: "CapCut Pro (Full Access)" },
+  { label: "Platform", value: "iOS, Android, Windows, Mac" },
+  { label: "Duration Options", value: "1-Month, 3-Month, 6-Month, Annual" },
+  { label: "Delivery Method", value: "Instant — Credentials in Dashboard" },
+  { label: "Warranty", value: "Replacement if credentials fail on first login" },
+];
+
+const notice = "CapCut Pro accounts are single-user credentials. Sharing one account across multiple end-customers may result in deactivation. Each credential should be sold to one customer only. Canva Pro accounts follow the same policy.";
+
 const faqs = [
   { q: "What is CapCut Pro?", a: "CapCut Pro is the premium version of the popular CapCut video editor by ByteDance. It unlocks advanced features like AI effects, premium filters, 4K export, cloud storage, and commercial-use assets." },
   { q: "How are CapCut Pro accounts delivered?", a: "After purchase, you receive login credentials in your KKTech dashboard instantly. You can then share these with your end customer along with activation instructions." },
@@ -60,6 +71,8 @@ export default function CapcutProServicePage() {
       h1="CapCut Pro Wholesale — Reseller Accounts for Myanmar"
       subtitle="Premium CapCut Pro accounts at wholesale pricing with instant delivery. Canva Pro also available."
       features={features}
+      specs={specs}
+      notice={notice}
       seoContent={seoContent}
       faqs={faqs}
       ctaTitle="Start Reselling CapCut Pro"

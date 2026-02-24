@@ -11,6 +11,18 @@ const features = [
   { icon: BarChart3, title: "Profit Margin Visibility", text: "See your cost and suggested retail price on every VPN product. Know your exact profit before placing any order." },
 ];
 
+const specs = [
+  { label: "Activation Type", value: "Digital Key / Activation Code" },
+  { label: "Account Type", value: "VPN Subscription Key" },
+  { label: "Supported Brands", value: "ExpressVPN, LetsVPN, NordVPN, Surfshark" },
+  { label: "Duration Options", value: "1-Month, 6-Month, 12-Month Plans" },
+  { label: "Delivery Method", value: "Instant — Key in Dashboard" },
+  { label: "Warranty", value: "Replacement if key fails on first activation" },
+  { label: "Multi-Device", value: "Yes — Plans cover multiple devices" },
+];
+
+const notice = "VPN keys are region-sensitive. Some keys may only activate in specific regions depending on the provider. Verify compatibility with your customer's location before reselling. Expired or previously activated keys are not eligible for replacement.";
+
 const faqs = [
   { q: "What VPN brands do you offer?", a: "We currently offer ExpressVPN, LetsVPN, NordVPN, and Surfshark keys at wholesale prices. New VPN brands are added based on market demand in Myanmar." },
   { q: "Are these VPN keys genuine?", a: "Yes. All VPN keys are sourced from authorized distribution channels. Each key is unique and unused. We guarantee activation on first use." },
@@ -59,6 +71,8 @@ export default function VpnKeysServicePage() {
       h1="VPN Keys Wholesale — Reseller Pricing for Myanmar"
       subtitle="ExpressVPN, LetsVPN, NordVPN & Surfshark keys at bulk pricing with instant delivery."
       features={features}
+      specs={specs}
+      notice={notice}
       seoContent={seoContent}
       faqs={faqs}
       ctaTitle="Start Reselling VPN Keys Today"
