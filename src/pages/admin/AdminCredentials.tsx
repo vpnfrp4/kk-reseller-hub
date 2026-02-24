@@ -64,6 +64,46 @@ export default function AdminCredentials() {
   const [editingExpiryId, setEditingExpiryId] = useState<string | null>(null);
   const [editingExpiryValue, setEditingExpiryValue] = useState("");
 
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkExpiryOpen, setBulkExpiryOpen] = useState(false);
+  const [bulkExpiryDate, setBulkExpiryDate] = useState("");
+  const [bulkExpiryUpdating, setBulkExpiryUpdating] = useState(false);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = (filtered: any[]) => {
+    const unsoldIds = filtered.filter((c: any) => !c.is_sold).map((c: any) => c.id);
+    const allSelected = unsoldIds.every(id => selectedIds.has(id));
+    if (allSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(unsoldIds));
+    }
+  };
+
+  const handleBulkExpiryUpdate = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkExpiryUpdating(true);
+    const newValue = bulkExpiryDate ? new Date(bulkExpiryDate).toISOString() : null;
+    const { error } = await supabase
+      .from("product_credentials")
+      .update({ expires_at: newValue } as any)
+      .in("id", Array.from(selectedIds));
+    setBulkExpiryUpdating(false);
+    if (error) { toast.error(error.message); return; }
+    toast.success(`Expiry updated for ${selectedIds.size} credential(s)`);
+    queryClient.invalidateQueries({ queryKey: ["admin-credentials"] });
+    setSelectedIds(new Set());
+    setBulkExpiryOpen(false);
+    setBulkExpiryDate("");
+  };
+
   const handleUpdateExpiry = async (id: string) => {
     const newValue = editingExpiryValue ? new Date(editingExpiryValue).toISOString() : null;
     const { error } = await supabase
@@ -243,6 +283,15 @@ export default function AdminCredentials() {
           >
             <Download className="w-4 h-4" />Export CSV
           </Button>
+          {selectedIds.size > 0 && (
+            <Button
+              variant="outline"
+              className="gap-2"
+              onClick={() => setBulkExpiryOpen(true)}
+            >
+              <Pencil className="w-4 h-4" />Set Expiry ({selectedIds.size})
+            </Button>
+          )}
           <Button
             variant="outline"
             className="gap-2 text-destructive hover:text-destructive"
@@ -363,6 +412,21 @@ export default function AdminCredentials() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border">
+                <th className="w-10 p-4">
+                  <input
+                    type="checkbox"
+                    className="rounded border-border accent-primary"
+                    onChange={() => {
+                      const filtered = filterCredentials(credentials || []);
+                      toggleSelectAll(filtered);
+                    }}
+                    checked={(() => {
+                      const filtered = filterCredentials(credentials || []);
+                      const unsoldIds = filtered.filter((c: any) => !c.is_sold).map((c: any) => c.id);
+                      return unsoldIds.length > 0 && unsoldIds.every(id => selectedIds.has(id));
+                    })()}
+                  />
+                </th>
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Product</th>
                 <th className="text-left text-xs font-medium text-muted-foreground p-4">Credentials</th>
                 <th className="text-center text-xs font-medium text-muted-foreground p-4">Status</th>
@@ -378,9 +442,19 @@ export default function AdminCredentials() {
                 const currentPage = Math.min(page, totalPages);
                 const paginated = filtered.slice((currentPage - 1) * perPage, currentPage * perPage);
                 return paginated.length === 0 ? (
-                <tr><td colSpan={6} className="p-8 text-center text-sm text-muted-foreground">No credentials found</td></tr>
+                <tr><td colSpan={7} className="p-8 text-center text-sm text-muted-foreground">No credentials found</td></tr>
               ) : paginated.map((c: any) => (
                 <tr key={c.id} className={`border-b border-border/50 hover:bg-muted/30 transition-colors ${getRowHighlight(c)}`}>
+                  <td className="w-10 p-4">
+                    {!c.is_sold && (
+                      <input
+                        type="checkbox"
+                        className="rounded border-border accent-primary"
+                        checked={selectedIds.has(c.id)}
+                        onChange={() => toggleSelect(c.id)}
+                      />
+                    )}
+                  </td>
                   <td className="p-4 text-sm text-foreground">
                     {(c.products as any)?.name || "Unknown"} - {(c.products as any)?.duration || ""}
                   </td>
@@ -480,6 +554,32 @@ export default function AdminCredentials() {
             <Button variant="outline" onClick={() => setBulkDeleteOpen(false)}>Cancel</Button>
             <Button variant="destructive" onClick={handleBulkDeleteSold} disabled={bulkDeleting}>
               {bulkDeleting ? "Deleting..." : `Delete ${soldCount} Credentials`}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={bulkExpiryOpen} onOpenChange={setBulkExpiryOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-foreground">Set Expiry Date</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
+              Set expiry date for <span className="font-semibold text-foreground">{selectedIds.size}</span> selected credential(s). Leave empty to remove expiry.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Input
+              type="date"
+              value={bulkExpiryDate}
+              onChange={(e) => setBulkExpiryDate(e.target.value)}
+              className="bg-muted/50 border-border text-sm"
+              min={new Date().toISOString().slice(0, 10)}
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setBulkExpiryOpen(false)}>Cancel</Button>
+            <Button onClick={handleBulkExpiryUpdate} disabled={bulkExpiryUpdating} className="btn-glow">
+              {bulkExpiryUpdating ? "Updating..." : `Update ${selectedIds.size} Credentials`}
             </Button>
           </DialogFooter>
         </DialogContent>
