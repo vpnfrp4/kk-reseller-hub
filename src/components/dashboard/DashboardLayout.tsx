@@ -11,14 +11,12 @@ import {
   Settings,
   LogOut,
   Menu,
-  Crown,
   ShieldCheck,
   ArrowLeftRight,
   Bell,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import NotificationSettings from "@/components/NotificationSettings";
-import ThemeToggle from "@/components/ThemeToggle";
 
 const navItems = [
   { label: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
@@ -68,25 +66,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar — clean white panel */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card/60 backdrop-blur-2xl border-r border-border/40 flex flex-col transition-transform duration-300 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r border-border flex flex-col transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-border/30">
+        <div className="p-6 border-b border-border">
           <Link to="/dashboard" className="flex items-center gap-3 group">
-            <div
-              className="w-10 h-10 rounded-xl flex items-center justify-center relative overflow-hidden transition-all duration-300 group-hover:shadow-luxury group-hover:scale-105"
-              style={{ background: "var(--gradient-gold)" }}
-            >
-              <Crown className="w-5 h-5 text-primary-foreground relative z-10 transition-transform duration-300 group-hover:rotate-12" />
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 gold-shimmer-bg" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 transition-all duration-300 group-hover:bg-primary/15">
+              <ShieldCheck className="w-5 h-5 text-primary relative z-10" />
             </div>
             <div>
-              <span className="text-lg font-bold text-foreground tracking-tight transition-colors duration-300 group-hover:gold-text">KKTech</span>
-              <span className="text-[10px] block gold-text font-bold uppercase tracking-[0.2em]">Reseller</span>
+              <span className="text-lg font-bold text-foreground tracking-tight">KKTech</span>
+              <span className="text-[10px] block text-primary font-semibold uppercase tracking-[0.2em]">Reseller</span>
             </div>
           </Link>
         </div>
@@ -100,15 +94,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                onPointerDown={(e) => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  e.currentTarget.style.setProperty("--ripple-x", `${e.clientX - rect.left}px`);
-                  e.currentTarget.style.setProperty("--ripple-y", `${e.clientY - rect.top}px`);
-                }}
-                className={`nav-ripple flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                   active
-                    ? "bg-primary/10 text-primary nav-active-indicator"
-                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                    ? "bg-primary/8 text-primary nav-active-indicator"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                 }`}
               >
                 <item.icon
@@ -127,12 +116,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t border-border/30 space-y-0.5">
+        <div className="p-3 border-t border-border space-y-0.5">
           {isAdmin && (
             <Link
               to="/admin"
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-all duration-200"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-200"
             >
               <ArrowLeftRight className="w-[18px] h-[18px]" strokeWidth={1.5} />
               Admin Panel
@@ -140,10 +129,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
 
           <div className="flex items-center gap-3 px-3 py-2 mt-2">
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-semibold"
-              style={{ background: "var(--gradient-gold)", color: "hsl(var(--primary-foreground))" }}
-            >
+            <div className="w-9 h-9 rounded-full bg-primary/10 flex items-center justify-center text-sm font-semibold text-primary">
               {profile?.name?.charAt(0) || "R"}
             </div>
             <div className="flex-1 min-w-0">
@@ -166,7 +152,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Main Area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="h-16 border-b border-border/30 flex items-center justify-between px-4 lg:px-8 bg-card/40 backdrop-blur-2xl sticky top-0 z-30 admin-header">
+        <header className="h-14 border-b border-border flex items-center justify-between px-4 lg:px-8 bg-card/80 backdrop-blur-xl sticky top-0 z-30">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -175,19 +161,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Menu className="w-5 h-5" strokeWidth={1.5} />
             </button>
             <div className="hidden lg:block">
-              <h2 className="text-base font-semibold text-foreground leading-tight">
+              <h2 className="text-sm font-semibold text-foreground leading-tight">
                 {navItems.find((i) => i.path === location.pathname)?.label || "Dashboard"}
               </h2>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <ThemeToggle />
             <NotificationSettings />
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-card/40 backdrop-blur-xl border border-primary/15 shadow-sm" style={{ boxShadow: "0 0 20px hsl(43 76% 47% / 0.08), inset 0 1px 0 hsl(0 0% 100% / 0.04)" }}>
+            <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/5 border border-primary/10">
               <Wallet className="w-4 h-4 text-primary" />
-              <span className="text-sm font-semibold font-mono gold-shimmer">
-                {(profile?.balance || 0).toLocaleString()} <span className="text-xs">MMK</span>
+              <span className="text-sm font-bold font-mono text-foreground">
+                {(profile?.balance || 0).toLocaleString()} <span className="text-xs text-muted-foreground">MMK</span>
               </span>
             </div>
           </div>
@@ -195,7 +180,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <main className="flex-1 p-4 lg:p-8 overflow-auto">{children}</main>
 
-        <footer className="border-t border-border/30 px-4 lg:px-8 py-3 text-center">
+        <footer className="border-t border-border px-4 lg:px-8 py-3 text-center">
           <Link to="/terms" className="text-xs text-muted-foreground hover:text-primary transition-colors duration-200">
             Terms and Conditions
           </Link>
