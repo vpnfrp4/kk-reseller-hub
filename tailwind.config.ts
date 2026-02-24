@@ -92,6 +92,10 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        /* ─── Role-specific semantic aliases ─── */
+        "role-bg": "hsl(var(--background))",
+        "role-surface": "hsl(var(--card))",
+        "role-accent": "hsl(var(--primary))",
       },
       /* ─── Unified Border Radius ─── */
       borderRadius: {
