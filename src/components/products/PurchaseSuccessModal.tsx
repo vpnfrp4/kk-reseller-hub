@@ -1,11 +1,13 @@
-import { CheckCircle2, Copy } from "lucide-react";
+import { CheckCircle2, Copy, ArrowLeft } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface PurchaseResult {
   order_id: string;
@@ -21,6 +23,7 @@ interface PurchaseSuccessModalProps {
 
 export default function PurchaseSuccessModal({ result, onClose }: PurchaseSuccessModalProps) {
   const [copied, setCopied] = useState(false);
+  const navigate = useNavigate();
 
   const copyCredentials = (creds: string) => {
     navigator.clipboard.writeText(creds);
@@ -68,6 +71,18 @@ export default function PurchaseSuccessModal({ result, onClose }: PurchaseSucces
             <p className="text-xs text-muted-foreground text-center">
               These credentials are also saved in your Order History.
             </p>
+
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => {
+                onClose();
+                navigate("/dashboard/products");
+              }}
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Products
+            </Button>
           </div>
         )}
       </DialogContent>
