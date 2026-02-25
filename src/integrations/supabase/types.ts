@@ -235,6 +235,7 @@ export type Database = {
           retail_price: number
           sort_order: number
           stock: number
+          type: string
           wholesale_price: number
         }
         Insert: {
@@ -251,6 +252,7 @@ export type Database = {
           retail_price: number
           sort_order?: number
           stock?: number
+          type?: string
           wholesale_price: number
         }
         Update: {
@@ -267,6 +269,7 @@ export type Database = {
           retail_price?: number
           sort_order?: number
           stock?: number
+          type?: string
           wholesale_price?: number
         }
         Relationships: []

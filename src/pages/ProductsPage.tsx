@@ -128,8 +128,7 @@ export default function ProductsPage() {
   };
 
   const handleBuyClick = (product: any) => {
-    const modes: string[] = Array.isArray(product.fulfillment_modes) ? product.fulfillment_modes.map(String) : ["instant"];
-    const isManual = modes.includes("manual");
+    const isManual = product.type === "manual";
     if (!isManual && product.stock <= 0) {
       toast.error(l(t.products.outOfStockToast));
       return;

@@ -98,7 +98,7 @@ export default function AdminProducts() {
   const [form, setForm] = useState({
     name: "", icon: "📦", category: "General", description: "",
     retail_price: "", wholesale_price: "", duration: "", stock: "",
-    image_url: "",
+    image_url: "", type: "auto" as "auto" | "manual",
   });
   const [fulfillmentModes, setFulfillmentModes] = useState<string[]>(["instant"]);
   const [deliveryTimeConfig, setDeliveryTimeConfig] = useState<Record<string, string>>(DEFAULT_DELIVERY_TIMES);
@@ -129,7 +129,7 @@ export default function AdminProducts() {
   });
 
   const resetForm = () => {
-    setForm({ name: "", icon: "📦", category: "General", description: "", retail_price: "", wholesale_price: "", duration: "", stock: "", image_url: "" });
+    setForm({ name: "", icon: "📦", category: "General", description: "", retail_price: "", wholesale_price: "", duration: "", stock: "", image_url: "", type: "auto" });
     setEditing(null);
     setImagePreview(null);
     setFulfillmentModes(["instant"]);
@@ -162,6 +162,7 @@ export default function AdminProducts() {
       name: p.name, icon: p.icon, category: p.category, description: p.description || "",
       retail_price: p.retail_price.toString(), wholesale_price: p.wholesale_price.toString(),
       duration: p.duration, stock: p.stock.toString(), image_url: p.image_url || "",
+      type: p.type || "auto",
     });
     setImagePreview(p.image_url || null);
     setFulfillmentModes(Array.isArray(p.fulfillment_modes) ? p.fulfillment_modes : ["instant"]);
@@ -307,10 +308,11 @@ export default function AdminProducts() {
       name: form.name.trim(), icon: form.icon, category: form.category.trim(),
       description: form.description.trim(),
       retail_price: parseInt(form.retail_price), wholesale_price: parseInt(form.wholesale_price),
-      duration: form.duration.trim(), stock: parseInt(form.stock),
+      duration: form.duration.trim(), stock: form.type === "manual" ? 0 : parseInt(form.stock),
       image_url: form.image_url || null,
-      fulfillment_modes: fulfillmentModes,
+      fulfillment_modes: form.type === "manual" ? ["manual"] : fulfillmentModes,
       delivery_time_config: deliveryTimeConfig,
+      type: form.type,
     };
 
     if (editing) {
@@ -436,6 +438,23 @@ export default function AdminProducts() {
                 />
               </div>
 
+              {/* Product Type */}
+              <div className="space-y-1">
+                <Label className="text-muted-foreground text-xs">Product Type</Label>
+                <Select value={form.type} onValueChange={(val: "auto" | "manual") => setForm({ ...form, type: val })}>
+                  <SelectTrigger className="bg-muted/50 border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">Auto Delivery (Stock Based)</SelectItem>
+                    <SelectItem value="manual">Manual Processing (Custom Order)</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-[10px] text-muted-foreground">
+                  {form.type === "auto" ? "Stock is validated and deducted automatically." : "No stock checks. Admin fulfills manually."}
+                </p>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
                   <Label className="text-muted-foreground text-xs">Name</Label>
@@ -456,7 +475,7 @@ export default function AdminProducts() {
                   <Input value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} required placeholder="1 Month" className="bg-muted/50 border-border" />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className={`grid ${form.type === "auto" ? "grid-cols-3" : "grid-cols-2"} gap-3`}>
                 <div className="space-y-1">
                   <Label className="text-muted-foreground text-xs">Retail Price</Label>
                   <Input type="number" value={form.retail_price} onChange={(e) => setForm({ ...form, retail_price: e.target.value })} required className="bg-muted/50 border-border font-mono" />
@@ -465,10 +484,12 @@ export default function AdminProducts() {
                   <Label className="text-muted-foreground text-xs">Wholesale</Label>
                   <Input type="number" value={form.wholesale_price} onChange={(e) => setForm({ ...form, wholesale_price: e.target.value })} required className="bg-muted/50 border-border font-mono" />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">Stock</Label>
-                  <Input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required className="bg-muted/50 border-border font-mono" />
-                </div>
+                {form.type === "auto" && (
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground text-xs">Stock</Label>
+                    <Input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required className="bg-muted/50 border-border font-mono" />
+                  </div>
+                )}
               </div>
               <div className="space-y-1">
                 <Label className="text-muted-foreground text-xs">Description</Label>
@@ -482,16 +503,19 @@ export default function AdminProducts() {
                 />
               </div>
 
-              <Separator />
-
-              {/* Fulfillment Configuration */}
-              <FulfillmentConfig
-                productId={editing?.id || ""}
-                fulfillmentModes={fulfillmentModes}
-                deliveryTimeConfig={deliveryTimeConfig}
-                onModesChange={setFulfillmentModes}
-                onDeliveryTimeChange={setDeliveryTimeConfig}
-              />
+              {form.type === "auto" && (
+                <>
+                  <Separator />
+                  {/* Fulfillment Configuration */}
+                  <FulfillmentConfig
+                    productId={editing?.id || ""}
+                    fulfillmentModes={fulfillmentModes}
+                    deliveryTimeConfig={deliveryTimeConfig}
+                    onModesChange={setFulfillmentModes}
+                    onDeliveryTimeChange={setDeliveryTimeConfig}
+                  />
+                </>
+              )}
 
               <Separator />
 
@@ -794,7 +818,9 @@ export default function AdminProducts() {
                               <td className="p-4 text-sm text-muted-foreground">{p.duration}</td>
                               <td className="p-4 text-sm text-right"><Money amount={p.retail_price} className="text-muted-foreground" /></td>
                               <td className="p-4 text-sm text-right"><Money amount={p.wholesale_price} /></td>
-                              <td className="p-4 text-sm font-mono text-center text-foreground">{p.stock}</td>
+                              <td className="p-4 text-sm font-mono text-center text-foreground">
+                                {(p as any).type === "manual" ? <span className="text-xs text-muted-foreground italic">N/A</span> : p.stock}
+                              </td>
                               <td className="p-4 text-center">
                                 <span className={`text-xs font-mono px-2 py-1 rounded-full ${
                                   cc && cc.available > 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
