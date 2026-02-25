@@ -61,17 +61,17 @@ export default function StatCard({
       )}
       style={delay ? { animationDelay: `${delay}s` } : undefined}
     >
-      <div className="flex items-start justify-between mb-compact">
-        <div className="flex items-center gap-compact">
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
           {Icon && (
             <div
-              className="w-9 h-9 rounded-btn flex items-center justify-center shrink-0"
+              className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
               style={{ background: iconBg }}
             >
               <Icon className={cn("w-[18px] h-[18px]", iconColor)} strokeWidth={1.5} />
             </div>
           )}
-          <span className="text-caption font-medium text-muted-foreground uppercase tracking-wider">
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             {label}
           </span>
         </div>
@@ -81,25 +81,25 @@ export default function StatCard({
             width={64}
             height={24}
             color={sparkColor}
-            className="opacity-60 group-hover:opacity-100 transition-opacity"
+            className="opacity-70 group-hover:opacity-100 transition-opacity"
           />
         )}
       </div>
 
       <div className="flex items-end justify-between">
-        <p className={cn("font-bold font-mono tabular-nums text-foreground tracking-tight", featured ? "text-h1" : "text-3xl")}>
+        <p className={cn("font-extrabold font-mono tabular-nums text-foreground tracking-tight", featured ? "text-4xl" : "text-3xl")}>
           {isCurrency ? (
             <Money amount={Number(displayValue)} currency={currency} />
           ) : (
             <>
               {typeof displayValue === "number" ? displayValue.toLocaleString() : displayValue}
-              {suffix && <span className="text-base font-semibold text-muted-foreground ml-1">{suffix}</span>}
+              {suffix && <span className="text-base font-semibold text-muted-foreground ml-1.5">{suffix}</span>}
             </>
           )}
         </p>
         {trend && (
-          <div className={cn("flex items-center gap-1 text-caption font-medium", trend.value >= 0 ? "text-success" : "text-destructive")}>
-            {trend.value >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+          <div className={cn("flex items-center gap-1 text-xs font-semibold", trend.value >= 0 ? "text-success" : "text-destructive")}>
+            {trend.value >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
             {trend.value >= 0 ? "+" : ""}{trend.value.toFixed(1)}%
             {trend.label && <span className="text-muted-foreground ml-1">{trend.label}</span>}
           </div>
