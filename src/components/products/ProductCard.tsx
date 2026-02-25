@@ -34,7 +34,7 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
         "transition-all duration-300 ease-out",
         "hover:border-primary/40 hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 hover:scale-[1.005]"
       )}
-      style={{ animationDelay: `${index * 0.03}s` }}
+      style={{ animationDelay: `${index * 0.07}s` }}
     >
       <div className="p-5 md:p-6 space-y-5">
         {/* Row 1: Service Identity */}
