@@ -355,6 +355,27 @@ export const t = {
     showing: { mm: "ပြသနေသည်", en: "Showing" },
     termsAndConditions: { mm: "စည်းကမ်းသတ်မှတ်ချက်များ", en: "Terms and Conditions" },
   },
+
+  // Terms & Conditions
+  terms: {
+    back: { mm: "နောက်သို့", en: "Back" },
+    title1: { mm: "စည်းကမ်းချက်များ", en: "Terms" },
+    titleAnd: { mm: "နှင့်", en: "&" },
+    title2: { mm: "သတ်မှတ်ချက်များ", en: "Conditions" },
+    lastUpdated: { mm: "နောက်ဆုံးပြင်ဆင်ချက်: ဖေဖေါ်ဝါရီ ၂၀၂၆", en: "Last updated: February 2026" },
+    s1Title: { mm: "၁. ငွေပြန်အမ်းမှု မရှိပါ", en: "1. No Refund Policy" },
+    s1p1: { mm: "ဝယ်ယူပြီးသား အကောင့်များကို Refund (ငွေပြန်အမ်းခြင်း) လုံးဝပြုလုပ်ပေးမည်မဟုတ်ပါ။ Customer အဆင်သင့်ရှိမှသာ ဝယ်ယူပေးပါရန်။", en: "All sales are final. Once a purchase is completed and credentials are delivered, no refunds or exchanges will be provided under any circumstances." },
+    s2Title: { mm: "၂. အကောင့်အသုံးပြုမှု", en: "2. Account Usage" },
+    s2p1: { mm: "ဝယ်ယူထားသော credentials များကို ကိုယ်ပိုင်သုံးစွဲရန် သို့မဟုတ် ခွင့်ပြုထားသော ပြန်လည်ရောင်းချရန်သာ ဖြစ်ပါသည်။", en: "Purchased credentials are for personal or authorized resale use only. Sharing, redistributing, or misusing credentials outside of the intended purpose is strictly prohibited." },
+    s3Title: { mm: "၃. ပိုက်ဆံအိတ်နှင့် လက်ကျန်ငွေ", en: "3. Wallet & Balance" },
+    s3p1: { mm: "သင့်ပိုက်ဆံအိတ်လက်ကျန်ကို platform ပေါ်ရှိ ထုတ်ကုန်များဝယ်ယူရန် အသုံးပြုပါသည်။ ငွေဖြည့်တောင်းဆိုမှုများကို admin အတည်ပြုရပါမည်။ အတည်ပြုပြီးသော ငွေများကို ထုတ်ယူ၍မရပါ။", en: "Your wallet balance is used to purchase products on the platform. Top-up requests are subject to admin approval. Approved funds are non-withdrawable and can only be used for purchases within the platform." },
+    s4Title: { mm: "၄. ထုတ်ကုန်ရရှိနိုင်မှု", en: "4. Product Availability" },
+    s4p1: { mm: "ထုတ်ကုန်များနှင့် credentials များသည် ရရှိနိုင်မှုအပေါ် မူတည်ပါသည်။ စတော့ကို အာမခံမပေးပါ။ ဈေးနှုန်းများ ကြိုတင်အသိပေးခြင်းမရှိဘဲ ပြောင်းလဲနိုင်ပါသည်။", en: "Products and credentials are subject to availability. We do not guarantee stock at any given time. Pricing may change without prior notice." },
+    s5Title: { mm: "၅. တာဝန်ယူမှု", en: "5. Liability" },
+    s5p1: { mm: "ဝယ်ယူထားသော credentials များနှင့်ဆက်စပ်သော ပြင်ပဝန်ဆောင်မှုများမှ ဖြစ်ပေါ်လာသော ပြဿနာများအတွက် ကျွန်ုပ်တို့ တာဝန်မရှိပါ။ ထုတ်ကုန်အားလုံးကို ကိုယ်ပိုင်အန္တရာယ်ဖြင့် အသုံးပြုပါ။", en: "We are not responsible for any issues arising from third-party services associated with purchased credentials. Use all products at your own risk." },
+    s6Title: { mm: "၆. ပြင်ဆင်ချက်များ", en: "6. Amendments" },
+    s6p1: { mm: "ဤစည်းကမ်းချက်များကို အချိန်မရွေး အပ်ဒိတ်လုပ်ပိုင်ခွင့်ရှိပါသည်။ platform ကို ဆက်လက်အသုံးပြုခြင်းသည် ပြင်ဆင်ထားသော စည်းကမ်းချက်များကို လက်ခံခြင်းဖြစ်ပါသည်။", en: "We reserve the right to update these terms at any time. Continued use of the platform constitutes acceptance of the revised terms." },
+  },
 } as const;
 
 /** Hook: returns a function that picks the active language from a BiLabel */
