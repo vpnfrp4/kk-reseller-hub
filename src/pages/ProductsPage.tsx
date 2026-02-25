@@ -193,10 +193,9 @@ export default function ProductsPage() {
         { label: l(t.products.title) },
       ]} />
 
-      <div>
-        <h1 className="text-foreground">{l(t.products.title)}</h1>
-        <p className="text-[10px] text-muted-foreground/50 mt-0.5">{l(t.products.title) === t.products.title.mm ? t.products.title.en : t.products.title.mm}</p>
-        <p className="text-muted-foreground text-sm mt-1">{l(t.products.subtitle)}</p>
+      <div className="animate-fade-in">
+        <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-[var(--space-micro)]">{l(t.products.title)}</p>
+        <p className="text-[11px] text-muted-foreground">{l(t.products.subtitle)}</p>
       </div>
 
       <ProductFilters
@@ -211,7 +210,7 @@ export default function ProductsPage() {
 
       {/* Service Catalog Table Header */}
       {!isLoading && filtered.length > 0 && (
-        <div className="hidden sm:grid grid-cols-[1fr_auto] items-center gap-4 px-[var(--space-card)] py-[var(--space-tight)] text-[10px] uppercase tracking-widest font-semibold text-muted-foreground border-b border-border/40">
+        <div className="hidden sm:grid grid-cols-[1fr_auto] items-center gap-4 px-[var(--space-card)] py-[var(--space-tight)] text-[10px] uppercase tracking-widest font-semibold text-muted-foreground border-b border-border/20">
           <span>Service</span>
           <span className="text-right">Actions</span>
         </div>
@@ -290,9 +289,10 @@ export default function ProductsPage() {
 
     <button
       onClick={scrollToTop}
-      className={`fixed bottom-6 right-6 z-50 p-3 rounded-full bg-primary text-primary-foreground shadow-md transition-all duration-300 ${
+      className={`fixed bottom-6 right-6 z-50 p-3 rounded-full bg-primary text-primary-foreground transition-all duration-300 ${
         showScrollTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
       }`}
+      style={{ boxShadow: "var(--shadow-elevated)" }}
       aria-label="Scroll to top"
     >
       <ArrowUp className="w-5 h-5" />
