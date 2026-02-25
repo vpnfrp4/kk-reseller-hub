@@ -27,6 +27,7 @@ import MiniSparkline from "@/components/admin/MiniSparkline";
 import { cn } from "@/lib/utils";
 import { t, useT } from "@/lib/i18n";
 import { MmStatus } from "@/components/shared/MmLabel";
+import PwaInstallBanner from "@/components/PwaInstallBanner";
 
 const LOW_BALANCE_THRESHOLD = 20000;
 
@@ -158,6 +159,9 @@ export default function DashboardHome() {
 
   return (
     <PageContainer>
+      {/* PWA INSTALL BANNER */}
+      <PwaInstallBanner />
+
       {/* WALLET HERO */}
       <div
         ref={heroRef}
