@@ -1,6 +1,6 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bell, ShoppingCart, AlertTriangle, Clock, ChevronRight, CheckCheck } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
@@ -34,8 +34,27 @@ interface AlertItem {
 }
 
 export default function AdminNotificationBell() {
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [readIds, setReadIds] = useState<Set<string>>(getReadIds);
+
+  // Realtime: auto-refresh admin notifications
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-bell-realtime")
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "notifications" },
+        () => queryClient.invalidateQueries({ queryKey: ["bell-manual-order-notifs"] })
+      )
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "orders" },
+        () => queryClient.invalidateQueries({ queryKey: ["bell-recent-orders"] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
 
   // Recent orders (last 24h)
   const { data: recentOrders = [] } = useQuery({

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useAuth } from "@/contexts/AuthContext";
@@ -56,6 +56,20 @@ export default function NotificationsPage() {
     },
     enabled: !!user,
   });
+
+  // Realtime: auto-refresh on new/updated notifications
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("notifs-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${user.id}` },
+        () => queryClient.invalidateQueries({ queryKey: ["notifications"] })
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, queryClient]);
 
   const filtered = filter === "unread"
     ? notifications.filter((n) => !n.is_read)
