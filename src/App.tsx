@@ -83,6 +83,7 @@ function AppRoutes() {
       <Route path="/services/imei-unlock" element={<ImeiUnlockPage />} />
       <Route path="/services/vpn-keys" element={<VpnKeysPage />} />
       <Route path="/services/capcut-pro" element={<CapcutProPage />} />
+      <Route path="/orders" element={<Navigate to="/dashboard/orders" replace />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
       <Route path="/dashboard/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet/topup-status" element={<ProtectedRoute><TopUpStatusPage /></ProtectedRoute>} />
