@@ -462,6 +462,52 @@ export const t = {
     s6Title: { mm: "၆. ပြင်ဆင်ချက်များ", en: "6. Amendments" },
     s6p1: { mm: "ဤစည်းကမ်းချက်များကို အချိန်မရွေး အပ်ဒိတ်လုပ်ပိုင်ခွင့်ရှိပါသည်။ platform ကို ဆက်လက်အသုံးပြုခြင်းသည် ပြင်ဆင်ထားသော စည်းကမ်းချက်များကို လက်ခံခြင်းဖြစ်ပါသည်။", en: "We reserve the right to update these terms at any time. Continued use of the platform constitutes acceptance of the revised terms." },
   },
+
+  // Order Detail Page
+  orderDetail: {
+    breadcrumb: { mm: "မှာယူမှုအသေးစိတ်", en: "Order Details" },
+    orderId: { mm: "မှာယူမှု ID", en: "Order ID" },
+    orderDate: { mm: "မှာယူသည့်ရက်", en: "Order Date" },
+    copyId: { mm: "ID ကူးမည်", en: "Copy Order ID" },
+    copiedId: { mm: "ကူးပြီး", en: "Copied" },
+    downloadInvoice: { mm: "ပြေစာဒေါင်းလုဒ်", en: "Download Invoice" },
+    // Status timeline
+    timelineOrdered: { mm: "မှာယူပြီး", en: "Ordered" },
+    timelineProcessing: { mm: "ဆောင်ရွက်နေသည်", en: "Processing" },
+    timelineCompleted: { mm: "ပြီးမြောက်", en: "Completed" },
+    // Customer details
+    customerDetails: { mm: "ဝယ်ယူသူအချက်အလက်", en: "Order Information" },
+    fulfillmentMode: { mm: "ဆောင်ရွက်မှုပုံစံ", en: "Fulfillment Mode" },
+    processingTime: { mm: "ဆောင်ရွက်ချိန်", en: "Processing Time" },
+    requestedOn: { mm: "တောင်းဆိုသည့်ရက်", en: "Requested On" },
+    // Pricing
+    pricingBreakdown: { mm: "စျေးနှုန်းခွဲခြားချက်", en: "Pricing Breakdown" },
+    totalPaid: { mm: "စုစုပေါင်းပေးချေငွေ", en: "Total Paid" },
+    walletUsed: { mm: "ပိုက်ဆံအိတ်မှ", en: "Wallet Used" },
+    // Delivery
+    deliveryResult: { mm: "ပေးပို့မှုရလဒ်", en: "Delivery Result" },
+    credentials: { mm: "အကောင့်အချက်အလက်", en: "Credentials" },
+    reveal: { mm: "ပြမည်", en: "Reveal" },
+    hide: { mm: "ဖျောက်မည်", en: "Hide" },
+    copy: { mm: "ကူးမည်", en: "Copy" },
+    copied: { mm: "ကူးပြီး", en: "Copied" },
+    // Activity log
+    activityLog: { mm: "လုပ်ဆောင်ချက်မှတ်တမ်း", en: "Activity Log" },
+    logOrdered: { mm: "မှာယူမှုပြုလုပ်ခဲ့သည်", en: "Order placed" },
+    logProcessing: { mm: "ဆောင်ရွက်မှုစတင်ခဲ့သည်", en: "Processing started" },
+    logCompleted: { mm: "အောင်မြင်စွာပြီးမြောက်ခဲ့သည်", en: "Completed successfully" },
+    logPending: { mm: "စစ်ဆေးနေဆဲ", en: "Awaiting review" },
+    // Important notice
+    importantNotice: { mm: "အရေးကြီးအသိပေးချက်", en: "Important Notice" },
+    noticeCredentials: { mm: "အကောင့်အချက်အလက်များကို လုံခြုံစွာသိမ်းဆည်းပါ။", en: "Save your credentials securely. They are accessible from your order history." },
+    noticeNoRefund: { mm: "ပေးပို့ပြီးနောက် ပြန်အမ်းငွေ မရှိပါ။", en: "No refund after delivery." },
+    noticeSupport: { mm: "ပြဿနာရှိပါက ဆက်သွယ်ရေးမှတစ်ဆင့် အကြောင်းကြားပါ။", en: "Contact support if you encounter any issues." },
+    // Error
+    notFound: { mm: "မှာယူမှုမတွေ့ပါ", en: "Order Not Found or Removed" },
+    notFoundDesc: { mm: "ဤမှာယူမှုကို ရှာမတွေ့ပါ သို့မဟုတ် ဖယ်ရှားပြီးဖြစ်ပါသည်။", en: "This order could not be found or has been removed from the system." },
+    backToOrders: { mm: "မှာယူမှုများသို့", en: "Back to Orders" },
+    backToDashboard: { mm: "ပင်မစာမျက်နှာသို့", en: "Back to Dashboard" },
+  },
 } as const;
 
 /** Hook: returns a function that picks the active language from a BiLabel */

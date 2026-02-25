@@ -1,0 +1,637 @@
+import { useState, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import Breadcrumb from "@/components/Breadcrumb";
+import { Button } from "@/components/ui/button";
+import { PageContainer, Money } from "@/components/shared";
+import { t, useT, statusLabel } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+import {
+  Copy,
+  CheckCircle2,
+  Download,
+  Eye,
+  EyeOff,
+  ArrowLeft,
+  FileText,
+  Clock,
+  ShieldCheck,
+  AlertTriangle,
+  Loader2,
+} from "lucide-react";
+import { toast } from "sonner";
+
+/* ═══════════════════════════════════════════════════════
+   SUB-COMPONENTS
+   ═══════════════════════════════════════════════════════ */
+
+function GlassSection({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div
+      className={cn(
+        "rounded-[16px] border border-white/[0.06] bg-card/80 backdrop-blur-md shadow-[0_4px_24px_-4px_rgba(0,0,0,0.25)] p-6 sm:p-8",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="text-[11px] uppercase tracking-[0.12em] font-semibold text-muted-foreground mb-5">
+      {children}
+    </h3>
+  );
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const l = useT();
+  const label = statusLabel(status);
+  const isSuccess = ["delivered", "approved"].includes(status);
+  const isPending = ["pending", "pending_creation", "pending_review"].includes(status);
+  const isFailed = ["rejected", "cancelled"].includes(status);
+
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold",
+        isSuccess && "bg-success/10 text-success",
+        isPending && "bg-warning/10 text-warning",
+        isFailed && "bg-destructive/10 text-destructive",
+      )}
+    >
+      {isSuccess && <CheckCircle2 className="w-3 h-3" />}
+      {isPending && <Clock className="w-3 h-3" />}
+      {isFailed && <AlertTriangle className="w-3 h-3" />}
+      {l(label)}
+    </span>
+  );
+}
+
+/* ─── Timeline Step ─── */
+interface TimelineStepData {
+  label: { mm: string; en: string };
+  timestamp?: string | null;
+  isActive: boolean;
+  isDone: boolean;
+}
+
+function StatusTimeline({ steps }: { steps: TimelineStepData[] }) {
+  const l = useT();
+  return (
+    <div className="flex items-start justify-between gap-2">
+      {steps.map((step, i) => (
+        <div key={i} className="flex-1 flex flex-col items-center text-center">
+          {/* Connector + Circle */}
+          <div className="flex items-center w-full mb-3">
+            {i > 0 && (
+              <div
+                className={cn(
+                  "flex-1 h-px",
+                  step.isDone ? "bg-success/40" : "bg-border",
+                )}
+              />
+            )}
+            <div
+              className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all",
+                step.isDone
+                  ? "bg-success text-success-foreground"
+                  : step.isActive
+                    ? "bg-primary/15 border-2 border-primary text-primary"
+                    : "bg-muted border border-border text-muted-foreground",
+              )}
+            >
+              {step.isDone ? (
+                <CheckCircle2 className="w-4 h-4" />
+              ) : (
+                <span className="text-xs font-bold">{i + 1}</span>
+              )}
+            </div>
+            {i < steps.length - 1 && (
+              <div
+                className={cn(
+                  "flex-1 h-px",
+                  step.isDone ? "bg-success/40" : "bg-border",
+                )}
+              />
+            )}
+          </div>
+          <p
+            className={cn(
+              "text-xs font-medium",
+              step.isDone
+                ? "text-foreground"
+                : step.isActive
+                  ? "text-primary"
+                  : "text-muted-foreground",
+            )}
+          >
+            {l(step.label)}
+          </p>
+          {step.timestamp && (
+            <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+              {format(new Date(step.timestamp), "HH:mm")}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Detail Row ─── */
+function DetailRow({
+  label,
+  value,
+  mono,
+}: {
+  label: string;
+  value: React.ReactNode;
+  mono?: boolean;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-3 border-b border-border/20 last:border-0">
+      <span className="text-xs text-muted-foreground shrink-0">{label}</span>
+      <span
+        className={cn(
+          "text-sm font-medium text-foreground text-right",
+          mono && "font-mono",
+        )}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
+   MAIN PAGE
+   ═══════════════════════════════════════════════════════ */
+
+export default function OrderDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const l = useT();
+
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [credentialsRevealed, setCredentialsRevealed] = useState(false);
+
+  const { data: order, isLoading } = useQuery({
+    queryKey: ["order-detail", id],
+    queryFn: async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error) return null;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  const handleCopy = (text: string, field: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(field);
+    setTimeout(() => setCopiedField(null), 2000);
+  };
+
+  const isDelivered = order?.status === "delivered";
+  const isPending = ["pending", "pending_creation", "pending_review"].includes(
+    order?.status || "",
+  );
+
+  // Parse credentials into lines
+  const credentialLines = useMemo(() => {
+    if (!order?.credentials) return [];
+    return order.credentials
+      .split("\n")
+      .filter((line: string) => line.trim().length > 0);
+  }, [order?.credentials]);
+
+  // Fulfillment mode display
+  const fulfillmentDisplay = useMemo(() => {
+    const mode = order?.fulfillment_mode || "instant";
+    const map: Record<string, { mm: string; en: string }> = {
+      instant: t.fulfillment.instant,
+      custom_username: t.fulfillment.custom_username,
+      imei: t.fulfillment.imei,
+      manual: t.fulfillment.manual,
+    };
+    return map[mode] || { mm: mode, en: mode };
+  }, [order?.fulfillment_mode]);
+
+  // Timeline steps
+  const timelineSteps: TimelineStepData[] = useMemo(() => {
+    const ordered = order?.created_at || null;
+    return [
+      {
+        label: t.orderDetail.timelineOrdered,
+        timestamp: ordered,
+        isDone: true,
+        isActive: false,
+      },
+      {
+        label: t.orderDetail.timelineProcessing,
+        timestamp: isPending ? ordered : isDelivered ? ordered : null,
+        isDone: isDelivered,
+        isActive: isPending,
+      },
+      {
+        label: t.orderDetail.timelineCompleted,
+        timestamp: isDelivered ? ordered : null,
+        isDone: isDelivered,
+        isActive: false,
+      },
+    ];
+  }, [order, isDelivered, isPending]);
+
+  // Activity log entries
+  const activityLog = useMemo(() => {
+    if (!order) return [];
+    const entries: { label: { mm: string; en: string }; time: string }[] = [
+      {
+        label: t.orderDetail.logOrdered,
+        time: order.created_at,
+      },
+    ];
+    if (isPending) {
+      entries.push({ label: t.orderDetail.logPending, time: order.created_at });
+    }
+    if (isDelivered) {
+      entries.push({
+        label: t.orderDetail.logProcessing,
+        time: order.created_at,
+      });
+      entries.push({
+        label: t.orderDetail.logCompleted,
+        time: order.created_at,
+      });
+    }
+    return entries;
+  }, [order, isDelivered, isPending]);
+
+  // Download invoice
+  const handleDownloadInvoice = () => {
+    if (!order) return;
+    const lines = [
+      `INVOICE — KKTech Reseller Platform`,
+      `──────────────────────────────`,
+      `Order ID: ${order.id}`,
+      `Product: ${order.product_name}`,
+      `Date: ${format(new Date(order.created_at), "PPP 'at' HH:mm")}`,
+      `Status: ${order.status}`,
+      `Fulfillment: ${order.fulfillment_mode}`,
+      `──────────────────────────────`,
+      `Total Paid: ${order.price.toLocaleString()} MMK`,
+      `Payment Method: Wallet`,
+      `──────────────────────────────`,
+      `Credentials:`,
+      order.credentials,
+      `──────────────────────────────`,
+      `Generated at ${new Date().toISOString()}`,
+    ];
+    const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `invoice-${order.id.slice(0, 8)}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Invoice downloaded");
+  };
+
+  /* ── Loading state ── */
+  if (isLoading) {
+    return (
+      <div className="space-y-[var(--space-section)]">
+        <Breadcrumb
+          items={[
+            { label: l(t.nav.dashboard), path: "/dashboard" },
+            { label: l(t.nav.orders), path: "/dashboard/orders" },
+            { label: l(t.orderDetail.breadcrumb) },
+          ]}
+        />
+        <PageContainer maxWidth="max-w-3xl">
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+          </div>
+        </PageContainer>
+      </div>
+    );
+  }
+
+  /* ── Not found state ── */
+  if (!order) {
+    return (
+      <div className="space-y-[var(--space-section)]">
+        <Breadcrumb
+          items={[
+            { label: l(t.nav.dashboard), path: "/dashboard" },
+            { label: l(t.nav.orders), path: "/dashboard/orders" },
+            { label: l(t.orderDetail.breadcrumb) },
+          ]}
+        />
+        <PageContainer maxWidth="max-w-xl">
+          <GlassSection className="text-center py-12 space-y-4">
+            <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
+              <FileText className="w-7 h-7 text-destructive" />
+            </div>
+            <h2 className="text-lg font-semibold text-foreground">
+              {l(t.orderDetail.notFound)}
+            </h2>
+            <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+              {l(t.orderDetail.notFoundDesc)}
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
+              <Button
+                className="btn-glow gap-2"
+                onClick={() => navigate("/dashboard/orders")}
+              >
+                <ArrowLeft className="w-4 h-4" />
+                {l(t.orderDetail.backToOrders)}
+              </Button>
+              <Button
+                variant="outline"
+                className="btn-glass gap-2"
+                onClick={() => navigate("/dashboard")}
+              >
+                {l(t.orderDetail.backToDashboard)}
+              </Button>
+            </div>
+          </GlassSection>
+        </PageContainer>
+      </div>
+    );
+  }
+
+  /* ── Main render ── */
+  return (
+    <div className="space-y-[var(--space-section)] animate-fade-in">
+      <Breadcrumb
+        items={[
+          { label: l(t.nav.dashboard), path: "/dashboard" },
+          { label: l(t.nav.orders), path: "/dashboard/orders" },
+          { label: l(t.orderDetail.breadcrumb) },
+        ]}
+      />
+
+      <PageContainer maxWidth="max-w-3xl">
+        <div className="space-y-6">
+          {/* ═══ 1. ORDER HEADER ═══ */}
+          <GlassSection>
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+              <div className="space-y-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
+                  {order.product_name}
+                </h1>
+                <div className="flex flex-wrap items-center gap-3">
+                  <StatusBadge status={order.status} />
+                  <span className="text-xs text-muted-foreground font-mono">
+                    {order.id.slice(0, 8)}...
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {format(new Date(order.created_at), "PPP 'at' HH:mm")}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="btn-glass gap-1.5 text-xs"
+                  onClick={() => {
+                    handleCopy(order.id, "order-id");
+                    toast.success(l(t.orderDetail.copiedId));
+                  }}
+                >
+                  {copiedField === "order-id" ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                  {l(t.orderDetail.copyId)}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="btn-glass gap-1.5 text-xs"
+                  onClick={handleDownloadInvoice}
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  {l(t.orderDetail.downloadInvoice)}
+                </Button>
+              </div>
+            </div>
+          </GlassSection>
+
+          {/* ═══ 2. STATUS TIMELINE ═══ */}
+          <GlassSection>
+            <StatusTimeline steps={timelineSteps} />
+          </GlassSection>
+
+          {/* ═══ 3. CUSTOMER / INPUT DETAILS ═══ */}
+          <GlassSection>
+            <SectionLabel>{l(t.orderDetail.customerDetails)}</SectionLabel>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
+              <DetailRow
+                label={l(t.orders.product)}
+                value={order.product_name}
+              />
+              <DetailRow
+                label={l(t.orderDetail.fulfillmentMode)}
+                value={l(fulfillmentDisplay)}
+              />
+              <DetailRow
+                label="Status"
+                value={<StatusBadge status={order.status} />}
+              />
+              <DetailRow
+                label={l(t.orderDetail.requestedOn)}
+                value={format(new Date(order.created_at), "PPP")}
+              />
+              {order.custom_fields_data &&
+                typeof order.custom_fields_data === "object" &&
+                Object.entries(
+                  order.custom_fields_data as Record<string, string>,
+                ).map(([key, value]) => (
+                  <DetailRow key={key} label={key} value={value} mono />
+                ))}
+            </div>
+          </GlassSection>
+
+          {/* ═══ 4. PRICING BREAKDOWN ═══ */}
+          <GlassSection>
+            <SectionLabel>{l(t.orderDetail.pricingBreakdown)}</SectionLabel>
+            <div className="space-y-0">
+              <DetailRow
+                label={l(t.orderDetail.totalPaid)}
+                value={
+                  <Money
+                    amount={order.price}
+                    className="text-foreground font-bold text-base"
+                  />
+                }
+              />
+              <DetailRow
+                label={l(t.orderDetail.walletUsed)}
+                value={
+                  <Money
+                    amount={order.price}
+                    className="text-muted-foreground"
+                  />
+                }
+              />
+            </div>
+          </GlassSection>
+
+          {/* ═══ 5. DELIVERY RESULT (if completed) ═══ */}
+          {isDelivered &&
+            credentialLines.length > 0 &&
+            credentialLines[0] !== "Pending manual fulfillment" && (
+              <GlassSection>
+                <div className="flex items-center justify-between mb-5">
+                  <SectionLabel>{l(t.orderDetail.deliveryResult)}</SectionLabel>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-muted-foreground hover:text-foreground gap-1.5 -mt-2"
+                    onClick={() => setCredentialsRevealed(!credentialsRevealed)}
+                  >
+                    {credentialsRevealed ? (
+                      <EyeOff className="w-3.5 h-3.5" />
+                    ) : (
+                      <Eye className="w-3.5 h-3.5" />
+                    )}
+                    {credentialsRevealed
+                      ? l(t.orderDetail.hide)
+                      : l(t.orderDetail.reveal)}
+                  </Button>
+                </div>
+
+                <div className="space-y-3">
+                  {credentialLines.map((line: string, i: number) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between gap-3 rounded-[var(--radius-card)] border border-border/30 bg-background/40 px-4 py-3"
+                    >
+                      <code className="text-sm font-mono text-foreground truncate flex-1">
+                        {credentialsRevealed
+                          ? line
+                          : "•".repeat(Math.min(line.length, 24))}
+                      </code>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0"
+                        onClick={() => handleCopy(line, `cred-${i}`)}
+                      >
+                        {copiedField === `cred-${i}` ? (
+                          <CheckCircle2 className="w-4 h-4 text-success" />
+                        ) : (
+                          <Copy className="w-4 h-4 text-muted-foreground" />
+                        )}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Copy all */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="mt-4 btn-glass gap-1.5 text-xs w-full sm:w-auto"
+                  onClick={() => {
+                    handleCopy(order.credentials, "all-creds");
+                    toast.success(l(t.orderDetail.copied));
+                  }}
+                >
+                  {copiedField === "all-creds" ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                  {l(t.success.copyAll)}
+                </Button>
+              </GlassSection>
+            )}
+
+          {/* ═══ 6. ACTIVITY LOG ═══ */}
+          <GlassSection>
+            <SectionLabel>{l(t.orderDetail.activityLog)}</SectionLabel>
+            <div className="space-y-0">
+              {activityLog.map((entry, i) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between py-3 border-b border-border/20 last:border-0"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={cn(
+                        "w-2 h-2 rounded-full shrink-0",
+                        i === activityLog.length - 1
+                          ? "bg-primary"
+                          : "bg-muted-foreground/30",
+                      )}
+                    />
+                    <span className="text-sm text-foreground">
+                      {l(entry.label)}
+                    </span>
+                  </div>
+                  <span className="text-[11px] text-muted-foreground font-mono">
+                    {format(new Date(entry.time), "MMM d, HH:mm")}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </GlassSection>
+
+          {/* ═══ 7. IMPORTANT NOTICE ═══ */}
+          <GlassSection className="border-l-2 border-l-primary/40">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <div className="space-y-2">
+                <h4 className="text-sm font-semibold text-foreground">
+                  {l(t.orderDetail.importantNotice)}
+                </h4>
+                <ul className="space-y-1.5">
+                  <li className="text-xs text-muted-foreground leading-relaxed">
+                    {l(t.orderDetail.noticeCredentials)}
+                  </li>
+                  <li className="text-xs text-muted-foreground leading-relaxed">
+                    {l(t.orderDetail.noticeNoRefund)}
+                  </li>
+                  <li className="text-xs text-muted-foreground leading-relaxed">
+                    {l(t.orderDetail.noticeSupport)}
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </GlassSection>
+
+          {/* Back button */}
+          <Button
+            variant="outline"
+            className="btn-glass gap-2 w-full sm:w-auto"
+            onClick={() => navigate("/dashboard/orders")}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            {l(t.orderDetail.backToOrders)}
+          </Button>
+        </div>
+      </PageContainer>
+    </div>
+  );
+}
