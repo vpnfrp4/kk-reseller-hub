@@ -57,7 +57,6 @@ export default function NotificationsPage() {
     enabled: !!user,
   });
 
-  // Realtime: auto-refresh on new/updated notifications
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -109,51 +108,48 @@ export default function NotificationsPage() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-[var(--space-card)]">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
         { label: l(t.nav.notifications) },
       ]} />
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-[var(--space-default)] animate-fade-in">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">
+          <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-[var(--space-micro)]">
             {l(t.notifs.title)}
-          </h1>
-          <p className="text-muted-foreground text-sm">
+          </p>
+          <p className="text-[11px] text-muted-foreground">
             {unreadCount > 0 ? `${unreadCount} ${l(t.notifs.unread)}` : l(t.notifs.allCaughtUp)}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant={filter === "all" ? "default" : "outline"}
-            size="sm"
+        <div className="flex items-center gap-[var(--space-tight)]">
+          <button
             onClick={() => setFilter("all")}
+            className={`filter-pill ${filter === "all" ? "filter-pill-active" : "filter-pill-inactive"}`}
           >
             {l(t.notifs.all)}
-          </Button>
-          <Button
-            variant={filter === "unread" ? "default" : "outline"}
-            size="sm"
+          </button>
+          <button
             onClick={() => setFilter("unread")}
-            className="gap-1.5"
+            className={`filter-pill flex items-center gap-1.5 ${filter === "unread" ? "filter-pill-active" : "filter-pill-inactive"}`}
           >
-            <Filter className="w-3.5 h-3.5" />
+            <Filter className="w-3 h-3" />
             {l(t.notifs.unreadFilter)}
             {unreadCount > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-primary text-primary-foreground">
+              <span className="ml-0.5 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-primary text-primary-foreground">
                 {unreadCount}
               </span>
             )}
-          </Button>
+          </button>
           {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllRead} className="gap-1.5 text-muted-foreground">
+            <Button variant="ghost" size="sm" onClick={markAllRead} className="gap-1.5 text-muted-foreground text-[11px]">
               <CheckCheck className="w-3.5 h-3.5" />
               {l(t.notifs.markAllRead)}
             </Button>
           )}
           {notifications.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearAll} className="gap-1.5 text-muted-foreground hover:text-destructive">
+            <Button variant="ghost" size="sm" onClick={clearAll} className="gap-1.5 text-muted-foreground hover:text-destructive text-[11px]">
               <Trash2 className="w-3.5 h-3.5" />
               {l(t.notifs.clearAll)}
             </Button>
@@ -163,52 +159,54 @@ export default function NotificationsPage() {
 
       <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.05s" }}>
         {isLoading ? (
-          <div className="p-12 text-center">
+          <div className="p-[var(--space-hero)] text-center">
             <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
           </div>
         ) : filtered.length === 0 ? (
-          <div className="p-12 text-center">
-            <Bell className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground">
+          <div className="p-[var(--space-hero)] text-center">
+            <div className="w-10 h-10 rounded-full bg-muted/20 flex items-center justify-center mx-auto mb-[var(--space-compact)]">
+              <Bell className="w-5 h-5 text-muted-foreground/40" />
+            </div>
+            <p className="text-[11px] text-muted-foreground">
               {filter === "unread" ? l(t.notifs.noUnread) : l(t.notifs.noNotifs)}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-border/30">
+          <div className="divide-y divide-border/20">
             {filtered.map((n, i) => {
               const config = typeConfig[n.type] || typeConfig.info;
               const Icon = config.icon;
               return (
                 <div
                   key={n.id}
-                  className={`p-4 sm:p-5 flex items-start gap-4 transition-all duration-200 hover:bg-muted/20 opacity-0 animate-fade-in ${
+                  className={`px-[var(--space-card)] py-[var(--space-default)] flex items-start gap-[var(--space-default)] transition-all duration-200 hover:bg-muted/10 opacity-0 animate-fade-in ${
                     !n.is_read ? "bg-primary/[0.03]" : ""
                   }`}
                   style={{ animationDelay: `${i * 0.03}s` }}
                 >
-                  <div className={`mt-0.5 p-2 rounded-lg border ${config.bgClass} shrink-0`}>
+                  <div className={`mt-0.5 p-2 rounded-[var(--radius-btn)] border ${config.bgClass} shrink-0`}>
                     <Icon className={`w-4 h-4 ${config.colorClass}`} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-start justify-between gap-[var(--space-tight)]">
                       <div>
-                        <p className={`text-sm font-medium ${!n.is_read ? "text-foreground" : "text-muted-foreground"}`}>
+                        <p className={`text-[13px] font-medium ${!n.is_read ? "text-foreground" : "text-muted-foreground"}`}>
                           {n.title}
                         </p>
                         {n.body && (
-                          <p className="text-xs text-muted-foreground mt-0.5">{n.body}</p>
+                          <p className="text-[11px] text-muted-foreground mt-[var(--space-micro)]">{n.body}</p>
                         )}
                         {n.link && (
                           <Link
                             to={n.link}
-                            className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                            className="inline-flex items-center gap-1 mt-[var(--space-tight)] px-2.5 py-1 rounded-md text-[11px] font-semibold bg-primary/8 text-primary hover:bg-primary/15 transition-colors"
                           >
                             <ExternalLink className="w-3 h-3" />
                             View Order
                           </Link>
                         )}
                       </div>
-                      <span className="text-[11px] text-muted-foreground whitespace-nowrap shrink-0">
+                      <span className="text-[10px] font-mono text-muted-foreground whitespace-nowrap shrink-0">
                         {formatTime(n.created_at)}
                       </span>
                     </div>
@@ -216,10 +214,10 @@ export default function NotificationsPage() {
                   {!n.is_read && (
                     <button
                       onClick={() => markAsRead(n.id)}
-                      className="mt-1 p-1 rounded hover:bg-muted transition-colors shrink-0"
+                      className="mt-1 p-1 rounded-md hover:bg-muted/30 transition-colors shrink-0"
                       title="Mark as read"
                     >
-                      <CheckCircle2 className="w-4 h-4 text-primary/60 hover:text-primary" />
+                      <CheckCircle2 className="w-4 h-4 text-primary/50 hover:text-primary transition-colors" />
                     </button>
                   )}
                 </div>
