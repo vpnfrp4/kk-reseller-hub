@@ -315,7 +315,7 @@ export default function TopUpDialog({
                         "w-full text-left rounded-[16px] p-6 border-2 transition-all duration-200 relative",
                         isSelected
                           ? "border-primary bg-primary/[0.03]"
-                          : "border-[hsl(220_13%_90%)] bg-card hover:border-border"
+                          : "border-border bg-card hover:border-muted-foreground/30"
                       )}
                     >
                       <div className="flex items-start justify-between gap-3">
