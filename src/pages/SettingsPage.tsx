@@ -120,13 +120,13 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-lg">
+    <div className="space-y-[var(--space-section)] max-w-lg">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
         { label: l(t.nav.settings) },
       ]} />
 
-      <div className="animate-fade-in">
+      <div className="animate-fade-in space-y-[var(--space-micro)]">
         <h1 className="text-2xl font-bold text-foreground">
           <MmLabel mm={t.settings.title.mm} en={t.settings.title.en} />
         </h1>
@@ -134,24 +134,26 @@ export default function SettingsPage() {
       </div>
 
       {/* Profile Section */}
-      <div className="glass-card p-6 space-y-4 animate-fade-in" style={{ animationDelay: "0.05s" }}>
-        <div className="flex items-center gap-2 font-semibold">
-          <User className="w-5 h-5 text-primary" />
-          <MmLabel mm={t.settings.profile.mm} en={t.settings.profile.en} className="gold-text" />
-        </div>
-        <form onSubmit={handleUpdateName} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">{l(t.settings.email)}</Label>
-            <Input value={profile?.email || ""} disabled className="bg-muted/50 border-border opacity-60" />
+      <div className="glass-card p-[var(--space-card)] space-y-[var(--space-default)] animate-fade-in" style={{ animationDelay: "0.05s" }}>
+        <div className="flex items-center gap-[var(--space-compact)] font-semibold">
+          <div className="w-8 h-8 rounded-full bg-muted/20 flex items-center justify-center">
+            <User className="w-4 h-4 text-primary" />
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">{l(t.settings.displayName)}</Label>
+          <MmLabel mm={t.settings.profile.mm} en={t.settings.profile.en} className="text-foreground" />
+        </div>
+        <form onSubmit={handleUpdateName} className="space-y-[var(--space-default)]">
+          <div className="space-y-[var(--space-micro)]">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{l(t.settings.email)}</Label>
+            <Input value={profile?.email || ""} disabled className="bg-muted/30 border-border/20 opacity-60 font-mono text-sm" />
+          </div>
+          <div className="space-y-[var(--space-micro)]">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{l(t.settings.displayName)}</Label>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
               maxLength={100}
-              className="bg-muted/50 border-border"
+              className="bg-muted/30 border-border/20"
             />
           </div>
           <Button type="submit" disabled={saving} className="btn-glow">
@@ -161,42 +163,44 @@ export default function SettingsPage() {
       </div>
 
       {/* Password Section */}
-      <div className="glass-card p-6 space-y-4 animate-fade-in" style={{ animationDelay: "0.1s" }}>
-        <div className="flex items-center gap-2 font-semibold">
-          <Lock className="w-5 h-5 text-primary" />
-          <MmLabel mm={t.settings.changePassword.mm} en={t.settings.changePassword.en} className="gold-text" />
+      <div className="glass-card p-[var(--space-card)] space-y-[var(--space-default)] animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        <div className="flex items-center gap-[var(--space-compact)] font-semibold">
+          <div className="w-8 h-8 rounded-full bg-muted/20 flex items-center justify-center">
+            <Lock className="w-4 h-4 text-primary" />
+          </div>
+          <MmLabel mm={t.settings.changePassword.mm} en={t.settings.changePassword.en} className="text-foreground" />
         </div>
-        <form onSubmit={handleChangePassword} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">{l(t.settings.currentPw)}</Label>
+        <form onSubmit={handleChangePassword} className="space-y-[var(--space-default)]">
+          <div className="space-y-[var(--space-micro)]">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{l(t.settings.currentPw)}</Label>
             <Input
               type="password"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
               required
-              className="bg-muted/50 border-border"
+              className="bg-muted/30 border-border/20"
             />
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">{l(t.settings.newPw)}</Label>
+          <div className="space-y-[var(--space-micro)]">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{l(t.settings.newPw)}</Label>
             <Input
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               required
               minLength={6}
-              className="bg-muted/50 border-border"
+              className="bg-muted/30 border-border/20"
             />
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">{l(t.settings.confirmPw)}</Label>
+          <div className="space-y-[var(--space-micro)]">
+            <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">{l(t.settings.confirmPw)}</Label>
             <Input
               type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
               minLength={6}
-              className="bg-muted/50 border-border"
+              className="bg-muted/30 border-border/20"
             />
           </div>
           <Button type="submit" disabled={changingPassword} className="btn-glow">
@@ -206,18 +210,20 @@ export default function SettingsPage() {
       </div>
 
       {/* Notification Preferences */}
-      <div className="glass-card p-6 space-y-5 animate-fade-in" style={{ animationDelay: "0.15s" }}>
-        <div className="flex items-center gap-2 font-semibold">
-          <Bell className="w-5 h-5 text-primary" />
-          <MmLabel mm={t.settings.notifPrefs.mm} en={t.settings.notifPrefs.en} className="gold-text" />
+      <div className="glass-card p-[var(--space-card)] space-y-[var(--space-card)] animate-fade-in" style={{ animationDelay: "0.15s" }}>
+        <div className="flex items-center gap-[var(--space-compact)] font-semibold">
+          <div className="w-8 h-8 rounded-full bg-muted/20 flex items-center justify-center">
+            <Bell className="w-4 h-4 text-primary" />
+          </div>
+          <MmLabel mm={t.settings.notifPrefs.mm} en={t.settings.notifPrefs.en} className="text-foreground" />
         </div>
 
         {/* Delivery Methods */}
-        <div className="space-y-1">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{l(t.settings.deliveryMethods)}</p>
-          <div className="space-y-3 mt-3">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
-              <div className="flex items-center gap-3">
+        <div className="space-y-[var(--space-compact)]">
+          <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{l(t.settings.deliveryMethods)}</p>
+          <div className="space-y-[var(--space-tight)]">
+            <div className="flex items-center justify-between p-[var(--space-compact)] rounded-[var(--radius)] bg-muted/10 border border-border/20">
+              <div className="flex items-center gap-[var(--space-compact)]">
                 <Volume2 className={`w-4 h-4 ${notifPrefs.soundEnabled ? "text-primary" : "text-muted-foreground"}`} />
                 <div>
                   <p className="text-sm font-medium text-foreground">{l(t.settings.soundEffects)}</p>
@@ -227,8 +233,8 @@ export default function SettingsPage() {
               <Switch checked={notifPrefs.soundEnabled} onCheckedChange={handleSoundToggle} />
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between p-[var(--space-compact)] rounded-[var(--radius)] bg-muted/10 border border-border/20">
+              <div className="flex items-center gap-[var(--space-compact)]">
                 <Globe className={`w-4 h-4 ${notifPrefs.browserNotificationsEnabled ? "text-primary" : "text-muted-foreground"}`} />
                 <div>
                   <p className="text-sm font-medium text-foreground">{l(t.settings.browserNotifs)}</p>
@@ -240,19 +246,19 @@ export default function SettingsPage() {
           </div>
 
           {"Notification" in window && Notification.permission === "denied" && notifPrefs.browserNotificationsEnabled && (
-            <p className="text-[11px] text-destructive mt-2 px-1">
+            <p className="text-[11px] text-destructive mt-[var(--space-tight)] px-1">
               ဘရောက်ဇာ အသိပေးချက်များ ပိတ်ထားသည်။ ဘရောက်ဇာ ဆက်တင်တွင် ဖွင့်ပေးပါ။
             </p>
           )}
         </div>
 
         {/* Alert Types */}
-        <div className="space-y-1 pt-2 border-t border-border/30">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{l(t.settings.alertTypes)}</p>
-          <div className="space-y-3 mt-3">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
-              <div className="flex items-center gap-3">
-                <Wallet className={`w-4 h-4 ${notifPrefs.topupApproved ? "text-success" : "text-muted-foreground"}`} />
+        <div className="space-y-[var(--space-compact)] pt-[var(--space-default)] border-t border-border/20">
+          <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">{l(t.settings.alertTypes)}</p>
+          <div className="space-y-[var(--space-tight)]">
+            <div className="flex items-center justify-between p-[var(--space-compact)] rounded-[var(--radius)] bg-muted/10 border border-border/20">
+              <div className="flex items-center gap-[var(--space-compact)]">
+                <Wallet className={`w-4 h-4 ${notifPrefs.topupApproved ? "text-primary" : "text-muted-foreground"}`} />
                 <div>
                   <p className="text-sm font-medium text-foreground">{l(t.settings.topupApproved)}</p>
                   <p className="text-xs text-muted-foreground">{l(t.settings.topupApprovedDesc)}</p>
@@ -261,8 +267,8 @@ export default function SettingsPage() {
               <Switch checked={notifPrefs.topupApproved} onCheckedChange={(v) => updateNotifPref("topupApproved", v)} />
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between p-[var(--space-compact)] rounded-[var(--radius)] bg-muted/10 border border-border/20">
+              <div className="flex items-center gap-[var(--space-compact)]">
                 <ShoppingBag className={`w-4 h-4 ${notifPrefs.purchaseComplete ? "text-primary" : "text-muted-foreground"}`} />
                 <div>
                   <p className="text-sm font-medium text-foreground">{l(t.settings.purchaseComplete)}</p>
@@ -272,9 +278,9 @@ export default function SettingsPage() {
               <Switch checked={notifPrefs.purchaseComplete} onCheckedChange={(v) => updateNotifPref("purchaseComplete", v)} />
             </div>
 
-            <div className="rounded-lg bg-muted/20 border border-border/30 overflow-hidden">
-              <div className="flex items-center justify-between p-3">
-                <div className="flex items-center gap-3">
+            <div className="rounded-[var(--radius)] bg-muted/10 border border-border/20 overflow-hidden">
+              <div className="flex items-center justify-between p-[var(--space-compact)]">
+                <div className="flex items-center gap-[var(--space-compact)]">
                   <AlertTriangle className={`w-4 h-4 ${notifPrefs.lowBalance ? "text-warning" : "text-muted-foreground"}`} />
                   <div>
                     <p className="text-sm font-medium text-foreground">{l(t.settings.lowBalanceWarning)}</p>
@@ -284,9 +290,9 @@ export default function SettingsPage() {
                 <Switch checked={notifPrefs.lowBalance} onCheckedChange={(v) => updateNotifPref("lowBalance", v)} />
               </div>
               {notifPrefs.lowBalance && (
-                <div className="px-3 pb-3 pt-0">
-                  <div className="flex items-center gap-2 p-2.5 rounded-lg bg-background/50 border border-border/20">
-                    <Label className="text-xs text-muted-foreground whitespace-nowrap">{l(t.settings.alertBelow)}</Label>
+                <div className="px-[var(--space-compact)] pb-[var(--space-compact)] pt-0">
+                  <div className="flex items-center gap-[var(--space-tight)] p-[var(--space-compact)] rounded-[var(--radius)] bg-background/50 border border-border/20">
+                    <Label className="text-[11px] text-muted-foreground whitespace-nowrap">{l(t.settings.alertBelow)}</Label>
                     <Input
                       type="number"
                       min={1000}
@@ -299,20 +305,20 @@ export default function SettingsPage() {
                           updateNotifPref("lowBalanceThreshold", val as any);
                         }
                       }}
-                      className="h-8 w-28 bg-muted/50 border-border text-sm font-mono text-right"
+                      className="h-8 w-28 bg-muted/30 border-border/20 text-sm font-mono text-right tabular-nums"
                     />
-                    <span className="text-xs font-medium text-muted-foreground">MMK</span>
+                    <span className="text-[11px] font-medium text-muted-foreground font-mono">MMK</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-1.5 px-1">
+                  <p className="text-[10px] text-muted-foreground mt-[var(--space-micro)] px-1">
                     အကြံပြု: 5,000 – 50,000 MMK
                   </p>
                 </div>
               )}
             </div>
 
-            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/20 border border-border/30">
-              <div className="flex items-center gap-3">
-                <ClipboardList className={`w-4 h-4 ${notifPrefs.orderUpdates ? "text-ice" : "text-muted-foreground"}`} />
+            <div className="flex items-center justify-between p-[var(--space-compact)] rounded-[var(--radius)] bg-muted/10 border border-border/20">
+              <div className="flex items-center gap-[var(--space-compact)]">
+                <ClipboardList className={`w-4 h-4 ${notifPrefs.orderUpdates ? "text-primary" : "text-muted-foreground"}`} />
                 <div>
                   <p className="text-sm font-medium text-foreground">{l(t.settings.orderUpdates)}</p>
                   <p className="text-xs text-muted-foreground">{l(t.settings.orderUpdatesDesc)}</p>
