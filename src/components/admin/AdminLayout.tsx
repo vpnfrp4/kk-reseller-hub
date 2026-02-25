@@ -15,6 +15,7 @@ import {
   ShoppingCart,
   ArrowLeftRight,
   X,
+  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
@@ -29,6 +30,7 @@ const navItems = [
   { label: "Top-ups", icon: Wallet, path: "/admin/topups" },
   { label: "Orders", icon: ShoppingCart, path: "/admin/orders" },
   { label: "Resellers", icon: Users, path: "/admin/resellers" },
+  { label: "Settings", icon: Settings, path: "/admin/settings" },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
