@@ -25,6 +25,7 @@ import AdminCredentials from "./pages/admin/AdminCredentials";
 import AdminTopups from "./pages/admin/AdminTopups";
 import AdminResellers from "./pages/admin/AdminResellers";
 import AdminOrders from "./pages/admin/AdminOrders";
+import AdminSettings from "./pages/admin/AdminSettings";
 import LandingPage from "./pages/LandingPage";
 import ImeiCheckPage from "./pages/ImeiCheckPage";
 import ImeiUnlockPage from "./pages/services/ImeiUnlockPage";
@@ -105,6 +106,7 @@ function AppRoutes() {
       <Route path="/admin/topups" element={<AdminRoute><AdminTopups /></AdminRoute>} />
         <Route path="/admin/resellers" element={<AdminRoute><AdminResellers /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
+        <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
         <Route path="*" element={<NotFound />} />
     </Routes>
   );
