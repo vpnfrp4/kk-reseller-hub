@@ -1,55 +1,36 @@
 import { ArrowLeft, ScrollText, ShieldCheck, Wallet, Package, AlertTriangle, FileText, Crown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { t, useT } from "@/lib/i18n";
+import { useLang } from "@/contexts/LangContext";
+import type { BiLabel } from "@/lib/i18n";
 
-const sections = [
-  {
-    icon: ShieldCheck,
-    title: "1. No Refund Policy",
-    content: [
-      "ဝယ်ယူပြီးသား အကောင့်များကို Refund (ငွေပြန်အမ်းခြင်း) လုံးဝပြုလုပ်ပေးမည်မဟုတ်ပါ။ Customer အဆင်သင့်ရှိမှသာ ဝယ်ယူပေးပါရန်။",
-      "All sales are final. Once a purchase is completed and credentials are delivered, no refunds or exchanges will be provided under any circumstances.",
-    ],
-  },
-  {
-    icon: ScrollText,
-    title: "2. Account Usage",
-    content: [
-      "Purchased credentials are for personal or authorized resale use only. Sharing, redistributing, or misusing credentials outside of the intended purpose is strictly prohibited.",
-    ],
-  },
-  {
-    icon: Wallet,
-    title: "3. Wallet & Balance",
-    content: [
-      "Your wallet balance is used to purchase products on the platform. Top-up requests are subject to admin approval. Approved funds are non-withdrawable and can only be used for purchases within the platform.",
-    ],
-  },
-  {
-    icon: Package,
-    title: "4. Product Availability",
-    content: [
-      "Products and credentials are subject to availability. We do not guarantee stock at any given time. Pricing may change without prior notice.",
-    ],
-  },
-  {
-    icon: AlertTriangle,
-    title: "5. Liability",
-    content: [
-      "We are not responsible for any issues arising from third-party services associated with purchased credentials. Use all products at your own risk.",
-    ],
-  },
-  {
-    icon: FileText,
-    title: "6. Amendments",
-    content: [
-      "We reserve the right to update these terms at any time. Continued use of the platform constitutes acceptance of the revised terms.",
-    ],
-  },
+const sectionDefs: { icon: typeof ShieldCheck; title: BiLabel; paragraphs: BiLabel[] }[] = [
+  { icon: ShieldCheck, title: t.terms.s1Title, paragraphs: [t.terms.s1p1] },
+  { icon: ScrollText, title: t.terms.s2Title, paragraphs: [t.terms.s2p1] },
+  { icon: Wallet, title: t.terms.s3Title, paragraphs: [t.terms.s3p1] },
+  { icon: Package, title: t.terms.s4Title, paragraphs: [t.terms.s4p1] },
+  { icon: AlertTriangle, title: t.terms.s5Title, paragraphs: [t.terms.s5p1] },
+  { icon: FileText, title: t.terms.s6Title, paragraphs: [t.terms.s6p1] },
 ];
+
+/** Bilingual paragraph: primary lang normal, secondary lang small */
+function BiPara({ label }: { label: BiLabel }) {
+  const { lang } = useLang();
+  const primary = label[lang];
+  const secondary = label[lang === "mm" ? "en" : "mm"];
+  return (
+    <div>
+      <p className="text-sm text-muted-foreground leading-relaxed">{primary}</p>
+      <p className="text-[10px] text-muted-foreground/50 leading-relaxed mt-0.5">{secondary}</p>
+    </div>
+  );
+}
 
 export default function TermsPage() {
   const navigate = useNavigate();
+  const l = useT();
+  const { lang } = useLang();
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -72,7 +53,7 @@ export default function TermsPage() {
           onClick={() => navigate(-1)}
           className="mb-8 gap-2 text-muted-foreground hover:text-foreground btn-glass !bg-transparent"
         >
-          <ArrowLeft className="w-4 h-4" /> Back
+          <ArrowLeft className="w-4 h-4" /> {l(t.terms.back)}
         </Button>
 
         {/* Hero header */}
@@ -87,20 +68,23 @@ export default function TermsPage() {
             <Crown className="w-9 h-9 text-primary-foreground" />
           </div>
           <h1 className="text-3xl md:text-4xl font-bold font-display tracking-tight">
-            <span className="gold-text">Terms</span>{" "}
-            <span className="text-foreground">&</span>{" "}
-            <span className="gold-text">Conditions</span>
+            <span className="gold-text">{l(t.terms.title1)}</span>{" "}
+            <span className="text-foreground">{l(t.terms.titleAnd)}</span>{" "}
+            <span className="gold-text">{l(t.terms.title2)}</span>
           </h1>
           <p className="text-sm text-muted-foreground mt-3">
-            Last updated: February 2026
+            {l(t.terms.lastUpdated)}
+          </p>
+          <p className="text-[10px] text-muted-foreground/50">
+            {lang === "mm" ? t.terms.lastUpdated.en : t.terms.lastUpdated.mm}
           </p>
         </div>
 
         {/* Sections */}
         <div className="space-y-5">
-          {sections.map((section, i) => (
+          {sectionDefs.map((section, i) => (
             <section
-              key={section.title}
+              key={i}
               className="glass-card p-6 relative overflow-hidden opacity-0 animate-stagger-in hover-lift"
               style={{ animationDelay: `${i * 0.08}s` }}
             >
@@ -115,10 +99,13 @@ export default function TermsPage() {
                   <section.icon className="w-[18px] h-[18px] text-primary" strokeWidth={1.5} />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-base font-semibold text-foreground mb-2">{section.title}</h2>
-                  <div className="space-y-2 text-sm text-muted-foreground leading-relaxed">
-                    {section.content.map((para, j) => (
-                      <p key={j}>{para}</p>
+                  <h2 className="text-base font-semibold text-foreground mb-0.5">{l(section.title)}</h2>
+                  <p className="text-[10px] text-muted-foreground/50 mb-2">
+                    {section.title[lang === "mm" ? "en" : "mm"]}
+                  </p>
+                  <div className="space-y-2">
+                    {section.paragraphs.map((para, j) => (
+                      <BiPara key={j} label={para} />
                     ))}
                   </div>
                 </div>
