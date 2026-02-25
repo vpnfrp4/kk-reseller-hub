@@ -185,6 +185,10 @@ export const t = {
     clearAll: { mm: "အားလုံးရှင်းမည်", en: "Clear all" },
     noUnread: { mm: "မဖတ်ရသေးသော အသိပေးချက်မရှိပါ", en: "No unread notifications" },
     noNotifs: { mm: "အသိပေးချက်မရှိသေးပါ", en: "No notifications yet" },
+    justNow: { mm: "ယခုလေးတင်", en: "Just now" },
+    minutesAgo: { mm: "မိနစ်", en: "min ago" },
+    hoursAgo: { mm: "နာရီ", en: "hr ago" },
+    daysAgo: { mm: "ရက်", en: "days ago" },
   },
 
   // Settings
