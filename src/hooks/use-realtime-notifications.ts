@@ -4,6 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { getNotificationPrefs } from "@/lib/notifications";
 
 /** Play a short pleasant notification chime via Web Audio API */
 function playNotificationSound() {
@@ -54,7 +55,9 @@ export function useRealtimeNotifications() {
         },
         (payload) => {
           const n = payload.new as { title?: string; body?: string; type?: string; link?: string | null };
-          playNotificationSound();
+          if (getNotificationPrefs().soundEnabled) {
+            playNotificationSound();
+          }
           toast(n.title || "New Notification", {
             description: n.body || undefined,
             action: n.link
