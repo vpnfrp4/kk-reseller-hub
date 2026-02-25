@@ -222,6 +222,15 @@ export const t = {
     alertBelow: { mm: "အောက်ဆိုရင် သတိပေးမည်", en: "Alert when below" },
     orderUpdates: { mm: "မှာယူမှုအခြေအနေ", en: "Order Updates" },
     orderUpdatesDesc: { mm: "မှာယူမှု အခြေအနေပြောင်းသည့်အခါ", en: "When your order status changes" },
+    // Toast & inline messages
+    browserNotifBlocked: { mm: "ဘရောက်ဇာ အသိပေးချက်များ ပိတ်ထားသည်။ ဘရောက်ဇာ ဆက်တင်တွင် ဖွင့်ပေးပါ။", en: "Browser notifications are blocked. Please enable them in your browser settings." },
+    nameValidation: { mm: "အမည်သည် ၁ မှ ၁၀၀ စာလုံးအတွင်း ဖြစ်ရမည်", en: "Name must be between 1 and 100 characters" },
+    nameUpdated: { mm: "အမည်ပြင်ဆင်ပြီးပါပြီ", en: "Name updated successfully" },
+    pwMinLength: { mm: "စကားဝှက်အသစ်သည် အနည်းဆုံး ၆ လုံး ရှိရမည်", en: "New password must be at least 6 characters" },
+    pwMismatch: { mm: "စကားဝှက်များ မကိုက်ညီပါ", en: "Passwords do not match" },
+    pwIncorrect: { mm: "လက်ရှိစကားဝှက် မမှန်ကန်ပါ", en: "Current password is incorrect" },
+    pwChanged: { mm: "စကားဝှက်ပြောင်းပြီးပါပြီ", en: "Password changed successfully" },
+    thresholdHint: { mm: "အကြံပြု: 5,000 – 50,000 MMK", en: "Recommended: 5,000 – 50,000 MMK" },
   },
 
   // Important Notice Modal
