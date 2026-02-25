@@ -129,7 +129,12 @@ export default function ProductsPage() {
 
   const handleBuyClick = (product: any) => {
     const isManual = product.type === "manual";
-    if (!isManual && product.stock <= 0) {
+    // Manual products → redirect to configuration page
+    if (isManual) {
+      navigate(`/dashboard/products/${product.id}`);
+      return;
+    }
+    if (product.stock <= 0) {
       toast.error(l(t.products.outOfStockToast));
       return;
     }
