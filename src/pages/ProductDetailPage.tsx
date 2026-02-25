@@ -242,7 +242,7 @@ export default function ProductDetailPage() {
 
   if (!product) {
     return (
-      <div className="space-y-4 text-center py-20">
+      <div className="space-y-[var(--space-default)] text-center py-20">
         <p className="text-muted-foreground text-sm">{l(t.detailExtra.productNotFound)}</p>
         <Button variant="outline" onClick={() => navigate("/dashboard/products")}>{l(t.detailExtra.goBack)}</Button>
       </div>
@@ -262,7 +262,7 @@ export default function ProductDetailPage() {
   const currentDeliveryBadge = deliveryTimeConfig[effectiveMode] || l(t.detailExtra.instantDelivery);
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
+    <div className="space-y-[var(--space-card)] max-w-2xl mx-auto animate-fade-in">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
         { label: l(t.nav.products), path: "/dashboard/products" },
@@ -270,17 +270,17 @@ export default function ProductDetailPage() {
       ]} />
 
       {/* ═══ 1. SERVICE IDENTITY PANEL ═══ */}
-      <section className="rounded-xl border border-border bg-card p-6">
-        <div className="flex items-start justify-between gap-4 mb-4">
+      <section className="glass-card p-[var(--space-card)]">
+        <div className="flex items-start justify-between gap-[var(--space-default)] mb-[var(--space-default)]">
           <div>
-            <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-1">
+            <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-[var(--space-micro)]">
               {l(t.detailExtra.serviceDetails)}
             </p>
             <h1 className="text-lg font-bold text-foreground tracking-tight leading-snug">{product.name}</h1>
           </div>
           <div
             className={cn(
-              "flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[10px] font-semibold tracking-wide",
+              "flex items-center gap-[var(--space-micro)] rounded-md px-2.5 py-1 text-[10px] font-semibold tracking-wide",
               isOutOfStock
                 ? "bg-destructive/8 text-destructive"
                 : isLowStock
@@ -294,55 +294,55 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Key-value metadata */}
-        <div className="grid grid-cols-2 gap-y-2 gap-x-6 text-sm border-t border-border pt-4">
+        <div className="grid grid-cols-2 gap-y-2 gap-x-[var(--space-card)] text-sm border-t border-border/30 pt-[var(--space-default)]">
           <div className="flex justify-between">
-            <span className="text-muted-foreground text-xs">{l(t.detailExtra.category)}</span>
-            <span className="font-medium text-foreground text-xs uppercase tracking-wider">{product.category}</span>
+            <span className="text-muted-foreground text-[11px]">{l(t.detailExtra.category)}</span>
+            <span className="font-medium text-foreground text-[11px] uppercase tracking-wider">{product.category}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground text-xs">{l(t.detailExtra.duration)}</span>
-            <span className="font-medium text-foreground text-xs">{product.duration}</span>
+            <span className="text-muted-foreground text-[11px]">{l(t.detailExtra.duration)}</span>
+            <span className="font-medium text-foreground text-[11px]">{product.duration}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground text-xs">{l(t.detailExtra.delivery)}</span>
-            <span className="font-medium text-foreground text-xs">{currentDeliveryBadge}</span>
+            <span className="text-muted-foreground text-[11px]">{l(t.detailExtra.delivery)}</span>
+            <span className="font-medium text-foreground text-[11px]">{currentDeliveryBadge}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground text-xs">{l(t.detailExtra.fulfillment)}</span>
-            <span className="font-medium text-foreground text-xs capitalize">{effectiveMode}</span>
+            <span className="text-muted-foreground text-[11px]">{l(t.detailExtra.fulfillment)}</span>
+            <span className="font-medium text-foreground text-[11px] capitalize">{effectiveMode}</span>
           </div>
         </div>
       </section>
 
       {/* ═══ 2. PRICING MATRIX TABLE ═══ */}
-      <section className="rounded-xl border border-border bg-card overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
-          <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-0.5">
+      <section className="glass-card overflow-hidden">
+        <div className="px-[var(--space-card)] py-[var(--space-default)] border-b border-border/30">
+          <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-[var(--space-micro)]">
             {l(t.detailExtra.pricingStructure)}
           </p>
           <p className="text-2xl font-bold font-mono tabular-nums text-foreground leading-none tracking-tight">
             {product.wholesale_price.toLocaleString()}
-            <span className="text-xs font-medium text-muted-foreground ml-1.5">MMK {l(t.detailExtra.perUnit)}</span>
+            <span className="text-[11px] font-medium text-muted-foreground ml-1.5">MMK {l(t.detailExtra.perUnit)}</span>
           </p>
         </div>
 
         {/* Wholesale / Retail / Margin row */}
-        <div className="grid grid-cols-3 divide-x divide-border border-b border-border">
-          <div className="px-4 py-3">
+        <div className="grid grid-cols-3 divide-x divide-border/30 border-b border-border/30">
+          <div className="px-[var(--space-default)] py-[var(--space-compact)]">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{l(t.detailExtra.wholesale)}</p>
-            <p className="text-sm font-bold font-mono tabular-nums text-foreground mt-0.5">
+            <p className="text-sm font-bold font-mono tabular-nums text-foreground mt-[var(--space-micro)]">
               {product.wholesale_price.toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">MMK</span>
             </p>
           </div>
-          <div className="px-4 py-3">
+          <div className="px-[var(--space-default)] py-[var(--space-compact)]">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{l(t.detailExtra.retail)}</p>
-            <p className="text-sm font-bold font-mono tabular-nums text-foreground mt-0.5">
+            <p className="text-sm font-bold font-mono tabular-nums text-foreground mt-[var(--space-micro)]">
               {product.retail_price.toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">MMK</span>
             </p>
           </div>
-          <div className="px-4 py-3">
+          <div className="px-[var(--space-default)] py-[var(--space-compact)]">
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{l(t.detailExtra.margin)}</p>
-            <p className={cn("text-sm font-bold font-mono tabular-nums mt-0.5", profitPerUnit > 0 ? "text-primary" : "text-muted-foreground")}>
+            <p className={cn("text-sm font-bold font-mono tabular-nums mt-[var(--space-micro)]", profitPerUnit > 0 ? "text-primary" : "text-muted-foreground")}>
               {profitPerUnit > 0 ? "+" : ""}{profitPerUnit.toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">MMK</span>
             </p>
           </div>
@@ -351,7 +351,7 @@ export default function ProductDetailPage() {
         {/* Volume tiers table */}
         {hasTiers && (
           <div>
-            <div className="grid grid-cols-3 gap-0 px-4 py-2 text-[10px] uppercase tracking-widest font-semibold text-muted-foreground border-b border-border bg-muted/30">
+            <div className="grid grid-cols-3 gap-0 px-[var(--space-default)] py-[var(--space-tight)] text-[10px] uppercase tracking-widest font-semibold text-muted-foreground border-b border-border/30 bg-muted/20">
               <span>{l(t.detailExtra.quantity)}</span>
               <span>{l(t.detailExtra.unitPrice)}</span>
               <span>{l(t.detailExtra.tier)}</span>
@@ -361,14 +361,14 @@ export default function ProductDetailPage() {
               const isLowest = lowestTier && tier.unit_price === lowestTier.unit_price;
               return (
                 <div key={i} className={cn(
-                  "grid grid-cols-3 gap-0 px-4 py-2.5 text-sm border-b border-border last:border-b-0",
-                  isLowest ? "bg-primary/[0.03]" : ""
+                  "grid grid-cols-3 gap-0 px-[var(--space-default)] py-[var(--space-compact)] text-sm border-b border-border/20 last:border-b-0 transition-colors",
+                  isLowest ? "bg-primary/[0.04]" : "hover:bg-muted/20"
                 )}>
-                  <span className="font-mono tabular-nums text-foreground text-xs">{label}</span>
-                  <span className={cn("font-mono tabular-nums font-semibold text-xs", isLowest ? "text-primary" : "text-foreground")}>
+                  <span className="font-mono tabular-nums text-foreground text-[11px]">{label}</span>
+                  <span className={cn("font-mono tabular-nums font-semibold text-[11px]", isLowest ? "text-primary" : "text-foreground")}>
                     {tier.unit_price.toLocaleString()} MMK
                   </span>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[11px] text-muted-foreground">
                     {isLowest && <span className="font-semibold text-primary">{l(t.detail.bestValue)}</span>}
                   </span>
                 </div>
@@ -379,29 +379,29 @@ export default function ProductDetailPage() {
       </section>
 
       {/* ═══ 3. SERVICE SPECIFICATION BLOCK ═══ */}
-      <section className="rounded-xl border border-border bg-card p-6">
-        <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-3">
+      <section className="glass-card p-[var(--space-card)]">
+        <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-[var(--space-compact)]">
           {l(t.detailExtra.serviceSpecs)}
         </p>
-        <div className="space-y-0 divide-y divide-border">
+        <div className="space-y-0 divide-y divide-border/20">
           {SPEC_ITEMS.map((item, i) => (
-            <div key={i} className="flex items-center justify-between py-2.5">
-              <span className="text-xs text-muted-foreground">{item.label}</span>
-              <span className="text-xs font-medium text-foreground">{l(item.value)}</span>
+            <div key={i} className="flex items-center justify-between py-[var(--space-compact)]">
+              <span className="text-[11px] text-muted-foreground">{item.label}</span>
+              <span className="text-[11px] font-medium text-foreground">{l(item.value)}</span>
             </div>
           ))}
         </div>
       </section>
 
       {/* ═══ 4. IMPORTANT NOTICE — left-accent professional alert ═══ */}
-      <section className="rounded-xl border border-border bg-card overflow-hidden">
+      <section className="glass-card overflow-hidden">
         <button
           onClick={() => setNoticeOpen(!noticeOpen)}
-          className="w-full px-6 py-4 flex items-center justify-between text-left"
+          className="w-full px-[var(--space-card)] py-[var(--space-default)] flex items-center justify-between text-left transition-colors hover:bg-muted/10"
         >
-          <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-[var(--space-compact)]">
             <div className="w-1 h-5 rounded-full bg-warning" />
-            <span className="text-xs font-semibold text-foreground uppercase tracking-wide">{l(t.detailExtra.importantNotice)}</span>
+            <span className="text-[11px] font-semibold text-foreground uppercase tracking-wider">{l(t.detailExtra.importantNotice)}</span>
           </div>
           <ChevronDown
             className={cn(
@@ -411,11 +411,11 @@ export default function ProductDetailPage() {
           />
         </button>
         {noticeOpen && (
-          <div className="px-6 pb-5 space-y-2 animate-fade-in">
+          <div className="px-[var(--space-card)] pb-[var(--space-card)] space-y-[var(--space-tight)] animate-fade-in">
             {NOTICES.map((notice, i) => (
-              <div key={i} className="flex items-start gap-3 py-1.5">
+              <div key={i} className="flex items-start gap-[var(--space-compact)] py-[var(--space-micro)]">
                 <span className="w-1 h-1 rounded-full bg-warning/60 mt-1.5 shrink-0" />
-                <span className="text-xs text-foreground">{l(notice.label)}</span>
+                <span className="text-[11px] text-foreground/80">{l(notice.label)}</span>
               </div>
             ))}
           </div>
@@ -423,7 +423,7 @@ export default function ProductDetailPage() {
       </section>
 
       {/* ═══ 5. STRUCTURED ORDER CONFIGURATION ═══ */}
-      <section className="rounded-xl border border-border bg-card p-6 space-y-5">
+      <section className="glass-card p-[var(--space-card)] space-y-[var(--space-default)]">
         <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">
           {l(t.detailExtra.orderConfig)}
         </p>
@@ -444,17 +444,17 @@ export default function ProductDetailPage() {
         />
 
         {/* Wallet balance row */}
-        <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-4 py-3">
-          <span className="text-xs text-muted-foreground">{l(t.detailExtra.walletBalance)}</span>
+        <div className="flex items-center justify-between rounded-[var(--radius-btn)] border border-border/20 bg-muted/10 px-[var(--space-default)] py-[var(--space-compact)]">
+          <span className="text-[11px] text-muted-foreground">{l(t.detailExtra.walletBalance)}</span>
           <span className="text-sm font-bold font-mono tabular-nums text-foreground">{balance.toLocaleString()} MMK</span>
         </div>
 
         {/* Insufficient balance warning */}
         {insufficientBalance && !isOutOfStock && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border-l-2 border-warning bg-warning/[0.04] px-4 py-3">
-            <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center justify-between gap-[var(--space-compact)] rounded-[var(--radius-btn)] border-l-2 border-warning bg-warning/[0.04] px-[var(--space-default)] py-[var(--space-compact)]">
+            <div className="flex items-center gap-[var(--space-tight)] min-w-0">
               <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0" />
-              <p className="text-xs text-foreground">
+              <p className="text-[11px] text-foreground">
                 {l(t.detail.insufficientBalance)}{" "}
                 <span className="text-muted-foreground">
                   {l(t.detail.needMore)} {(product.wholesale_price - balance).toLocaleString()} MMK
@@ -463,7 +463,7 @@ export default function ProductDetailPage() {
             </div>
             <button
               onClick={() => handleTopUp(product.wholesale_price - balance)}
-              className="px-3 py-1.5 text-[11px] font-semibold rounded-md bg-primary text-primary-foreground hover:brightness-90 transition-all shrink-0"
+              className="btn-glow px-3 py-1.5 text-[11px] shrink-0"
             >
               {l(t.wallet.topUp)}
             </button>
@@ -472,7 +472,7 @@ export default function ProductDetailPage() {
 
         {/* Primary action */}
         <Button
-          className="w-full h-11 rounded-lg font-semibold text-sm"
+          className="w-full h-11 rounded-[var(--radius-btn)] font-semibold text-sm"
           onClick={handleBuyClick}
           disabled={isOutOfStock || purchasing}
         >
