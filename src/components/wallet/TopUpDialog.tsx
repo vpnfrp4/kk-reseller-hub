@@ -159,8 +159,9 @@ export default function TopUpDialog({
       queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] });
 
       if (insertedTx?.id && onSubmitted) {
-        resetOnClose(false);
+        // Navigate first, then close dialog to avoid unmount race
         onSubmitted(insertedTx.id);
+        return;
       }
     } catch (err) {
       console.error("Top-up error:", err);
