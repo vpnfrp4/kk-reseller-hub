@@ -37,7 +37,7 @@ function GlassSection({
   return (
     <div
       className={cn(
-        "rounded-[16px] border border-white/[0.06] bg-card/80 backdrop-blur-md shadow-[0_4px_24px_-4px_rgba(0,0,0,0.25)] p-6 sm:p-8",
+        "rounded-[16px] border border-border bg-card shadow-[var(--shadow-card)] p-6 sm:p-8",
         className,
       )}
     >

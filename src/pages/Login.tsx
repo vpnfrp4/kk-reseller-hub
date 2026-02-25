@@ -66,11 +66,11 @@ export default function Login() {
       <div className="fixed inset-0 pointer-events-none">
         <div
           className="absolute top-[-20%] left-[-15%] w-[550px] h-[550px] rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(222 47% 16% / 0.35), transparent 70%)", filter: "blur(100px)" }}
+          style={{ background: "radial-gradient(circle, var(--ambient-blob-1), transparent 70%)", filter: "blur(100px)" }}
         />
         <div
           className="absolute bottom-[-20%] right-[-15%] w-[500px] h-[500px] rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(142 71% 45% / 0.04), transparent 70%)", filter: "blur(100px)" }}
+          style={{ background: "radial-gradient(circle, var(--ambient-blob-2), transparent 70%)", filter: "blur(100px)" }}
         />
       </div>
 

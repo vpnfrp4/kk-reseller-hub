@@ -42,7 +42,7 @@ export default function TermsPage() {
         />
         <div
           className="absolute bottom-[-15%] left-[-10%] w-[400px] h-[400px] rounded-full blur-[130px] opacity-15"
-          style={{ background: "radial-gradient(circle, hsl(224 76% 33% / 0.15), transparent 70%)" }}
+          style={{ background: "radial-gradient(circle, var(--ambient-blob-2), transparent 70%)" }}
         />
       </div>
 

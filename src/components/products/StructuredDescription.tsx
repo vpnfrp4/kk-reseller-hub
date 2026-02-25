@@ -28,7 +28,7 @@ function parseDescription(raw: string): ParsedSection[] {
 
 function HowItWorksBlock({ lines }: { lines: string[] }) {
   return (
-    <div className="rounded-xl border border-border bg-foreground/[0.03] dark:bg-[hsl(220,20%,8%)] p-5 space-y-3">
+    <div className="rounded-xl border border-border bg-muted/30 p-5 space-y-3">
       <p className="text-[10px] uppercase tracking-widest font-semibold text-primary">
         How It Works
       </p>

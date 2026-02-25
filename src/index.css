@@ -102,6 +102,15 @@
     /* Glass — lighter, less blur */
     --glass-bg: hsla(220, 35%, 14%, 0.85);
     --glass-border: rgba(255, 255, 255, 0.12);
+
+    /* Ambient blobs */
+    --ambient-blob-1: hsl(222 47% 16% / 0.3);
+    --ambient-blob-2: hsl(142 71% 45% / 0.03);
+
+    /* Wallet hero */
+    --wallet-hero-from: 217 33% 17%;
+    --wallet-hero-to: 217 33% 20%;
+    --wallet-hero-blob: hsl(222 47% 20% / 0.15);
   }
 
   .light {
@@ -147,6 +156,15 @@
     --glass-border: rgba(0, 0, 0, 0.08);
     --shadow-luxury: var(--shadow-card);
     --gradient-navy: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 96%));
+
+    /* Ambient blobs — subtle in light */
+    --ambient-blob-1: hsl(210 40% 90% / 0.5);
+    --ambient-blob-2: hsl(142 71% 45% / 0.04);
+
+    /* Wallet hero — light mode */
+    --wallet-hero-from: 210 40% 96%;
+    --wallet-hero-to: 210 40% 93%;
+    --wallet-hero-blob: hsl(210 40% 85% / 0.2);
   }
 
   .dark {
@@ -192,9 +210,12 @@
     --glass-border: rgba(255, 255, 255, 0.12);
     --shadow-luxury: var(--shadow-card);
     --gradient-navy: linear-gradient(180deg, hsl(222 47% 11%), hsl(220 35% 14%));
+    --ambient-blob-1: hsl(222 47% 16% / 0.3);
+    --ambient-blob-2: hsl(142 71% 45% / 0.03);
+    --wallet-hero-from: 217 33% 17%;
+    --wallet-hero-to: 217 33% 20%;
+    --wallet-hero-blob: hsl(222 47% 20% / 0.15);
   }
-
-  /* Admin theme */
   .admin-theme {
     --background: 222 47% 11%;
     --foreground: 210 40% 98%;
@@ -238,6 +259,11 @@
     --glass-border: rgba(255, 255, 255, 0.12);
     --shadow-luxury: var(--shadow-card);
     --gradient-navy: linear-gradient(180deg, hsl(222 47% 11%), hsl(220 35% 14%));
+    --ambient-blob-1: hsl(222 47% 16% / 0.3);
+    --ambient-blob-2: hsl(142 71% 45% / 0.03);
+    --wallet-hero-from: 217 33% 17%;
+    --wallet-hero-to: 217 33% 20%;
+    --wallet-hero-blob: hsl(222 47% 20% / 0.15);
   }
 }
 
@@ -270,7 +296,7 @@
     left: -15%;
     width: 600px;
     height: 600px;
-    background: radial-gradient(circle, hsl(222 47% 16% / 0.3), transparent 70%);
+    background: radial-gradient(circle, var(--ambient-blob-1), transparent 70%);
     filter: blur(100px);
     pointer-events: none;
     border-radius: 50%;
@@ -283,7 +309,7 @@
     right: -15%;
     width: 500px;
     height: 500px;
-    background: radial-gradient(circle, hsl(142 71% 45% / 0.03), transparent 70%);
+    background: radial-gradient(circle, var(--ambient-blob-2), transparent 70%);
     filter: blur(100px);
     pointer-events: none;
     border-radius: 50%;
@@ -450,7 +476,7 @@
 
   /* ─── Wallet Hero ─── */
   .wallet-hero {
-    background: linear-gradient(135deg, hsl(217 33% 17%), hsl(217 33% 20%));
+    background: linear-gradient(135deg, hsl(var(--wallet-hero-from)), hsl(var(--wallet-hero-to)));
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius-modal);
     position: relative;
@@ -478,7 +504,7 @@
     width: 220px;
     height: 220px;
     border-radius: 50%;
-    background: radial-gradient(circle, hsl(222 47% 20% / 0.15), transparent 70%);
+    background: radial-gradient(circle, var(--wallet-hero-blob), transparent 70%);
     pointer-events: none;
   }
 
