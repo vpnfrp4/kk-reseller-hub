@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Search, Filter, ShoppingCart, ChevronLeft, ChevronRight } from "lucide-react";
@@ -21,6 +22,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
 
 export default function AdminOrders() {
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
@@ -57,6 +59,19 @@ export default function AdminOrders() {
       }));
     },
   });
+
+  // Auto-open order detail from ?order= query param (e.g. from notification link)
+  useEffect(() => {
+    const orderId = searchParams.get("order");
+    if (orderId && orders && orders.length > 0) {
+      const target = orders.find((o: any) => o.id === orderId);
+      if (target) {
+        setDetailOrder(target);
+        // Clear the param so refreshing doesn't re-open
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [orders, searchParams, setSearchParams]);
 
   const filtered = useMemo(() => {
     if (!orders) return [];
