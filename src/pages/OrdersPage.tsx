@@ -78,7 +78,7 @@ export default function OrdersPage() {
     q = buildQuery(q);
     const { data: allOrders } = await q;
     if (!allOrders || allOrders.length === 0) {
-      toast.error("ထုတ်ယူမည့် မှာယူမှုမရှိပါ");
+      toast.error(l(t.orders.noExportData));
       return;
     }
     const headers = ["Order ID", "Product", "Credentials", "Price (MMK)", "Date", "Status"];
@@ -98,7 +98,7 @@ export default function OrdersPage() {
     a.download = `orders-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success("ဒေတာထုတ်ယူမှု အောင်မြင်ပါသည်");
+    toast.success(l(t.orders.exportSuccess));
   };
 
   const clearFilters = () => {

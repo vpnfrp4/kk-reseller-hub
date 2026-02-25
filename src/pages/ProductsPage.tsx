@@ -119,10 +119,10 @@ export default function ProductsPage() {
   const mapErrorMessage = (msg: string): string => {
     const lower = msg.toLowerCase();
     if (lower.includes("out of stock") || lower.includes("no credentials available") || lower.includes("not enough stock")) {
-      return "လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)";
+      return l(t.products.outOfStockToast);
     }
     if (lower.includes("insufficient balance")) {
-      return "လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပေးပါရန်။ (Insufficient Balance)";
+      return l(t.products.insufficientBalanceToast);
     }
     return msg;
   };
@@ -131,7 +131,7 @@ export default function ProductsPage() {
     const modes: string[] = Array.isArray(product.fulfillment_modes) ? product.fulfillment_modes.map(String) : ["instant"];
     const isManual = modes.includes("manual");
     if (!isManual && product.stock <= 0) {
-      toast.error("လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)");
+      toast.error(l(t.products.outOfStockToast));
       return;
     }
     setNoticeProduct(product);
