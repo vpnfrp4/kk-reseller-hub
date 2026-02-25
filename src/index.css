@@ -216,55 +216,9 @@
     --wallet-hero-to: 217 33% 20%;
     --wallet-hero-blob: hsl(222 47% 20% / 0.15);
   }
-  .admin-theme {
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 217 33% 17%;
-    --card-foreground: 210 40% 98%;
-    --popover: 220 35% 14%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 142 71% 45%;
-    --primary-foreground: 0 0% 100%;
-    --primary-glow: 142 71% 50%;
-    --secondary: 217 33% 22%;
-    --secondary-foreground: 214 32% 91%;
-    --muted: 220 35% 14%;
-    --muted-foreground: 215 20% 78%;
-    --accent: 142 71% 45%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 217 25% 22%;
-    --input: 217 25% 22%;
-    --ring: 142 71% 45%;
-    --sidebar-background: 222 47% 9%;
-    --sidebar-foreground: 215 20% 78%;
-    --sidebar-primary: 142 71% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 35% 14%;
-    --sidebar-accent-foreground: 214 32% 91%;
-    --sidebar-border: 217 25% 18%;
-    --sidebar-ring: 142 71% 45%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 0%;
-    --ice: 199 89% 48%;
-    --ice-foreground: 222 47% 11%;
-    --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 4px 16px -4px rgba(0,0,0,0.15);
-    --shadow-elevated: 0 4px 24px -4px rgba(0,0,0,0.3), 0 1px 6px rgba(0,0,0,0.12);
-    --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.04);
-    --shadow-header: 0 1px 0 hsl(217 25% 18%), 0 2px 8px -2px rgba(0,0,0,0.2);
-    --glass-bg: hsla(220, 35%, 14%, 0.85);
-    --glass-border: rgba(255, 255, 255, 0.12);
-    --shadow-luxury: var(--shadow-card);
-    --gradient-navy: linear-gradient(180deg, hsl(222 47% 11%), hsl(220 35% 14%));
-    --ambient-blob-1: hsl(222 47% 16% / 0.3);
-    --ambient-blob-2: hsl(142 71% 45% / 0.03);
-    --wallet-hero-from: 217 33% 17%;
-    --wallet-hero-to: 217 33% 20%;
-    --wallet-hero-blob: hsl(222 47% 20% / 0.15);
-  }
+
+  /* Admin theme — inherits from light/dark naturally.
+     No overrides needed since admin uses the same design tokens. */
 }
 
 @layer base {
