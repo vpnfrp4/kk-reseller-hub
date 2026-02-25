@@ -84,6 +84,8 @@ function AppRoutes() {
       <Route path="/services/vpn-keys" element={<VpnKeysPage />} />
       <Route path="/services/capcut-pro" element={<CapcutProPage />} />
       <Route path="/orders" element={<Navigate to="/dashboard/orders" replace />} />
+      <Route path="/products" element={<Navigate to="/dashboard/products" replace />} />
+      <Route path="/wallet" element={<Navigate to="/dashboard/wallet" replace />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
       <Route path="/dashboard/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet/topup-status" element={<ProtectedRoute><TopUpStatusPage /></ProtectedRoute>} />
