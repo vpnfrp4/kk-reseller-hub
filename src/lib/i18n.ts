@@ -46,6 +46,14 @@ export const t = {
     allOrders: { mm: "မှာယူမှုအားလုံး", en: "All Orders" },
     noActivity: { mm: "လုပ်ဆောင်ချက်မရှိသေးပါ", en: "No activity yet" },
     approxPurchases: { mm: "ခန့်မှန်းဝယ်နိုင်မှု", en: "approx. purchases" },
+    // Realtime toast messages
+    topupApprovedToast: { mm: "ငွေဖြည့်ခြင်း {amount} MMK အတည်ပြုပြီး", en: "Top-up {amount} MMK approved" },
+    topupApprovedNotif: { mm: "ငွေဖြည့်အတည်ပြုပြီး", en: "Top-Up Approved" },
+    topupRejectedToast: { mm: "ငွေဖြည့်ခြင်း ငြင်းပယ်ခံရသည်။", en: "Top-up request was rejected." },
+    topupRejectedNotif: { mm: "ငွေဖြည့်ငြင်းပယ်", en: "Top-Up Rejected" },
+    orderToast: { mm: "မှာယူမှု: {name}", en: "Order: {name}" },
+    orderNewFallback: { mm: "အသစ်", en: "New" },
+    orderNotif: { mm: "မှာယူမှုပြုလုပ်ပြီး", en: "Order Placed" },
   },
 
   // Wallet
