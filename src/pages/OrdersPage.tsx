@@ -195,10 +195,10 @@ export default function OrdersPage() {
       <div className="animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-foreground">
+            <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-[var(--space-micro)]">
               <MmLabel mm={t.orders.title.mm} en={t.orders.title.en} />
-            </h1>
-            <p className="text-sm text-muted-foreground mt-0.5">{l(t.orders.subtitle)}</p>
+            </p>
+            <p className="text-[11px] text-muted-foreground">{l(t.orders.subtitle)}</p>
           </div>
           <Button onClick={exportCSV} size="sm" className="gap-2 btn-glass">
             <Download className="w-4 h-4 text-primary" />
@@ -285,7 +285,7 @@ export default function OrdersPage() {
           emptyMessage={hasFilters ? l(t.orders.noMatch) : l(t.orders.noOrders)}
         />
         {paginationFooter && (
-          <div className="border-t border-border/40 p-[var(--space-default)]">
+          <div className="border-t border-border/20 p-[var(--space-default)]">
             {paginationFooter}
           </div>
         )}
