@@ -13,8 +13,7 @@ import {
   CheckCheck,
   Filter,
 } from "lucide-react";
-import { t } from "@/lib/i18n";
-import MmLabel from "@/components/shared/MmLabel";
+import { t, useT } from "@/lib/i18n";
 
 type NotificationType = "success" | "info" | "warning" | "error";
 
@@ -35,6 +34,7 @@ const typeConfig: Record<NotificationType, { icon: typeof Bell; colorClass: stri
 };
 
 export default function NotificationsPage() {
+  const l = useT();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<"all" | "unread">("all");
@@ -80,29 +80,29 @@ export default function NotificationsPage() {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMin = Math.floor(diffMs / 60000);
-    if (diffMin < 1) return "ယခုလေးတင်";
-    if (diffMin < 60) return `${diffMin} မိနစ်`;
+    if (diffMin < 1) return l(t.notifs.justNow);
+    if (diffMin < 60) return `${diffMin} ${l(t.notifs.minutesAgo)}`;
     const diffHr = Math.floor(diffMin / 60);
-    if (diffHr < 24) return `${diffHr} နာရီ`;
+    if (diffHr < 24) return `${diffHr} ${l(t.notifs.hoursAgo)}`;
     const diffDays = Math.floor(diffHr / 24);
-    if (diffDays < 7) return `${diffDays} ရက်`;
+    if (diffDays < 7) return `${diffDays} ${l(t.notifs.daysAgo)}`;
     return date.toLocaleDateString();
   };
 
   return (
     <div className="space-y-8">
       <Breadcrumb items={[
-        { label: t.nav.dashboard.mm, path: "/dashboard" },
-        { label: t.nav.notifications.mm },
+        { label: l(t.nav.dashboard), path: "/dashboard" },
+        { label: l(t.nav.notifications) },
       ]} />
 
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            <MmLabel mm={t.notifs.title.mm} en={t.notifs.title.en} />
+            {l(t.notifs.title)}
           </h1>
           <p className="text-muted-foreground text-sm">
-            {unreadCount > 0 ? `${unreadCount} ${t.notifs.unread.mm}` : t.notifs.allCaughtUp.mm}
+            {unreadCount > 0 ? `${unreadCount} ${l(t.notifs.unread)}` : l(t.notifs.allCaughtUp)}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -111,7 +111,7 @@ export default function NotificationsPage() {
             size="sm"
             onClick={() => setFilter("all")}
           >
-            {t.notifs.all.mm}
+            {l(t.notifs.all)}
           </Button>
           <Button
             variant={filter === "unread" ? "default" : "outline"}
@@ -120,7 +120,7 @@ export default function NotificationsPage() {
             className="gap-1.5"
           >
             <Filter className="w-3.5 h-3.5" />
-            {t.notifs.unreadFilter.mm}
+            {l(t.notifs.unreadFilter)}
             {unreadCount > 0 && (
               <span className="ml-1 px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-primary text-primary-foreground">
                 {unreadCount}
@@ -130,13 +130,13 @@ export default function NotificationsPage() {
           {unreadCount > 0 && (
             <Button variant="ghost" size="sm" onClick={markAllRead} className="gap-1.5 text-muted-foreground">
               <CheckCheck className="w-3.5 h-3.5" />
-              {t.notifs.markAllRead.mm}
+              {l(t.notifs.markAllRead)}
             </Button>
           )}
           {notifications.length > 0 && (
             <Button variant="ghost" size="sm" onClick={clearAll} className="gap-1.5 text-muted-foreground hover:text-destructive">
               <Trash2 className="w-3.5 h-3.5" />
-              {t.notifs.clearAll.mm}
+              {l(t.notifs.clearAll)}
             </Button>
           )}
         </div>
@@ -151,7 +151,7 @@ export default function NotificationsPage() {
           <div className="p-12 text-center">
             <Bell className="w-10 h-10 text-muted-foreground/30 mx-auto mb-3" />
             <p className="text-sm text-muted-foreground">
-              {filter === "unread" ? t.notifs.noUnread.mm : t.notifs.noNotifs.mm}
+              {filter === "unread" ? l(t.notifs.noUnread) : l(t.notifs.noNotifs)}
             </p>
           </div>
         ) : (
