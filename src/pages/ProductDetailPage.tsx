@@ -270,22 +270,30 @@ export default function ProductDetailPage() {
       ]} />
 
       {/* ═══ 1. SERVICE IDENTITY PANEL ═══ */}
-      <section className="glass-card p-[var(--space-card)]">
-        <div className="flex items-start justify-between gap-[var(--space-default)] mb-[var(--space-default)]">
-          <div>
-            <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-[var(--space-micro)]">
+      <section className="glass-card p-5 md:p-6 space-y-5">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">
               {l(t.detailExtra.serviceDetails)}
             </p>
-            <h1 className="text-lg font-bold text-foreground tracking-tight leading-snug">{product.name}</h1>
+            <h1 className="text-xl md:text-2xl font-semibold text-foreground tracking-wide leading-snug">{product.name}</h1>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary rounded-md border border-primary/20">
+                {product.category}
+              </span>
+              {product.duration && (
+                <span className="text-xs text-muted-foreground">{product.duration}</span>
+              )}
+            </div>
           </div>
           <div
             className={cn(
-              "flex items-center gap-[var(--space-micro)] rounded-md px-2.5 py-1 text-[10px] font-semibold tracking-wide",
+              "flex items-center gap-1.5 rounded-[var(--radius-btn)] px-2.5 py-1 text-[11px] font-semibold tracking-wide",
               isOutOfStock
-                ? "bg-destructive/8 text-destructive"
+                ? "bg-destructive/10 text-destructive"
                 : isLowStock
-                ? "bg-warning/8 text-warning"
-                : "bg-primary/8 text-primary"
+                ? "bg-warning/10 text-warning"
+                : "bg-primary/10 text-primary"
             )}
           >
             <span className={cn("h-1.5 w-1.5 rounded-full", isOutOfStock ? "bg-destructive" : isLowStock ? "bg-warning" : "bg-primary")} />
@@ -294,15 +302,7 @@ export default function ProductDetailPage() {
         </div>
 
         {/* Key-value metadata */}
-        <div className="grid grid-cols-2 gap-y-2 gap-x-[var(--space-card)] text-sm border-t border-border/30 pt-[var(--space-default)]">
-          <div className="flex justify-between">
-            <span className="text-muted-foreground text-[11px]">{l(t.detailExtra.category)}</span>
-            <span className="font-medium text-foreground text-[11px] uppercase tracking-wider">{product.category}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-muted-foreground text-[11px]">{l(t.detailExtra.duration)}</span>
-            <span className="font-medium text-foreground text-[11px]">{product.duration}</span>
-          </div>
+        <div className="grid grid-cols-2 gap-y-2 gap-x-6 text-sm border-t border-border/30 pt-4">
           <div className="flex justify-between">
             <span className="text-muted-foreground text-[11px]">{l(t.detailExtra.delivery)}</span>
             <span className="font-medium text-foreground text-[11px]">{currentDeliveryBadge}</span>
@@ -316,34 +316,37 @@ export default function ProductDetailPage() {
 
       {/* ═══ 2. PRICING MATRIX TABLE ═══ */}
       <section className="glass-card overflow-hidden">
-        <div className="px-[var(--space-card)] py-[var(--space-default)] border-b border-border/30">
-          <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-[var(--space-micro)]">
+        <div className="px-5 md:px-6 py-4 border-b border-border/30">
+          <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-1.5">
             {l(t.detailExtra.pricingStructure)}
           </p>
-          <p className="text-2xl font-bold font-mono tabular-nums text-foreground leading-none tracking-tight">
+          <p className="text-2xl md:text-3xl font-bold font-mono tabular-nums text-foreground leading-none tracking-tight drop-shadow-[0_0_6px_hsl(var(--primary)/0.4)]">
             {product.wholesale_price.toLocaleString()}
-            <span className="text-[11px] font-medium text-muted-foreground ml-1.5">MMK {l(t.detailExtra.perUnit)}</span>
+            <span className="text-xs font-medium text-muted-foreground ml-1.5">MMK {l(t.detailExtra.perUnit)}</span>
           </p>
         </div>
 
         {/* Wholesale / Retail / Margin row */}
         <div className="grid grid-cols-3 divide-x divide-border/30 border-b border-border/30">
-          <div className="px-[var(--space-default)] py-[var(--space-compact)]">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{l(t.detailExtra.wholesale)}</p>
-            <p className="text-sm font-bold font-mono tabular-nums text-foreground mt-[var(--space-micro)]">
-              {product.wholesale_price.toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">MMK</span>
+          <div className="px-4 py-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">{l(t.detailExtra.wholesale)}</p>
+            <p className="text-lg md:text-xl font-bold font-mono tabular-nums text-foreground leading-none drop-shadow-[0_0_6px_hsl(var(--primary)/0.4)]">
+              {product.wholesale_price.toLocaleString()}
+              <span className="text-[10px] font-normal text-muted-foreground ml-1">MMK</span>
             </p>
           </div>
-          <div className="px-[var(--space-default)] py-[var(--space-compact)]">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{l(t.detailExtra.retail)}</p>
-            <p className="text-sm font-bold font-mono tabular-nums text-foreground mt-[var(--space-micro)]">
-              {product.retail_price.toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">MMK</span>
+          <div className="px-4 py-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">{l(t.detailExtra.retail)}</p>
+            <p className="text-base md:text-lg font-medium font-mono tabular-nums text-muted-foreground leading-none">
+              {product.retail_price.toLocaleString()}
+              <span className="text-[10px] font-normal text-muted-foreground/70 ml-1">MMK</span>
             </p>
           </div>
-          <div className="px-[var(--space-default)] py-[var(--space-compact)]">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{l(t.detailExtra.margin)}</p>
-            <p className={cn("text-sm font-bold font-mono tabular-nums mt-[var(--space-micro)]", profitPerUnit > 0 ? "text-primary" : "text-muted-foreground")}>
-              {profitPerUnit > 0 ? "+" : ""}{profitPerUnit.toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">MMK</span>
+          <div className="px-4 py-3">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">{l(t.detailExtra.margin)}</p>
+            <p className={cn("text-base md:text-lg font-semibold font-mono tabular-nums leading-none", profitPerUnit > 0 ? "text-primary" : "text-muted-foreground")}>
+              {profitPerUnit > 0 ? "+" : ""}{profitPerUnit.toLocaleString()}
+              <span className="text-[10px] font-normal text-muted-foreground/70 ml-1">MMK</span>
             </p>
           </div>
         </div>
