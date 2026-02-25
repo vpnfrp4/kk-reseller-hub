@@ -18,21 +18,15 @@ import {
   PartyPopper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { t } from "@/lib/i18n";
+import { t, useT } from "@/lib/i18n";
 
 type TxStatus = "pending" | "approved" | "rejected";
 
 interface StepInfo {
-  label: string;
-  description: string;
+  label: { mm: string; en: string };
+  description: { mm: string; en: string };
   icon: typeof CheckCircle2;
 }
-
-const STEPS: StepInfo[] = [
-  { label: "တင်သွင်းပြီး", description: "ငွေဖြည့်တောင်းဆိုမှု လက်ခံရရှိပါပြီ", icon: CheckCircle2 },
-  { label: "စစ်ဆေးနေသည်", description: "အက်ဒမင်မှ စစ်ဆေးအတည်ပြုနေပါသည်", icon: Clock },
-  { label: "ငွေရောက်မည်", description: "ပိုက်ဆံအိတ်တွင် ချက်ချင်းရရှိနိုင်မည်", icon: Wallet },
-];
 
 function getActiveStep(status: TxStatus): number {
   if (status === "approved") return 3;
@@ -41,6 +35,7 @@ function getActiveStep(status: TxStatus): number {
 }
 
 export default function TopUpStatusPage() {
+  const l = useT();
   const { user, profile, refreshProfile } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -51,6 +46,12 @@ export default function TopUpStatusPage() {
   const [prevStatus, setPrevStatus] = useState<TxStatus | null>(null);
   const [oldBalance, setOldBalance] = useState<number | null>(null);
   const [justApproved, setJustApproved] = useState(false);
+
+  const STEPS: StepInfo[] = [
+    { label: t.topupStatus.stepSubmitted, description: t.topupStatus.stepSubmittedDesc, icon: CheckCircle2 },
+    { label: t.topupStatus.stepReviewing, description: t.topupStatus.stepReviewingDesc, icon: Clock },
+    { label: t.topupStatus.stepCredited, description: t.topupStatus.stepCreditedDesc, icon: Wallet },
+  ];
 
   const { data: transaction } = useQuery({
     queryKey: ["topup-status", txId],
@@ -157,9 +158,9 @@ export default function TopUpStatusPage() {
     return (
       <PageContainer>
         <div className="text-center py-page">
-          <p className="text-muted-foreground">ငွေလွှဲမှတ်တမ်း မတွေ့ပါ</p>
+          <p className="text-muted-foreground">{l(t.topupStatus.notFound)}</p>
           <Button variant="outline" className="mt-4" onClick={() => navigate("/dashboard/wallet")}>
-            {t.nav.wallet.mm}သို့ သွားမည်
+            {l(t.topupStatus.goToWallet)}
           </Button>
         </div>
       </PageContainer>
@@ -173,9 +174,9 @@ export default function TopUpStatusPage() {
   return (
     <div className="space-y-section">
       <Breadcrumb items={[
-        { label: t.nav.dashboard.mm, path: "/dashboard" },
-        { label: t.nav.wallet.mm, path: "/dashboard/wallet" },
-        { label: "ငွေဖြည့်အခြေအနေ" },
+        { label: l(t.nav.dashboard), path: "/dashboard" },
+        { label: l(t.nav.wallet), path: "/dashboard/wallet" },
+        { label: l(t.topupStatus.breadcrumb) },
       ]} />
 
       <PageContainer maxWidth="max-w-xl">
@@ -191,14 +192,14 @@ export default function TopUpStatusPage() {
               </div>
 
               <div className="space-y-2">
-                <h2 className="text-h1 text-foreground">ငွေဖြည့်မှု အောင်မြင်ပါပြီ</h2>
+                <h2 className="text-h1 text-foreground">{l(t.topupStatus.successTitle)}</h2>
                 <p className="text-body text-muted-foreground">
-                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> သင့်ပိုက်ဆံအိတ်သို့ ထည့်ပြီးပါပြီ
+                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> {l(t.topupStatus.successMsg)}
                 </p>
               </div>
 
               <div className="rounded-[var(--radius-card)] border border-success/20 bg-success/5 p-6">
-                <p className="text-caption text-muted-foreground uppercase tracking-wider mb-2">{t.wallet.availableBalance.mm}</p>
+                <p className="text-caption text-muted-foreground uppercase tracking-wider mb-2">{l(t.wallet.availableBalance)}</p>
                 <p className="text-4xl font-bold font-mono tabular-nums text-success tracking-tight">
                   {justApproved
                     ? animatedBalance.toLocaleString()
@@ -214,7 +215,7 @@ export default function TopUpStatusPage() {
                   onClick={() => navigate("/dashboard/products")}
                 >
                   <ShoppingCart className="w-4 h-4" />
-                  {t.dashboard.browseProducts.mm}
+                  {l(t.dashboard.browseProducts)}
                 </Button>
                 <Button
                   variant="outline"
@@ -222,7 +223,7 @@ export default function TopUpStatusPage() {
                   onClick={() => navigate("/dashboard/wallet")}
                 >
                   <Wallet className="w-4 h-4" />
-                  {t.nav.wallet.mm}
+                  {l(t.nav.wallet)}
                 </Button>
               </div>
             </div>
@@ -236,18 +237,18 @@ export default function TopUpStatusPage() {
               </div>
 
               <div className="space-y-2">
-                <h2 className="text-h1 text-foreground">ငွေဖြည့်မှု ငြင်းပယ်ခံရပါသည်</h2>
+                <h2 className="text-h1 text-foreground">{l(t.topupStatus.rejectedTitle)}</h2>
                 <p className="text-body text-muted-foreground">
-                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> တောင်းဆိုမှု အတည်မပြုပါ
+                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> {l(t.topupStatus.rejectedMsg)}
                 </p>
                 <p className="text-caption text-muted-foreground">
-                  ငွေလွှဲအချက်အလက်များ ပြန်စစ်ပြီး ထပ်ကြိုးစားပါ
+                  {l(t.topupStatus.retryMsg)}
                 </p>
               </div>
 
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Button className="flex-1 h-12 btn-glow" onClick={() => navigate("/dashboard/wallet")}>
-                  ထပ်ကြိုးစားမည်
+                  {l(t.topupStatus.retry)}
                 </Button>
               </div>
             </div>
@@ -261,7 +262,7 @@ export default function TopUpStatusPage() {
                   style={{ boxShadow: "0 0 30px hsl(var(--primary) / 0.15)" }}>
                   <Clock className="w-8 h-8 text-primary animate-pulse" />
                 </div>
-                <h2 className="text-xl font-semibold text-foreground">ငွေဖြည့်နေသည်</h2>
+                <h2 className="text-xl font-semibold text-foreground">{l(t.topupStatus.processingTitle)}</h2>
                 <p className="text-sm text-muted-foreground">
                   <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> ({transaction?.method || "Payment"})
                 </p>
@@ -304,16 +305,16 @@ export default function TopUpStatusPage() {
                           "text-sm font-medium transition-colors",
                           isDone ? "text-foreground" : isActive ? "text-primary" : "text-muted-foreground"
                         )}>
-                          {step.label}
+                          {l(step.label)}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{step.description}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{l(step.description)}</p>
                         {isActive && (
                           <p className="text-xs text-primary/80 mt-1 flex items-center gap-1.5">
                             <span className="relative flex h-2 w-2">
                               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75" />
                               <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                             </span>
-                            {t.topup.reviewTime.mm}
+                            {l(t.topup.reviewTime)}
                           </p>
                         )}
                       </div>
@@ -325,14 +326,14 @@ export default function TopUpStatusPage() {
               {typeof queueCount === "number" && queueCount > 0 && (
                 <div className="text-center rounded-[var(--radius-card)] border border-border/40 bg-muted/10 py-3 px-4">
                   <p className="text-xs text-muted-foreground">
-                    သင့်ရှေ့တွင် <span className="font-semibold text-foreground">{queueCount}</span> တောင်းဆိုမှု ရှိနေပါသေးသည်
+                    {l(t.topupStatus.queueBefore)} <span className="font-semibold text-foreground">{queueCount}</span> {l(t.topupStatus.queueAfter)}
                   </p>
                 </div>
               )}
 
               <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground/60">
                 <Shield className="w-3.5 h-3.5" />
-                <span>ဤစာမျက်နှာသည် အလိုအလျောက် အပ်ဒိတ်ဖြစ်ပါသည်</span>
+                <span>{l(t.topupStatus.autoUpdate)}</span>
               </div>
 
               <Button
@@ -340,7 +341,7 @@ export default function TopUpStatusPage() {
                 className="w-full h-11 btn-glass"
                 onClick={() => navigate("/dashboard/wallet")}
               >
-                {t.nav.wallet.mm}သို့ ပြန်သွားမည်
+                {l(t.topupStatus.goBack)}
               </Button>
             </div>
           )}

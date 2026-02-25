@@ -20,6 +20,7 @@ import { useCountUp } from "@/hooks/use-count-up";
 import { Money } from "@/components/shared";
 import Confetti from "@/components/Confetti";
 import { cn } from "@/lib/utils";
+import { t, useT } from "@/lib/i18n";
 
 interface PurchaseResult {
   order_id: string;
@@ -41,6 +42,7 @@ export default function PurchaseSuccessModal({
   onClose,
   totalSavings = 0,
 }: PurchaseSuccessModalProps) {
+  const l = useT();
   const [copied, setCopied] = useState(false);
   const navigate = useNavigate();
   const { profile } = useAuth();
@@ -96,10 +98,10 @@ export default function PurchaseSuccessModal({
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-foreground">
-                  Order Completed Successfully
+                  {l(t.success.orderComplete)}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Your purchase has been processed securely.
+                  {l(t.success.processed)}
                 </p>
               </div>
             </div>
@@ -119,7 +121,7 @@ export default function PurchaseSuccessModal({
                   </p>
                   {result.quantity && result.quantity > 1 && (
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      {result.quantity} accounts ×{" "}
+                      {result.quantity} {l(t.products.accounts)} ×{" "}
                       {(result.unit_price || 0).toLocaleString()} MMK
                     </p>
                   )}
@@ -156,7 +158,7 @@ export default function PurchaseSuccessModal({
               )}
             >
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Account Credentials{" "}
+                {l(t.success.credentials)}{" "}
                 {credentialsList.length > 1
                   ? `(${credentialsList.length})`
                   : ""}
@@ -186,11 +188,11 @@ export default function PurchaseSuccessModal({
                   onClick={() => copyCredentials(result.credentials)}
                   className="text-xs text-primary hover:text-primary/80 transition-colors font-medium"
                 >
-                  {copied ? "✓ Copied all" : "Copy all credentials"}
+                  {copied ? l(t.success.copiedAll) : l(t.success.copyAll)}
                 </button>
               )}
               {credentialsList.length === 1 && copied && (
-                <p className="text-xs text-success font-medium">✓ Copied</p>
+                <p className="text-xs text-success font-medium">{l(t.success.copied)}</p>
               )}
             </div>
 
@@ -205,13 +207,13 @@ export default function PurchaseSuccessModal({
               <div className="flex items-center gap-1.5 mb-3">
                 <Wallet className="w-3.5 h-3.5 text-muted-foreground" />
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Wallet Balance
+                  {l(t.success.walletBalance)}
                 </p>
               </div>
               <div className="flex items-center justify-between">
                 <div className="text-center flex-1">
                   <p className="text-xs text-muted-foreground mb-0.5">
-                    Previous
+                    {l(t.success.previous)}
                   </p>
                   <p className="font-mono text-sm font-semibold text-muted-foreground tabular-nums line-through decoration-muted-foreground/30">
                     {previousBalance.toLocaleString()}
@@ -220,7 +222,7 @@ export default function PurchaseSuccessModal({
                 <div className="text-muted-foreground/30 text-lg px-2">→</div>
                 <div className="text-center flex-1">
                   <p className="text-xs text-muted-foreground mb-0.5">
-                    Current
+                    {l(t.success.current)}
                   </p>
                   <p className="font-mono text-lg font-bold text-foreground tabular-nums">
                     {animatedBalance.toLocaleString()}
@@ -237,7 +239,7 @@ export default function PurchaseSuccessModal({
               <div className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-success/10 border border-success/20 animate-fade-in [animation-delay:0.25s]">
                 <BadgePercent className="w-4 h-4 text-success" />
                 <span className="text-sm font-semibold text-success">
-                  You saved {totalSavings.toLocaleString()} MMK
+                  {l(t.success.saved)} {totalSavings.toLocaleString()} MMK
                   {showConfetti ? " 🎉" : ""}
                 </span>
               </div>
@@ -245,7 +247,7 @@ export default function PurchaseSuccessModal({
 
             {/* ── INFO ── */}
             <p className="text-[11px] text-muted-foreground/60 text-center">
-              Credentials are saved in your Order History for future reference.
+              {l(t.success.savedInHistory)}
             </p>
 
             {/* ── CTA SECTION ── */}
@@ -263,7 +265,7 @@ export default function PurchaseSuccessModal({
                 }}
               >
                 <Eye className="w-4 h-4" />
-                View Order
+                {l(t.success.viewOrder)}
               </Button>
               <Button
                 variant="outline"
@@ -274,7 +276,7 @@ export default function PurchaseSuccessModal({
                 }}
               >
                 <ShoppingCart className="w-4 h-4" />
-                Continue Shopping
+                {l(t.success.continueShopping)}
               </Button>
             </div>
           </div>

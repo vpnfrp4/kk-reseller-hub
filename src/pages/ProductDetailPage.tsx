@@ -28,20 +28,6 @@ interface PurchaseResult {
   unit_price?: number;
 }
 
-const SPEC_ITEMS = [
-  { label: "Activation", mm: "ချက်ချင်းအသက်ဝင်" },
-  { label: "Account Type", mm: "တရားဝင်အကောင့်" },
-  { label: "Warranty", mm: "၂၄ နာရီအာမခံ" },
-  { label: "Replacement", mm: "ပျက်ပါက အစားထိုးပေး" },
-  { label: "Delivery", mm: "လုံခြုံစွာပေးပို့" },
-];
-
-const NOTICES = [
-  { mm: "ပို့ပြီးနောက် ပြန်မအမ်းပါ", en: "Non-refundable after delivery" },
-  { mm: "မှားရိုက်ပါက အာမခံပျက်", en: "Incorrect input voids warranty" },
-  { mm: "အတည်မပြုမီ ပြန်စစ်ပါ", en: "Verify all details before confirming" },
-];
-
 export default function ProductDetailPage() {
   const l = useT();
   const { id } = useParams<{ id: string }>();
@@ -63,6 +49,20 @@ export default function ProductDetailPage() {
   const [selectedMode, setSelectedMode] = useState<string>("instant");
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const SPEC_ITEMS = [
+    { label: "Activation", value: t.detailExtra.activation },
+    { label: "Account Type", value: t.detailExtra.accountType },
+    { label: "Warranty", value: t.detailExtra.warranty },
+    { label: "Replacement", value: t.detailExtra.replacement },
+    { label: "Delivery", value: t.detailExtra.secureDelivery },
+  ];
+
+  const NOTICES = [
+    { label: t.detailExtra.noticeNoRefund },
+    { label: t.detailExtra.noticeIncorrect },
+    { label: t.detailExtra.noticeVerify },
+  ];
 
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
@@ -107,10 +107,10 @@ export default function ProductDetailPage() {
   const mapErrorMessage = (msg: string): string => {
     const lower = msg.toLowerCase();
     if (lower.includes("out of stock") || lower.includes("no credentials available") || lower.includes("not enough stock")) {
-      return "လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)";
+      return l(t.detailExtra.outOfStockErr);
     }
     if (lower.includes("insufficient balance")) {
-      return "လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပေးပါရန်။ (Insufficient Balance)";
+      return l(t.detailExtra.insufficientErr);
     }
     return msg;
   };
@@ -124,34 +124,34 @@ export default function ProductDetailPage() {
     for (const field of activeFields) {
       const value = (customFieldValues[field.field_name] || "").trim();
       if (field.required && !value) {
-        errors[field.field_name] = `${field.field_name} လိုအပ်ပါသည်`;
+        errors[field.field_name] = `${field.field_name} ${l(t.detailExtra.fieldRequired)}`;
         continue;
       }
       if (value) {
         if (field.field_type === "select") {
           const opts = Array.isArray(field.options) ? field.options : [];
           if (opts.length > 0 && !opts.includes(value)) {
-            errors[field.field_name] = "မှန်ကန်သောရွေးချယ်မှု ရွေးပါ";
+            errors[field.field_name] = l(t.detailExtra.validSelection);
             continue;
           }
         }
         if (field.min_length && value.length < field.min_length) {
-          errors[field.field_name] = `အနည်းဆုံး ${field.min_length} လုံး`;
+          errors[field.field_name] = `${l(t.detailExtra.minChars)} ${field.min_length} ${l(t.detailExtra.chars)}`;
           continue;
         }
         if (field.max_length && value.length > field.max_length) {
-          errors[field.field_name] = `အများဆုံး ${field.max_length} လုံး`;
+          errors[field.field_name] = `${l(t.detailExtra.maxChars)} ${field.max_length} ${l(t.detailExtra.chars)}`;
           continue;
         }
         if (field.field_type === "email") {
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(value)) {
-            errors[field.field_name] = "အီးမေးလ် မမှန်ကန်ပါ";
+            errors[field.field_name] = l(t.detailExtra.invalidEmail);
             continue;
           }
         }
         if (field.field_type === "number" && isNaN(Number(value))) {
-          errors[field.field_name] = "ဂဏန်းဖြစ်ရမည်";
+          errors[field.field_name] = l(t.detailExtra.mustBeNumber);
           continue;
         }
       }
@@ -164,11 +164,11 @@ export default function ProductDetailPage() {
   const handleBuyClick = () => {
     if (!product) return;
     if (product.stock <= 0) {
-      toast.error("လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)");
+      toast.error(l(t.detailExtra.outOfStockErr));
       return;
     }
     if (!validateCustomFields()) {
-      toast.error("လိုအပ်သောအကွက်များ ဖြည့်ပေးပါ");
+      toast.error(l(t.detailExtra.fillRequired));
       return;
     }
     setNoticeProduct(product);
@@ -242,8 +242,8 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="space-y-4 text-center py-20">
-        <p className="text-muted-foreground text-sm">ထုတ်ကုန်မတွေ့ပါ</p>
-        <Button variant="outline" onClick={() => navigate("/dashboard/products")}>{l(t.nav.products)}သို့ ပြန်သွားမည်</Button>
+        <p className="text-muted-foreground text-sm">{l(t.detailExtra.productNotFound)}</p>
+        <Button variant="outline" onClick={() => navigate("/dashboard/products")}>{l(t.detailExtra.goBack)}</Button>
       </div>
     );
   }
@@ -257,7 +257,7 @@ export default function ProductDetailPage() {
   const profitPerUnit = product.retail_price - product.wholesale_price;
   const balance = profile?.balance || 0;
   const insufficientBalance = balance < product.wholesale_price;
-  const currentDeliveryBadge = deliveryTimeConfig[effectiveMode] || "ချက်ချင်းပေးပို့";
+  const currentDeliveryBadge = deliveryTimeConfig[effectiveMode] || l(t.detailExtra.instantDelivery);
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
@@ -272,7 +272,7 @@ export default function ProductDetailPage() {
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-1">
-              Service Details
+              {l(t.detailExtra.serviceDetails)}
             </p>
             <h1 className="text-lg font-bold text-foreground tracking-tight leading-snug">{product.name}</h1>
           </div>
@@ -294,19 +294,19 @@ export default function ProductDetailPage() {
         {/* Key-value metadata */}
         <div className="grid grid-cols-2 gap-y-2 gap-x-6 text-sm border-t border-border pt-4">
           <div className="flex justify-between">
-            <span className="text-muted-foreground text-xs">Category</span>
+            <span className="text-muted-foreground text-xs">{l(t.detailExtra.category)}</span>
             <span className="font-medium text-foreground text-xs uppercase tracking-wider">{product.category}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground text-xs">Duration</span>
+            <span className="text-muted-foreground text-xs">{l(t.detailExtra.duration)}</span>
             <span className="font-medium text-foreground text-xs">{product.duration}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground text-xs">Delivery</span>
+            <span className="text-muted-foreground text-xs">{l(t.detailExtra.delivery)}</span>
             <span className="font-medium text-foreground text-xs">{currentDeliveryBadge}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-muted-foreground text-xs">Fulfillment</span>
+            <span className="text-muted-foreground text-xs">{l(t.detailExtra.fulfillment)}</span>
             <span className="font-medium text-foreground text-xs capitalize">{effectiveMode}</span>
           </div>
         </div>
@@ -316,30 +316,30 @@ export default function ProductDetailPage() {
       <section className="rounded-xl border border-border bg-card overflow-hidden">
         <div className="px-6 py-4 border-b border-border">
           <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-0.5">
-            Pricing Structure
+            {l(t.detailExtra.pricingStructure)}
           </p>
           <p className="text-2xl font-bold font-mono tabular-nums text-foreground leading-none tracking-tight">
             {product.wholesale_price.toLocaleString()}
-            <span className="text-xs font-medium text-muted-foreground ml-1.5">MMK / unit</span>
+            <span className="text-xs font-medium text-muted-foreground ml-1.5">MMK {l(t.detailExtra.perUnit)}</span>
           </p>
         </div>
 
         {/* Wholesale / Retail / Margin row */}
         <div className="grid grid-cols-3 divide-x divide-border border-b border-border">
           <div className="px-4 py-3">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Wholesale</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{l(t.detailExtra.wholesale)}</p>
             <p className="text-sm font-bold font-mono tabular-nums text-foreground mt-0.5">
               {product.wholesale_price.toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">MMK</span>
             </p>
           </div>
           <div className="px-4 py-3">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Retail</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{l(t.detailExtra.retail)}</p>
             <p className="text-sm font-bold font-mono tabular-nums text-foreground mt-0.5">
               {product.retail_price.toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">MMK</span>
             </p>
           </div>
           <div className="px-4 py-3">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">Margin</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">{l(t.detailExtra.margin)}</p>
             <p className={cn("text-sm font-bold font-mono tabular-nums mt-0.5", profitPerUnit > 0 ? "text-primary" : "text-muted-foreground")}>
               {profitPerUnit > 0 ? "+" : ""}{profitPerUnit.toLocaleString()} <span className="text-[10px] font-normal text-muted-foreground">MMK</span>
             </p>
@@ -350,9 +350,9 @@ export default function ProductDetailPage() {
         {hasTiers && (
           <div>
             <div className="grid grid-cols-3 gap-0 px-4 py-2 text-[10px] uppercase tracking-widest font-semibold text-muted-foreground border-b border-border bg-muted/30">
-              <span>Quantity</span>
-              <span>Unit Price</span>
-              <span>Tier</span>
+              <span>{l(t.detailExtra.quantity)}</span>
+              <span>{l(t.detailExtra.unitPrice)}</span>
+              <span>{l(t.detailExtra.tier)}</span>
             </div>
             {[...pricingTiers].sort((a: any, b: any) => a.min_qty - b.min_qty).map((tier: any, i: number) => {
               const label = tier.max_qty ? `${tier.min_qty} – ${tier.max_qty}` : `${tier.min_qty}+`;
@@ -367,7 +367,7 @@ export default function ProductDetailPage() {
                     {tier.unit_price.toLocaleString()} MMK
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {isLowest && <span className="font-semibold text-primary">Best value</span>}
+                    {isLowest && <span className="font-semibold text-primary">{l(t.detail.bestValue)}</span>}
                   </span>
                 </div>
               );
@@ -379,13 +379,13 @@ export default function ProductDetailPage() {
       {/* ═══ 3. SERVICE SPECIFICATION BLOCK ═══ */}
       <section className="rounded-xl border border-border bg-card p-6">
         <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-3">
-          Service Specifications
+          {l(t.detailExtra.serviceSpecs)}
         </p>
         <div className="space-y-0 divide-y divide-border">
           {SPEC_ITEMS.map((item, i) => (
             <div key={i} className="flex items-center justify-between py-2.5">
               <span className="text-xs text-muted-foreground">{item.label}</span>
-              <span className="text-xs font-medium text-foreground">{item.mm}</span>
+              <span className="text-xs font-medium text-foreground">{l(item.value)}</span>
             </div>
           ))}
         </div>
@@ -399,7 +399,7 @@ export default function ProductDetailPage() {
         >
           <div className="flex items-center gap-2.5">
             <div className="w-1 h-5 rounded-full bg-warning" />
-            <span className="text-xs font-semibold text-foreground uppercase tracking-wide">Important Notice</span>
+            <span className="text-xs font-semibold text-foreground uppercase tracking-wide">{l(t.detailExtra.importantNotice)}</span>
           </div>
           <ChevronDown
             className={cn(
@@ -413,10 +413,7 @@ export default function ProductDetailPage() {
             {NOTICES.map((notice, i) => (
               <div key={i} className="flex items-start gap-3 py-1.5">
                 <span className="w-1 h-1 rounded-full bg-warning/60 mt-1.5 shrink-0" />
-                <div>
-                  <span className="text-xs text-foreground">{notice.mm}</span>
-                  <span className="text-[10px] text-muted-foreground ml-2">({notice.en})</span>
-                </div>
+                <span className="text-xs text-foreground">{l(notice.label)}</span>
               </div>
             ))}
           </div>
@@ -426,7 +423,7 @@ export default function ProductDetailPage() {
       {/* ═══ 5. STRUCTURED ORDER CONFIGURATION ═══ */}
       <section className="rounded-xl border border-border bg-card p-6 space-y-5">
         <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">
-          Order Configuration
+          {l(t.detailExtra.orderConfig)}
         </p>
 
         {/* Fulfillment Mode Selector */}
@@ -446,7 +443,7 @@ export default function ProductDetailPage() {
 
         {/* Wallet balance row */}
         <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-4 py-3">
-          <span className="text-xs text-muted-foreground">{l(t.detail.walletLabel)} Balance</span>
+          <span className="text-xs text-muted-foreground">{l(t.detailExtra.walletBalance)}</span>
           <span className="text-sm font-bold font-mono tabular-nums text-foreground">{balance.toLocaleString()} MMK</span>
         </div>
 
@@ -485,7 +482,7 @@ export default function ProductDetailPage() {
           ) : isOutOfStock ? (
             l(t.products.outOfStock)
           ) : (
-            <>Confirm Order — {product.wholesale_price.toLocaleString()} MMK</>
+            <>{l(t.detailExtra.confirmOrder)} — {product.wholesale_price.toLocaleString()} MMK</>
           )}
         </Button>
       </section>
