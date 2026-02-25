@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Breadcrumb from "@/components/Breadcrumb";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,10 +13,12 @@ import {
   Trash2,
   CheckCheck,
   Filter,
+  ExternalLink,
+  ShoppingCart,
 } from "lucide-react";
 import { t, useT } from "@/lib/i18n";
 
-type NotificationType = "success" | "info" | "warning" | "error";
+type NotificationType = "success" | "info" | "warning" | "error" | "order";
 
 interface Notification {
   id: string;
@@ -24,6 +27,7 @@ interface Notification {
   type: NotificationType;
   is_read: boolean;
   created_at: string;
+  link?: string | null;
 }
 
 const typeConfig: Record<NotificationType, { icon: typeof Bell; colorClass: string; bgClass: string }> = {
@@ -31,6 +35,7 @@ const typeConfig: Record<NotificationType, { icon: typeof Bell; colorClass: stri
   info: { icon: Info, colorClass: "text-primary", bgClass: "bg-primary/10 border-primary/20" },
   warning: { icon: AlertTriangle, colorClass: "text-warning", bgClass: "bg-warning/10 border-warning/20" },
   error: { icon: AlertTriangle, colorClass: "text-destructive", bgClass: "bg-destructive/10 border-destructive/20" },
+  order: { icon: ShoppingCart, colorClass: "text-primary", bgClass: "bg-primary/10 border-primary/20" },
 };
 
 export default function NotificationsPage() {
@@ -178,6 +183,15 @@ export default function NotificationsPage() {
                         </p>
                         {n.body && (
                           <p className="text-xs text-muted-foreground mt-0.5">{n.body}</p>
+                        )}
+                        {n.link && (
+                          <Link
+                            to={n.link}
+                            className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            View Order
+                          </Link>
                         )}
                       </div>
                       <span className="text-[11px] text-muted-foreground whitespace-nowrap shrink-0">

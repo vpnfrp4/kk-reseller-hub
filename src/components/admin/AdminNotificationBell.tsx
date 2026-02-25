@@ -26,7 +26,7 @@ function persistReadIds(ids: Set<string>) {
 
 interface AlertItem {
   id: string;
-  type: "order" | "low_balance" | "expiring";
+  type: "order" | "low_balance" | "expiring" | "manual_order";
   title: string;
   detail: string;
   time: string;
@@ -86,7 +86,31 @@ export default function AdminNotificationBell() {
     refetchInterval: 60000,
   });
 
+  // Manual order notifications from DB (with direct links)
+  const { data: manualOrderNotifs = [] } = useQuery({
+    queryKey: ["bell-manual-order-notifs"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("notifications")
+        .select("id, title, body, created_at, link")
+        .eq("type", "order")
+        .not("link", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(5);
+      return (data || []) as any[];
+    },
+    refetchInterval: 30000,
+  });
+
   const alerts: AlertItem[] = useMemo(() => [
+    ...manualOrderNotifs.map((n: any) => ({
+      id: `notif-${n.id}`,
+      type: "manual_order" as const,
+      title: n.title || "Manual Order Pending",
+      detail: n.body,
+      time: n.created_at,
+      link: n.link || "/admin/orders",
+    })),
     ...recentOrders.map((o: any) => ({
       id: `order-${o.id}`,
       type: "order" as const,
@@ -111,7 +135,7 @@ export default function AdminNotificationBell() {
       time: c.expires_at,
       link: "/admin/credentials?status=expiring",
     })),
-  ], [recentOrders, lowBalance, expiring]);
+  ], [manualOrderNotifs, recentOrders, lowBalance, expiring]);
 
   const unreadCount = alerts.filter((a) => !readIds.has(a.id)).length;
 
@@ -122,14 +146,16 @@ export default function AdminNotificationBell() {
     persistReadIds(next);
   }, [alerts, readIds]);
 
-  const iconMap = {
+  const iconMap: Record<string, any> = {
     order: ShoppingCart,
+    manual_order: Clock,
     low_balance: AlertTriangle,
     expiring: Clock,
   };
 
-  const colorMap = {
+  const colorMap: Record<string, string> = {
     order: "text-success",
+    manual_order: "text-warning",
     low_balance: "text-warning",
     expiring: "text-destructive",
   };
