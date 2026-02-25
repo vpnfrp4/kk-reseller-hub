@@ -31,35 +31,38 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
     <div
       className={cn(
         "group relative glass-card opacity-0 animate-stagger-in",
-        "transition-all duration-200",
-        "hover:border-primary/20 hover:shadow-[var(--shadow-elevated)]"
+        "transition-all duration-300",
+        "hover:border-primary/40 hover:shadow-[var(--shadow-elevated)]"
       )}
       style={{ animationDelay: `${index * 0.03}s` }}
     >
-      <div className="p-[var(--space-card)]">
+      <div className="p-5 md:p-6 space-y-5">
         {/* Row 1: Service Identity */}
-        <div className="flex items-start justify-between gap-4 mb-[var(--space-default)]">
-          <div className="min-w-0 flex-1">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1 space-y-2">
             <Link to={`/dashboard/products/${product.id}`}>
-              <h3 className="text-sm font-semibold text-foreground leading-tight tracking-tight hover:text-primary transition-colors">
+              <h3 className="text-[18px] md:text-xl font-semibold text-foreground leading-tight tracking-wide hover:text-primary transition-colors">
                 {product.name}
               </h3>
             </Link>
-            <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
-              <span>{product.duration}</span>
-              <span className="text-border">|</span>
-              <span className="uppercase tracking-wider text-[10px] font-medium">{product.category}</span>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary rounded-md border border-primary/20">
+                {product.category}
+              </span>
+              {product.duration && (
+                <span className="text-xs text-muted-foreground">{product.duration}</span>
+              )}
             </div>
           </div>
           {/* Status indicator */}
           <div
             className={cn(
-              "shrink-0 flex items-center gap-1.5 rounded-[var(--radius-btn)] px-2.5 py-1 text-[10px] font-semibold tracking-wide",
+              "shrink-0 flex items-center gap-1.5 rounded-[var(--radius-btn)] px-2.5 py-1 text-[11px] font-semibold tracking-wide",
               isOutOfStock
-                ? "bg-destructive/8 text-destructive"
+                ? "bg-destructive/10 text-destructive"
                 : isLowStock
-                ? "bg-warning/8 text-warning"
-                : "bg-primary/8 text-primary"
+                ? "bg-warning/10 text-warning"
+                : "bg-primary/10 text-primary"
             )}
           >
             <span
@@ -78,42 +81,42 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
           </div>
         </div>
 
-        {/* Row 2: Pricing Data */}
-        <div className="grid grid-cols-3 gap-3 mb-[var(--space-default)] rounded-[var(--radius-btn)] border border-border/40 bg-muted/15 p-[var(--space-compact)]">
+        {/* Row 2: Pricing Data — separated by border */}
+        <div className="grid grid-cols-3 gap-4 md:gap-6 pt-4 border-t border-border/30">
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
               Wholesale
             </p>
-            <p className="text-base font-bold font-mono tabular-nums text-foreground leading-none">
+            <p className="text-xl md:text-2xl font-bold font-mono tabular-nums text-foreground leading-none">
               {product.wholesale_price.toLocaleString()}
-              <span className="text-[10px] font-normal text-muted-foreground ml-1">MMK</span>
+              <span className="text-xs font-normal text-muted-foreground ml-1">MMK</span>
             </p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
               Retail
             </p>
-            <p className="text-base font-bold font-mono tabular-nums text-foreground leading-none">
+            <p className="text-base md:text-lg font-medium font-mono tabular-nums text-muted-foreground leading-none">
               {product.retail_price.toLocaleString()}
-              <span className="text-[10px] font-normal text-muted-foreground ml-1">MMK</span>
+              <span className="text-xs font-normal text-muted-foreground/70 ml-1">MMK</span>
             </p>
           </div>
           <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
               Margin
             </p>
             <p className={cn(
-              "text-base font-bold font-mono tabular-nums leading-none",
+              "text-base md:text-lg font-semibold font-mono tabular-nums leading-none",
               profitPerUnit > 0 ? "text-primary" : "text-muted-foreground"
             )}>
               {profitPerUnit > 0 ? "+" : ""}{profitPerUnit.toLocaleString()}
-              <span className="text-[10px] font-normal text-muted-foreground ml-1">MMK</span>
+              <span className="text-xs font-normal text-muted-foreground/70 ml-1">MMK</span>
             </p>
           </div>
         </div>
 
         {/* Row 3: Volume note + Actions */}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center justify-between gap-3 pt-1">
           <div className="min-w-0 flex-1">
             {hasTiers && lowestTier && lowestTier.unit_price < product.wholesale_price && (
               <p className="text-[11px] text-muted-foreground">
@@ -129,7 +132,7 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
           <div className="flex items-center gap-2 shrink-0">
             <Button
               size="sm"
-              className="h-8 rounded-[var(--radius-btn)] px-4 text-xs font-semibold btn-glow"
+              className="h-9 rounded-[var(--radius-btn)] px-5 text-xs font-semibold btn-glow"
               onClick={() => onBuyClick(product)}
               disabled={isOutOfStock || isPurchasing}
             >
@@ -146,7 +149,7 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
             </Button>
             <Link
               to={`/dashboard/products/${product.id}`}
-              className="inline-flex items-center gap-1 h-8 px-3 rounded-[var(--radius-btn)] text-xs font-medium text-muted-foreground border border-border/40 bg-muted/20 hover:bg-muted/40 hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1 h-9 px-3 rounded-[var(--radius-btn)] text-xs font-medium text-muted-foreground border border-border/40 bg-muted/20 hover:bg-muted/40 hover:text-foreground transition-colors"
             >
               Details
               <ChevronRight className="w-3 h-3" />
