@@ -26,6 +26,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/ThemeToggle";
 import {
   Accordion,
   AccordionContent,
@@ -207,6 +208,7 @@ export default function LandingPage() {
             <Link to="/tools/imei-check" className="transition-colors hover:text-foreground">IMEI Checker</Link>
           </nav>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Button variant="ghost" size="sm" className="text-sm font-medium" asChild>
               <Link to="/login">Log In</Link>
             </Button>
