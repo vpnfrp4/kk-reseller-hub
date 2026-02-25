@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, CSSProperties, ReactNode } from "react";
+import { useState, useRef, useEffect, forwardRef, CSSProperties, ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   Shield,
@@ -34,29 +34,38 @@ import {
 } from "@/components/ui/accordion";
 
 /* ───────── SCROLL REVEAL ───────── */
-function ScrollReveal({ children, delay = 0, className = "" }: { children: ReactNode; delay?: number; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [visible, setVisible] = useState(false);
+const ScrollReveal = forwardRef<HTMLDivElement, { children: ReactNode; delay?: number; className?: string }>(
+  ({ children, delay = 0, className = "" }, forwardedRef) => {
+    const innerRef = useRef<HTMLDivElement>(null);
+    const [visible, setVisible] = useState(false);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.unobserve(el); } },
-      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
-    );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+    useEffect(() => {
+      const el = innerRef.current;
+      if (!el) return;
+      const observer = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.unobserve(el); } },
+        { threshold: 0.12, rootMargin: "0px 0px -40px 0px" }
+      );
+      observer.observe(el);
+      return () => observer.disconnect();
+    }, []);
 
-  const style: CSSProperties = {
-    opacity: visible ? 1 : 0,
-    transform: visible ? "translateY(0)" : "translateY(20px)",
-    transition: `opacity 0.5s ease-out ${delay}ms, transform 0.5s ease-out ${delay}ms`,
-  };
+    const style: CSSProperties = {
+      opacity: visible ? 1 : 0,
+      transform: visible ? "translateY(0)" : "translateY(20px)",
+      transition: `opacity 0.5s ease-out ${delay}ms, transform 0.5s ease-out ${delay}ms`,
+    };
 
-  return <div ref={ref} style={style} className={className}>{children}</div>;
-}
+    const setRefs = (node: HTMLDivElement | null) => {
+      (innerRef as React.MutableRefObject<HTMLDivElement | null>).current = node;
+      if (typeof forwardedRef === "function") forwardedRef(node);
+      else if (forwardedRef) forwardedRef.current = node;
+    };
+
+    return <div ref={setRefs} style={style} className={className}>{children}</div>;
+  }
+);
+ScrollReveal.displayName = "ScrollReveal";
 
 /* ───────── TRUST BADGES ───────── */
 const trustBadges = [
