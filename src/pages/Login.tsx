@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Crown, Eye, EyeOff, ArrowRight } from "lucide-react";
 import AccentParticles from "@/components/AccentParticles";
+import { t, useT } from "@/lib/i18n";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -22,6 +23,7 @@ export default function Login() {
   const navigate = useNavigate();
   const cardRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({ x: 0, y: 0 });
+  const l = useT();
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const card = cardRef.current;
@@ -49,7 +51,7 @@ export default function Login() {
       if (error) {
         setError(error.message);
       } else {
-        setSuccess("Password reset link sent! Check your email.");
+        setSuccess(l(t.login.resetSuccess));
       }
       setLoading(false);
       return;
@@ -60,7 +62,7 @@ export default function Login() {
       if (error) {
         setError(error);
       } else {
-        setSuccess("Account created! Check your email to verify, then sign in.");
+        setSuccess(l(t.login.signupSuccess));
         setIsSignup(false);
       }
     } else {
@@ -83,7 +85,6 @@ export default function Login() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] rounded-full blur-[100px] opacity-10" style={{ background: "radial-gradient(circle, hsl(142 71% 45% / 0.12), transparent 70%)" }} />
       </div>
 
-      {/* Subtle particle animation — green accent */}
       <AccentParticles />
 
       <div className="w-full max-w-md relative z-10">
@@ -91,11 +92,7 @@ export default function Login() {
         <div className="text-center mb-10 animate-fade-in">
           <div
             className="rounded-2xl mx-auto mb-5 flex items-center justify-center relative overflow-hidden bg-primary/10 border border-primary/20"
-            style={{
-              width: "72px",
-              height: "72px",
-              boxShadow: "0 0 40px hsl(142 71% 45% / 0.2)",
-            }}
+            style={{ width: "72px", height: "72px", boxShadow: "0 0 40px hsl(142 71% 45% / 0.2)" }}
           >
             <Crown className="w-9 h-9 text-primary relative z-10" />
           </div>
@@ -107,10 +104,10 @@ export default function Login() {
           </p>
           <p className="text-muted-foreground text-sm mt-4">
             {isForgot
-              ? "Enter your email to reset your password"
+              ? l(t.login.forgotSubtitle)
               : isSignup
-              ? "Create your reseller account"
-              : "Sign in to your reseller dashboard"}
+              ? l(t.login.signupSubtitle)
+              : l(t.login.subtitle)}
           </p>
         </div>
 
@@ -126,21 +123,17 @@ export default function Login() {
             transition: tilt.x === 0 && tilt.y === 0 ? "transform 0.4s ease-out" : "transform 0.1s ease-out",
           }}
         >
-          {/* Top accent line */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-primary/40" />
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {isSignup && (
-              <div
-                className="space-y-2 opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]"
-                style={{ animationDelay: "0.15s" }}
-              >
+              <div className="space-y-2 opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]" style={{ animationDelay: "0.15s" }}>
                 <Label htmlFor="name" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Full Name
+                  {l(t.login.fullName)}
                 </Label>
                 <Input
                   id="name"
-                  placeholder="Your name"
+                  placeholder={l(t.login.namePlaceholder)}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
@@ -149,12 +142,9 @@ export default function Login() {
               </div>
             )}
 
-            <div
-              className="space-y-2 opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]"
-              style={{ animationDelay: isSignup ? "0.25s" : "0.15s" }}
-            >
+            <div className="space-y-2 opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]" style={{ animationDelay: isSignup ? "0.25s" : "0.15s" }}>
               <Label htmlFor="email" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                Email Address
+                {l(t.login.emailAddress)}
               </Label>
               <Input
                 id="email"
@@ -168,13 +158,10 @@ export default function Login() {
             </div>
 
             {!isForgot && (
-              <div
-                className="space-y-2 opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]"
-                style={{ animationDelay: isSignup ? "0.35s" : "0.25s" }}
-              >
+              <div className="space-y-2 opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]" style={{ animationDelay: isSignup ? "0.35s" : "0.25s" }}>
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Password
+                    {l(t.login.password)}
                   </Label>
                   {!isSignup && (
                     <button
@@ -182,7 +169,7 @@ export default function Login() {
                       onClick={() => { setIsForgot(true); setError(""); setSuccess(""); }}
                       className="text-xs text-primary/80 hover:text-primary transition-colors duration-200"
                     >
-                      Forgot password?
+                      {l(t.login.forgotPassword)}
                     </button>
                   )}
                 </div>
@@ -219,36 +206,30 @@ export default function Login() {
               </div>
             )}
 
-            <div
-              className="opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]"
-              style={{ animationDelay: isSignup ? "0.45s" : isForgot ? "0.25s" : "0.35s" }}
-            >
+            <div className="opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]" style={{ animationDelay: isSignup ? "0.45s" : isForgot ? "0.25s" : "0.35s" }}>
               <Button type="submit" className="w-full btn-glow font-semibold h-11 gap-2" disabled={loading}>
                 {loading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                    Please wait...
+                    {l(t.login.pleaseWait)}
                   </>
                 ) : (
                   <>
-                    {isForgot ? "Send Reset Link" : isSignup ? "Create Account" : "Sign In"}
+                    {isForgot ? l(t.login.sendResetLink) : isSignup ? l(t.login.createAccount) : l(t.login.signIn)}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
               </Button>
             </div>
 
-            <div
-              className="opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]"
-              style={{ animationDelay: isSignup ? "0.55s" : isForgot ? "0.35s" : "0.45s" }}
-            >
+            <div className="opacity-0 animate-[slideUpFade_0.4s_ease-out_forwards]" style={{ animationDelay: isSignup ? "0.55s" : isForgot ? "0.35s" : "0.45s" }}>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-border/50" />
                 </div>
                 <div className="relative flex justify-center text-xs">
                   <span className="bg-card px-3 text-muted-foreground">
-                    {isForgot ? "or" : isSignup ? "already have an account?" : "new here?"}
+                    {isForgot ? l(t.login.orDividerForgot) : isSignup ? l(t.login.orDividerSignup) : l(t.login.orDividerLogin)}
                   </span>
                 </div>
               </div>
@@ -260,7 +241,7 @@ export default function Login() {
                     onClick={() => { setIsForgot(false); setError(""); setSuccess(""); }}
                     className="text-primary hover:text-primary/80 font-medium transition-colors duration-200"
                   >
-                    Back to Sign In
+                    {l(t.login.backToSignIn)}
                   </button>
                 ) : (
                   <button
@@ -268,7 +249,7 @@ export default function Login() {
                     onClick={() => { setIsSignup(!isSignup); setError(""); setSuccess(""); }}
                     className="text-primary hover:text-primary/80 font-medium transition-colors duration-200"
                   >
-                    {isSignup ? "Sign In Instead" : "Create an Account"}
+                    {isSignup ? l(t.login.signInInstead) : l(t.login.createAnAccount)}
                   </button>
                 )}
               </p>
@@ -276,7 +257,6 @@ export default function Login() {
           </form>
         </div>
 
-        {/* Footer */}
         <p className="text-center text-xs text-muted-foreground/60 mt-8 animate-fade-in" style={{ animationDelay: "0.2s" }}>
           &copy; {new Date().getFullYear()} KKTech. All rights reserved.
         </p>

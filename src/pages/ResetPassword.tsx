@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { KeyRound, Eye, EyeOff, CheckCircle2, ArrowRight, ShieldAlert } from "lucide-react";
+import { t, useT } from "@/lib/i18n";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -15,6 +16,7 @@ export default function ResetPassword() {
   const [success, setSuccess] = useState(false);
   const [isRecovery, setIsRecovery] = useState(false);
   const navigate = useNavigate();
+  const l = useT();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
@@ -36,11 +38,11 @@ export default function ResetPassword() {
     setError("");
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError(l(t.resetPw.minLength));
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError(l(t.resetPw.noMatch));
       return;
     }
 
@@ -70,10 +72,10 @@ export default function ResetPassword() {
           >
             <ShieldAlert className="w-9 h-9 text-destructive" />
           </div>
-          <h1 className="text-2xl font-bold text-foreground font-display">Invalid Reset Link</h1>
-          <p className="text-muted-foreground text-sm">This password reset link is invalid or has expired.</p>
+          <h1 className="text-2xl font-bold text-foreground font-display">{l(t.resetPw.invalidLink)}</h1>
+          <p className="text-muted-foreground text-sm">{l(t.resetPw.invalidLinkDesc)}</p>
           <Button onClick={() => navigate("/login")} className="btn-glass gap-2">
-            Back to Login
+            {l(t.resetPw.backToLogin)}
             <ArrowRight className="w-4 h-4" />
           </Button>
         </div>
@@ -83,34 +85,29 @@ export default function ResetPassword() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      {/* Ambient background */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[150px] opacity-30" style={{ background: "radial-gradient(circle, hsl(43 76% 47% / 0.12), transparent 70%)" }} />
         <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[130px] opacity-20" style={{ background: "radial-gradient(circle, hsl(224 76% 33% / 0.15), transparent 70%)" }} />
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        {/* Branding */}
         <div className="text-center mb-10 animate-fade-in">
           <div
             className="w-[72px] h-[72px] rounded-2xl mx-auto mb-5 flex items-center justify-center relative overflow-hidden"
-            style={{
-              background: "var(--gradient-gold)",
-              boxShadow: "0 0 40px hsl(43 76% 47% / 0.3)",
-            }}
+            style={{ background: "var(--gradient-gold)", boxShadow: "0 0 40px hsl(43 76% 47% / 0.3)" }}
           >
             <KeyRound className="w-9 h-9 text-primary-foreground relative z-10" />
           </div>
-          <h1 className="text-3xl font-bold text-foreground font-display tracking-tight">Set New Password</h1>
-          <p className="text-muted-foreground text-sm mt-3">Enter your new password below</p>
+          <h1 className="text-3xl font-bold text-foreground font-display tracking-tight">{l(t.resetPw.title)}</h1>
+          <p className="text-muted-foreground text-sm mt-3">{l(t.resetPw.subtitle)}</p>
         </div>
 
         {success ? (
           <div className="glass-card p-8 text-center space-y-4 animate-fade-in relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: "linear-gradient(90deg, hsl(var(--success)), hsl(var(--success) / 0.3))" }} />
             <CheckCircle2 className="w-14 h-14 text-success mx-auto" />
-            <p className="text-foreground font-semibold text-lg">Password Updated</p>
-            <p className="text-muted-foreground text-sm">Redirecting to dashboard...</p>
+            <p className="text-foreground font-semibold text-lg">{l(t.resetPw.passwordUpdated)}</p>
+            <p className="text-muted-foreground text-sm">{l(t.resetPw.redirecting)}</p>
           </div>
         ) : (
           <div className="glass-card p-8 animate-fade-in relative overflow-hidden" style={{ animationDelay: "0.1s" }}>
@@ -119,7 +116,7 @@ export default function ResetPassword() {
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  New Password
+                  {l(t.resetPw.newPassword)}
                 </Label>
                 <div className="relative">
                   <Input
@@ -144,7 +141,7 @@ export default function ResetPassword() {
 
               <div className="space-y-2">
                 <Label htmlFor="confirm" className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Confirm Password
+                  {l(t.resetPw.confirmPassword)}
                 </Label>
                 <Input
                   id="confirm"
@@ -168,11 +165,11 @@ export default function ResetPassword() {
                 {loading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                    Updating...
+                    {l(t.resetPw.updating)}
                   </>
                 ) : (
                   <>
-                    Update Password
+                    {l(t.resetPw.updatePassword)}
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

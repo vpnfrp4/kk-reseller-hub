@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { Zap, User, Smartphone, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { t, useT } from "@/lib/i18n";
 
 const MODE_ICONS: Record<string, any> = {
   instant: Zap,
@@ -20,6 +21,14 @@ const MODE_ICONS: Record<string, any> = {
   manual: Clock,
 };
 
+const MODE_LABEL_KEYS: Record<string, keyof typeof t.fulfillment> = {
+  instant: "instant",
+  custom_username: "custom_username",
+  imei: "imei",
+  manual: "manual",
+};
+
+// Keep English-only export for admin pages
 const MODE_LABELS: Record<string, string> = {
   instant: "Instant Delivery",
   custom_username: "Custom Username",
@@ -48,6 +57,8 @@ export default function FulfillmentModeSelector({
   onCustomFieldChange,
   fieldErrors,
 }: FulfillmentModeSelectorProps) {
+  const l = useT();
+
   const { data: customFields = [] } = useQuery({
     queryKey: ["product-custom-fields", productId],
     queryFn: async () => {
@@ -61,21 +72,24 @@ export default function FulfillmentModeSelector({
     enabled: !!productId,
   });
 
-  // Filter fields linked to the selected mode
   const activeFields = customFields.filter((f: any) => f.linked_mode === selectedMode);
 
-  // If only one mode, don't show selector
   if (fulfillmentModes.length <= 1 && activeFields.length === 0) {
     return null;
   }
 
+  const getModeLabel = (mode: string) => {
+    const key = MODE_LABEL_KEYS[mode];
+    if (key) return l(t.fulfillment[key] as any);
+    return mode;
+  };
+
   return (
     <div className="space-y-3">
-      {/* Mode selector - only show if multiple modes */}
       {fulfillmentModes.length > 1 && (
         <div className="space-y-2">
           <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-            Account Type
+            {l(t.fulfillment.accountType)}
           </Label>
           <div className="space-y-1.5">
             {fulfillmentModes.map((mode) => {
@@ -104,7 +118,7 @@ export default function FulfillmentModeSelector({
                   <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground">
-                      {MODE_LABELS[mode] || mode}
+                      {getModeLabel(mode)}
                     </p>
                     <p className="text-[11px] text-muted-foreground">
                       {deliveryTimeConfig[mode] || ""}
@@ -117,7 +131,6 @@ export default function FulfillmentModeSelector({
         </div>
       )}
 
-      {/* Custom fields for selected mode */}
       {activeFields.length > 0 && (
         <div className="space-y-2 animate-fade-in">
           {activeFields.map((field: any) => (
@@ -138,7 +151,7 @@ export default function FulfillmentModeSelector({
                         fieldErrors[field.field_name] && "border-destructive"
                       )}
                     >
-                      <SelectValue placeholder={`${field.field_name} ရွေးပါ`} />
+                      <SelectValue placeholder={`${field.field_name} ${l(t.fulfillment.selectPlaceholder)}`} />
                     </SelectTrigger>
                     <SelectContent className="bg-popover border-border z-50">
                       {(field.options as string[]).map((opt: string) => (
@@ -156,7 +169,7 @@ export default function FulfillmentModeSelector({
                     type={field.field_type === "email" ? "email" : field.field_type === "number" ? "number" : "text"}
                     value={customFieldValues[field.field_name] || ""}
                     onChange={(e) => onCustomFieldChange(field.field_name, e.target.value)}
-                    placeholder={`Enter ${field.field_name.toLowerCase()}`}
+                    placeholder={`${l(t.fulfillment.enterPlaceholder)} ${field.field_name.toLowerCase()}`}
                     minLength={field.min_length || undefined}
                     maxLength={field.max_length || undefined}
                     className={cn(
@@ -169,9 +182,9 @@ export default function FulfillmentModeSelector({
                   )}
                   {(field.min_length || field.max_length) && (
                     <p className="text-[10px] text-muted-foreground">
-                      {field.min_length ? `Min: ${field.min_length} chars` : ""}
+                      {field.min_length ? `${l(t.fulfillment.minLabel)}: ${field.min_length} ${l(t.fulfillment.chars)}` : ""}
                       {field.min_length && field.max_length ? " · " : ""}
-                      {field.max_length ? `Max: ${field.max_length} chars` : ""}
+                      {field.max_length ? `${l(t.fulfillment.maxLabel)}: ${field.max_length} ${l(t.fulfillment.chars)}` : ""}
                     </p>
                   )}
                 </>
