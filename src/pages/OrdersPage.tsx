@@ -116,7 +116,7 @@ export default function OrdersPage() {
       key: "id",
       label: l(t.orders.orderId),
       hideOnMobile: true,
-      render: (row) => <span className="font-mono text-muted-foreground">{row.id.slice(0, 8)}</span>,
+      render: (row) => <span className="font-mono text-muted-foreground text-xs">{row.id.slice(0, 8)}</span>,
     },
     {
       key: "product_name",
@@ -128,7 +128,7 @@ export default function OrdersPage() {
       label: l(t.orders.credentials),
       render: (row) => (
         <div className="flex items-center gap-2">
-          <code className="text-xs font-mono text-muted-foreground bg-primary/5 border border-primary/10 px-2.5 py-1 rounded-md truncate max-w-[200px]">
+          <code className="text-xs font-mono text-primary bg-primary/5 border border-primary/10 px-2.5 py-1 rounded-[var(--radius-btn)] truncate max-w-[200px]">
             {row.credentials}
           </code>
           <button
@@ -136,7 +136,7 @@ export default function OrdersPage() {
             className="text-muted-foreground hover:text-primary transition-colors duration-200"
           >
             {copiedId === row.id ? (
-              <CheckCircle2 className="w-4 h-4 text-success" />
+              <CheckCircle2 className="w-4 h-4 text-primary" />
             ) : (
               <Copy className="w-4 h-4" />
             )}
@@ -154,7 +154,7 @@ export default function OrdersPage() {
       key: "created_at",
       label: l(t.orders.date),
       hideOnMobile: true,
-      render: (row) => <span className="text-muted-foreground">{new Date(row.created_at).toLocaleDateString()}</span>,
+      render: (row) => <span className="text-muted-foreground text-xs">{new Date(row.created_at).toLocaleDateString()}</span>,
     },
     {
       key: "status",
@@ -186,7 +186,7 @@ export default function OrdersPage() {
   ) : undefined;
 
   return (
-    <div className="space-y-section">
+    <div className="space-y-[var(--space-section)]">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
         { label: l(t.nav.orders) },
@@ -195,10 +195,10 @@ export default function OrdersPage() {
       <div className="animate-fade-in">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-h1 text-foreground">
+            <h1 className="text-foreground">
               <MmLabel mm={t.orders.title.mm} en={t.orders.title.en} />
             </h1>
-            <p className="text-caption text-muted-foreground">{l(t.orders.subtitle)}</p>
+            <p className="text-sm text-muted-foreground mt-0.5">{l(t.orders.subtitle)}</p>
           </div>
           <Button onClick={exportCSV} size="sm" className="gap-2 btn-glass">
             <Download className="w-4 h-4 text-primary" />
@@ -208,25 +208,25 @@ export default function OrdersPage() {
       </div>
 
       {/* Filters */}
-      <DataCard className="animate-fade-in" noPadding>
-        <div className="p-card flex flex-wrap gap-default items-end">
+      <div className="glass-card animate-fade-in">
+        <div className="p-[var(--space-default)] flex flex-wrap gap-[var(--space-compact)] items-end">
           <div className="flex-1 min-w-[180px]">
-            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">{l(t.orders.search)}</label>
+            <label className="text-[11px] font-medium text-muted-foreground mb-1.5 block uppercase tracking-wider">{l(t.orders.search)}</label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
                 placeholder={l(t.orders.productName)}
                 value={search}
                 onChange={(e) => { setSearch(e.target.value); setPage(0); }}
-                className="pl-9 h-9"
+                className="pl-9 h-9 bg-muted/20 border-border/40 rounded-[var(--radius-input)]"
               />
             </div>
           </div>
 
           <div className="min-w-[140px]">
-            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">Status</label>
+            <label className="text-[11px] font-medium text-muted-foreground mb-1.5 block uppercase tracking-wider">Status</label>
             <Select value={status} onValueChange={(v) => { setStatus(v); setPage(0); }}>
-              <SelectTrigger className="h-9">
+              <SelectTrigger className="h-9 bg-muted/20 border-border/40 rounded-[var(--radius-input)]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -238,10 +238,10 @@ export default function OrdersPage() {
           </div>
 
           <div className="min-w-[140px]">
-            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">{l(t.orders.from)}</label>
+            <label className="text-[11px] font-medium text-muted-foreground mb-1.5 block uppercase tracking-wider">{l(t.orders.from)}</label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal", !dateFrom && "text-muted-foreground")}>
+                <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal bg-muted/20 border-border/40 rounded-[var(--radius-input)]", !dateFrom && "text-muted-foreground")}>
                   <CalendarIcon className="w-4 h-4 mr-2" />
                   {dateFrom ? format(dateFrom, "PP") : l(t.orders.startDate)}
                 </Button>
@@ -253,10 +253,10 @@ export default function OrdersPage() {
           </div>
 
           <div className="min-w-[140px]">
-            <label className="text-caption font-medium text-muted-foreground mb-1.5 block">{l(t.orders.to)}</label>
+            <label className="text-[11px] font-medium text-muted-foreground mb-1.5 block uppercase tracking-wider">{l(t.orders.to)}</label>
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal", !dateTo && "text-muted-foreground")}>
+                <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal bg-muted/20 border-border/40 rounded-[var(--radius-input)]", !dateTo && "text-muted-foreground")}>
                   <CalendarIcon className="w-4 h-4 mr-2" />
                   {dateTo ? format(dateTo, "PP") : l(t.orders.endDate)}
                 </Button>
@@ -274,17 +274,22 @@ export default function OrdersPage() {
             </Button>
           )}
         </div>
-      </DataCard>
+      </div>
 
       {/* Orders Table */}
-      <DataCard noPadding className="animate-fade-in" footer={paginationFooter}>
+      <div className="glass-card animate-fade-in overflow-hidden">
         <ResponsiveTable
           columns={columns}
           data={orders || []}
           keyExtractor={(row) => row.id}
           emptyMessage={hasFilters ? l(t.orders.noMatch) : l(t.orders.noOrders)}
         />
-      </DataCard>
+        {paginationFooter && (
+          <div className="border-t border-border/40 p-[var(--space-default)]">
+            {paginationFooter}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
