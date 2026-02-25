@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 /**
  * Global realtime listener – shows a sonner toast whenever a new
@@ -11,6 +12,9 @@ import { toast } from "sonner";
 export function useRealtimeNotifications() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const navRef = useRef(navigate);
+  navRef.current = navigate;
 
   useEffect(() => {
     if (!user) return;
@@ -26,9 +30,12 @@ export function useRealtimeNotifications() {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          const n = payload.new as { title?: string; body?: string; type?: string };
+          const n = payload.new as { title?: string; body?: string; type?: string; link?: string | null };
           toast(n.title || "New Notification", {
             description: n.body || undefined,
+            action: n.link
+              ? { label: "View", onClick: () => navRef.current(n.link!) }
+              : undefined,
           });
           queryClient.invalidateQueries({ queryKey: ["notifications"] });
         }
