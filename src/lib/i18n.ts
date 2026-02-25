@@ -134,6 +134,8 @@ export const t = {
     currentBalance: { mm: "လက်ကျန်ငွေ", en: "Current balance" },
     quickTopUp: { mm: "အမြန်ငွေဖြည့်", en: "Quick Top-Up" },
     noRefund: { mm: "အတည်ပြုပြီးနောက် ပြန်မအမ်းပါ။", en: "Refund not available after confirmation." },
+    outOfStockToast: { mm: "လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။", en: "Out of stock. Please wait for restocking." },
+    insufficientBalanceToast: { mm: "လက်ကျန်ငွေ မလုံလောက်ပါ။ ငွေအရင်ဖြည့်ပေးပါရန်။", en: "Insufficient balance. Please top up first." },
     agreeTerms: { mm: "စည်းကမ်းချက်များကို သဘောတူပါသည်။", en: "I agree to the Terms and Conditions." },
   },
 
@@ -174,6 +176,8 @@ export const t = {
     price: { mm: "စျေးနှုန်း", en: "Price" },
     date: { mm: "ရက်စွဲ", en: "Date" },
     noOrders: { mm: "မှာယူမှုမရှိသေးပါ", en: "No orders yet" },
+    noExportData: { mm: "ထုတ်ယူမည့် မှာယူမှုမရှိပါ", en: "No orders to export" },
+    exportSuccess: { mm: "ဒေတာထုတ်ယူမှု အောင်မြင်ပါသည်", en: "Export completed successfully" },
     noMatch: { mm: "စစ်ထုတ်မှုနှင့် ကိုက်ညီမှုမရှိ", en: "No orders match your filters" },
     clear: { mm: "ရှင်းမည်", en: "Clear" },
     from: { mm: "မှ", en: "From" },
