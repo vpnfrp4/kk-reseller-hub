@@ -87,7 +87,7 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
               Wholesale
             </p>
-            <p className="text-xl md:text-2xl font-bold font-mono tabular-nums text-foreground leading-none">
+            <p className="text-xl md:text-2xl font-bold font-mono tabular-nums text-foreground leading-none drop-shadow-[0_0_6px_hsl(var(--primary)/0.4)]">
               {product.wholesale_price.toLocaleString()}
               <span className="text-xs font-normal text-muted-foreground ml-1">MMK</span>
             </p>
