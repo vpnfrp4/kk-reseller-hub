@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -19,6 +20,7 @@ import MmLabel, { MmStatus, MmInline } from "@/components/shared/MmLabel";
 const PAGE_SIZE = 10;
 
 export default function OrdersPage() {
+  const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
@@ -283,6 +285,7 @@ export default function OrdersPage() {
           data={orders || []}
           keyExtractor={(row) => row.id}
           emptyMessage={hasFilters ? l(t.orders.noMatch) : l(t.orders.noOrders)}
+          onRowClick={(row) => navigate(`/dashboard/orders/${row.id}`)}
         />
         {paginationFooter && (
           <div className="border-t border-border/20 p-[var(--space-default)]">
