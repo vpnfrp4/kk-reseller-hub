@@ -187,15 +187,15 @@ export default function ProductsPage() {
 
   return (
     <>
-    <div className="space-y-8">
+    <div className="space-y-[var(--space-section)]">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
         { label: l(t.products.title) },
       ]} />
 
       <div>
-        <h1 className="text-2xl font-bold text-foreground">{l(t.products.title)}</h1>
-        <p className="text-[10px] text-muted-foreground/60">{l(t.products.title) === t.products.title.mm ? t.products.title.en : t.products.title.mm}</p>
+        <h1 className="text-foreground">{l(t.products.title)}</h1>
+        <p className="text-[10px] text-muted-foreground/50 mt-0.5">{l(t.products.title) === t.products.title.mm ? t.products.title.en : t.products.title.mm}</p>
         <p className="text-muted-foreground text-sm mt-1">{l(t.products.subtitle)}</p>
       </div>
 
@@ -211,19 +211,19 @@ export default function ProductsPage() {
 
       {/* Service Catalog Table Header */}
       {!isLoading && filtered.length > 0 && (
-        <div className="hidden sm:grid grid-cols-[1fr_auto] items-center gap-4 px-6 py-2 text-[10px] uppercase tracking-widest font-semibold text-muted-foreground border-b border-border">
+        <div className="hidden sm:grid grid-cols-[1fr_auto] items-center gap-4 px-[var(--space-card)] py-[var(--space-tight)] text-[10px] uppercase tracking-widest font-semibold text-muted-foreground border-b border-border/40">
           <span>Service</span>
           <span className="text-right">Actions</span>
         </div>
       )}
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-[var(--space-compact)]">
         {isLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <ProductCardSkeleton key={i} index={i} />
           ))
         ) : filtered.length === 0 ? (
-          <div className="rounded-xl border border-border bg-card p-12 text-center">
+          <div className="glass-card p-[var(--space-page)] text-center">
             <Package className="mx-auto mb-3 h-8 w-8 text-muted-foreground/30" />
             <p className="font-medium text-foreground text-sm">{l(t.products.noProducts)}</p>
             <p className="mt-1 text-xs text-muted-foreground">{l(t.products.adjustFilter)}</p>
@@ -243,7 +243,7 @@ export default function ProductsPage() {
       </div>
 
       {!isLoading && hasMore && (
-        <div ref={sentinelRef} className="flex justify-center py-6">
+        <div ref={sentinelRef} className="flex justify-center py-[var(--space-card)]">
           <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
         </div>
       )}
