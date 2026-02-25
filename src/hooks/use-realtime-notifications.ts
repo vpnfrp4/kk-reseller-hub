@@ -95,8 +95,21 @@ export function useRealtimeNotifications() {
 
             if (prefs.soundEnabled) playNotificationSound();
 
+            const body = `Your balance is ${balance.toLocaleString()} MMK — below your ${threshold.toLocaleString()} MMK threshold.`;
+
+            // Persist to DB for notification history
+            supabase.from("notifications").insert({
+              user_id: user.id,
+              title: "⚠️ Low Balance Alert",
+              body,
+              type: "warning",
+              link: "/dashboard/wallet",
+            }).then(() => {
+              queryClient.invalidateQueries({ queryKey: ["notifications"] });
+            });
+
             toast.warning("⚠️ Low Balance Alert", {
-              description: `Your balance is ${balance.toLocaleString()} MMK — below your ${threshold.toLocaleString()} MMK threshold.`,
+              description: body,
               action: { label: "Top Up", onClick: () => navRef.current("/dashboard/wallet") },
               duration: 8000,
             });
