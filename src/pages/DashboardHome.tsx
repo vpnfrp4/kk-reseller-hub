@@ -158,17 +158,36 @@ export default function DashboardHome() {
   return (
     <PageContainer>
       {/* WALLET HERO */}
-      <div ref={heroRef} className="wallet-hero p-section animate-fade-in relative" style={{ transform: `translateY(${parallaxY * 0.3}px)`, transition: "transform 0.1s linear", padding: "32px", borderRadius: "var(--radius-modal)" }}>
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-card">
-          <CrossFade isLoading={!profile} skeleton={<div className="space-y-3"><Skeleton className="h-4 w-32 rounded" /><Skeleton className="h-14 w-56 rounded" /><Skeleton className="h-4 w-44 rounded" /></div>}>
+      <div
+        ref={heroRef}
+        className="wallet-hero p-[var(--space-section)] animate-fade-in relative"
+        style={{ transform: `translateY(${parallaxY * 0.3}px)`, transition: "transform 0.1s linear" }}
+      >
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-[var(--space-card)]">
+          <CrossFade
+            isLoading={!profile}
+            skeleton={
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-32 rounded bg-muted/30" />
+                <Skeleton className="h-14 w-56 rounded bg-muted/20" />
+                <Skeleton className="h-4 w-44 rounded bg-muted/20" />
+              </div>
+            }
+          >
             <div>
-              <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground/60 mb-micro">{l(t.dashboard.balance)}</p>
+              <p className="text-[10px] font-medium uppercase tracking-[0.15em] text-muted-foreground/50 mb-[var(--space-micro)]">
+                {l(t.dashboard.balance)}
+              </p>
               <div className="flex items-baseline gap-3">
-                <p className="text-5xl lg:text-6xl font-extrabold font-mono tabular-nums text-foreground tracking-tighter leading-none">{displayBalance.toLocaleString()}</p>
+                <p className="text-5xl lg:text-6xl font-extrabold font-mono tabular-nums text-foreground tracking-tighter leading-none">
+                  {displayBalance.toLocaleString()}
+                </p>
                 <span className="text-sm font-medium text-muted-foreground">MMK</span>
               </div>
-              <p className="text-xs text-muted-foreground/70 mt-compact">
-                {l(t.dashboard.approxPurchases)} <span className="font-semibold text-foreground">{approxPurchases}</span> {l(t.products.qty)}
+              <p className="text-xs text-muted-foreground/60 mt-[var(--space-compact)]">
+                {l(t.dashboard.approxPurchases)}{" "}
+                <span className="font-semibold text-foreground">{approxPurchases}</span>{" "}
+                {l(t.products.qty)}
               </p>
             </div>
           </CrossFade>
@@ -177,22 +196,27 @@ export default function DashboardHome() {
           <div className="hidden md:flex flex-col items-center gap-1 shrink-0">
             {sparklineData && sparklineData.length > 1 ? (
               <>
-                <MiniSparkline data={sparklineData} width={120} height={40} color="hsl(var(--primary-glow))" className="opacity-80" />
-                <span className="text-[9px] font-medium text-muted-foreground/60 uppercase tracking-wider">{l(t.dashboard.spending7d)}</span>
+                <MiniSparkline data={sparklineData} width={120} height={40} color="hsl(var(--primary))" className="opacity-70" />
+                <span className="text-[9px] font-medium text-muted-foreground/50 uppercase tracking-wider">
+                  {l(t.dashboard.spending7d)}
+                </span>
               </>
             ) : (
-              <div className="w-[120px] h-[40px] rounded bg-muted/10" />
+              <div className="w-[120px] h-[40px] rounded-[var(--radius-btn)] bg-muted/10" />
             )}
           </div>
 
           {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-compact shrink-0">
-            <button onClick={() => setTopUpOpen(true)} className="btn-glow px-card py-compact font-semibold text-sm flex items-center justify-center gap-tight">
+          <div className="flex flex-col sm:flex-row gap-[var(--space-compact)] shrink-0">
+            <button
+              onClick={() => setTopUpOpen(true)}
+              className="btn-glow px-[var(--space-card)] py-[var(--space-compact)] font-semibold text-sm flex items-center justify-center gap-[var(--space-tight)]"
+            >
               <Plus className="w-4 h-4" />
               {l(t.dashboard.addFunds)}
             </button>
             <Link to="/dashboard/wallet">
-              <button className="btn-glass px-card py-compact font-semibold text-sm flex items-center justify-center gap-tight w-full">
+              <button className="btn-glass px-[var(--space-card)] py-[var(--space-compact)] font-semibold text-sm flex items-center justify-center gap-[var(--space-tight)] w-full">
                 <Receipt className="w-4 h-4" />
                 {l(t.dashboard.viewTransactions)}
               </button>
@@ -202,10 +226,28 @@ export default function DashboardHome() {
       </div>
 
       {/* QUICK ACTIONS */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-compact animate-fade-in" style={{ animationDelay: "0.08s" }}>
+      <div
+        className="grid grid-cols-2 sm:grid-cols-4 gap-[var(--space-compact)] animate-fade-in"
+        style={{ animationDelay: "0.08s" }}
+      >
         {quickActions.map((action, i) => (
-          <button key={action.label.en} onClick={action.onClick} className={cn("glass-card p-card flex flex-col items-center gap-compact text-center hover-lift group cursor-pointer", "opacity-0 animate-stagger-in")} style={{ animationDelay: `${0.1 + i * 0.05}s` }}>
-            <div className={cn("w-11 h-11 rounded-full flex items-center justify-center transition-colors", action.primary ? "bg-primary/10 text-primary group-hover:bg-primary/20" : "bg-muted/50 text-muted-foreground group-hover:bg-muted")}>
+          <button
+            key={action.label.en}
+            onClick={action.onClick}
+            className={cn(
+              "glass-card p-[var(--space-card)] flex flex-col items-center gap-[var(--space-compact)] text-center hover-lift group cursor-pointer",
+              "opacity-0 animate-stagger-in"
+            )}
+            style={{ animationDelay: `${0.1 + i * 0.05}s` }}
+          >
+            <div
+              className={cn(
+                "w-11 h-11 rounded-full flex items-center justify-center transition-colors",
+                action.primary
+                  ? "bg-primary/10 text-primary group-hover:bg-primary/15"
+                  : "bg-muted/30 text-muted-foreground group-hover:bg-muted/50"
+              )}
+            >
               <action.icon className="w-5 h-5" />
             </div>
             <span className="text-xs font-semibold text-foreground">{l(action.label)}</span>
@@ -214,7 +256,10 @@ export default function DashboardHome() {
       </div>
 
       {/* WALLET HEALTH */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-default animate-fade-in" style={{ animationDelay: "0.15s" }}>
+      <div
+        className="grid grid-cols-1 sm:grid-cols-3 gap-[var(--space-default)] animate-fade-in"
+        style={{ animationDelay: "0.15s" }}
+      >
         <HealthCard label={t.dashboard.spendingThisMonth} value={walletHealth?.spendingThisMonth || 0} icon={TrendingUp} isCurrency />
         <HealthCard label={t.dashboard.topups30d} value={walletHealth?.totalTopups || 0} icon={Wallet} isCurrency />
         <HealthCard label={t.dashboard.avgOrder} value={walletHealth?.avgOrderValue || 0} icon={ShoppingCart} isCurrency />
@@ -222,9 +267,12 @@ export default function DashboardHome() {
 
       {/* LOW BALANCE */}
       {profile && isLowBalance && (
-        <div className="glass-card border-warning/30 bg-warning/[0.04] p-card flex flex-col sm:flex-row sm:items-center justify-between gap-default animate-fade-in" style={{ animationDelay: "0.2s" }}>
-          <div className="flex items-start gap-compact">
-            <div className="w-10 h-10 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
+        <div
+          className="glass-card border-warning/20 bg-warning/[0.03] p-[var(--space-card)] flex flex-col sm:flex-row sm:items-center justify-between gap-[var(--space-default)] animate-fade-in"
+          style={{ animationDelay: "0.2s" }}
+        >
+          <div className="flex items-start gap-[var(--space-compact)]">
+            <div className="w-10 h-10 rounded-full bg-warning/8 flex items-center justify-center shrink-0">
               <AlertTriangle className="w-5 h-5 text-warning" />
             </div>
             <div>
@@ -232,7 +280,10 @@ export default function DashboardHome() {
               <p className="text-xs text-muted-foreground mt-0.5">{l(t.dashboard.lowBalanceMsg)}</p>
             </div>
           </div>
-          <button onClick={() => setTopUpOpen(true)} className="btn-glow px-card py-compact text-sm font-semibold flex items-center gap-tight shrink-0">
+          <button
+            onClick={() => setTopUpOpen(true)}
+            className="btn-glow px-[var(--space-card)] py-[var(--space-compact)] text-sm font-semibold flex items-center gap-[var(--space-tight)] shrink-0"
+          >
             <Zap className="w-4 h-4" />
             {l(t.dashboard.quickTopUp)}
           </button>
@@ -241,36 +292,76 @@ export default function DashboardHome() {
 
       {/* RECENT ACTIVITY */}
       <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.25s" }}>
-        <div className="flex items-center justify-between p-card border-b border-border/50">
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">{l(t.dashboard.recentActivity)}</h3>
-          </div>
-          <div className="flex gap-compact">
-            <Link to="/dashboard/wallet" className="text-xs text-primary hover:underline font-medium">{l(t.dashboard.allTransactions)}</Link>
-            <span className="text-border">&middot;</span>
-            <Link to="/dashboard/orders" className="text-xs text-primary hover:underline font-medium">{l(t.dashboard.allOrders)}</Link>
+        <div className="flex items-center justify-between p-[var(--space-card)] border-b border-border/30">
+          <h3 className="text-sm font-semibold text-foreground">{l(t.dashboard.recentActivity)}</h3>
+          <div className="flex gap-[var(--space-compact)]">
+            <Link to="/dashboard/wallet" className="text-xs text-primary hover:underline font-medium">
+              {l(t.dashboard.allTransactions)}
+            </Link>
+            <span className="text-border/40">|</span>
+            <Link to="/dashboard/orders" className="text-xs text-primary hover:underline font-medium">
+              {l(t.dashboard.allOrders)}
+            </Link>
           </div>
         </div>
 
-        <CrossFade isLoading={txLoading && ordersLoading} skeleton={<div className="p-card space-y-0">{Array.from({ length: 5 }).map((_, i) => (<div key={i} className="flex items-center justify-between py-3 border-b border-border/30 last:border-0"><div className="space-y-1.5"><Skeleton className="h-4 w-40 rounded" /><Skeleton className="h-3 w-24 rounded" /></div><Skeleton className="h-5 w-24 rounded" /></div>))}</div>}>
+        <CrossFade
+          isLoading={txLoading && ordersLoading}
+          skeleton={
+            <div className="p-[var(--space-card)] space-y-0">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between py-3 border-b border-border/20 last:border-0">
+                  <div className="space-y-1.5">
+                    <Skeleton className="h-4 w-40 rounded bg-muted/30" />
+                    <Skeleton className="h-3 w-24 rounded bg-muted/20" />
+                  </div>
+                  <Skeleton className="h-5 w-24 rounded bg-muted/20" />
+                </div>
+              ))}
+            </div>
+          }
+        >
           <div>
             {recentActivity.length === 0 ? (
-              <p className="text-sm text-muted-foreground py-section text-center">{l(t.dashboard.noActivity)}</p>
+              <p className="text-sm text-muted-foreground py-[var(--space-section)] text-center">
+                {l(t.dashboard.noActivity)}
+              </p>
             ) : (
               recentActivity.map((item, i) => (
-                <div key={`${item.type}-${item.id}`} className="flex items-center justify-between px-card py-3 border-b border-border/30 last:border-0 hover:bg-muted/20 transition-colors opacity-0 animate-row-in" style={{ animationDelay: `${i * 0.04}s` }}>
-                  <div className="flex items-center gap-compact min-w-0">
-                    <div className={cn("w-8 h-8 rounded-full flex items-center justify-center shrink-0", item.amount > 0 ? "bg-success/10" : "bg-muted/40")}>
-                      {item.type === "topup" ? <ArrowUpRight className="w-4 h-4 text-success" /> : <ShoppingCart className="w-3.5 h-3.5 text-muted-foreground" />}
+                <div
+                  key={`${item.type}-${item.id}`}
+                  className="flex items-center justify-between px-[var(--space-card)] py-3 border-b border-border/20 last:border-0 hover:bg-muted/10 transition-colors opacity-0 animate-row-in"
+                  style={{ animationDelay: `${i * 0.04}s` }}
+                >
+                  <div className="flex items-center gap-[var(--space-compact)] min-w-0">
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center shrink-0",
+                        item.amount > 0 ? "bg-primary/8" : "bg-muted/30"
+                      )}
+                    >
+                      {item.type === "topup" ? (
+                        <ArrowUpRight className="w-4 h-4 text-primary" />
+                      ) : (
+                        <ShoppingCart className="w-3.5 h-3.5 text-muted-foreground" />
+                      )}
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-foreground truncate">{item.label}</p>
-                      <p className="text-[11px] text-muted-foreground">{format(new Date(item.date), "MMM dd, hh:mm a")}</p>
+                      <p className="text-[11px] text-muted-foreground/60">
+                        {format(new Date(item.date), "MMM dd, hh:mm a")}
+                      </p>
                     </div>
                   </div>
-                  <div className="text-right shrink-0 ml-default">
-                    <p className={cn("text-sm font-mono font-bold tabular-nums", item.amount > 0 ? "text-success" : "text-foreground")}>
-                      {item.amount > 0 ? "+" : "\u2212"}{Math.abs(item.amount).toLocaleString()}
+                  <div className="text-right shrink-0 ml-[var(--space-default)]">
+                    <p
+                      className={cn(
+                        "text-sm font-mono font-bold tabular-nums",
+                        item.amount > 0 ? "text-primary" : "text-foreground"
+                      )}
+                    >
+                      {item.amount > 0 ? "+" : "\u2212"}
+                      {Math.abs(item.amount).toLocaleString()}
                       <span className="text-[10px] font-medium text-muted-foreground ml-1">MMK</span>
                     </p>
                     {item.type === "topup" && <MmStatus status={item.status} />}
@@ -282,22 +373,43 @@ export default function DashboardHome() {
         </CrossFade>
       </div>
 
-      <TopUpDialog userId={profile?.user_id} open={topUpOpen} onOpenChange={setTopUpOpen} hideTrigger onSubmitted={(id) => { setTopUpOpen(false); navigate(`/dashboard/topup-status/${id}`); }} />
+      <TopUpDialog
+        userId={profile?.user_id}
+        open={topUpOpen}
+        onOpenChange={setTopUpOpen}
+        hideTrigger
+        onSubmitted={(id) => {
+          setTopUpOpen(false);
+          navigate(`/dashboard/topup-status/${id}`);
+        }}
+      />
     </PageContainer>
   );
 }
 
 /* Wallet Health Card */
-function HealthCard({ label, value, icon: Icon, isCurrency }: { label: { mm: string; en: string }; value: number; icon: React.ElementType; isCurrency?: boolean }) {
+function HealthCard({
+  label,
+  value,
+  icon: Icon,
+  isCurrency,
+}: {
+  label: { mm: string; en: string };
+  value: number;
+  icon: React.ElementType;
+  isCurrency?: boolean;
+}) {
   const animated = useCountUp(value, 700);
   const l = useT();
   return (
-    <div className="glass-card p-card space-y-compact">
-      <div className="flex items-center gap-compact">
-        <div className="w-8 h-8 rounded-full bg-muted/40 flex items-center justify-center">
+    <div className="stat-card space-y-[var(--space-compact)]">
+      <div className="flex items-center gap-[var(--space-compact)]">
+        <div className="w-8 h-8 rounded-full bg-muted/20 flex items-center justify-center">
           <Icon className="w-4 h-4 text-muted-foreground" />
         </div>
-        <span className="text-[11px] font-medium text-muted-foreground leading-tight">{l(label)}</span>
+        <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider leading-tight">
+          {l(label)}
+        </span>
       </div>
       <p className="text-2xl font-bold font-mono tabular-nums text-foreground tracking-tight">
         {isCurrency ? <Money amount={animated} /> : animated.toLocaleString()}
