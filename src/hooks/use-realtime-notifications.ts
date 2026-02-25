@@ -5,6 +5,29 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
+/** Play a short pleasant notification chime via Web Audio API */
+function playNotificationSound() {
+  try {
+    const ctx = new AudioContext();
+    const now = ctx.currentTime;
+
+    // Two-tone chime: C5 → E5
+    [523.25, 659.25].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.15, now + i * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.12 + 0.3);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + i * 0.12);
+      osc.stop(now + i * 0.12 + 0.3);
+    });
+  } catch {
+    // Audio not available — silently skip
+  }
+}
+
 /**
  * Global realtime listener – shows a sonner toast whenever a new
  * notification row is inserted for the current user.
@@ -31,6 +54,7 @@ export function useRealtimeNotifications() {
         },
         (payload) => {
           const n = payload.new as { title?: string; body?: string; type?: string; link?: string | null };
+          playNotificationSound();
           toast(n.title || "New Notification", {
             description: n.body || undefined,
             action: n.link
