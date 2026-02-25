@@ -163,8 +163,8 @@ export default function ProductDetailPage() {
 
   const handleBuyClick = () => {
     if (!product) return;
-    const isManualMode = productModes.includes("manual") && effectiveMode === "manual";
-    if (!isManualMode && product.stock <= 0) {
+    const isManualType = (product as any).type === "manual";
+    if (!isManualType && product.stock <= 0) {
       toast.error(l(t.detailExtra.outOfStockErr));
       return;
     }
@@ -249,7 +249,7 @@ export default function ProductDetailPage() {
     );
   }
 
-  const isManualProduct = productModes.includes("manual");
+  const isManualProduct = (product as any).type === "manual";
   const isOutOfStock = isManualProduct ? false : product.stock === 0;
   const isLowStock = isManualProduct ? false : product.stock > 0 && product.stock <= 5;
   const hasTiers = pricingTiers.length > 0;
