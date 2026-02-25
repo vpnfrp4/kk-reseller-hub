@@ -14,10 +14,11 @@ import {
 } from "lucide-react";
 import { downloadReceipt } from "@/lib/receipt";
 import { Button } from "@/components/ui/button";
-import { DataCard, Money, ResponsiveTable } from "@/components/shared";
+import { Money, ResponsiveTable } from "@/components/shared";
 import type { Column } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
 import MmLabel, { MmStatus } from "@/components/shared/MmLabel";
+import { cn } from "@/lib/utils";
 
 export default function WalletPage() {
   const { user, profile } = useAuth();
@@ -81,7 +82,7 @@ export default function WalletPage() {
       key: "created_at",
       label: l(t.orders.date),
       hideOnMobile: true,
-      render: (row) => <span className="text-muted-foreground">{new Date(row.created_at).toLocaleDateString()}</span>,
+      render: (row) => <span className="text-xs text-muted-foreground">{new Date(row.created_at).toLocaleDateString()}</span>,
     },
     {
       key: "description",
@@ -92,14 +93,14 @@ export default function WalletPage() {
       key: "method",
       label: l(t.topup.paymentMethods),
       hideOnMobile: true,
-      render: (row) => <span className="text-muted-foreground">{row.method || "—"}</span>,
+      render: (row) => <span className="text-xs text-muted-foreground">{row.method || "—"}</span>,
     },
     {
       key: "amount",
       label: l(t.topup.amount),
       align: "right" as const,
       render: (row) => (
-        <span className={`font-mono font-semibold ${row.type === "topup" ? "text-success" : "text-foreground"}`}>
+        <span className={cn("font-mono font-semibold text-sm", row.type === "topup" ? "text-primary" : "text-foreground")}>
           {row.type === "topup" ? "+" : "-"}
           <Money amount={Math.abs(row.amount)} className="inline" />
         </span>
@@ -131,18 +132,18 @@ export default function WalletPage() {
   ];
 
   return (
-    <div className="space-y-section">
+    <div className="space-y-[var(--space-section)]">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
         { label: l(t.nav.wallet) },
       ]} />
 
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-default animate-fade-in">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-[var(--space-default)] animate-fade-in">
         <div>
-          <h1 className="text-h1 text-foreground">
+          <h1 className="text-foreground">
             <MmLabel mm={t.wallet.title.mm} en={t.wallet.title.en} />
           </h1>
-          <p className="text-caption text-muted-foreground">{l(t.wallet.subtitle)}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{l(t.wallet.subtitle)}</p>
         </div>
         <TopUpDialog
           userId={user?.id}
@@ -151,52 +152,61 @@ export default function WalletPage() {
       </div>
 
       {/* Wallet Hero */}
-      <div className="wallet-hero p-card lg:p-8 animate-fade-in" style={{ animationDelay: "0.05s" }}>
-        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-default">
+      <div className="wallet-hero p-[var(--space-card)] lg:p-[var(--space-section)] animate-fade-in" style={{ animationDelay: "0.05s" }}>
+        <div className="relative z-10 grid grid-cols-1 sm:grid-cols-3 gap-[var(--space-card)]">
+          {/* Balance */}
           <div>
-            <div className="flex items-center gap-tight mb-2">
+            <div className="flex items-center gap-[var(--space-tight)] mb-2">
               <Wallet className="w-5 h-5 text-primary" />
-              <MmLabel mm={t.wallet.availableBalance.mm} en={t.wallet.availableBalance.en} className="text-caption text-muted-foreground" />
+              <MmLabel mm={t.wallet.availableBalance.mm} en={t.wallet.availableBalance.en} className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground" />
             </div>
-            <p className={`text-4xl font-bold font-mono gold-shimmer glow-text transition-all duration-500 ${
-              balanceFlash ? "scale-110 text-success drop-shadow-[0_0_20px_hsl(var(--success)/0.6)]" : ""
-            }`}>
+            <p className={cn(
+              "text-4xl font-bold font-mono tabular-nums text-foreground tracking-tight transition-all duration-500",
+              balanceFlash && "scale-105 text-primary"
+            )}>
               {displayBalance.toLocaleString()}
             </p>
-            <p className="text-caption text-muted-foreground mt-micro">MMK</p>
+            <p className="text-[11px] text-muted-foreground/50 mt-[var(--space-micro)]">MMK</p>
           </div>
 
+          {/* Total Deposited */}
           <div>
-            <div className="flex items-center gap-tight mb-2">
-              <ArrowUpRight className="w-5 h-5 text-success" />
-              <MmLabel mm={t.wallet.totalDeposited.mm} en={t.wallet.totalDeposited.en} className="text-caption text-muted-foreground" />
+            <div className="flex items-center gap-[var(--space-tight)] mb-2">
+              <ArrowUpRight className="w-5 h-5 text-primary" />
+              <MmLabel mm={t.wallet.totalDeposited.mm} en={t.wallet.totalDeposited.en} className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground" />
             </div>
-            <p className="text-3xl font-bold font-mono text-foreground">{totalDeposited.toLocaleString()}</p>
-            <p className="text-caption text-muted-foreground mt-micro">MMK</p>
+            <p className="text-3xl font-bold font-mono tabular-nums text-foreground tracking-tight">
+              {totalDeposited.toLocaleString()}
+            </p>
+            <p className="text-[11px] text-muted-foreground/50 mt-[var(--space-micro)]">MMK</p>
           </div>
 
+          {/* Total Spent */}
           <div>
-            <div className="flex items-center gap-tight mb-2">
+            <div className="flex items-center gap-[var(--space-tight)] mb-2">
               <ArrowDownRight className="w-5 h-5 text-ice" />
-              <MmLabel mm={t.wallet.totalSpent.mm} en={t.wallet.totalSpent.en} className="text-caption text-muted-foreground" />
+              <MmLabel mm={t.wallet.totalSpent.mm} en={t.wallet.totalSpent.en} className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground" />
             </div>
-            <p className="text-3xl font-bold font-mono text-foreground">
+            <p className="text-3xl font-bold font-mono tabular-nums text-foreground tracking-tight">
               {(profile?.total_spent || 0).toLocaleString()}
             </p>
-            <p className="text-caption text-muted-foreground mt-micro">MMK</p>
+            <p className="text-[11px] text-muted-foreground/50 mt-[var(--space-micro)]">MMK</p>
           </div>
         </div>
       </div>
 
       {/* Transaction History */}
-      <DataCard title={l(t.wallet.txHistory)} noPadding className="animate-fade-in">
+      <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        <div className="p-[var(--space-card)] border-b border-border/30">
+          <h3 className="text-sm font-semibold text-foreground">{l(t.wallet.txHistory)}</h3>
+        </div>
         <ResponsiveTable
           columns={txColumns}
           data={transactions || []}
           keyExtractor={(row) => row.id}
           emptyMessage={l(t.wallet.noTx)}
         />
-      </DataCard>
+      </div>
     </div>
   );
 }
