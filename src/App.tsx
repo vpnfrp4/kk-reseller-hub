@@ -30,6 +30,7 @@ import ImeiUnlockPage from "./pages/services/ImeiUnlockPage";
 import VpnKeysPage from "./pages/services/VpnKeysPage";
 import CapcutProPage from "./pages/services/CapcutProPage";
 import NotFound from "./pages/NotFound";
+import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 
 const queryClient = new QueryClient();
 
@@ -61,6 +62,7 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAuth();
+  useRealtimeNotifications();
 
   if (loading) {
     return (
