@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
-import { t } from "@/lib/i18n";
+import { t, useT } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Package, Loader2, ArrowUp } from "lucide-react";
@@ -27,6 +27,7 @@ interface PurchaseResult {
 const PAGE_SIZE = 9;
 
 export default function ProductsPage() {
+  const l = useT();
   const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -186,14 +187,14 @@ export default function ProductsPage() {
     <>
     <div className="space-y-8">
       <Breadcrumb items={[
-        { label: t.nav.dashboard.mm, path: "/dashboard" },
-        { label: t.products.title.mm },
+        { label: l(t.nav.dashboard), path: "/dashboard" },
+        { label: l(t.products.title) },
       ]} />
 
       <div>
-        <h1 className="text-2xl font-bold text-foreground">{t.products.title.mm}</h1>
-        <p className="text-[10px] text-muted-foreground/60">{t.products.title.en}</p>
-        <p className="text-muted-foreground text-sm mt-1">{t.products.subtitle.mm}</p>
+        <h1 className="text-2xl font-bold text-foreground">{l(t.products.title)}</h1>
+        <p className="text-[10px] text-muted-foreground/60">{l(t.products.title) === t.products.title.mm ? t.products.title.en : t.products.title.mm}</p>
+        <p className="text-muted-foreground text-sm mt-1">{l(t.products.subtitle)}</p>
       </div>
 
       <ProductFilters
@@ -222,8 +223,8 @@ export default function ProductsPage() {
         ) : filtered.length === 0 ? (
           <div className="rounded-xl border border-border bg-card p-12 text-center">
             <Package className="mx-auto mb-3 h-8 w-8 text-muted-foreground/30" />
-            <p className="font-medium text-foreground text-sm">{t.products.noProducts.mm}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{t.products.adjustFilter.mm}</p>
+            <p className="font-medium text-foreground text-sm">{l(t.products.noProducts)}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{l(t.products.adjustFilter)}</p>
           </div>
         ) : (
           visibleProducts.map((product: any, i: number) => (
@@ -246,8 +247,8 @@ export default function ProductsPage() {
       )}
 
       {!isLoading && filtered.length > 0 && (
-        <p className="text-center text-xs text-muted-foreground">
-          {t.products.showing.mm} {visibleProducts.length} / {filtered.length}
+         <p className="text-center text-xs text-muted-foreground">
+          {l(t.products.showing)} {visibleProducts.length} / {filtered.length}
         </p>
       )}
 
