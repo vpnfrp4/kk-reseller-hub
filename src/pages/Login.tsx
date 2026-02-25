@@ -62,34 +62,34 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
-      {/* Ambient radial backgrounds — subtle, not glowing */}
+      {/* Ambient radial backgrounds */}
       <div className="fixed inset-0 pointer-events-none">
         <div
-          className="absolute top-[-20%] left-[-15%] w-[550px] h-[550px] rounded-full opacity-100"
-          style={{ background: "radial-gradient(circle, hsl(220 40% 12% / 0.4), transparent 70%)", filter: "blur(100px)" }}
+          className="absolute top-[-20%] left-[-15%] w-[550px] h-[550px] rounded-full"
+          style={{ background: "radial-gradient(circle, hsl(222 47% 16% / 0.35), transparent 70%)", filter: "blur(100px)" }}
         />
         <div
-          className="absolute bottom-[-20%] right-[-15%] w-[500px] h-[500px] rounded-full opacity-100"
-          style={{ background: "radial-gradient(circle, hsl(220 35% 10% / 0.3), transparent 70%)", filter: "blur(100px)" }}
+          className="absolute bottom-[-20%] right-[-15%] w-[500px] h-[500px] rounded-full"
+          style={{ background: "radial-gradient(circle, hsl(142 71% 45% / 0.04), transparent 70%)", filter: "blur(100px)" }}
         />
       </div>
 
-      <div className="w-full max-w-[400px] relative z-10">
-        {/* Branding — professional, no emoji */}
+      <div className="w-full max-w-[420px] relative z-10">
+        {/* Branding */}
         <div className="text-center mb-10 animate-fade-in">
           <div
-            className="rounded-2xl mx-auto mb-5 flex items-center justify-center bg-muted/50 border border-border"
+            className="rounded-2xl mx-auto mb-5 flex items-center justify-center bg-secondary border border-border"
             style={{ width: "64px", height: "64px" }}
           >
             <Shield className="w-7 h-7 text-primary" />
           </div>
-          <h1 className="text-2xl font-semibold text-foreground tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
             KK<span className="text-primary">Tech</span>
           </h1>
-          <p className="text-overline uppercase tracking-[0.2em] text-muted-foreground font-semibold mt-1.5">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground mt-2">
             Reseller Platform
           </p>
-          <p className="text-muted-foreground text-sm mt-4">
+          <p className="text-muted-foreground text-sm font-medium mt-4">
             {isForgot
               ? l(t.login.forgotSubtitle)
               : isSignup
@@ -98,12 +98,12 @@ export default function Login() {
           </p>
         </div>
 
-        {/* Form Card — glass, no neon borders */}
+        {/* Form Card — solid card */}
         <div className="glass-card p-8 animate-fade-in" style={{ animationDelay: "0.08s" }}>
           <form onSubmit={handleSubmit} className="space-y-5">
             {isSignup && (
               <div className="space-y-2 opacity-0 animate-[slideUpFade_0.35s_ease-out_forwards]" style={{ animationDelay: "0.1s" }}>
-                <Label htmlFor="name" className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                <Label htmlFor="name" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                   {l(t.login.fullName)}
                 </Label>
                 <Input
@@ -112,13 +112,13 @@ export default function Login() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="bg-muted/40 border-border/60 focus:border-primary/40 transition-colors h-11"
+                  className="bg-secondary border-border focus:border-primary/50 transition-colors h-12 text-base"
                 />
               </div>
             )}
 
             <div className="space-y-2 opacity-0 animate-[slideUpFade_0.35s_ease-out_forwards]" style={{ animationDelay: isSignup ? "0.18s" : "0.1s" }}>
-              <Label htmlFor="email" className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+              <Label htmlFor="email" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                 {l(t.login.emailAddress)}
               </Label>
               <Input
@@ -128,21 +128,21 @@ export default function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-muted/40 border-border/60 focus:border-primary/40 transition-colors h-11"
+                className="bg-secondary border-border focus:border-primary/50 transition-colors h-12 text-base"
               />
             </div>
 
             {!isForgot && (
               <div className="space-y-2 opacity-0 animate-[slideUpFade_0.35s_ease-out_forwards]" style={{ animationDelay: isSignup ? "0.26s" : "0.18s" }}>
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password" className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                  <Label htmlFor="password" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     {l(t.login.password)}
                   </Label>
                   {!isSignup && (
                     <button
                       type="button"
                       onClick={() => { setIsForgot(true); setError(""); setSuccess(""); }}
-                      className="text-xs text-primary/70 hover:text-primary transition-colors"
+                      className="text-sm text-primary hover:text-primary/80 font-medium transition-colors"
                     >
                       {l(t.login.forgotPassword)}
                     </button>
@@ -157,32 +157,32 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     minLength={6}
-                    className="bg-muted/40 border-border/60 focus:border-primary/40 pr-10 transition-colors h-11"
+                    className="bg-secondary border-border focus:border-primary/50 pr-12 transition-colors h-12 text-base"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors p-1"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
               </div>
             )}
 
             {error && (
-              <div className="bg-destructive/8 border border-destructive/15 rounded-lg px-4 py-2.5">
-                <p className="text-destructive text-sm text-center">{error}</p>
+              <div className="bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
+                <p className="text-destructive text-sm font-medium text-center">{error}</p>
               </div>
             )}
             {success && (
-              <div className="bg-success/8 border border-success/15 rounded-lg px-4 py-2.5">
-                <p className="text-success text-sm text-center">{success}</p>
+              <div className="bg-success/10 border border-success/20 rounded-xl px-4 py-3">
+                <p className="text-success text-sm font-medium text-center">{success}</p>
               </div>
             )}
 
             <div className="opacity-0 animate-[slideUpFade_0.35s_ease-out_forwards]" style={{ animationDelay: isSignup ? "0.34s" : isForgot ? "0.18s" : "0.26s" }}>
-              <Button type="submit" className="w-full btn-glow font-semibold h-11 gap-2 text-sm" disabled={loading}>
+              <Button type="submit" className="w-full btn-glow font-semibold h-12 gap-2 text-base" disabled={loading}>
                 {loading ? (
                   <>
                     <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
@@ -200,10 +200,10 @@ export default function Login() {
             <div className="opacity-0 animate-[slideUpFade_0.35s_ease-out_forwards]" style={{ animationDelay: isSignup ? "0.42s" : isForgot ? "0.26s" : "0.34s" }}>
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border/40" />
+                  <div className="w-full border-t border-border" />
                 </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-[hsl(220_28%_9%)] px-3 text-muted-foreground">
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-card px-4 text-muted-foreground font-medium">
                     {isForgot ? l(t.login.orDividerForgot) : isSignup ? l(t.login.orDividerSignup) : l(t.login.orDividerLogin)}
                   </span>
                 </div>
@@ -214,7 +214,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => { setIsForgot(false); setError(""); setSuccess(""); }}
-                    className="text-primary hover:text-primary/80 font-medium transition-colors"
+                    className="text-primary hover:text-primary/80 font-semibold transition-colors"
                   >
                     {l(t.login.backToSignIn)}
                   </button>
@@ -222,7 +222,7 @@ export default function Login() {
                   <button
                     type="button"
                     onClick={() => { setIsSignup(!isSignup); setError(""); setSuccess(""); }}
-                    className="text-primary hover:text-primary/80 font-medium transition-colors"
+                    className="text-primary hover:text-primary/80 font-semibold transition-colors"
                   >
                     {isSignup ? l(t.login.signInInstead) : l(t.login.createAnAccount)}
                   </button>
@@ -232,7 +232,7 @@ export default function Login() {
           </form>
         </div>
 
-        <p className="text-center text-[11px] text-muted-foreground/50 mt-8 animate-fade-in" style={{ animationDelay: "0.15s" }}>
+        <p className="text-center text-xs text-muted-foreground mt-8 font-medium animate-fade-in" style={{ animationDelay: "0.15s" }}>
           {new Date().getFullYear()} KKTech. All rights reserved.
         </p>
       </div>
