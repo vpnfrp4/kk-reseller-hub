@@ -128,7 +128,9 @@ export default function ProductsPage() {
   };
 
   const handleBuyClick = (product: any) => {
-    if (product.stock <= 0) {
+    const modes: string[] = Array.isArray(product.fulfillment_modes) ? product.fulfillment_modes.map(String) : ["instant"];
+    const isManual = modes.includes("manual");
+    if (!isManual && product.stock <= 0) {
       toast.error("လက်ကျန်မရှိသေးပါ။ ခေတ္တစောင့်ဆိုင်းပေးပါရန်။ (Out of Stock)");
       return;
     }

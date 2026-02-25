@@ -163,7 +163,8 @@ export default function ProductDetailPage() {
 
   const handleBuyClick = () => {
     if (!product) return;
-    if (product.stock <= 0) {
+    const isManualMode = productModes.includes("manual") && effectiveMode === "manual";
+    if (!isManualMode && product.stock <= 0) {
       toast.error(l(t.detailExtra.outOfStockErr));
       return;
     }
@@ -248,8 +249,9 @@ export default function ProductDetailPage() {
     );
   }
 
-  const isOutOfStock = product.stock === 0;
-  const isLowStock = product.stock > 0 && product.stock <= 5;
+  const isManualProduct = productModes.includes("manual");
+  const isOutOfStock = isManualProduct ? false : product.stock === 0;
+  const isLowStock = isManualProduct ? false : product.stock > 0 && product.stock <= 5;
   const hasTiers = pricingTiers.length > 0;
   const lowestTier = hasTiers
     ? [...pricingTiers].sort((a: any, b: any) => a.unit_price - b.unit_price)[0] as any
@@ -287,7 +289,7 @@ export default function ProductDetailPage() {
             )}
           >
             <span className={cn("h-1.5 w-1.5 rounded-full", isOutOfStock ? "bg-destructive" : isLowStock ? "bg-warning" : "bg-primary")} />
-            {isOutOfStock ? l(t.products.outOfStock) : isLowStock ? `${product.stock} ${l(t.products.left)}` : `${product.stock} ${l(t.products.inStock)}`}
+            {isOutOfStock ? l(t.products.outOfStock) : isManualProduct ? l(t.products.inStock) : isLowStock ? `${product.stock} ${l(t.products.left)}` : `${product.stock} ${l(t.products.inStock)}`}
           </div>
         </div>
 
