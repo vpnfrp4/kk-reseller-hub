@@ -4,7 +4,8 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { t, useT } from "@/lib/i18n";
+import { t, useT, type BiLabel } from "@/lib/i18n";
+import { useLang } from "@/contexts/LangContext";
 
 interface ImportantNoticeModalProps {
   open: boolean;
@@ -12,16 +13,31 @@ interface ImportantNoticeModalProps {
   onCancel: () => void;
 }
 
+/** Small bilingual block: primary lang normal, secondary lang tiny */
+function BiLine({ label }: { label: BiLabel }) {
+  const { lang } = useLang();
+  const secondary = label[lang === "mm" ? "en" : "mm"];
+  return (
+    <div>
+      <span>{label[lang]}</span>
+      <span className="block text-[10px] text-muted-foreground/50">{secondary}</span>
+    </div>
+  );
+}
+
 export default function ImportantNoticeModal({ open, onContinue, onCancel }: ImportantNoticeModalProps) {
   const l = useT();
+  const { lang } = useLang();
   const [agreed, setAgreed] = useState(false);
   useEffect(() => { if (open) setAgreed(false); }, [open]);
 
-  const notices = [
-    { mm: t.notice.nonRefundable.mm, en: t.notice.nonRefundable.en },
-    { mm: t.notice.instantProcess.mm, en: t.notice.instantProcess.en },
-    { mm: t.notice.ensureCorrect.mm, en: t.notice.ensureCorrect.en },
+  const notices: BiLabel[] = [
+    t.notice.nonRefundable,
+    t.notice.instantProcess,
+    t.notice.ensureCorrect,
   ];
+
+  const secondaryLang = lang === "mm" ? "en" : "mm";
 
   return (
     <Dialog open={open} onOpenChange={(v) => !v && onCancel()}>
@@ -33,7 +49,7 @@ export default function ImportantNoticeModal({ open, onContinue, onCancel }: Imp
             </div>
             <div>
               <h2 className="text-base font-semibold text-foreground">{l(t.notice.title)}</h2>
-              <p className="text-[10px] text-muted-foreground/60">{l(t.notice.title) === t.notice.title.mm ? t.notice.title.en : t.notice.title.mm}</p>
+              <p className="text-[10px] text-muted-foreground/60">{t.notice.title[secondaryLang]}</p>
             </div>
           </div>
 
@@ -43,10 +59,7 @@ export default function ImportantNoticeModal({ open, onContinue, onCancel }: Imp
               {notices.map((item, i) => (
                 <li key={i} className={cn("flex items-start gap-2.5 text-sm text-foreground", "animate-fade-in")} style={{ animationDelay: `${0.05 + i * 0.05}s` }}>
                   <span className="w-1.5 h-1.5 rounded-full bg-warning/60 mt-1.5 shrink-0" />
-                  <div>
-                    <span>{item.mm}</span>
-                    <span className="block text-[10px] text-muted-foreground/50">{item.en}</span>
-                  </div>
+                  <BiLine label={item} />
                 </li>
               ))}
             </ul>
@@ -56,7 +69,7 @@ export default function ImportantNoticeModal({ open, onContinue, onCancel }: Imp
             <Checkbox checked={agreed} onCheckedChange={(checked) => setAgreed(checked === true)} className="mt-0.5" />
             <div>
               <span className="text-sm text-foreground leading-snug">{l(t.notice.agreeLabel)}</span>
-              <span className="block text-[10px] text-muted-foreground/50">{l(t.notice.agreeLabel) === t.notice.agreeLabel.mm ? t.notice.agreeLabel.en : t.notice.agreeLabel.mm}</span>
+              <span className="block text-[10px] text-muted-foreground/50">{t.notice.agreeLabel[secondaryLang]}</span>
             </div>
           </label>
 
