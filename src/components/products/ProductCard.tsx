@@ -30,12 +30,16 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
 
   return (
     <div
-      className="group relative rounded-xl border border-border bg-card opacity-0 animate-stagger-in transition-colors duration-150 hover:border-primary/30"
+      className={cn(
+        "group relative glass-card opacity-0 animate-stagger-in",
+        "transition-all duration-200",
+        "hover:border-primary/20 hover:shadow-[var(--shadow-elevated)]"
+      )}
       style={{ animationDelay: `${index * 0.03}s` }}
     >
-      <div className="p-5 sm:p-6">
+      <div className="p-[var(--space-card)]">
         {/* Row 1: Service Identity */}
-        <div className="flex items-start justify-between gap-4 mb-4">
+        <div className="flex items-start justify-between gap-4 mb-[var(--space-default)]">
           <div className="min-w-0 flex-1">
             <Link to={`/dashboard/products/${product.id}`}>
               <h3 className="text-sm font-semibold text-foreground leading-tight tracking-tight hover:text-primary transition-colors">
@@ -44,14 +48,14 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
             </Link>
             <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
               <span>{product.duration}</span>
-              <span className="text-border">·</span>
+              <span className="text-border">|</span>
               <span className="uppercase tracking-wider text-[10px] font-medium">{product.category}</span>
             </div>
           </div>
           {/* Status indicator */}
           <div
             className={cn(
-              "shrink-0 flex items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-semibold tracking-wide",
+              "shrink-0 flex items-center gap-1.5 rounded-[var(--radius-btn)] px-2.5 py-1 text-[10px] font-semibold tracking-wide",
               isOutOfStock
                 ? "bg-destructive/8 text-destructive"
                 : isLowStock
@@ -76,7 +80,7 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
         </div>
 
         {/* Row 2: Pricing Data */}
-        <div className="grid grid-cols-3 gap-3 mb-4 rounded-lg border border-border/60 bg-muted/20 p-3">
+        <div className="grid grid-cols-3 gap-3 mb-[var(--space-default)] rounded-[var(--radius-btn)] border border-border/40 bg-muted/15 p-[var(--space-compact)]">
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
               Wholesale
@@ -126,7 +130,7 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
           <div className="flex items-center gap-2 shrink-0">
             <Button
               size="sm"
-              className="h-8 rounded-lg px-4 text-xs font-semibold"
+              className="h-8 rounded-[var(--radius-btn)] px-4 text-xs font-semibold btn-glow"
               onClick={() => onBuyClick(product)}
               disabled={isOutOfStock || isPurchasing}
             >
@@ -143,7 +147,7 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
             </Button>
             <Link
               to={`/dashboard/products/${product.id}`}
-              className="inline-flex items-center gap-1 h-8 px-3 rounded-lg text-xs font-medium text-muted-foreground border border-border bg-card hover:bg-muted/50 hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1 h-8 px-3 rounded-[var(--radius-btn)] text-xs font-medium text-muted-foreground border border-border/40 bg-muted/20 hover:bg-muted/40 hover:text-foreground transition-colors"
             >
               Details
               <ChevronRight className="w-3 h-3" />
