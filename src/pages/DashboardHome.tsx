@@ -50,12 +50,13 @@ export default function DashboardHome() {
         refreshProfile();
         if (!initialized.current) return;
         if (payload.eventType === "UPDATE" && payload.new?.status === "approved" && payload.new?.type === "topup") {
-          const msg = `ငွေဖြည့်ခြင်း ${Number(payload.new.amount).toLocaleString()} MMK အတည်ပြုပြီး`;
+          const msg = l(t.dashboard.topupApprovedToast).replace("{amount}", Number(payload.new.amount).toLocaleString());
           toast.success(msg);
-          notifyEvent("ငွေဖြည့်အတည်ပြုပြီး", msg, "success");
+          notifyEvent(l(t.dashboard.topupApprovedNotif), msg, "success");
         } else if (payload.eventType === "UPDATE" && payload.new?.status === "rejected") {
-          toast.error("ငွေဖြည့်ခြင်း ငြင်းပယ်ခံရသည်။");
-          notifyEvent("ငွေဖြည့်ငြင်းပယ်", "ငွေဖြည့်ခြင်း ငြင်းပယ်ခံရသည်။", "error");
+          const msg = l(t.dashboard.topupRejectedToast);
+          toast.error(msg);
+          notifyEvent(l(t.dashboard.topupRejectedNotif), msg, "error");
         }
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, (payload: any) => {
@@ -63,14 +64,14 @@ export default function DashboardHome() {
         queryClient.invalidateQueries({ queryKey: ["wallet-health"] });
         refreshProfile();
         if (!initialized.current) return;
-        const msg = `မှာယူမှု: ${payload.new?.product_name || "အသစ်"}`;
+        const msg = l(t.dashboard.orderToast).replace("{name}", payload.new?.product_name || l(t.dashboard.orderNewFallback));
         toast.success(msg);
-        notifyEvent("မှာယူမှုပြုလုပ်ပြီး", msg, "success");
+        notifyEvent(l(t.dashboard.orderNotif), msg, "success");
       })
       .subscribe();
     setTimeout(() => { initialized.current = true; }, 2000);
     return () => { supabase.removeChannel(channel); initialized.current = false; };
-  }, [queryClient, refreshProfile]);
+  }, [queryClient, refreshProfile, l]);
 
   // Recent transactions
   const { data: transactions, isLoading: txLoading } = useQuery({
