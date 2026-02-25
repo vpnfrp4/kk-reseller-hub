@@ -20,8 +20,10 @@ interface ProductCardProps {
 
 export default function ProductCard({ product, index, isPurchasing, onBuyClick, pricingTiers = [] }: ProductCardProps) {
   const l = useT();
-  const isOutOfStock = product.stock === 0;
-  const isLowStock = product.stock > 0 && product.stock <= 5;
+  const modes: string[] = Array.isArray(product.fulfillment_modes) ? product.fulfillment_modes.map(String) : ["instant"];
+  const isManual = modes.includes("manual");
+  const isOutOfStock = isManual ? false : product.stock === 0;
+  const isLowStock = isManual ? false : product.stock > 0 && product.stock <= 5;
   const profitPerUnit = product.retail_price - product.wholesale_price;
   const hasTiers = pricingTiers.length > 0;
   const lowestTier = hasTiers ? [...pricingTiers].sort((a, b) => a.unit_price - b.unit_price)[0] : null;
@@ -65,6 +67,8 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
             />
             {isOutOfStock
               ? l(t.products.outOfStock)
+              : isManual
+              ? l(t.products.inStock)
               : isLowStock
               ? `${product.stock} ${l(t.products.left)}`
               : `${product.stock} ${l(t.products.inStock)}`}
