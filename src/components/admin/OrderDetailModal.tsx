@@ -280,11 +280,13 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
                     if (error) throw error;
 
                     // Notify the reseller
+                    const deliveredCreds = credentialsInput.trim() || order.credentials;
                     await supabase.from("notifications").insert({
                       user_id: order.user_id,
-                      title: "Order Delivered",
-                      body: `Your order for ${order.product_name} has been fulfilled and delivered.`,
+                      title: "✅ Order Delivered",
+                      body: `Your order for ${order.product_name} has been fulfilled.${deliveredCreds ? " Check your order for credentials." : ""}`,
                       type: "order",
+                      link: "/orders",
                     });
 
                     toast.success("Order marked as delivered");
