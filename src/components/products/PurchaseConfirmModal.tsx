@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { TrendingDown, AlertTriangle, Wallet } from "lucide-react";
+import { t, useT } from "@/lib/i18n";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -41,6 +42,7 @@ export default function PurchaseConfirmModal({
   userBalance = 0,
   onTopUp,
 }: PurchaseConfirmModalProps) {
+  const l = useT();
   const [quantity, setQuantity] = useState(1);
 
   const maxQty = product ? Math.min(product.stock, 100) : 1;
@@ -93,7 +95,7 @@ export default function PurchaseConfirmModal({
             {/* Quantity Selector */}
             <div className="space-y-compact">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">Quantity</span>
+                <span className="text-sm font-medium text-foreground">{l(t.products.quantity)}</span>
                 <QuantitySelector
                   value={quantity}
                   onChange={setQuantity}
@@ -132,14 +134,14 @@ export default function PurchaseConfirmModal({
               </div>
 
               <p className="text-caption text-muted-foreground text-right">
-                {product.stock} available
+                {product.stock} {l(t.products.available)}
               </p>
             </div>
 
             {/* Tier Pricing Table */}
             {pricingTiers.length > 0 && (
               <div className="rounded-card bg-muted/20 border border-border p-default space-y-tight">
-                <p className="text-caption font-medium text-muted-foreground uppercase tracking-wider">Price Tiers</p>
+                <p className="text-caption font-medium text-muted-foreground uppercase tracking-wider">{l(t.products.priceTiers)}</p>
                 {[...pricingTiers].sort((a, b) => a.min_qty - b.min_qty).map((tier, i) => {
                   const isActive = currentTier && tier.min_qty === currentTier.min_qty;
                   const label = tier.max_qty ? `${tier.min_qty}–${tier.max_qty}` : `${tier.min_qty}+`;
@@ -152,7 +154,7 @@ export default function PurchaseConfirmModal({
                           : "text-muted-foreground"
                       }`}
                     >
-                      <span>{label} accounts</span>
+                      <span>{label} {l(t.products.accounts)}</span>
                       <Money amount={tier.unit_price} compact />
                     </div>
                   );
@@ -164,14 +166,14 @@ export default function PurchaseConfirmModal({
             {nextTier && (
               <p className="flex items-center gap-1.5 text-caption text-primary">
                 <TrendingDown className="w-3 h-3" />
-                Buy {nextTier.min_qty - quantity} more for <Money amount={nextTier.unit_price} compact className="text-primary" />/each
+                {l(t.products.buyMore)} {nextTier.min_qty - quantity} {l(t.products.moreFor)} <Money amount={nextTier.unit_price} compact className="text-primary" />{l(t.products.each)}
               </p>
             )}
 
             {/* Price Breakdown */}
             <div className="space-y-tight">
               <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Unit Price</span>
+                <span>{l(t.products.unitPrice)}</span>
                 <div className="flex items-center gap-tight">
                   {quantity > 1 && totalSavings > 0 && (
                     <Money amount={baseTierPrice} strikethrough muted compact className="text-xs" />
@@ -180,12 +182,12 @@ export default function PurchaseConfirmModal({
                 </div>
               </div>
               <div className="flex justify-between text-sm text-muted-foreground">
-                <span>Quantity</span>
+                <span>{l(t.products.quantity)}</span>
                 <span className="font-mono tabular-nums text-foreground">×{quantity}</span>
               </div>
               {totalSavings > 0 && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Savings</span>
+                  <span className="text-muted-foreground">{l(t.products.savings)}</span>
                   <span className="font-mono tabular-nums text-primary font-medium">-{totalSavings.toLocaleString()} MMK</span>
                 </div>
               )}
@@ -193,7 +195,7 @@ export default function PurchaseConfirmModal({
               <Separator />
 
               <div className="flex justify-between items-baseline pt-micro">
-                <span className="text-sm font-medium text-foreground">Total</span>
+                <span className="text-sm font-medium text-foreground">{l(t.products.total)}</span>
                 <Money amount={totalPrice} className="text-2xl font-bold text-foreground tracking-tight" />
               </div>
             </div>
@@ -207,10 +209,10 @@ export default function PurchaseConfirmModal({
                   </div>
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-foreground">
-                      You need {deficit.toLocaleString()} MMK more to complete this order.
+                      {l(t.products.needMore)} {deficit.toLocaleString()} {l(t.products.moreToComplete)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Current balance: {userBalance.toLocaleString()} MMK
+                      {l(t.products.currentBalance)}: {userBalance.toLocaleString()} MMK
                     </p>
                   </div>
                 </div>
@@ -224,7 +226,7 @@ export default function PurchaseConfirmModal({
                     }}
                   >
                     <Wallet className="w-4 h-4" />
-                    Quick Top-Up {suggestedTopUp.toLocaleString()} MMK
+                    {l(t.products.quickTopUp)} {suggestedTopUp.toLocaleString()} MMK
                   </Button>
                 )}
               </div>
@@ -233,7 +235,7 @@ export default function PurchaseConfirmModal({
             {/* Warning line */}
             <p className="text-caption text-muted-foreground flex items-center gap-1.5">
               <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0" />
-              Refund not available after confirmation.
+              {l(t.products.noRefund)}
             </p>
 
             {/* Terms */}
@@ -244,10 +246,10 @@ export default function PurchaseConfirmModal({
                 className="mt-0.5"
               />
               <span className="text-sm text-muted-foreground">
-                I agree to the{" "}
+                {l(t.products.agreeTerms).split(l({ mm: "စည်းကမ်းချက်များ", en: "Terms and Conditions" }))[0]}
                 <a href="/terms" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
-                  Terms and Conditions
-                </a>.
+                  {l(t.common.termsAndConditions)}
+                </a>
               </span>
             </label>
           </div>
@@ -259,13 +261,13 @@ export default function PurchaseConfirmModal({
             onClick={() => product && onConfirm(product, quantity)}
             className="w-full h-12 rounded-btn bg-primary text-primary-foreground font-semibold hover:brightness-90 transition-all text-base"
           >
-            Confirm Purchase
+            {l(t.products.confirmPurchase)}
           </AlertDialogAction>
           <p className="text-caption text-muted-foreground text-center">
-            This will deduct <Money amount={totalPrice} compact className="text-muted-foreground inline" /> from your wallet.
+            {l(t.products.deductNote)}
           </p>
           <AlertDialogCancel className="w-full border-border rounded-btn" onClick={() => setQuantity(1)}>
-            Cancel
+            {l(t.products.cancel)}
           </AlertDialogCancel>
         </AlertDialogFooter>
       </AlertDialogContent>

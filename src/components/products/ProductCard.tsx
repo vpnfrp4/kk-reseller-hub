@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { t } from "@/lib/i18n";
+import { t, useT } from "@/lib/i18n";
 import { ChevronRight } from "lucide-react";
 
 interface PricingTier {
@@ -19,6 +19,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product, index, isPurchasing, onBuyClick, pricingTiers = [] }: ProductCardProps) {
+  const l = useT();
   const isOutOfStock = product.stock === 0;
   const isLowStock = product.stock > 0 && product.stock <= 5;
   const profitPerUnit = product.retail_price - product.wholesale_price;
@@ -63,10 +64,10 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
               )}
             />
             {isOutOfStock
-              ? t.products.outOfStock.mm
+              ? l(t.products.outOfStock)
               : isLowStock
-              ? `${product.stock} ${t.products.left.mm}`
-              : `${product.stock} ${t.products.inStock.mm}`}
+              ? `${product.stock} ${l(t.products.left)}`
+              : `${product.stock} ${l(t.products.inStock)}`}
           </div>
         </div>
 
@@ -109,11 +110,11 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
           <div className="min-w-0 flex-1">
             {hasTiers && lowestTier && lowestTier.unit_price < product.wholesale_price && (
               <p className="text-[11px] text-muted-foreground">
-                Volume: {t.products.from.mm}{" "}
+                Volume: {l(t.products.from)}{" "}
                 <span className="font-mono font-semibold text-primary">
                   {lowestTier.unit_price.toLocaleString()}
                 </span>{" "}
-                MMK ({lowestTier.min_qty}+ {t.products.qty.mm})
+                MMK ({lowestTier.min_qty}+ {l(t.products.qty)})
               </p>
             )}
           </div>
@@ -128,12 +129,12 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
               {isPurchasing ? (
                 <>
                   <div className="mr-1.5 h-3 w-3 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-                  {t.products.processing.mm}
+                  {l(t.products.processing)}
                 </>
               ) : isOutOfStock ? (
-                t.products.outOfStock.mm
+                l(t.products.outOfStock)
               ) : (
-                t.products.buyNow.mm
+                l(t.products.buyNow)
               )}
             </Button>
             <Link
