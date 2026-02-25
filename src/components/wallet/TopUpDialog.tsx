@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { t } from "@/lib/i18n";
+import { t, useT } from "@/lib/i18n";
 import MmLabel from "@/components/shared/MmLabel";
 
 interface TopUpDialogProps {
@@ -57,13 +57,6 @@ const ACCOUNTS: PaymentAccount[] = [
 const PRESET_AMOUNTS = [10000, 30000, 50000, 100000];
 const MIN_AMOUNT = 5000;
 
-const PROCESS_STEPS = [
-  { icon: CreditCard, mm: "ငွေလွှဲပါ", en: "Transfer funds" },
-  { icon: Camera, mm: "ပြေစာတင်ပါ", en: "Upload screenshot" },
-  { icon: UserCheck, mm: "အတည်ပြုစစ်ဆေး", en: "Admin verification" },
-  { icon: Wallet, mm: "ငွေရောက်ပါပြီ", en: "Wallet credited" },
-];
-
 type SubmissionState = "idle" | "uploading" | "submitted";
 
 export default function TopUpDialog({
@@ -74,6 +67,7 @@ export default function TopUpDialog({
   hideTrigger = false,
   onSubmitted,
 }: TopUpDialogProps) {
+  const l = useT();
   const queryClient = useQueryClient();
   const [topupAmount, setTopupAmount] = useState("");
   const [selectedAccount, setSelectedAccount] = useState<"kpay" | "wavepay">("kpay");
@@ -91,6 +85,13 @@ export default function TopUpDialog({
     ? (open: boolean) => controlledOnOpenChange?.(open)
     : setInternalOpen;
 
+  const PROCESS_STEPS = [
+    { icon: CreditCard, label: t.topup.transferFunds },
+    { icon: Camera, label: t.topup.uploadScreenshot },
+    { icon: UserCheck, label: t.topup.adminVerify },
+    { icon: Wallet, label: t.topup.walletCredited },
+  ];
+
   useEffect(() => {
     if (dialogOpen && defaultAmount && defaultAmount > 0) {
       setTopupAmount(defaultAmount.toString());
@@ -103,9 +104,9 @@ export default function TopUpDialog({
   const handleCopy = useCallback((phone: string, provider: string) => {
     navigator.clipboard.writeText(phone);
     setCopiedId(phone);
-    toast({ title: "ကူးပြီး!", description: `${provider} နံပါတ် ကူးပြီးပါပြီ` });
+    toast({ title: l(t.topupExtra.copiedToast), description: `${provider} ${l(t.topupExtra.copiedDesc)}` });
     setTimeout(() => setCopiedId(null), 2000);
-  }, []);
+  }, [l]);
 
   const handleFileSelect = useCallback((file: File | null) => {
     if (!file) return;
@@ -163,7 +164,7 @@ export default function TopUpDialog({
       }
     } catch (err) {
       console.error("Top-up error:", err);
-      toast({ title: "အမှား", description: "ငွေဖြည့်တင်သွင်းမှု မအောင်မြင်ပါ", variant: "destructive" });
+      toast({ title: l(t.topupExtra.errorTitle), description: l(t.topupExtra.errorDesc), variant: "destructive" });
       setSubmissionState("idle");
     }
   };
@@ -183,7 +184,7 @@ export default function TopUpDialog({
         <DialogTrigger asChild>
           <Button className="btn-glow gap-2">
             <Plus className="w-4 h-4" />
-            {t.wallet.topUp.mm}
+            {l(t.wallet.topUp)}
           </Button>
         </DialogTrigger>
       )}
@@ -197,7 +198,7 @@ export default function TopUpDialog({
               </div>
               <MmLabel mm={t.topup.title.mm} en={t.topup.title.en} />
             </DialogTitle>
-            <p className="text-sm text-muted-foreground mt-1">{t.topup.subtitle.mm}</p>
+            <p className="text-sm text-muted-foreground mt-1">{l(t.topup.subtitle)}</p>
           </DialogHeader>
         </div>
 
@@ -207,15 +208,15 @@ export default function TopUpDialog({
               <div className="w-14 h-14 rounded-full bg-success/10 flex items-center justify-center mx-auto" style={{ boxShadow: "0 0 30px hsl(var(--success) / 0.15)" }}>
                 <CheckCircle2 className="w-7 h-7 text-success" />
               </div>
-              <h3 className="text-lg font-semibold text-foreground">{t.topup.submitted.mm}</h3>
+              <h3 className="text-lg font-semibold text-foreground">{l(t.topup.submitted)}</h3>
               <p className="text-sm text-muted-foreground">{parsedAmount.toLocaleString()} MMK</p>
             </div>
 
             <div className="space-y-0">
               {[
-                { label: t.topup.requestSubmitted.mm, done: true },
-                { label: t.topup.underReview.mm, active: true },
-                { label: t.topup.walletCreditedStep.mm, done: false },
+                { label: t.topup.requestSubmitted, done: true },
+                { label: t.topup.underReview, active: true },
+                { label: t.topup.walletCreditedStep, done: false },
               ].map((step, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <div className="flex flex-col items-center">
@@ -233,10 +234,10 @@ export default function TopUpDialog({
                   </div>
                   <div className="pt-1">
                     <p className={cn("text-sm font-medium", step.done ? "text-foreground" : step.active ? "text-primary" : "text-muted-foreground")}>
-                      {step.label}
+                      {l(step.label)}
                     </p>
                     {step.active && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{t.topup.reviewTime.mm}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{l(t.topup.reviewTime)}</p>
                     )}
                   </div>
                 </div>
@@ -247,7 +248,7 @@ export default function TopUpDialog({
               className="w-full h-12 rounded-[var(--radius-btn)] btn-glow"
               onClick={() => resetOnClose(false)}
             >
-              {t.topup.done.mm}
+              {l(t.topup.done)}
             </Button>
           </div>
         ) : (
@@ -255,13 +256,12 @@ export default function TopUpDialog({
             {/* ── AMOUNT ── */}
             <div className="space-y-3">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                {t.topup.amount.mm}
-                <span className="text-[10px] text-muted-foreground/60 normal-case ml-1">({t.topup.amount.en})</span>
+                {l(t.topup.amount)}
               </Label>
               <div className="relative">
                 <Input
                   type="number"
-                  placeholder="ပမာဏထည့်ပါ"
+                  placeholder={l(t.topupExtra.enterAmount)}
                   value={topupAmount}
                   onChange={(e) => setTopupAmount(e.target.value)}
                   className="bg-muted/20 border-border/50 font-mono text-lg h-12 rounded-[var(--radius-input)] focus:border-primary/50 focus:ring-primary/20 pr-14"
@@ -274,7 +274,7 @@ export default function TopUpDialog({
               {isAmountTooLow && (
                 <p className="text-xs text-warning flex items-center gap-1.5">
                   <AlertTriangle className="w-3 h-3" />
-                  {t.topup.minAmount.mm} {MIN_AMOUNT.toLocaleString()} MMK
+                  {l(t.topup.minAmount)} {MIN_AMOUNT.toLocaleString()} MMK
                 </p>
               )}
 
@@ -295,13 +295,13 @@ export default function TopUpDialog({
                   </button>
                 ))}
               </div>
-              <p className="text-xs text-muted-foreground/60">ဒိုင်အများစုသည် 50,000 MMK ဖြည့်ကြပါသည်</p>
+              <p className="text-xs text-muted-foreground/60">{l(t.topupExtra.mostResellers)}</p>
             </div>
 
             {/* ── PAYMENT METHODS ── */}
             <div className="space-y-3">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                {t.topup.paymentMethods.mm}
+                {l(t.topup.paymentMethods)}
               </Label>
               <div className="space-y-3">
                 {ACCOUNTS.map((account) => {
@@ -332,7 +332,7 @@ export default function TopUpDialog({
                             {isSelected && (
                               <div className="flex items-center gap-1 text-primary">
                                 <BadgeCheck className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-medium">{t.topup.verified.mm}</span>
+                                <span className="text-[10px] font-medium">{l(t.topup.verified)}</span>
                               </div>
                             )}
                           </div>
@@ -389,7 +389,7 @@ export default function TopUpDialog({
                     <div className="w-8 h-8 rounded-full bg-muted/30 flex items-center justify-center mx-auto">
                       <step.icon className="w-3.5 h-3.5 text-muted-foreground" />
                     </div>
-                    <p className="text-[10px] font-medium text-foreground leading-tight">{step.mm}</p>
+                    <p className="text-[10px] font-medium text-foreground leading-tight">{l(step.label)}</p>
                   </div>
                 ))}
               </div>
@@ -399,22 +399,22 @@ export default function TopUpDialog({
             <div className="rounded-[var(--radius-card)] border border-border/40 bg-muted/10 p-4 space-y-2">
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <CheckCircle2 className="w-4 h-4 text-success flex-shrink-0" />
-                <span>တရားဝင် အတည်ပြုပြီးအကောင့်</span>
+                <span>{l(t.topupExtra.verifiedAccount)}</span>
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
                 <Shield className="w-4 h-4 text-success flex-shrink-0" />
-                <span>လုံခြုံရေးအတွက် ကိုယ်တိုင်စစ်ဆေးခြင်း</span>
+                <span>{l(t.topupExtra.manualVerify)}</span>
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground/70 pt-1.5 border-t border-border/30">
                 <AlertTriangle className="w-4 h-4 text-warning/70 flex-shrink-0" />
-                <span>အခြားနံပါတ်သို့ မလွှဲပါနှင့်</span>
+                <span>{l(t.topupExtra.doNotTransfer)}</span>
               </div>
             </div>
 
             {/* ── UPLOAD ── */}
             <div className="space-y-3">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                {t.topup.uploadProof.mm}
+                {l(t.topup.uploadProof)}
               </Label>
               {screenshotPreview ? (
                 <div className="relative rounded-[var(--radius-card)] border border-border/30 bg-muted/10 overflow-hidden group">
@@ -434,7 +434,7 @@ export default function TopUpDialog({
                   </div>
                   <div className="px-4 py-2.5 border-t border-border/20 flex items-center justify-between">
                     <span className="text-xs text-muted-foreground truncate max-w-[200px]">{screenshot?.name}</span>
-                    <span className="text-[10px] text-success font-medium">အဆင်သင့်</span>
+                    <span className="text-[10px] text-success font-medium">{l(t.topupExtra.ready)}</span>
                   </div>
                 </div>
               ) : (
@@ -460,9 +460,9 @@ export default function TopUpDialog({
                   </div>
                   <div className="text-center">
                     <span className="text-sm font-medium text-muted-foreground">
-                      {isDragging ? "ဖိုင်ချပါ" : t.topup.dragDrop.mm}
+                      {isDragging ? l(t.topupExtra.dropFile) : l(t.topup.dragDrop)}
                     </span>
-                    <p className="text-xs text-muted-foreground/60 mt-1">PNG, JPG 5MB အထိ</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">{l(t.topupExtra.maxFileSize)}</p>
                   </div>
                   <input
                     ref={fileInputRef}
@@ -485,13 +485,13 @@ export default function TopUpDialog({
                 {submissionState === "uploading" ? (
                   <span className="flex items-center gap-2">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    ဆောင်ရွက်နေသည်...
+                    {l(t.topupExtra.submitting)}
                   </span>
                 ) : (
-                  t.topup.submit.mm
+                  l(t.topup.submit)
                 )}
               </Button>
-              <p className="text-xs text-muted-foreground/60 text-center">ငွေဖြည့်တင်သွင်းမှုများကို လုံခြုံရေးအတွက် ကိုယ်တိုင်စစ်ဆေးပါသည်</p>
+              <p className="text-xs text-muted-foreground/60 text-center">{l(t.topupExtra.securityNote)}</p>
             </div>
           </form>
         )}
