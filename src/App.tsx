@@ -30,6 +30,7 @@ import ImeiCheckPage from "./pages/ImeiCheckPage";
 import ImeiUnlockPage from "./pages/services/ImeiUnlockPage";
 import VpnKeysPage from "./pages/services/VpnKeysPage";
 import CapcutProPage from "./pages/services/CapcutProPage";
+import InstallPage from "./pages/InstallPage";
 import NotFound from "./pages/NotFound";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 
@@ -79,6 +80,7 @@ function AppRoutes() {
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/terms" element={<TermsPage />} />
+      <Route path="/install" element={<InstallPage />} />
       <Route path="/tools/imei-check" element={<ImeiCheckPage />} />
       <Route path="/services/imei-unlock" element={<ImeiUnlockPage />} />
       <Route path="/services/vpn-keys" element={<VpnKeysPage />} />
