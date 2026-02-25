@@ -40,6 +40,10 @@ export function useRealtimeNotifications() {
   const navRef = useRef(navigate);
   navRef.current = navigate;
 
+  // Track whether we already showed a low-balance alert this session
+  // to avoid spamming on every profile update
+  const lowBalanceShownRef = useRef<number | null>(null);
+
   useEffect(() => {
     if (!user) return;
 
@@ -55,7 +59,8 @@ export function useRealtimeNotifications() {
         },
         (payload) => {
           const n = payload.new as { title?: string; body?: string; type?: string; link?: string | null };
-          if (getNotificationPrefs().soundEnabled) {
+          const prefs = getNotificationPrefs();
+          if (prefs.soundEnabled) {
             playNotificationSound();
           }
           toast(n.title || "New Notification", {
@@ -65,6 +70,40 @@ export function useRealtimeNotifications() {
               : undefined,
           });
           queryClient.invalidateQueries({ queryKey: ["notifications"] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "profiles",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const profile = payload.new as { balance?: number };
+          const prefs = getNotificationPrefs();
+
+          if (!prefs.lowBalance || profile.balance == null) return;
+
+          const threshold = prefs.lowBalanceThreshold || 5000;
+          const balance = Number(profile.balance);
+
+          // Only alert once per threshold crossing (not on every update)
+          if (balance < threshold && lowBalanceShownRef.current !== threshold) {
+            lowBalanceShownRef.current = threshold;
+
+            if (prefs.soundEnabled) playNotificationSound();
+
+            toast.warning("⚠️ Low Balance Alert", {
+              description: `Your balance is ${balance.toLocaleString()} MMK — below your ${threshold.toLocaleString()} MMK threshold.`,
+              action: { label: "Top Up", onClick: () => navRef.current("/dashboard/wallet") },
+              duration: 8000,
+            });
+          } else if (balance >= threshold) {
+            // Reset so it can fire again next time balance drops
+            lowBalanceShownRef.current = null;
+          }
         }
       )
       .subscribe();
