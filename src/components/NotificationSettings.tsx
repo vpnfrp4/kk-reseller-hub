@@ -13,9 +13,11 @@ import {
   playSound,
   type NotificationPrefs,
 } from "@/lib/notifications";
+import { t, useT } from "@/lib/i18n";
 
 export default function NotificationSettings() {
   const [prefs, setPrefs] = useState<NotificationPrefs>(getNotificationPrefs);
+  const l = useT();
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -55,8 +57,8 @@ export default function NotificationSettings() {
       <PopoverContent className="w-64 bg-card border-border z-50" align="end">
         <div className="space-y-4">
           <div>
-            <h4 className="text-sm font-semibold text-foreground mb-1">Notifications</h4>
-            <p className="text-xs text-muted-foreground">Manage alert preferences</p>
+            <h4 className="text-sm font-semibold text-foreground mb-1">{l(t.notifSettings.title)}</h4>
+            <p className="text-xs text-muted-foreground">{l(t.notifSettings.subtitle)}</p>
           </div>
 
           <div className="space-y-3">
@@ -67,7 +69,7 @@ export default function NotificationSettings() {
                 ) : (
                   <VolumeX className="w-4 h-4 text-muted-foreground" />
                 )}
-                <span className="text-sm text-foreground">Sound effects</span>
+                <span className="text-sm text-foreground">{l(t.notifSettings.soundEffects)}</span>
               </div>
               <Switch
                 checked={prefs.soundEnabled}
@@ -82,7 +84,7 @@ export default function NotificationSettings() {
                 ) : (
                   <BellOff className="w-4 h-4 text-muted-foreground" />
                 )}
-                <span className="text-sm text-foreground">Browser alerts</span>
+                <span className="text-sm text-foreground">{l(t.notifSettings.browserAlerts)}</span>
               </div>
               <Switch
                 checked={prefs.browserNotificationsEnabled}
@@ -92,10 +94,10 @@ export default function NotificationSettings() {
           </div>
 
           {!("Notification" in window) && (
-            <p className="text-[10px] text-muted-foreground">Browser notifications not supported</p>
+            <p className="text-[10px] text-muted-foreground">{l(t.notifSettings.notSupported)}</p>
           )}
           {"Notification" in window && Notification.permission === "denied" && prefs.browserNotificationsEnabled && (
-            <p className="text-[10px] text-destructive">Notifications blocked by browser. Enable in browser settings.</p>
+            <p className="text-[10px] text-destructive">{l(t.notifSettings.blockedByBrowser)}</p>
           )}
         </div>
       </PopoverContent>

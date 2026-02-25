@@ -349,6 +349,71 @@ export const t = {
     securityNote: { mm: "ငွေဖြည့်တင်သွင်းမှုများကို လုံခြုံရေးအတွက် ကိုယ်တိုင်စစ်ဆေးပါသည်", en: "Top-ups are manually verified for security" },
   },
 
+  // Login
+  login: {
+    subtitle: { mm: "သင့်ဒိုင်ဒက်ရှ်ဘုတ်သို့ ဝင်ပါ", en: "Sign in to your reseller dashboard" },
+    signupSubtitle: { mm: "ဒိုင်အကောင့်ဖွင့်ပါ", en: "Create your reseller account" },
+    forgotSubtitle: { mm: "စကားဝှက်ပြန်ယူရန် အီးမေးလ်ထည့်ပါ", en: "Enter your email to reset your password" },
+    fullName: { mm: "အမည်အပြည့်အစုံ", en: "Full Name" },
+    namePlaceholder: { mm: "သင့်အမည်", en: "Your name" },
+    emailAddress: { mm: "အီးမေးလ်လိပ်စာ", en: "Email Address" },
+    password: { mm: "စကားဝှက်", en: "Password" },
+    forgotPassword: { mm: "စကားဝှက်မေ့သလား?", en: "Forgot password?" },
+    signIn: { mm: "ဝင်မည်", en: "Sign In" },
+    createAccount: { mm: "အကောင့်ဖွင့်မည်", en: "Create Account" },
+    sendResetLink: { mm: "ပြန်ယူလင့်ပို့မည်", en: "Send Reset Link" },
+    pleaseWait: { mm: "ခေတ္တစောင့်ပါ...", en: "Please wait..." },
+    signInInstead: { mm: "ဝင်မည်", en: "Sign In Instead" },
+    createAnAccount: { mm: "အကောင့်ဖွင့်မည်", en: "Create an Account" },
+    backToSignIn: { mm: "ဝင်ရန်ပြန်သွားမည်", en: "Back to Sign In" },
+    orDividerForgot: { mm: "သို့မဟုတ်", en: "or" },
+    orDividerSignup: { mm: "အကောင့်ရှိပြီးသားလား?", en: "already have an account?" },
+    orDividerLogin: { mm: "အသစ်လာသလား?", en: "new here?" },
+    resetSuccess: { mm: "စကားဝှက်ပြန်ယူလင့် ပို့ပြီးပါပြီ! အီးမေးလ်စစ်ပါ။", en: "Password reset link sent! Check your email." },
+    signupSuccess: { mm: "အကောင့်ဖွင့်ပြီးပါပြီ! အီးမေးလ်အတည်ပြုပြီး ဝင်ပါ။", en: "Account created! Check your email to verify, then sign in." },
+  },
+
+  // Reset Password
+  resetPw: {
+    title: { mm: "စကားဝှက်အသစ်သတ်မှတ်ပါ", en: "Set New Password" },
+    subtitle: { mm: "စကားဝှက်အသစ်ထည့်ပါ", en: "Enter your new password below" },
+    newPassword: { mm: "စကားဝှက်အသစ်", en: "New Password" },
+    confirmPassword: { mm: "စကားဝှက်အတည်ပြု", en: "Confirm Password" },
+    updatePassword: { mm: "စကားဝှက်ပြောင်းမည်", en: "Update Password" },
+    updating: { mm: "ပြောင်းနေသည်...", en: "Updating..." },
+    passwordUpdated: { mm: "စကားဝှက်ပြောင်းပြီးပါပြီ", en: "Password Updated" },
+    redirecting: { mm: "ဒက်ရှ်ဘုတ်သို့ ပြောင်းနေသည်...", en: "Redirecting to dashboard..." },
+    invalidLink: { mm: "လင့်မမှန်ကန်ပါ", en: "Invalid Reset Link" },
+    invalidLinkDesc: { mm: "ဤစကားဝှက်ပြန်ယူလင့်သည် မမှန်ကန် သို့မဟုတ် သက်တမ်းကုန်ပါပြီ။", en: "This password reset link is invalid or has expired." },
+    backToLogin: { mm: "ဝင်ရန်ပြန်သွားမည်", en: "Back to Login" },
+    minLength: { mm: "စကားဝှက်သည် အနည်းဆုံး ၆ လုံးရှိရမည်", en: "Password must be at least 6 characters" },
+    noMatch: { mm: "စကားဝှက်နှစ်ခု မတူညီပါ", en: "Passwords do not match" },
+  },
+
+  // Fulfillment Mode Selector
+  fulfillment: {
+    accountType: { mm: "အကောင့်အမျိုးအစား", en: "Account Type" },
+    instant: { mm: "ချက်ချင်းပေးပို့", en: "Instant Delivery" },
+    custom_username: { mm: "အမည်စိတ်ကြိုက်", en: "Custom Username" },
+    imei: { mm: "IMEI လိုအပ်သည်", en: "IMEI Required" },
+    manual: { mm: "ကိုယ်တိုင်ဆောင်ရွက်", en: "Manual Processing" },
+    selectPlaceholder: { mm: "ရွေးပါ", en: "Select" },
+    enterPlaceholder: { mm: "ထည့်ပါ", en: "Enter" },
+    minLabel: { mm: "အနည်းဆုံး", en: "Min" },
+    maxLabel: { mm: "အများဆုံး", en: "Max" },
+    chars: { mm: "လုံး", en: "chars" },
+  },
+
+  // Notification Settings
+  notifSettings: {
+    title: { mm: "အသိပေးချက်များ", en: "Notifications" },
+    subtitle: { mm: "သတိပေးချက်ဆက်တင်စီမံရန်", en: "Manage alert preferences" },
+    soundEffects: { mm: "အသံအကျိုးသက်ရောက်မှု", en: "Sound effects" },
+    browserAlerts: { mm: "ဘရောက်ဇာ သတိပေးချက်", en: "Browser alerts" },
+    notSupported: { mm: "ဘရောက်ဇာ အသိပေးချက် မပံ့ပိုးပါ", en: "Browser notifications not supported" },
+    blockedByBrowser: { mm: "ဘရောက်ဇာတွင် ပိတ်ထားသည်။ ဘရောက်ဇာဆက်တင်တွင် ဖွင့်ပါ။", en: "Notifications blocked by browser. Enable in browser settings." },
+  },
+
   // Common
   common: {
     mmk: "MMK",
