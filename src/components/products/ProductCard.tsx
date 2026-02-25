@@ -31,8 +31,8 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
     <div
       className={cn(
         "group relative glass-card opacity-0 animate-stagger-in",
-        "transition-all duration-300",
-        "hover:border-primary/40 hover:shadow-[var(--shadow-elevated)]"
+        "transition-all duration-300 ease-out",
+        "hover:border-primary/40 hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 hover:scale-[1.005]"
       )}
       style={{ animationDelay: `${index * 0.03}s` }}
     >
