@@ -86,8 +86,8 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[150px] opacity-30" style={{ background: "radial-gradient(circle, hsl(43 76% 47% / 0.12), transparent 70%)" }} />
-        <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[130px] opacity-20" style={{ background: "radial-gradient(circle, hsl(224 76% 33% / 0.15), transparent 70%)" }} />
+        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] rounded-full blur-[150px] opacity-30" style={{ background: "radial-gradient(circle, var(--ambient-blob-1), transparent 70%)" }} />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[500px] h-[500px] rounded-full blur-[130px] opacity-20" style={{ background: "radial-gradient(circle, var(--ambient-blob-2), transparent 70%)" }} />
       </div>
 
       <div className="w-full max-w-md relative z-10">
