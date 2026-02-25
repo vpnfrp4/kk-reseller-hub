@@ -485,26 +485,29 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ═══════════ FAQ (visually hidden, SEO indexed) ═══════════ */}
-        <section id="faq" className="sr-only" aria-hidden="false">
+        {/* ═══════════ FAQ ═══════════ */}
+        <section id="faq" className="py-20 sm:py-28">
           <div className="mx-auto max-w-3xl px-4 sm:px-6">
-            <h2 className="mb-8 text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              Frequently Asked Questions
-            </h2>
-            <Accordion type="single" collapsible className="space-y-2">
+            <ScrollReveal>
+              <h2 className="mb-10 text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                Frequently Asked Questions
+              </h2>
+            </ScrollReveal>
+            <Accordion type="single" collapsible className="space-y-3">
               {faqs.map((f, i) => (
-                <AccordionItem
-                  key={i}
-                  value={`faq-${i}`}
-                  className="rounded-card border border-border bg-card px-5 shadow-luxury"
-                >
-                  <AccordionTrigger className="text-left text-sm font-semibold text-foreground hover:no-underline">
-                    {f.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
-                    {f.a}
-                  </AccordionContent>
-                </AccordionItem>
+                <ScrollReveal key={i}>
+                  <AccordionItem
+                    value={`faq-${i}`}
+                    className="rounded-card border border-border/40 bg-card/60 backdrop-blur-sm px-5 shadow-luxury"
+                  >
+                    <AccordionTrigger className="text-left text-sm font-semibold text-foreground hover:no-underline">
+                      {f.q}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-sm leading-relaxed text-muted-foreground">
+                      {f.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                </ScrollReveal>
               ))}
             </Accordion>
           </div>
