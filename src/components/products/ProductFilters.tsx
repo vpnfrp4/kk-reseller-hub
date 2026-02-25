@@ -1,6 +1,6 @@
 import { Search, X, ArrowUpDown, RotateCcw } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { t } from "@/lib/i18n";
+import { t, useT } from "@/lib/i18n";
 
 const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts"] as const;
 
@@ -15,6 +15,7 @@ interface ProductFiltersProps {
 }
 
 export default function ProductFilters({ searchQuery, onSearchChange, sortBy, onSortChange, activeCategory, onCategoryChange, products }: ProductFiltersProps) {
+  const l = useT();
   const hasActiveFilters = searchQuery || activeCategory !== "All" || sortBy !== "name";
 
   const resetFilters = () => { onSearchChange(""); onCategoryChange("All"); onSortChange("name"); };
@@ -25,7 +26,7 @@ export default function ProductFilters({ searchQuery, onSearchChange, sortBy, on
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <input
           type="text"
-          placeholder={t.products.search.mm}
+          placeholder={l(t.products.search)}
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
           className="w-full pl-9 pr-8 py-2.5 rounded-xl bg-muted/30 border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all duration-200"
@@ -42,15 +43,15 @@ export default function ProductFilters({ searchQuery, onSearchChange, sortBy, on
           <SelectValue placeholder="Sort by" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="name">{t.products.sortName.mm}</SelectItem>
-          <SelectItem value="price-low">{t.products.sortPriceLow.mm}</SelectItem>
-          <SelectItem value="price-high">{t.products.sortPriceHigh.mm}</SelectItem>
+          <SelectItem value="name">{l(t.products.sortName)}</SelectItem>
+          <SelectItem value="price-low">{l(t.products.sortPriceLow)}</SelectItem>
+          <SelectItem value="price-high">{l(t.products.sortPriceHigh)}</SelectItem>
         </SelectContent>
       </Select>
       <div className="flex gap-2 flex-wrap">
         {CATEGORIES.map((cat) => {
           const count = cat === "All" ? products.length : products.filter((p: any) => p.category === cat).length;
-          const label = cat === "All" ? t.products.all.mm : cat;
+          const label = cat === "All" ? l(t.products.all) : cat;
           return (
             <button
               key={cat}
@@ -69,7 +70,7 @@ export default function ProductFilters({ searchQuery, onSearchChange, sortBy, on
         {hasActiveFilters && (
           <button onClick={resetFilters} className="px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground bg-muted/30 hover:bg-muted/50 border border-border transition-all duration-200 flex items-center gap-1.5">
             <RotateCcw className="w-3 h-3" />
-            {t.products.reset.mm}
+            {l(t.products.reset)}
           </button>
         )}
       </div>

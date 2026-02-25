@@ -4,7 +4,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { t } from "@/lib/i18n";
+import { t, useT } from "@/lib/i18n";
 
 interface ImportantNoticeModalProps {
   open: boolean;
@@ -13,6 +13,7 @@ interface ImportantNoticeModalProps {
 }
 
 export default function ImportantNoticeModal({ open, onContinue, onCancel }: ImportantNoticeModalProps) {
+  const l = useT();
   const [agreed, setAgreed] = useState(false);
   useEffect(() => { if (open) setAgreed(false); }, [open]);
 
@@ -31,13 +32,13 @@ export default function ImportantNoticeModal({ open, onContinue, onCancel }: Imp
               <AlertTriangle className="w-5 h-5 text-warning" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-foreground">{t.notice.title.mm}</h2>
-              <p className="text-[10px] text-muted-foreground/60">{t.notice.title.en}</p>
+              <h2 className="text-base font-semibold text-foreground">{l(t.notice.title)}</h2>
+              <p className="text-[10px] text-muted-foreground/60">{l(t.notice.title) === t.notice.title.mm ? t.notice.title.en : t.notice.title.mm}</p>
             </div>
           </div>
 
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">{t.notice.before.mm}</p>
+            <p className="text-sm text-muted-foreground">{l(t.notice.before)}</p>
             <ul className="space-y-2.5 pl-1">
               {notices.map((item, i) => (
                 <li key={i} className={cn("flex items-start gap-2.5 text-sm text-foreground", "animate-fade-in")} style={{ animationDelay: `${0.05 + i * 0.05}s` }}>
@@ -54,18 +55,18 @@ export default function ImportantNoticeModal({ open, onContinue, onCancel }: Imp
           <label className="flex items-start gap-3 cursor-pointer select-none rounded-[var(--radius-card)] border border-border/40 bg-muted/20 p-3.5 transition-colors hover:bg-muted/30">
             <Checkbox checked={agreed} onCheckedChange={(checked) => setAgreed(checked === true)} className="mt-0.5" />
             <div>
-              <span className="text-sm text-foreground leading-snug">{t.notice.agreeLabel.mm}</span>
-              <span className="block text-[10px] text-muted-foreground/50">{t.notice.agreeLabel.en}</span>
+              <span className="text-sm text-foreground leading-snug">{l(t.notice.agreeLabel)}</span>
+              <span className="block text-[10px] text-muted-foreground/50">{l(t.notice.agreeLabel) === t.notice.agreeLabel.mm ? t.notice.agreeLabel.en : t.notice.agreeLabel.mm}</span>
             </div>
           </label>
 
           <div className="flex flex-col gap-2.5">
             <Button disabled={!agreed} onClick={onContinue} className="w-full h-11 gap-2 btn-glow font-medium rounded-[var(--radius-btn)]">
-              {t.notice.continueBtn.mm}
+              {l(t.notice.continueBtn)}
               <ArrowRight className="w-4 h-4" />
             </Button>
             <Button variant="outline" onClick={onCancel} className="w-full h-10 btn-glass font-medium rounded-[var(--radius-btn)]">
-              {t.notice.cancelBtn.mm}
+              {l(t.notice.cancelBtn)}
             </Button>
           </div>
         </div>

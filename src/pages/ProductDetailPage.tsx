@@ -17,7 +17,7 @@ import StructuredDescription from "@/components/products/StructuredDescription";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
 import { cn } from "@/lib/utils";
 import FulfillmentModeSelector from "@/components/products/FulfillmentModeSelector";
-import { t } from "@/lib/i18n";
+import { t, useT } from "@/lib/i18n";
 
 interface PurchaseResult {
   order_id: string;
@@ -43,6 +43,7 @@ const NOTICES = [
 ];
 
 export default function ProductDetailPage() {
+  const l = useT();
   const { id } = useParams<{ id: string }>();
   const { user, profile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
@@ -242,7 +243,7 @@ export default function ProductDetailPage() {
     return (
       <div className="space-y-4 text-center py-20">
         <p className="text-muted-foreground text-sm">ထုတ်ကုန်မတွေ့ပါ</p>
-        <Button variant="outline" onClick={() => navigate("/dashboard/products")}>{t.nav.products.mm}သို့ ပြန်သွားမည်</Button>
+        <Button variant="outline" onClick={() => navigate("/dashboard/products")}>{l(t.nav.products)}သို့ ပြန်သွားမည်</Button>
       </div>
     );
   }
@@ -261,8 +262,8 @@ export default function ProductDetailPage() {
   return (
     <div className="space-y-6 max-w-2xl mx-auto animate-fade-in">
       <Breadcrumb items={[
-        { label: t.nav.dashboard.mm, path: "/dashboard" },
-        { label: t.nav.products.mm, path: "/dashboard/products" },
+        { label: l(t.nav.dashboard), path: "/dashboard" },
+        { label: l(t.nav.products), path: "/dashboard/products" },
         { label: product.name },
       ]} />
 
@@ -286,7 +287,7 @@ export default function ProductDetailPage() {
             )}
           >
             <span className={cn("h-1.5 w-1.5 rounded-full", isOutOfStock ? "bg-destructive" : isLowStock ? "bg-warning" : "bg-primary")} />
-            {isOutOfStock ? t.products.outOfStock.mm : isLowStock ? `${product.stock} ${t.products.left.mm}` : `${product.stock} ${t.products.inStock.mm}`}
+            {isOutOfStock ? l(t.products.outOfStock) : isLowStock ? `${product.stock} ${l(t.products.left)}` : `${product.stock} ${l(t.products.inStock)}`}
           </div>
         </div>
 
@@ -445,7 +446,7 @@ export default function ProductDetailPage() {
 
         {/* Wallet balance row */}
         <div className="flex items-center justify-between rounded-lg border border-border bg-muted/20 px-4 py-3">
-          <span className="text-xs text-muted-foreground">{t.detail.walletLabel.mm} Balance</span>
+          <span className="text-xs text-muted-foreground">{l(t.detail.walletLabel)} Balance</span>
           <span className="text-sm font-bold font-mono tabular-nums text-foreground">{balance.toLocaleString()} MMK</span>
         </div>
 
@@ -455,9 +456,9 @@ export default function ProductDetailPage() {
             <div className="flex items-center gap-2 min-w-0">
               <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0" />
               <p className="text-xs text-foreground">
-                {t.detail.insufficientBalance.mm}{" "}
+                {l(t.detail.insufficientBalance)}{" "}
                 <span className="text-muted-foreground">
-                  {t.detail.needMore.mm} {(product.wholesale_price - balance).toLocaleString()} MMK
+                  {l(t.detail.needMore)} {(product.wholesale_price - balance).toLocaleString()} MMK
                 </span>
               </p>
             </div>
@@ -465,7 +466,7 @@ export default function ProductDetailPage() {
               onClick={() => handleTopUp(product.wholesale_price - balance)}
               className="px-3 py-1.5 text-[11px] font-semibold rounded-md bg-primary text-primary-foreground hover:brightness-90 transition-all shrink-0"
             >
-              {t.wallet.topUp.mm}
+              {l(t.wallet.topUp)}
             </button>
           </div>
         )}
@@ -479,10 +480,10 @@ export default function ProductDetailPage() {
           {purchasing ? (
             <>
               <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
-              {t.products.processing.mm}
+              {l(t.products.processing)}
             </>
           ) : isOutOfStock ? (
-            t.products.outOfStock.mm
+            l(t.products.outOfStock)
           ) : (
             <>Confirm Order — {product.wholesale_price.toLocaleString()} MMK</>
           )}
