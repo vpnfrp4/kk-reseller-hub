@@ -58,6 +58,7 @@ Deno.serve(async (req) => {
       p_user_id: userId,
       p_product_id: product_id,
       p_quantity: qty,
+      p_fulfillment_mode: mode,
     });
 
     if (error) {
@@ -69,45 +70,11 @@ Deno.serve(async (req) => {
 
     const result = data as Record<string, unknown>;
 
-    // If purchase succeeded, update the order with fulfillment metadata
-    if (result.success && result.order_id) {
-      // Determine order status based on fulfillment mode
-      let orderStatus = "delivered";
-      if (mode === "custom_username" || mode === "imei") {
-        orderStatus = "pending_creation";
-      } else if (mode === "manual") {
-        orderStatus = "pending_review";
-      }
-
-      // For non-instant modes, don't auto-deduct stock (revert stock deduction)
-      if (mode === "manual") {
-        // Revert the stock deduction done by process_purchase
-        await serviceClient
-          .from("products")
-          .update({ stock: undefined } as any)
-          .eq("id", product_id);
-        // Actually, better to just update using raw increment
-        const { data: prod } = await serviceClient
-          .from("products")
-          .select("stock")
-          .eq("id", product_id)
-          .single();
-        if (prod) {
-          await serviceClient
-            .from("products")
-            .update({ stock: prod.stock + qty } as any)
-            .eq("id", product_id);
-        }
-      }
-
-      // Update order with fulfillment metadata and correct status
+    // If purchase succeeded, store custom fields data on the order
+    if (result.success && result.order_id && custom_fields && Object.keys(custom_fields).length > 0) {
       await serviceClient
         .from("orders")
-        .update({
-          fulfillment_mode: mode,
-          custom_fields_data: custom_fields || null,
-          status: orderStatus,
-        } as any)
+        .update({ custom_fields_data: custom_fields } as any)
         .eq("id", result.order_id);
     }
 

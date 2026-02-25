@@ -380,6 +380,15 @@ export type Database = {
             }
             Returns: Json
           }
+        | {
+            Args: {
+              p_fulfillment_mode?: string
+              p_product_id: string
+              p_quantity?: number
+              p_user_id: string
+            }
+            Returns: Json
+          }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
