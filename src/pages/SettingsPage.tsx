@@ -61,7 +61,7 @@ export default function SettingsPage() {
     if (enabled) {
       const granted = await requestNotificationPermission();
       if (!granted) {
-        toast.error("ဘရောက်ဇာ အသိပေးချက်များ ပိတ်ထားသည်။ ဘရောက်ဇာ ဆက်တင်တွင် ဖွင့်ပေးပါ။");
+        toast.error(l(t.settings.browserNotifBlocked));
         return;
       }
     }
@@ -72,7 +72,7 @@ export default function SettingsPage() {
     e.preventDefault();
     const trimmed = name.trim();
     if (!trimmed || trimmed.length > 100) {
-      toast.error("အမည်သည် ၁ မှ ၁၀၀ စာလုံးအတွင်း ဖြစ်ရမည်");
+      toast.error(l(t.settings.nameValidation));
       return;
     }
     setSaving(true);
@@ -83,17 +83,17 @@ export default function SettingsPage() {
     setSaving(false);
     if (error) { toast.error(error.message); return; }
     await refreshProfile();
-    toast.success("အမည်ပြင်ဆင်ပြီးပါပြီ");
+    toast.success(l(t.settings.nameUpdated));
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.length < 6) {
-      toast.error("စကားဝှက်အသစ်သည် အနည်းဆုံး ၆ လုံး ရှိရမည်");
+      toast.error(l(t.settings.pwMinLength));
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("စကားဝှက်များ မကိုက်ညီပါ");
+      toast.error(l(t.settings.pwMismatch));
       return;
     }
 
@@ -105,7 +105,7 @@ export default function SettingsPage() {
     });
     if (signInError) {
       setChangingPassword(false);
-      toast.error("လက်ရှိစကားဝှက် မမှန်ကန်ပါ");
+      toast.error(l(t.settings.pwIncorrect));
       return;
     }
 
@@ -116,7 +116,7 @@ export default function SettingsPage() {
     setCurrentPassword("");
     setNewPassword("");
     setConfirmPassword("");
-    toast.success("စကားဝှက်ပြောင်းပြီးပါပြီ");
+    toast.success(l(t.settings.pwChanged));
   };
 
   return (
@@ -247,7 +247,7 @@ export default function SettingsPage() {
 
           {"Notification" in window && Notification.permission === "denied" && notifPrefs.browserNotificationsEnabled && (
             <p className="text-[11px] text-destructive mt-[var(--space-tight)] px-1">
-              ဘရောက်ဇာ အသိပေးချက်များ ပိတ်ထားသည်။ ဘရောက်ဇာ ဆက်တင်တွင် ဖွင့်ပေးပါ။
+              {l(t.settings.browserNotifBlocked)}
             </p>
           )}
         </div>
@@ -310,7 +310,7 @@ export default function SettingsPage() {
                     <span className="text-[11px] font-medium text-muted-foreground font-mono">MMK</span>
                   </div>
                   <p className="text-[10px] text-muted-foreground mt-[var(--space-micro)] px-1">
-                    အကြံပြု: 5,000 – 50,000 MMK
+                    {l(t.settings.thresholdHint)}
                   </p>
                 </div>
               )}
