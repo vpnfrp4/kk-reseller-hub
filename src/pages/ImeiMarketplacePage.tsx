@@ -92,15 +92,26 @@ export default function ImeiMarketplacePage() {
   const [selectedService, setSelectedService] = useState<ImeiService | null>(null);
 
   const { data: services = [], isLoading } = useQuery({
-    queryKey: ["imei-services-public"],
+    queryKey: ["imei-products-public"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("imei_services")
+        .from("products")
         .select("*")
-        .eq("status", "active")
+        .eq("product_type", "imei")
         .order("sort_order");
       if (error) throw error;
-      return data as ImeiService[];
+      return (data || []).map((p: any) => ({
+        id: p.id,
+        brand: p.brand || "",
+        service_name: p.name,
+        carrier: p.carrier || "All",
+        country: p.country || "All",
+        processing_time: p.processing_time || "1-3 Days",
+        price: p.wholesale_price,
+        final_price: p.final_price || p.wholesale_price,
+        fulfillment_mode: p.fulfillment_mode || "manual",
+        status: "active",
+      })) as ImeiService[];
     },
   });
 

@@ -79,10 +79,13 @@ export default function ImeiOrderModal({ service, onClose }: Props) {
 
     setSubmitting(true);
     try {
-      const { data, error: rpcError } = await supabase.rpc("process_imei_purchase", {
-        p_user_id: user!.id,
-        p_service_id: service.id,
-        p_imei_number: cleaned,
+      const { data, error: rpcError } = await supabase.functions.invoke("purchase", {
+        body: {
+          product_id: service.id,
+          quantity: 1,
+          fulfillment_mode: "manual",
+          imei_number: cleaned,
+        },
       });
 
       if (rpcError) throw rpcError;
