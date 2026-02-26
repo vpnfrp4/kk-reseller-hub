@@ -295,38 +295,56 @@ export type Database = {
       }
       orders: {
         Row: {
+          admin_notes: string | null
+          completed_at: string | null
           created_at: string
           credential_id: string | null
           credentials: string
           custom_fields_data: Json | null
           fulfillment_mode: string
           id: string
+          imei_number: string | null
           price: number
+          product_id: string | null
           product_name: string
+          product_type: string | null
+          result: string | null
           status: string
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
+          completed_at?: string | null
           created_at?: string
           credential_id?: string | null
           credentials?: string
           custom_fields_data?: Json | null
           fulfillment_mode?: string
           id?: string
+          imei_number?: string | null
           price: number
+          product_id?: string | null
           product_name: string
+          product_type?: string | null
+          result?: string | null
           status?: string
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
+          completed_at?: string | null
           created_at?: string
           credential_id?: string | null
           credentials?: string
           custom_fields_data?: Json | null
           fulfillment_mode?: string
           id?: string
+          imei_number?: string | null
           price?: number
+          product_id?: string | null
           product_name?: string
+          product_type?: string | null
+          result?: string | null
           status?: string
           user_id?: string
         }
@@ -336,6 +354,13 @@ export type Database = {
             columns: ["credential_id"]
             isOneToOne: false
             referencedRelation: "product_credentials"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -468,16 +493,29 @@ export type Database = {
       }
       products: {
         Row: {
+          api_provider: string | null
+          brand: string | null
+          brand_id: string | null
+          carrier: string | null
+          carrier_id: string | null
           category: string
+          country: string | null
+          country_id: string | null
           created_at: string
           delivery_time_config: Json
           description: string
           duration: string
+          final_price: number | null
           fulfillment_modes: Json
           icon: string
           id: string
           image_url: string | null
+          margin_percent: number | null
           name: string
+          processing_time: string | null
+          product_type: string
+          provider_id: string | null
+          provider_price: number | null
           retail_price: number
           sort_order: number
           stock: number
@@ -485,16 +523,29 @@ export type Database = {
           wholesale_price: number
         }
         Insert: {
+          api_provider?: string | null
+          brand?: string | null
+          brand_id?: string | null
+          carrier?: string | null
+          carrier_id?: string | null
           category?: string
+          country?: string | null
+          country_id?: string | null
           created_at?: string
           delivery_time_config?: Json
           description?: string
           duration: string
+          final_price?: number | null
           fulfillment_modes?: Json
           icon?: string
           id?: string
           image_url?: string | null
+          margin_percent?: number | null
           name: string
+          processing_time?: string | null
+          product_type?: string
+          provider_id?: string | null
+          provider_price?: number | null
           retail_price: number
           sort_order?: number
           stock?: number
@@ -502,23 +553,65 @@ export type Database = {
           wholesale_price: number
         }
         Update: {
+          api_provider?: string | null
+          brand?: string | null
+          brand_id?: string | null
+          carrier?: string | null
+          carrier_id?: string | null
           category?: string
+          country?: string | null
+          country_id?: string | null
           created_at?: string
           delivery_time_config?: Json
           description?: string
           duration?: string
+          final_price?: number | null
           fulfillment_modes?: Json
           icon?: string
           id?: string
           image_url?: string | null
+          margin_percent?: number | null
           name?: string
+          processing_time?: string | null
+          product_type?: string
+          provider_id?: string | null
+          provider_price?: number | null
           retail_price?: number
           sort_order?: number
           stock?: number
           type?: string
           wholesale_price?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "imei_brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "imei_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "imei_countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "imei_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
