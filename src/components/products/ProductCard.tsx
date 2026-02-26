@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { t, useT } from "@/lib/i18n";
 import { ChevronRight, Smartphone, Clock, Cpu, RefreshCw } from "lucide-react";
@@ -18,9 +19,10 @@ interface ProductCardProps {
   onBuyClick: (product: any) => void;
   pricingTiers?: PricingTier[];
   lastRateUpdate?: string | null;
+  usdRate?: number | null;
 }
 
-export default function ProductCard({ product, index, isPurchasing, onBuyClick, pricingTiers = [], lastRateUpdate }: ProductCardProps) {
+export default function ProductCard({ product, index, isPurchasing, onBuyClick, pricingTiers = [], lastRateUpdate, usdRate }: ProductCardProps) {
   const l = useT();
   const pt = product.product_type || "digital";
   const isDigital = pt === "digital";
@@ -112,10 +114,22 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
               <div className="flex items-center gap-1.5 mt-0.5">
                 <p className="text-[10px] text-muted-foreground font-mono">${product.base_price} USD</p>
                 {lastRateUpdate && (
-                  <span className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground/60" title={`Rate synced ${new Date(lastRateUpdate).toLocaleString()}`}>
-                    <RefreshCw className="w-2.5 h-2.5" />
-                    {formatDistanceToNow(new Date(lastRateUpdate), { addSuffix: true })}
-                  </span>
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground/60 cursor-help">
+                          <RefreshCw className="w-2.5 h-2.5" />
+                          {formatDistanceToNow(new Date(lastRateUpdate), { addSuffix: true })}
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="text-xs">
+                        <p className="font-semibold">1 USD = {usdRate ? usdRate.toLocaleString() : "—"} MMK</p>
+                        <p className="text-muted-foreground text-[10px]">
+                          Synced {new Date(lastRateUpdate).toLocaleString()}
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 )}
               </div>
             )}
