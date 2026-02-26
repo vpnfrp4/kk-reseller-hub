@@ -400,6 +400,8 @@ export type Database = {
       products: {
         Row: {
           api_provider: string | null
+          base_currency: string
+          base_price: number
           brand: string | null
           brand_id: string | null
           carrier: string | null
@@ -430,6 +432,8 @@ export type Database = {
         }
         Insert: {
           api_provider?: string | null
+          base_currency?: string
+          base_price?: number
           brand?: string | null
           brand_id?: string | null
           carrier?: string | null
@@ -460,6 +464,8 @@ export type Database = {
         }
         Update: {
           api_provider?: string | null
+          base_currency?: string
+          base_price?: number
           brand?: string | null
           brand_id?: string | null
           carrier?: string | null
@@ -555,6 +561,24 @@ export type Database = {
         }
         Relationships: []
       }
+      system_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -632,6 +656,7 @@ export type Database = {
         }
         Returns: Json
       }
+      recalculate_usd_prices: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { DollarSign, RefreshCw } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -384,11 +385,128 @@ function PaymentMethodsSection() {
   );
 }
 
+/* ─── USD Exchange Rate Section ─── */
+function ExchangeRateSection() {
+  const queryClient = useQueryClient();
+  const [rate, setRate] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [usdProductCount, setUsdProductCount] = useState(0);
+
+  const { data: setting } = useQuery({
+    queryKey: ["usd-mmk-rate"],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("system_settings")
+        .select("*")
+        .eq("key", "usd_mmk_rate")
+        .single();
+      return data;
+    },
+  });
+
+  // Count USD products
+  useQuery({
+    queryKey: ["usd-product-count"],
+    queryFn: async () => {
+      const { count } = await (supabase as any)
+        .from("products")
+        .select("id", { count: "exact", head: true })
+        .eq("base_currency", "USD");
+      setUsdProductCount(count || 0);
+      return count;
+    },
+  });
+
+  useEffect(() => {
+    if (setting?.value) {
+      setRate(String((setting.value as any).rate || 2100));
+    }
+  }, [setting]);
+
+  const handleSave = async () => {
+    const numRate = parseFloat(rate);
+    if (!numRate || numRate <= 0) { toast.error("Enter a valid rate"); return; }
+    setSaving(true);
+    try {
+      const { error } = await (supabase as any)
+        .from("system_settings")
+        .update({ value: { rate: numRate } })
+        .eq("key", "usd_mmk_rate");
+      if (error) throw error;
+      toast.success(`USD rate updated to ${numRate.toLocaleString()} MMK. ${usdProductCount} USD-based product${usdProductCount !== 1 ? "s" : ""} recalculated.`);
+      queryClient.invalidateQueries({ queryKey: ["usd-mmk-rate"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save rate");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const currentRate = setting?.value ? (setting.value as any).rate : null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <DollarSign className="w-4 h-4 text-primary" /> USD Exchange Rate
+        </CardTitle>
+        <CardDescription>
+          Set the USD → MMK conversion rate. Updating this will automatically recalculate all USD-based product prices.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-end gap-3">
+          <div className="space-y-1.5 flex-1">
+            <Label className="text-xs text-muted-foreground">1 USD =</Label>
+            <div className="relative">
+              <Input
+                type="number"
+                value={rate}
+                onChange={(e) => setRate(e.target.value)}
+                placeholder="2100"
+                className="h-11 text-lg font-mono pr-14"
+                min={1}
+              />
+              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">MMK</span>
+            </div>
+          </div>
+          <Button onClick={handleSave} disabled={saving} className="h-11 gap-1.5">
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            Save Rate
+          </Button>
+        </div>
+
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          {currentRate && (
+            <span>Current rate: <span className="font-mono font-semibold text-foreground">{Number(currentRate).toLocaleString()}</span> MMK/USD</span>
+          )}
+          <span>•</span>
+          <span className="flex items-center gap-1">
+            <RefreshCw className="w-3 h-3" />
+            {usdProductCount} USD-priced product{usdProductCount !== 1 ? "s" : ""}
+          </span>
+        </div>
+
+        {currentRate && (
+          <div className="rounded-lg border border-border/40 bg-muted/10 p-3">
+            <p className="text-[11px] text-muted-foreground">
+              <strong>How it works:</strong> Products with <code className="text-foreground bg-muted px-1 rounded">base_currency = USD</code> will have their wholesale price auto-calculated as <code className="text-foreground bg-muted px-1 rounded">base_price × rate</code>. MMK-based products are unaffected.
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
 /* ─── Main Page ─── */
 export default function AdminSettings() {
   return (
     <div className="max-w-2xl space-y-6">
       <ThemeSection />
+      <ExchangeRateSection />
       <PaymentMethodsSection />
       <NotificationSection />
       <PasswordSection />

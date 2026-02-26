@@ -106,6 +106,9 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
               {product.wholesale_price.toLocaleString()}
               <span className="text-xs font-normal text-muted-foreground ml-1">MMK</span>
             </p>
+            {product.base_currency === "USD" && product.base_price > 0 && (
+              <p className="text-[10px] text-muted-foreground mt-0.5 font-mono">${product.base_price} USD</p>
+            )}
           </div>
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">

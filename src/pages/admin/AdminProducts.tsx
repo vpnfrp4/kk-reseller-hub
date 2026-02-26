@@ -121,7 +121,20 @@ export default function AdminProducts() {
     provider_id: "", provider_price: "0", margin_percent: "30",
     processing_time: "1-3 Days",
     fulfillment_mode: "manual", // for IMEI: manual or api
+    // Currency
+    base_currency: "MMK" as "MMK" | "USD",
+    base_price: "",
   });
+
+  // USD rate
+  const { data: usdRateSetting } = useQuery({
+    queryKey: ["usd-mmk-rate"],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("system_settings").select("*").eq("key", "usd_mmk_rate").single();
+      return data;
+    },
+  });
+  const usdRate = usdRateSetting?.value ? (usdRateSetting.value as any).rate || 2100 : 2100;
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
 
   // Lookup queries for IMEI
@@ -202,6 +215,7 @@ export default function AdminProducts() {
       brand_id: "", country_id: "", carrier_id: "",
       provider_id: "", provider_price: "0", margin_percent: "30",
       processing_time: "1-3 Days", fulfillment_mode: "manual",
+      base_currency: "MMK", base_price: "",
     });
     setEditing(null);
     setImagePreview(null);
@@ -234,6 +248,8 @@ export default function AdminProducts() {
       margin_percent: (p.margin_percent || 30).toString(),
       processing_time: p.processing_time || "1-3 Days",
       fulfillment_mode: p.fulfillment_mode || "manual",
+      base_currency: p.base_currency || "MMK",
+      base_price: (p.base_price || 0).toString(),
     });
     setImagePreview(p.image_url || null);
     loadCustomFields(p.id);
@@ -313,6 +329,9 @@ export default function AdminProducts() {
     const selectedCountry = countries.find((c) => c.id === form.country_id);
     const selectedCarrier = allCarriers.find((c) => c.id === form.carrier_id);
 
+    const basePriceNum = parseInt(form.base_price) || 0;
+    const isUsd = form.base_currency === "USD";
+
     const payload: any = {
       name: form.name.trim(),
       icon: form.icon,
@@ -321,8 +340,9 @@ export default function AdminProducts() {
       duration: form.duration.trim(),
       image_url: form.image_url || null,
       product_type: pt,
-      // Map product_type to legacy 'type' field for compatibility
       type: isDigital ? "auto" : "manual",
+      base_currency: form.base_currency,
+      base_price: basePriceNum,
     };
 
     if (isImei) {
@@ -339,8 +359,14 @@ export default function AdminProducts() {
       payload.margin_percent = parseInt(form.margin_percent) || 0;
       payload.final_price = fp;
       payload.processing_time = form.processing_time;
-      payload.wholesale_price = fp;
-      payload.retail_price = fp;
+      // If USD, convert; otherwise use direct price
+      if (isUsd && basePriceNum > 0) {
+        payload.wholesale_price = Math.round(basePriceNum * usdRate);
+        payload.retail_price = Math.round(basePriceNum * usdRate);
+      } else {
+        payload.wholesale_price = fp;
+        payload.retail_price = fp;
+      }
       payload.stock = 0;
       payload.fulfillment_modes = form.fulfillment_mode === "api" ? ["api"] : ["manual"];
     } else if (isApi) {
@@ -354,14 +380,24 @@ export default function AdminProducts() {
       payload.stock = 0;
       payload.fulfillment_modes = ["api"];
     } else if (pt === "manual") {
-      payload.retail_price = parseInt(form.retail_price);
-      payload.wholesale_price = parseInt(form.wholesale_price);
+      if (isUsd && basePriceNum > 0) {
+        payload.wholesale_price = Math.round(basePriceNum * usdRate);
+        payload.retail_price = parseInt(form.retail_price) || Math.round(basePriceNum * usdRate);
+      } else {
+        payload.retail_price = parseInt(form.retail_price);
+        payload.wholesale_price = parseInt(form.wholesale_price);
+      }
       payload.stock = 0;
       payload.fulfillment_modes = ["manual"];
     } else {
       // digital
-      payload.retail_price = parseInt(form.retail_price);
-      payload.wholesale_price = parseInt(form.wholesale_price);
+      if (isUsd && basePriceNum > 0) {
+        payload.wholesale_price = Math.round(basePriceNum * usdRate);
+        payload.retail_price = parseInt(form.retail_price) || Math.round(basePriceNum * usdRate);
+      } else {
+        payload.retail_price = parseInt(form.retail_price);
+        payload.wholesale_price = parseInt(form.wholesale_price);
+      }
       payload.stock = parseInt(form.stock) || 0;
       payload.fulfillment_modes = ["instant"];
     }
@@ -712,8 +748,36 @@ export default function AdminProducts() {
                   </>
                 )}
 
-                {/* ── Direct Pricing (Digital & Manual) ── */}
+                {/* ── Base Currency Selector ── */}
                 {showDirectPricing && (
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground text-xs">Base Currency</Label>
+                    <div className="flex gap-2">
+                      {(["MMK", "USD"] as const).map((cur) => (
+                        <button
+                          key={cur}
+                          type="button"
+                          onClick={() => setForm((prev) => ({ ...prev, base_currency: cur }))}
+                          className={`flex-1 py-2.5 rounded-xl border-2 text-sm font-semibold transition-all ${
+                            form.base_currency === cur
+                              ? "border-primary bg-primary/5 text-primary"
+                              : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30"
+                          }`}
+                        >
+                          {cur === "USD" ? "💵 USD" : "🇲🇲 MMK"}
+                        </button>
+                      ))}
+                    </div>
+                    {form.base_currency === "USD" && (
+                      <p className="text-[10px] text-muted-foreground">
+                        Prices auto-convert at <span className="font-mono font-semibold text-foreground">{usdRate.toLocaleString()}</span> MMK/USD
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* ── Direct Pricing (Digital & Manual) ── */}
+                {showDirectPricing && form.base_currency === "MMK" && (
                   <div className={`grid ${showStockField ? "grid-cols-3" : "grid-cols-2"} gap-3`}>
                     <div className="space-y-1">
                       <Label className="text-muted-foreground text-xs">Retail Price</Label>
@@ -729,6 +793,34 @@ export default function AdminProducts() {
                         <Input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required className="bg-muted/50 border-border font-mono" />
                       </div>
                     )}
+                  </div>
+                )}
+
+                {/* ── USD Base Price ── */}
+                {showDirectPricing && form.base_currency === "USD" && (
+                  <div className="space-y-3">
+                    <div className={`grid ${showStockField ? "grid-cols-3" : "grid-cols-2"} gap-3`}>
+                      <div className="space-y-1">
+                        <Label className="text-muted-foreground text-xs">Base Price (USD)</Label>
+                        <Input type="number" value={form.base_price} onChange={(e) => setForm({ ...form, base_price: e.target.value })} required className="bg-muted/50 border-border font-mono" placeholder="e.g. 5" step="0.01" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-muted-foreground text-xs">Retail Price (MMK)</Label>
+                        <Input type="number" value={form.retail_price} onChange={(e) => setForm({ ...form, retail_price: e.target.value })} className="bg-muted/50 border-border font-mono" placeholder="Optional override" />
+                      </div>
+                      {showStockField && (
+                        <div className="space-y-1">
+                          <Label className="text-muted-foreground text-xs">Stock</Label>
+                          <Input type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required className="bg-muted/50 border-border font-mono" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Calculated wholesale:</span>
+                      <span className="font-mono font-bold text-foreground">
+                        {((parseInt(form.base_price) || 0) * usdRate).toLocaleString()} MMK
+                      </span>
+                    </div>
                   </div>
                 )}
 
@@ -893,9 +985,23 @@ export default function AdminProducts() {
                                   </div>
                                 </div>
                               </td>
-                              <td className="p-4">{typeBadge(pt)}</td>
+                              <td className="p-4">
+                                <div className="flex items-center gap-1.5">
+                                  {typeBadge(pt)}
+                                  {p.base_currency === "USD" && (
+                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">USD</span>
+                                  )}
+                                </div>
+                              </td>
                               <td className="p-4 text-sm text-muted-foreground">{p.category}</td>
-                              <td className="p-4 text-sm text-right"><Money amount={p.wholesale_price} /></td>
+                              <td className="p-4 text-sm text-right">
+                                <div>
+                                  <Money amount={p.wholesale_price} />
+                                  {p.base_currency === "USD" && p.base_price > 0 && (
+                                    <div className="text-[10px] text-muted-foreground">${p.base_price}</div>
+                                  )}
+                                </div>
+                              </td>
                               <td className="p-4 text-sm font-mono text-center text-foreground">
                                 {pt === "digital" ? p.stock : <span className="text-xs text-muted-foreground italic">—</span>}
                               </td>
