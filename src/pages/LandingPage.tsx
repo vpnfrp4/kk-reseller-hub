@@ -44,6 +44,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCountUpOnView } from "@/hooks/use-count-up";
 import RecentUnlocksTicker from "@/components/landing/RecentUnlocksTicker";
+import ProviderLogosCarousel from "@/components/landing/ProviderLogosCarousel";
 
 /* ───────── SCROLL REVEAL ───────── */
 const ScrollReveal = forwardRef<HTMLDivElement, { children: ReactNode; delay?: number; className?: string }>(
@@ -332,6 +333,9 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        {/* ═══════════ PROVIDER LOGOS ═══════════ */}
+        <ProviderLogosCarousel />
 
         {/* ═══════════ TRUST NOTICE ═══════════ */}
         <section className="bg-background py-16">
