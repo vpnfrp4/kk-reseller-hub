@@ -50,19 +50,30 @@ const BRAND_ICONS: Record<string, string> = {
   LG: "📺",
 };
 
+type SpeedTier = "fast" | "medium" | "slow";
+
+interface SpeedInfo {
+  tier: SpeedTier;
+  label: string;
+  className: string;
+}
+
+const SPEED_TIERS: Record<SpeedTier, { filterLabel: string; dot: string }> = {
+  fast: { filterLabel: "⚡ Fast", dot: "bg-emerald-400" },
+  medium: { filterLabel: "⏳ Medium", dot: "bg-amber-400" },
+  slow: { filterLabel: "🕐 Slow", dot: "bg-rose-400" },
+};
+
 /** Classify processing time into speed tiers for badge color coding */
-function getSpeedTier(processingTime: string): { label: string; className: string } {
+function getSpeedTier(processingTime: string): SpeedInfo {
   const lower = processingTime.toLowerCase();
-  // Instant / minutes → fast (green)
   if (lower.includes("instant") || lower.includes("minute")) {
-    return { label: processingTime, className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" };
+    return { tier: "fast", label: processingTime, className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" };
   }
-  // Hours or 1 day → medium (yellow/amber)
   if (lower.includes("hour") || lower.match(/1[\s-]*day/) || lower.match(/^1-[23]\s*day/i)) {
-    return { label: processingTime, className: "bg-amber-500/15 text-amber-400 border-amber-500/25" };
+    return { tier: "medium", label: processingTime, className: "bg-amber-500/15 text-amber-400 border-amber-500/25" };
   }
-  // Multiple days → slow (red/rose)
-  return { label: processingTime, className: "bg-rose-500/15 text-rose-400 border-rose-500/25" };
+  return { tier: "slow", label: processingTime, className: "bg-rose-500/15 text-rose-400 border-rose-500/25" };
 }
 
 export default function ImeiMarketplacePage() {
@@ -74,6 +85,7 @@ export default function ImeiMarketplacePage() {
   const [brandFilter, setBrandFilter] = useState("all");
   const [countryFilter, setCountryFilter] = useState("all");
   const [carrierFilter, setCarrierFilter] = useState("all");
+  const [speedFilter, setSpeedFilter] = useState<SpeedTier | "all">("all");
   const [sortBy, setSortBy] = useState<"price_asc" | "price_desc" | "name">("price_asc");
 
   // Order modal
@@ -114,13 +126,14 @@ export default function ImeiMarketplacePage() {
     if (brandFilter !== "all") result = result.filter((s) => s.brand === brandFilter);
     if (countryFilter !== "all") result = result.filter((s) => s.country === countryFilter);
     if (carrierFilter !== "all") result = result.filter((s) => s.carrier === carrierFilter);
+    if (speedFilter !== "all") result = result.filter((s) => getSpeedTier(s.processing_time).tier === speedFilter);
 
     if (sortBy === "price_asc") result = [...result].sort((a, b) => (a.final_price || a.price) - (b.final_price || b.price));
     else if (sortBy === "price_desc") result = [...result].sort((a, b) => (b.final_price || b.price) - (a.final_price || a.price));
     else result = [...result].sort((a, b) => a.service_name.localeCompare(b.service_name));
 
     return result;
-  }, [services, searchQuery, brandFilter, countryFilter, carrierFilter, sortBy]);
+  }, [services, searchQuery, brandFilter, countryFilter, carrierFilter, speedFilter, sortBy]);
 
   const handleOrder = (service: ImeiService) => {
     if (!isAuthenticated) {
@@ -245,8 +258,36 @@ export default function ImeiMarketplacePage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="mt-2 text-xs text-muted-foreground">
-            {filtered.length} service{filtered.length !== 1 ? "s" : ""} found
+          {/* Speed filter chips */}
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="text-xs text-muted-foreground mr-1">Speed:</span>
+            <button
+              onClick={() => setSpeedFilter("all")}
+              className={`inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full border transition-colors ${
+                speedFilter === "all"
+                  ? "bg-primary/15 text-primary border-primary/30"
+                  : "bg-secondary/50 text-muted-foreground border-border hover:border-primary/30"
+              }`}
+            >
+              All
+            </button>
+            {(Object.entries(SPEED_TIERS) as [SpeedTier, typeof SPEED_TIERS[SpeedTier]][]).map(([key, { filterLabel, dot }]) => (
+              <button
+                key={key}
+                onClick={() => setSpeedFilter(speedFilter === key ? "all" : key)}
+                className={`inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full border transition-colors ${
+                  speedFilter === key
+                    ? "bg-primary/15 text-primary border-primary/30"
+                    : "bg-secondary/50 text-muted-foreground border-border hover:border-primary/30"
+                }`}
+              >
+                <span className={`w-2 h-2 rounded-full ${dot}`} />
+                {filterLabel}
+              </button>
+            ))}
+            <span className="ml-auto text-xs text-muted-foreground">
+              {filtered.length} service{filtered.length !== 1 ? "s" : ""} found
+            </span>
           </div>
         </div>
 
