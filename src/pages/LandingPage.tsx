@@ -323,10 +323,10 @@ export default function LandingPage() {
               </div>
 
               <h1 className="text-[2.25rem] font-extrabold leading-[1.15] tracking-tight text-foreground sm:text-[3.25rem]">
-                Compare &amp; Buy IMEI
+                Myanmar's Trusted Unlock
                 <br className="hidden sm:block" />
-                {" "}Unlock Services
-                <span className="text-primary"> Instantly</span>
+                {" "}&amp; Digital
+                <span className="text-primary"> Marketplace</span>
               </h1>
 
               <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-secondary-foreground sm:text-lg">
@@ -657,6 +657,45 @@ export default function LandingPage() {
                 Create Free Account <ChevronRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
+          </div>
+        </section>
+
+        {/* ═══════════ SEO KEYWORD CONTENT ═══════════ */}
+        <section className="border-t border-border bg-muted/10 py-16">
+          <div className="mx-auto max-w-4xl px-5 sm:px-8 space-y-8">
+            <h2 className="text-2xl font-bold text-foreground tracking-tight">
+              About KKTechDeals — Myanmar's Premier Unlock &amp; Digital Services Platform
+            </h2>
+
+            <div className="space-y-5 text-sm leading-relaxed text-secondary-foreground">
+              <p>
+                <strong className="text-foreground">KKTechDeals</strong> is Myanmar's largest and most trusted marketplace for <strong className="text-foreground">IMEI unlock services</strong>, GSM tools, hardware schematics, and premium digital subscriptions. We connect resellers across Myanmar with verified providers who deliver fast, reliable unlocking solutions for every major phone brand — including Samsung, iPhone, Huawei, Xiaomi, Oppo, Vivo, and more. Whether you need a factory unlock, network unlock, or carrier unlock, our multi-provider comparison engine lets you find the best price, fastest turnaround, and highest success rate in one place.
+              </p>
+
+              <h3 className="text-lg font-semibold text-foreground pt-2">IMEI Unlock &amp; GSM Services</h3>
+              <p>
+                Our <strong className="text-foreground">IMEI unlock marketplace</strong> supports all major carriers and networks worldwide. Resellers can submit unlock requests for AT&amp;T, T-Mobile, Sprint, Verizon, EE, Vodafone, O2, and hundreds of other carriers across the US, UK, Europe, and Asia. Each provider on our platform is vetted for reliability, and real-time success rate tracking ensures you always know what to expect. We support both <strong className="text-foreground">clean IMEI unlocks</strong> and <strong className="text-foreground">premium server unlocks</strong> with processing times ranging from instant delivery to 1–7 business days depending on the service tier.
+              </p>
+
+              <h3 className="text-lg font-semibold text-foreground pt-2">Hardware Schematics &amp; Repair Tools</h3>
+              <p>
+                For mobile repair professionals and technicians in Myanmar, KKTechDeals offers access to premium <strong className="text-foreground">hardware schematics tools</strong> and diagnostic software. Our catalog includes licenses for industry-standard platforms used in board-level repair, component-level diagnostics, and advanced troubleshooting. All licenses are delivered digitally with secure credential management — no waiting for physical shipments.
+              </p>
+
+              <h3 className="text-lg font-semibold text-foreground pt-2">Digital Subscriptions &amp; Premium Accounts</h3>
+              <p>
+                Beyond unlocking, we provide a curated selection of <strong className="text-foreground">digital subscriptions</strong> and premium accounts at wholesale reseller pricing. Our digital catalog includes VPN services for secure browsing, <strong className="text-foreground">CapCut Pro</strong> editing tools for content creators, AI-powered productivity accounts, and gaming top-ups like <strong className="text-foreground">Mobile Legends Diamonds</strong>. Every digital product is fulfilled instantly through our automated delivery system — purchase and receive your credentials in seconds.
+              </p>
+
+              <h3 className="text-lg font-semibold text-foreground pt-2">Built for Myanmar Resellers</h3>
+              <p>
+                KKTechDeals is purpose-built for the Myanmar reseller market. Our platform supports <strong className="text-foreground">local payment methods</strong> including KBZPay, WavePay, CB Pay, AYA Pay, and direct bank transfers — no international credit card required. Pricing is displayed in Myanmar Kyat (MMK) with real-time USD conversion for international services. Our <strong className="text-foreground">secure wallet system</strong> lets you top up once and purchase multiple products without repeated payment steps, while volume-based <strong className="text-foreground">pricing tiers</strong> automatically apply discounts as your order volume grows.
+              </p>
+
+              <p>
+                Every transaction is tracked with a unique order code, downloadable PDF receipts, and real-time status updates. Our admin-verified provider network ensures quality and accountability on every order. Whether you're a solo mobile shop owner or a large-scale reseller operation, KKTechDeals gives you the tools, pricing, and reliability to grow your business in Myanmar's digital economy.
+              </p>
+            </div>
           </div>
         </section>
       </main>
