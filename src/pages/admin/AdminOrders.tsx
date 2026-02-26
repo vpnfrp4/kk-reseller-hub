@@ -100,6 +100,7 @@ export default function AdminOrders() {
         !q ||
         o.product_name.toLowerCase().includes(q) ||
         o.id.toLowerCase().includes(q) ||
+        (o.order_code && o.order_code.toLowerCase().includes(q)) ||
         o.profile?.name?.toLowerCase().includes(q) ||
         o.profile?.email?.toLowerCase().includes(q) ||
         (o.imei_number && o.imei_number.toLowerCase().includes(q));
@@ -308,7 +309,7 @@ export default function AdminOrders() {
                     onCheckedChange={toggleSelectAll}
                   />
                 </th>
-                <th>Order ID</th>
+                <th>Order Code</th>
                 <th>Product</th>
                 <th>Type</th>
                 <th>User</th>
@@ -340,7 +341,7 @@ export default function AdminOrders() {
                         onCheckedChange={() => toggleSelect(o.id)}
                       />
                     </td>
-                    <td className="p-default text-xs font-mono text-muted-foreground cursor-pointer hover:text-primary" onClick={() => setDetailOrder(o)}>{o.id.slice(0, 8)}…</td>
+                    <td className="p-default text-xs font-mono text-muted-foreground cursor-pointer hover:text-primary" onClick={() => setDetailOrder(o)}>{o.order_code || o.id.slice(0, 8)}</td>
                     <td className="p-default">
                       <p className="text-sm font-medium text-foreground">{o.product_name}</p>
                       {o.imei_number && (

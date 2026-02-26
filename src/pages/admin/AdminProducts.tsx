@@ -947,6 +947,7 @@ export default function AdminProducts() {
               <thead>
                 <tr className="border-b border-border">
                   <th className="w-10 p-4"></th>
+                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Code</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-4">Product</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-4">Type</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-4">Category</th>
@@ -969,6 +970,9 @@ export default function AdminProducts() {
                               className={`border-b border-border/50 transition-colors ${snapshot.isDragging ? "bg-muted/60 shadow-lg" : "hover:bg-muted/30"}`}>
                               <td className="p-4" {...provided.dragHandleProps}>
                                 <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+                              </td>
+                              <td className="p-4">
+                                <span className="text-[10px] font-mono text-muted-foreground">{p.product_code || '—'}</span>
                               </td>
                               <td className="p-4">
                                 <div className="flex items-center gap-3">

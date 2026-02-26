@@ -162,8 +162,8 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-muted-foreground text-xs">Order ID</p>
-                <p className="font-mono text-foreground text-xs">{order.id}</p>
+                <p className="text-muted-foreground text-xs">Order Code</p>
+                <p className="font-mono text-foreground text-xs">{order.order_code || order.id}</p>
               </div>
               <div>
                 <p className="text-muted-foreground text-xs">Status</p>

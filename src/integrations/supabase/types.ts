@@ -162,6 +162,7 @@ export type Database = {
           fulfillment_mode: string
           id: string
           imei_number: string | null
+          order_code: string
           price: number
           product_id: string | null
           product_name: string
@@ -180,6 +181,7 @@ export type Database = {
           fulfillment_mode?: string
           id?: string
           imei_number?: string | null
+          order_code: string
           price: number
           product_id?: string | null
           product_name: string
@@ -198,6 +200,7 @@ export type Database = {
           fulfillment_mode?: string
           id?: string
           imei_number?: string | null
+          order_code?: string
           price?: number
           product_id?: string | null
           product_name?: string
@@ -421,6 +424,7 @@ export type Database = {
           margin_percent: number | null
           name: string
           processing_time: string | null
+          product_code: string
           product_type: string
           provider_id: string | null
           provider_price: number | null
@@ -453,6 +457,7 @@ export type Database = {
           margin_percent?: number | null
           name: string
           processing_time?: string | null
+          product_code: string
           product_type?: string
           provider_id?: string | null
           provider_price?: number | null
@@ -485,6 +490,7 @@ export type Database = {
           margin_percent?: number | null
           name?: string
           processing_time?: string | null
+          product_code?: string
           product_type?: string
           provider_id?: string | null
           provider_price?: number | null
@@ -677,6 +683,7 @@ export type Database = {
         }
         Returns: Json
       }
+      random_alnum4: { Args: never; Returns: string }
       recalculate_usd_prices: { Args: never; Returns: undefined }
     }
     Enums: {
