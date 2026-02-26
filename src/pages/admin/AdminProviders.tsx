@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Pencil, Trash2, ShieldCheck, Star, TrendingUp } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, ShieldCheck, Star, TrendingUp, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -42,6 +42,107 @@ const emptyForm: ProviderForm = {
   commission_percent: 8,
   sort_order: 0,
 };
+
+// Inline editable cell for numeric stats
+function InlineStatCell({
+  value,
+  providerId,
+  field,
+  type = "number",
+  min = 0,
+  max,
+  step = 1,
+  suffix = "",
+  onSaved,
+}: {
+  value: number | null;
+  providerId: string;
+  field: string;
+  type?: string;
+  min?: number;
+  max?: number;
+  step?: number;
+  suffix?: string;
+  onSaved: () => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(String(value ?? 0));
+  const [saving, setSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editing) {
+      setDraft(String(value ?? 0));
+      setTimeout(() => inputRef.current?.select(), 0);
+    }
+  }, [editing, value]);
+
+  const save = async () => {
+    const num = parseFloat(draft);
+    if (isNaN(num) || (max !== undefined && num > max) || num < min) {
+      toast.error(`Invalid value${max !== undefined ? ` (${min}–${max})` : ""}`);
+      return;
+    }
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("imei_providers")
+        .update({ [field]: num })
+        .eq("id", providerId);
+      if (error) throw error;
+      toast.success("Updated");
+      onSaved();
+      setEditing(false);
+    } catch (err: any) {
+      toast.error(err.message || "Update failed");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const cancel = () => setEditing(false);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") save();
+    if (e.key === "Escape") cancel();
+  };
+
+  if (editing) {
+    return (
+      <div className="flex items-center justify-center gap-1">
+        <input
+          ref={inputRef}
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="w-16 h-7 px-1.5 text-center text-xs font-mono bg-muted/30 border border-primary/40 rounded focus:outline-none focus:ring-1 focus:ring-primary/40"
+          disabled={saving}
+        />
+        <button onClick={save} disabled={saving} className="p-0.5 text-primary hover:text-primary/80 transition-colors">
+          <Check className="w-3.5 h-3.5" />
+        </button>
+        <button onClick={cancel} className="p-0.5 text-muted-foreground hover:text-foreground transition-colors">
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => setEditing(true)}
+      className="group/cell cursor-pointer hover:bg-muted/20 rounded px-1.5 py-0.5 -mx-1.5 transition-colors"
+      title="Click to edit"
+    >
+      <span className="font-mono font-semibold">{value ?? "—"}{suffix}</span>
+      <Pencil className="w-2.5 h-2.5 text-muted-foreground/0 group-hover/cell:text-muted-foreground inline ml-1 transition-colors" />
+    </button>
+  );
+}
 
 export default function AdminProviders() {
   const queryClient = useQueryClient();
@@ -249,21 +350,40 @@ export default function AdminProviders() {
                     <td className="px-3 py-3 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                        <span className="font-mono font-semibold">{p.avg_rating || "—"}</span>
+                        <InlineStatCell
+                          value={p.avg_rating}
+                          providerId={p.id}
+                          field="avg_rating"
+                          min={0}
+                          max={5}
+                          step={0.1}
+                          onSaved={() => queryClient.invalidateQueries({ queryKey: ["admin-providers"] })}
+                        />
                       </div>
                     </td>
                     <td className="px-3 py-3 text-center">
-                      <span className={cn(
-                        "font-mono font-semibold",
-                        (p.success_rate || 0) >= 95 ? "text-primary" : (p.success_rate || 0) >= 80 ? "text-amber-500" : "text-destructive"
-                      )}>
-                        {p.success_rate ?? "—"}%
-                      </span>
+                      <InlineStatCell
+                        value={p.success_rate}
+                        providerId={p.id}
+                        field="success_rate"
+                        min={0}
+                        max={100}
+                        step={0.1}
+                        suffix="%"
+                        onSaved={() => queryClient.invalidateQueries({ queryKey: ["admin-providers"] })}
+                      />
                     </td>
                     <td className="px-3 py-3 text-center">
                       <div className="flex items-center justify-center gap-1">
                         <TrendingUp className="w-3 h-3 text-muted-foreground" />
-                        <span className="font-mono">{(p.total_completed || 0).toLocaleString()}</span>
+                        <InlineStatCell
+                          value={p.total_completed}
+                          providerId={p.id}
+                          field="total_completed"
+                          min={0}
+                          step={1}
+                          onSaved={() => queryClient.invalidateQueries({ queryKey: ["admin-providers"] })}
+                        />
                       </div>
                     </td>
                     <td className="px-3 py-3 text-center">
