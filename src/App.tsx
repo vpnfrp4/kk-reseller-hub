@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams, useSearchParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LangProvider } from "@/contexts/LangContext";
 import Login from "./pages/Login";
@@ -65,6 +65,16 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
   return <AdminLayout>{children}</AdminLayout>;
 }
 
+function TopupStatusRedirect() {
+  const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const txId = id || searchParams.get("id") || "";
+  const target = txId
+    ? `/dashboard/wallet/topup-status?id=${txId}`
+    : "/dashboard/wallet/topup-status";
+  return <Navigate to={target} replace />;
+}
+
 function AppRoutes() {
   const { isAuthenticated, loading } = useAuth();
   useRealtimeNotifications();
@@ -93,7 +103,8 @@ function AppRoutes() {
       <Route path="/products" element={<Navigate to="/dashboard/products" replace />} />
       <Route path="/wallet" element={<Navigate to="/dashboard/wallet" replace />} />
       <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
-      <Route path="/dashboard/topup-status/*" element={<Navigate to="/dashboard/wallet/topup-status" replace />} />
+      <Route path="/dashboard/topup-status/:id" element={<TopupStatusRedirect />} />
+      <Route path="/dashboard/topup-status" element={<TopupStatusRedirect />} />
       <Route path="/notifications" element={<Navigate to="/dashboard/notifications" replace />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
       <Route path="/dashboard/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
