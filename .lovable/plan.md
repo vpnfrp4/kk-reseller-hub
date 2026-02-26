@@ -1,30 +1,37 @@
 
 
-## Analysis
+## Plan: Redesign Landing Page with Marketplace Hero
 
-The `imei_providers` table already exists with all required fields (name, avg_rating, success_rate, total_completed, fulfillment_type, commission_percent). The `products` table already has a `provider_id` column. There are 4 providers in the DB but no products are linked (all `provider_id` = null).
+### 1. Redesign Hero Section
+Replace the current generic hero with a marketplace-focused hero:
+- New headline: "Compare & Buy IMEI Unlock Services Instantly"
+- Subtitle emphasizing price comparison and multi-provider marketplace
+- Search-style CTA area with a visual "search by IMEI" input mockup leading to `/login`
+- Animated badge: "32 Services · 3 Categories · 4 Verified Providers"
 
-The issue is purely in the frontend: `ProductCard.tsx` uses hardcoded mock data (`rating 4.8`, `success 98%`, `completed 1200`) instead of fetching real provider data.
+### 2. Add Live Stats Section
+New section below hero with animated stat counters fetched from the database:
+- Total products available (from `products` table count)
+- Active providers (from `imei_providers` table count)
+- Average success rate (from `imei_providers` avg)
+- Orders processed (from `orders` table count)
+- Use the existing `useCountUp` hook for animated number transitions
+- Stats displayed in a 4-column grid with icons and labels
 
-## Plan
+### 3. Add Comparison Benefits Table
+New visible section replacing the hidden "Why Choose Us" block:
+- Side-by-side comparison table: "KKTech vs Traditional Unlock Sites"
+- Rows: Pricing Model, Provider Selection, Success Rate Visibility, Bulk Ordering, Delivery Tracking, Payment Methods
+- KKTech column shows green checkmarks with specific benefits
+- Competitors column shows red X or generic descriptions
+- Styled as a glassmorphism card matching the design system
 
-### 1. Create a default "KKTech" provider for non-IMEI products
-Insert a new provider row for "KKTech" (the platform itself) to represent digital/manual product fulfillment, so all products can be linked.
-
-### 2. Fetch providers alongside products in ProductsPage
-Update the products query in `ProductsPage.tsx` to also fetch `imei_providers` data, then pass provider info to each `ProductCard`.
-
-### 3. Update ProductCard to use real provider data
-- Add `provider` prop to `ProductCardProps` with fields: `name`, `avg_rating`, `success_rate`, `total_completed`, `is_verified`, `fulfillment_type`
-- Replace the hardcoded `providerName`, `successRate`, `providerRating`, `completedOrders` with values from the prop
-- Fall back gracefully when no provider is linked (show "—" for stats)
-
-### 4. Update ProductDetailPage and PriceComparisonTable
-These components also reference provider data — ensure they use the same real provider lookup pattern.
+### 4. Keep Existing Sections
+Retain services grid, how-it-works steps, FAQ, SEO blocks, footer, and floating contact button unchanged.
 
 ### Technical Details
-- No schema changes needed — `imei_providers` and `products.provider_id` already exist
-- Data insert: one new "KKTech" provider row via the insert tool
-- Files modified: `ProductsPage.tsx`, `ProductCard.tsx`, `ProductDetailPage.tsx`
-- The `PriceComparisonTable.tsx` already fetches real provider data correctly
+- **File modified**: `src/pages/LandingPage.tsx` — hero rewrite (lines 223-286), new stats section insertion, replace hidden "Why Choose Us" with visible comparison table
+- **Database queries**: 3 lightweight count/avg queries via `@tanstack/react-query` + supabase client (products count, providers count/avg, orders count)
+- **Hooks used**: existing `useCountUp` for stat animations
+- **No new dependencies** required
 
