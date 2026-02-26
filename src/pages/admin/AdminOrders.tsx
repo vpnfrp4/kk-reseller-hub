@@ -119,17 +119,18 @@ export default function AdminOrders() {
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: newStatus })
-      .eq("id", orderId);
-    setUpdatingId(null);
-
-    if (error) {
-      toast.error("Failed to update status");
-    } else {
+    try {
+      const { data, error } = await supabase.functions.invoke("update-order-status", {
+        body: { order_id: orderId, status: newStatus },
+      });
+      if (error) throw new Error(error.message);
+      if (data && !data.success) throw new Error(data.error || "Update failed");
       toast.success(`Order status updated to ${newStatus}`);
       queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update status");
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -137,19 +138,26 @@ export default function AdminOrders() {
     if (selectedIds.size === 0) return;
     setBulkUpdating(true);
     const ids = Array.from(selectedIds);
-    const { error } = await supabase
-      .from("orders")
-      .update({ status: newStatus })
-      .in("id", ids);
+    let failCount = 0;
+    for (const id of ids) {
+      try {
+        const { data, error } = await supabase.functions.invoke("update-order-status", {
+          body: { order_id: id, status: newStatus },
+        });
+        if (error || (data && !data.success)) failCount++;
+      } catch {
+        failCount++;
+      }
+    }
     setBulkUpdating(false);
 
-    if (error) {
-      toast.error("Failed to update orders");
+    if (failCount > 0) {
+      toast.error(`${failCount} of ${ids.length} order(s) failed to update`);
     } else {
       toast.success(`${ids.length} order(s) updated to ${newStatus}`);
-      setSelectedIds(new Set());
-      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
     }
+    setSelectedIds(new Set());
+    queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
   };
 
   const toggleSelect = (id: string) => {

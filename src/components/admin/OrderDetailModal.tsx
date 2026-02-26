@@ -393,28 +393,23 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
                 onClick={async () => {
                   setUpdating(true);
                   try {
-                    const updatePayload: any = { status: isImeiOrder ? "completed" : "delivered" };
+                    const newStatus = isImeiOrder ? "completed" : "delivered";
+                    const payload: Record<string, unknown> = {
+                      order_id: order.id,
+                      status: newStatus,
+                    };
                     if (credentialsInput.trim()) {
-                      updatePayload.credentials = credentialsInput.trim();
+                      payload.credentials = credentialsInput.trim();
                     }
                     if (resultInput.trim()) {
-                      updatePayload.result = resultInput.trim();
+                      payload.result = resultInput.trim();
                     }
-                    const { error } = await supabase
-                      .from("orders")
-                      .update(updatePayload)
-                      .eq("id", order.id);
-                    if (error) throw error;
 
-                    // Notify the reseller
-                    const deliveredCreds = credentialsInput.trim() || order.credentials;
-                    await supabase.from("notifications").insert({
-                      user_id: order.user_id,
-                      title: isImeiOrder ? "✅ IMEI Order Completed" : "✅ Order Delivered",
-                      body: `Your order for ${order.product_name} has been fulfilled.${deliveredCreds ? " Check your order for credentials." : ""}`,
-                      type: "order",
-                      link: "/orders",
+                    const { data, error } = await supabase.functions.invoke("update-order-status", {
+                      body: payload,
                     });
+                    if (error) throw new Error(error.message);
+                    if (data && !data.success) throw new Error(data.error || "Update failed");
 
                     toast.success(isImeiOrder ? "Order marked as completed" : "Order marked as delivered");
                     queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
