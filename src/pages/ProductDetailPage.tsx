@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import {
   AlertTriangle,
   ChevronDown,
+  Star,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -19,6 +21,7 @@ import TopUpDialog from "@/components/wallet/TopUpDialog";
 import { cn } from "@/lib/utils";
 import FulfillmentModeSelector from "@/components/products/FulfillmentModeSelector";
 import { t, useT } from "@/lib/i18n";
+import ReviewModal from "@/components/marketplace/ReviewModal";
 
 interface PurchaseResult {
   order_id: string;
@@ -50,6 +53,7 @@ export default function ProductDetailPage() {
   const [selectedMode, setSelectedMode] = useState<string>("instant");
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   const SPEC_ITEMS = [
     { label: "Activation", value: t.detailExtra.activation },
@@ -105,6 +109,56 @@ export default function ProductDetailPage() {
       return (data || []) as any[];
     },
     enabled: !!id,
+  });
+
+  // Reviews for this product's provider
+  const { data: reviews = [] } = useQuery({
+    queryKey: ["order-reviews", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("order_reviews")
+        .select("id, rating, comment, created_at, user_id")
+        .in("order_id", 
+          (await supabase.from("orders").select("id").eq("product_id", id!).in("status", ["completed", "delivered"])).data?.map((o: any) => o.id) || []
+        )
+        .order("created_at", { ascending: false })
+        .limit(10);
+      return (data || []) as any[];
+    },
+    enabled: !!id,
+  });
+
+  // Check if user has a completed order for this product (eligible to review)
+  const { data: userCompletedOrder } = useQuery({
+    queryKey: ["user-completed-order", id, user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("id")
+        .eq("product_id", id!)
+        .eq("user_id", user!.id)
+        .in("status", ["completed", "delivered"])
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!id && !!user,
+  });
+
+  // Check if user already reviewed
+  const { data: existingReview } = useQuery({
+    queryKey: ["user-review-check", id, user?.id],
+    queryFn: async () => {
+      if (!userCompletedOrder) return null;
+      const { data } = await supabase
+        .from("order_reviews")
+        .select("id")
+        .eq("order_id", userCompletedOrder.id)
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!userCompletedOrder && !!user,
   });
 
   const mapErrorMessage = (msg: string): string => {
@@ -556,6 +610,77 @@ export default function ProductDetailPage() {
         <StructuredDescription description={product.description} />
       )}
 
+      {/* ═══ REVIEWS & RATINGS ═══ */}
+      <section className="glass-card p-5 md:p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">
+              Reviews & Ratings
+            </p>
+            {reviews.length > 0 && (
+              <p className="text-xs text-muted-foreground mt-1">
+                {reviews.length} review{reviews.length !== 1 ? "s" : ""}
+              </p>
+            )}
+          </div>
+          {user && userCompletedOrder && !existingReview && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setReviewOpen(true)}
+              className="gap-1.5 text-xs"
+            >
+              <Star className="h-3.5 w-3.5" />
+              Write Review
+            </Button>
+          )}
+        </div>
+
+        {reviews.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 py-6">
+            <MessageSquare className="h-8 w-8 text-muted-foreground/30" strokeWidth={1.5} />
+            <p className="text-sm text-muted-foreground">No reviews yet</p>
+            {user && userCompletedOrder && !existingReview && (
+              <p className="text-xs text-muted-foreground">Be the first to leave a review!</p>
+            )}
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {reviews.map((review: any) => (
+              <div key={review.id} className="rounded-xl border border-border/30 bg-muted/20 p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={cn(
+                          "h-3.5 w-3.5",
+                          star <= review.rating
+                            ? "text-amber-400 fill-amber-400"
+                            : "text-muted-foreground/20"
+                        )}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[10px] text-muted-foreground">
+                    {new Date(review.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                {review.comment && (
+                  <p className="text-sm text-foreground/80 leading-relaxed">{review.comment}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {existingReview && (
+          <p className="text-xs text-muted-foreground text-center pt-2">
+            ✓ You've already reviewed this product
+          </p>
+        )}
+      </section>
+
       {/* ═══ PRICE COMPARISON ═══ */}
       <PriceComparisonTable category={product.category} excludeProductId={product.id} />
 
@@ -591,6 +716,17 @@ export default function ProductDetailPage() {
         hideTrigger
         onSubmitted={(txId) => navigate(`/dashboard/topup-status/${txId}`)}
       />
+
+      {userCompletedOrder && user && (
+        <ReviewModal
+          open={reviewOpen}
+          onOpenChange={setReviewOpen}
+          orderId={userCompletedOrder.id}
+          productName={product.name}
+          userId={user.id}
+          providerId={provider?.id}
+        />
+      )}
     </div>
   );
 }
