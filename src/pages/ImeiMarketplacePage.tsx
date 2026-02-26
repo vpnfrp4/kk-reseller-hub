@@ -35,6 +35,7 @@ interface ImeiService {
   country: string;
   processing_time: string;
   price: number;
+  final_price: number;
   fulfillment_mode: string;
   status: string;
 }
@@ -99,8 +100,8 @@ export default function ImeiMarketplacePage() {
     if (countryFilter !== "all") result = result.filter((s) => s.country === countryFilter);
     if (carrierFilter !== "all") result = result.filter((s) => s.carrier === carrierFilter);
 
-    if (sortBy === "price_asc") result = [...result].sort((a, b) => a.price - b.price);
-    else if (sortBy === "price_desc") result = [...result].sort((a, b) => b.price - a.price);
+    if (sortBy === "price_asc") result = [...result].sort((a, b) => (a.final_price || a.price) - (b.final_price || b.price));
+    else if (sortBy === "price_desc") result = [...result].sort((a, b) => (b.final_price || b.price) - (a.final_price || a.price));
     else result = [...result].sort((a, b) => a.service_name.localeCompare(b.service_name));
 
     return result;
@@ -291,7 +292,7 @@ export default function ImeiMarketplacePage() {
                       </td>
                       <td className="p-default text-right">
                         <Money
-                          amount={service.price}
+                          amount={service.final_price || service.price}
                           className="text-lg font-bold text-primary drop-shadow-[0_0_4px_hsl(var(--primary)/0.3)]"
                         />
                       </td>
@@ -324,7 +325,7 @@ export default function ImeiMarketplacePage() {
                       </p>
                     </div>
                     <Money
-                      amount={service.price}
+                      amount={service.final_price || service.price}
                       className="text-base font-bold text-primary shrink-0"
                     />
                   </div>

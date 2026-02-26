@@ -33,6 +33,7 @@ interface ImeiService {
   country: string;
   processing_time: string;
   price: number;
+  final_price?: number;
 }
 
 interface Props {
@@ -50,8 +51,9 @@ export default function ImeiOrderModal({ service, onClose }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState<{ order_id: string } | null>(null);
 
+  const displayPrice = service.final_price || service.price;
   const balance = profile?.balance || 0;
-  const insufficientBalance = balance < service.price;
+  const insufficientBalance = balance < displayPrice;
 
   const validateImei = (value: string): boolean => {
     const cleaned = value.replace(/[\s\-]/g, "");
@@ -132,7 +134,7 @@ export default function ImeiOrderModal({ service, onClose }: Props) {
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Amount</span>
-                <Money amount={service.price} className="font-bold text-primary" />
+                <Money amount={displayPrice} className="font-bold text-primary" />
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Est. Time</span>
@@ -184,7 +186,7 @@ export default function ImeiOrderModal({ service, onClose }: Props) {
                 </div>
                 <div className="border-t border-border pt-2 flex justify-between text-sm">
                   <span className="font-semibold">Price</span>
-                  <Money amount={service.price} className="text-lg font-bold text-primary" />
+                  <Money amount={displayPrice} className="text-lg font-bold text-primary" />
                 </div>
               </div>
 
@@ -199,8 +201,8 @@ export default function ImeiOrderModal({ service, onClose }: Props) {
                   Balance: <strong className="font-mono">{balance.toLocaleString()} MMK</strong>
                 </span>
                 {insufficientBalance && (
-                  <span className="ml-auto text-xs font-semibold">
-                    Need {(service.price - balance).toLocaleString()} more
+                   <span className="ml-auto text-xs font-semibold">
+                     Need {(displayPrice - balance).toLocaleString()} more
                   </span>
                 )}
               </div>
