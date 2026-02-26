@@ -14,9 +14,10 @@ interface ReviewModalProps {
   orderId: string;
   productName: string;
   userId: string;
+  providerId?: string | null;
 }
 
-export default function ReviewModal({ open, onOpenChange, orderId, productName, userId }: ReviewModalProps) {
+export default function ReviewModal({ open, onOpenChange, orderId, productName, userId, providerId }: ReviewModalProps) {
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -35,6 +36,7 @@ export default function ReviewModal({ open, onOpenChange, orderId, productName, 
         user_id: userId,
         rating,
         comment: comment.trim(),
+        ...(providerId ? { provider_id: providerId } : {}),
       } as any);
       if (error) {
         if (error.code === "23505") {
@@ -46,7 +48,9 @@ export default function ReviewModal({ open, onOpenChange, orderId, productName, 
       }
       toast.success("Review submitted — thank you!");
       queryClient.invalidateQueries({ queryKey: ["order-reviews"] });
+      queryClient.invalidateQueries({ queryKey: ["user-review-check"] });
       queryClient.invalidateQueries({ queryKey: ["providers"] });
+      queryClient.invalidateQueries({ queryKey: ["product"] });
       onOpenChange(false);
       setRating(0);
       setComment("");
