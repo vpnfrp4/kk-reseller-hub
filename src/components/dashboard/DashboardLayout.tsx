@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   ArrowLeftRight,
   Bell,
+  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -26,6 +27,7 @@ const navItems = [
   { mm: t.nav.wallet.mm, en: t.nav.wallet.en, icon: Wallet, path: "/dashboard/wallet" },
   { mm: t.nav.products.mm, en: t.nav.products.en, icon: ShoppingBag, path: "/dashboard/products" },
   { mm: t.nav.orders.mm, en: t.nav.orders.en, icon: ClipboardList, path: "/dashboard/orders" },
+  { mm: "IMEI Services", en: "IMEI Services", icon: Smartphone, path: "/dashboard/imei-orders" },
   { mm: t.nav.notifications.mm, en: t.nav.notifications.en, icon: Bell, path: "/dashboard/notifications" },
   { mm: t.nav.settings.mm, en: t.nav.settings.en, icon: Settings, path: "/dashboard/settings" },
 ];

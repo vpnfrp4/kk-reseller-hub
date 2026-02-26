@@ -16,6 +16,7 @@ import {
   ArrowLeftRight,
   X,
   Settings,
+  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
@@ -27,6 +28,8 @@ const navItems = [
   { label: "Overview", icon: LayoutDashboard, path: "/admin" },
   { label: "Products", icon: Package, path: "/admin/products" },
   { label: "Credentials", icon: KeyRound, path: "/admin/credentials" },
+  { label: "IMEI Services", icon: Smartphone, path: "/admin/imei-services" },
+  { label: "IMEI Orders", icon: Smartphone, path: "/admin/imei-orders" },
   { label: "Top-ups", icon: Wallet, path: "/admin/topups" },
   { label: "Orders", icon: ShoppingCart, path: "/admin/orders" },
   { label: "Resellers", icon: Users, path: "/admin/resellers" },
