@@ -20,6 +20,7 @@ import {
   ShieldCheck,
   AlertTriangle,
   Loader2,
+  MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -57,8 +58,8 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 function StatusBadge({ status }: { status: string }) {
   const l = useT();
   const label = statusLabel(status);
-  const isSuccess = ["delivered", "approved"].includes(status);
-  const isPending = ["pending", "pending_creation", "pending_review"].includes(status);
+  const isSuccess = ["delivered", "approved", "completed"].includes(status);
+  const isPending = ["pending", "pending_creation", "pending_review", "processing"].includes(status);
   const isFailed = ["rejected", "cancelled"].includes(status);
 
   return (
@@ -74,6 +75,22 @@ function StatusBadge({ status }: { status: string }) {
       {isPending && <Clock className="w-3 h-3" />}
       {isFailed && <AlertTriangle className="w-3 h-3" />}
       {l(label)}
+    </span>
+  );
+}
+
+/* ── Product Type Badge ── */
+function ProductTypeBadge({ type }: { type: string | null }) {
+  const map: Record<string, { label: string; style: string }> = {
+    digital: { label: "Digital", style: "bg-blue-500/10 text-blue-500" },
+    imei: { label: "IMEI", style: "bg-warning/10 text-warning" },
+    manual: { label: "Manual", style: "bg-purple-500/10 text-purple-500" },
+    api: { label: "API", style: "bg-success/10 text-success" },
+  };
+  const s = map[type || "digital"] || map.digital;
+  return (
+    <span className={`inline-flex items-center text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${s.style}`}>
+      {s.label}
     </span>
   );
 }
@@ -208,18 +225,25 @@ export default function OrderDetailPage() {
     setTimeout(() => setCopiedField(null), 2000);
   };
 
-  const isDelivered = order?.status === "delivered";
-  const isPending = ["pending", "pending_creation", "pending_review"].includes(
+  const isImei = order?.product_type === "imei";
+  const isDelivered = ["delivered", "completed"].includes(order?.status || "");
+  const isPending = ["pending", "pending_creation", "pending_review", "processing"].includes(
     order?.status || "",
   );
 
-  // Parse credentials into lines
+  // For IMEI completed orders, show result; otherwise show credentials
+  const deliveryContent = useMemo(() => {
+    if (isImei && order?.result) return order.result;
+    return order?.credentials || "";
+  }, [order, isImei]);
+
+  // Parse delivery content into lines
   const credentialLines = useMemo(() => {
-    if (!order?.credentials) return [];
-    return order.credentials
+    if (!deliveryContent) return [];
+    return deliveryContent
       .split("\n")
       .filter((line: string) => line.trim().length > 0);
-  }, [order?.credentials]);
+  }, [deliveryContent]);
 
   // Fulfillment mode display
   const fulfillmentDisplay = useMemo(() => {
@@ -236,7 +260,7 @@ export default function OrderDetailPage() {
   // Timeline steps
   const timelineSteps: TimelineStepData[] = useMemo(() => {
     const ordered = order?.created_at || null;
-    return [
+    const baseSteps: TimelineStepData[] = [
       {
         label: t.orderDetail.timelineOrdered,
         timestamp: ordered,
@@ -249,14 +273,27 @@ export default function OrderDetailPage() {
         isDone: isDelivered,
         isActive: isPending,
       },
-      {
-        label: t.orderDetail.timelineCompleted,
-        timestamp: isDelivered ? ordered : null,
-        isDone: isDelivered,
-        isActive: false,
-      },
     ];
-  }, [order, isDelivered, isPending]);
+
+    // IMEI orders get an extra "Result Ready" step
+    if (isImei) {
+      baseSteps.push({
+        label: { mm: "ရလဒ်ရပြီ", en: "Result Ready" },
+        timestamp: isDelivered && order?.result ? order.completed_at || ordered : null,
+        isDone: isDelivered && !!order?.result,
+        isActive: false,
+      });
+    }
+
+    baseSteps.push({
+      label: t.orderDetail.timelineCompleted,
+      timestamp: isDelivered ? (order?.completed_at || ordered) : null,
+      isDone: isDelivered,
+      isActive: false,
+    });
+
+    return baseSteps;
+  }, [order, isDelivered, isPending, isImei]);
 
   // Activity log entries
   const activityLog = useMemo(() => {
@@ -277,7 +314,7 @@ export default function OrderDetailPage() {
       });
       entries.push({
         label: t.orderDetail.logCompleted,
-        time: order.created_at,
+        time: order.completed_at || order.created_at,
       });
     }
     return entries;
@@ -291,6 +328,7 @@ export default function OrderDetailPage() {
       `──────────────────────────────`,
       `Order ID: ${order.id}`,
       `Product: ${order.product_name}`,
+      `Type: ${order.product_type || "digital"}`,
       `Date: ${format(new Date(order.created_at), "PPP 'at' HH:mm")}`,
       `Status: ${order.status}`,
       `Fulfillment: ${order.fulfillment_mode}`,
@@ -298,11 +336,11 @@ export default function OrderDetailPage() {
       `Total Paid: ${order.price.toLocaleString()} MMK`,
       `Payment Method: Wallet`,
       `──────────────────────────────`,
-      `Credentials:`,
-      order.credentials,
+      isImei && order.imei_number ? `IMEI Number: ${order.imei_number}` : "",
+      isImei && order.result ? `Result:\n${order.result}` : `Credentials:\n${order.credentials}`,
       `──────────────────────────────`,
       `Generated at ${new Date().toISOString()}`,
-    ];
+    ].filter(Boolean);
     const blob = new Blob([lines.join("\n")], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -399,6 +437,7 @@ export default function OrderDetailPage() {
                 </h1>
                 <div className="flex flex-wrap items-center gap-3">
                   <StatusBadge status={order.status} />
+                  <ProductTypeBadge type={order.product_type} />
                   <span className="text-xs text-muted-foreground font-mono">
                     {order.id.slice(0, 8)}...
                   </span>
@@ -451,6 +490,10 @@ export default function OrderDetailPage() {
                 value={order.product_name}
               />
               <DetailRow
+                label="Product Type"
+                value={<ProductTypeBadge type={order.product_type} />}
+              />
+              <DetailRow
                 label={l(t.orderDetail.fulfillmentMode)}
                 value={l(fulfillmentDisplay)}
               />
@@ -462,6 +505,13 @@ export default function OrderDetailPage() {
                 label={l(t.orderDetail.requestedOn)}
                 value={format(new Date(order.created_at), "PPP")}
               />
+              {order.imei_number && (
+                <DetailRow
+                  label="IMEI Number"
+                  value={order.imei_number}
+                  mono
+                />
+              )}
               {order.custom_fields_data &&
                 typeof order.custom_fields_data === "object" &&
                 Object.entries(
@@ -503,7 +553,9 @@ export default function OrderDetailPage() {
             credentialLines[0] !== "Pending manual fulfillment" && (
               <GlassSection>
                 <div className="flex items-center justify-between mb-5">
-                  <SectionLabel>{l(t.orderDetail.deliveryResult)}</SectionLabel>
+                  <SectionLabel>
+                    {isImei ? "IMEI Result" : l(t.orderDetail.deliveryResult)}
+                  </SectionLabel>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -554,7 +606,7 @@ export default function OrderDetailPage() {
                   size="sm"
                   className="mt-4 btn-glass gap-1.5 text-xs w-full sm:w-auto"
                   onClick={() => {
-                    handleCopy(order.credentials, "all-creds");
+                    handleCopy(deliveryContent, "all-creds");
                     toast.success(l(t.orderDetail.copied));
                   }}
                 >
@@ -567,6 +619,19 @@ export default function OrderDetailPage() {
                 </Button>
               </GlassSection>
             )}
+
+          {/* ═══ 5b. ADMIN NOTES ═══ */}
+          {order.admin_notes && (
+            <GlassSection>
+              <div className="flex items-start gap-3">
+                <MessageSquare className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Admin Notes</h4>
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{order.admin_notes}</p>
+                </div>
+              </div>
+            </GlassSection>
+          )}
 
           {/* ═══ 6. ACTIVITY LOG ═══ */}
           <GlassSection>

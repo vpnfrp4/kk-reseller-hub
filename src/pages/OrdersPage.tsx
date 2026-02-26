@@ -19,6 +19,22 @@ import MmLabel, { MmStatus, MmInline } from "@/components/shared/MmLabel";
 
 const PAGE_SIZE = 10;
 
+/* ── Product Type Badge ── */
+function ProductTypeBadge({ type }: { type: string | null }) {
+  const map: Record<string, { label: string; style: string }> = {
+    digital: { label: "Digital", style: "bg-blue-500/10 text-blue-500" },
+    imei: { label: "IMEI", style: "bg-warning/10 text-warning" },
+    manual: { label: "Manual", style: "bg-purple-500/10 text-purple-500" },
+    api: { label: "API", style: "bg-success/10 text-success" },
+  };
+  const s = map[type || "digital"] || map.digital;
+  return (
+    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${s.style}`}>
+      {s.label}
+    </span>
+  );
+}
+
 export default function OrdersPage() {
   const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -83,11 +99,12 @@ export default function OrdersPage() {
       toast.error(l(t.orders.noExportData));
       return;
     }
-    const headers = ["Order ID", "Product", "Credentials", "Price (MMK)", "Date", "Status"];
+    const headers = ["Order ID", "Product", "Type", "Credentials", "Price (MMK)", "Date", "Status"];
     const rows = allOrders.map((o: any) => [
       o.id,
       o.product_name,
-      `"${o.credentials.replace(/"/g, '""')}"`,
+      o.product_type || "digital",
+      `"${(o.credentials || "").replace(/"/g, '""')}"`,
       o.price,
       new Date(o.created_at).toLocaleDateString(),
       o.status,
@@ -113,6 +130,44 @@ export default function OrdersPage() {
 
   const hasFilters = search || status !== "all" || dateFrom || dateTo;
 
+  /* ── Credentials cell renderer ── */
+  const renderCredentials = (row: any) => {
+    const pType = row.product_type || "digital";
+    // IMEI orders: show IMEI number
+    if (pType === "imei" && row.imei_number) {
+      return (
+        <code className="text-xs font-mono text-warning bg-warning/5 border border-warning/10 px-2.5 py-1 rounded-[var(--radius-btn)] truncate max-w-[200px]">
+          IMEI: {row.imei_number}
+        </code>
+      );
+    }
+    // Pending manual/api orders without credentials
+    if ((pType === "manual" || pType === "api") && (!row.credentials || row.credentials === "Pending manual fulfillment")) {
+      return (
+        <span className="text-xs text-muted-foreground italic">Pending</span>
+      );
+    }
+    // Standard credentials
+    if (!row.credentials) return <span className="text-xs text-muted-foreground italic">—</span>;
+    return (
+      <div className="flex items-center gap-2">
+        <code className="text-xs font-mono text-primary bg-primary/5 border border-primary/10 px-2.5 py-1 rounded-[var(--radius-btn)] truncate max-w-[200px]">
+          {row.credentials}
+        </code>
+        <button
+          onClick={(e) => { e.stopPropagation(); copyCredentials(row.id, row.credentials); }}
+          className="text-muted-foreground hover:text-primary transition-colors duration-200"
+        >
+          {copiedId === row.id ? (
+            <CheckCircle2 className="w-4 h-4 text-primary" />
+          ) : (
+            <Copy className="w-4 h-4" />
+          )}
+        </button>
+      </div>
+    );
+  };
+
   const columns: Column<any>[] = [
     {
       key: "id",
@@ -126,25 +181,15 @@ export default function OrdersPage() {
       priority: true,
     },
     {
+      key: "product_type",
+      label: "Type",
+      hideOnMobile: true,
+      render: (row) => <ProductTypeBadge type={row.product_type} />,
+    },
+    {
       key: "credentials",
       label: l(t.orders.credentials),
-      render: (row) => (
-        <div className="flex items-center gap-2">
-          <code className="text-xs font-mono text-primary bg-primary/5 border border-primary/10 px-2.5 py-1 rounded-[var(--radius-btn)] truncate max-w-[200px]">
-            {row.credentials}
-          </code>
-          <button
-            onClick={(e) => { e.stopPropagation(); copyCredentials(row.id, row.credentials); }}
-            className="text-muted-foreground hover:text-primary transition-colors duration-200"
-          >
-            {copiedId === row.id ? (
-              <CheckCircle2 className="w-4 h-4 text-primary" />
-            ) : (
-              <Copy className="w-4 h-4" />
-            )}
-          </button>
-        </div>
-      ),
+      render: renderCredentials,
     },
     {
       key: "price",
@@ -235,6 +280,10 @@ export default function OrdersPage() {
                 <SelectItem value="all">{l(t.products.all)}</SelectItem>
                 <SelectItem value="delivered">{l(t.status.delivered)}</SelectItem>
                 <SelectItem value="pending">{l(t.status.pending)}</SelectItem>
+                <SelectItem value="processing">Processing</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+                <SelectItem value="pending_review">Pending Review</SelectItem>
               </SelectContent>
             </Select>
           </div>
