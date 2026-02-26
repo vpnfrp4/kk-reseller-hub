@@ -101,9 +101,9 @@ export default function OrdersPage() {
       toast.error(l(t.orders.noExportData));
       return;
     }
-    const headers = ["Order ID", "Product", "Type", "Credentials", "Price (MMK)", "Date", "Status"];
+    const headers = ["Order Code", "Product", "Type", "Credentials", "Price (MMK)", "Date", "Status"];
     const rows = allOrders.map((o: any) => [
-      o.id,
+      o.order_code || o.id,
       o.product_name,
       o.product_type || "digital",
       `"${(o.credentials || "").replace(/"/g, '""')}"`,
@@ -173,10 +173,10 @@ export default function OrdersPage() {
 
   const columns: Column<any>[] = [
     {
-      key: "id",
+      key: "order_code",
       label: l(t.orders.orderId),
       hideOnMobile: true,
-      render: (row) => <span className="font-mono text-muted-foreground text-xs">{row.id.slice(0, 8)}</span>,
+      render: (row) => <span className="font-mono text-muted-foreground text-xs">{row.order_code || row.id.slice(0, 8)}</span>,
     },
     {
       key: "product_name",

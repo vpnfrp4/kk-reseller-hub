@@ -326,7 +326,7 @@ export default function OrderDetailPage() {
     const lines = [
       `INVOICE — KKTech Reseller Platform`,
       `──────────────────────────────`,
-      `Order ID: ${order.id}`,
+      `Order Code: ${(order as any).order_code || order.id}`,
       `Product: ${order.product_name}`,
       `Type: ${order.product_type || "digital"}`,
       `Date: ${format(new Date(order.created_at), "PPP 'at' HH:mm")}`,
@@ -345,7 +345,7 @@ export default function OrderDetailPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `invoice-${order.id.slice(0, 8)}.txt`;
+    a.download = `invoice-${(order as any).order_code || order.id.slice(0, 8)}.txt`;
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Invoice downloaded");
@@ -439,7 +439,7 @@ export default function OrderDetailPage() {
                   <StatusBadge status={order.status} />
                   <ProductTypeBadge type={order.product_type} />
                   <span className="text-xs text-muted-foreground font-mono">
-                    {order.id.slice(0, 8)}...
+                    {(order as any).order_code || order.id.slice(0, 8)}
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground">
@@ -452,7 +452,7 @@ export default function OrderDetailPage() {
                   size="sm"
                   className="btn-glass gap-1.5 text-xs"
                   onClick={() => {
-                    handleCopy(order.id, "order-id");
+                    handleCopy((order as any).order_code || order.id, "order-id");
                     toast.success(l(t.orderDetail.copiedId));
                   }}
                 >
