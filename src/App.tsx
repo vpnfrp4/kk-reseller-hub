@@ -36,6 +36,9 @@ import ImeiUnlockPage from "./pages/services/ImeiUnlockPage";
 import VpnKeysPage from "./pages/services/VpnKeysPage";
 import CapcutProPage from "./pages/services/CapcutProPage";
 import InstallPage from "./pages/InstallPage";
+import BlogListPage from "./pages/BlogListPage";
+import BlogPostPage from "./pages/BlogPostPage";
+import AdminBlog from "./pages/admin/AdminBlog";
 import NotFound from "./pages/NotFound";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 
@@ -99,6 +102,8 @@ function AppRoutes() {
       <Route path="/services/imei-unlock" element={<ImeiUnlockPage />} />
       <Route path="/services/vpn-keys" element={<VpnKeysPage />} />
       <Route path="/services/capcut-pro" element={<CapcutProPage />} />
+      <Route path="/blog" element={<BlogListPage />} />
+      <Route path="/blog/:slug" element={<BlogPostPage />} />
       <Route path="/orders" element={<Navigate to="/dashboard/orders" replace />} />
       <Route path="/products" element={<Navigate to="/dashboard/products" replace />} />
       <Route path="/wallet" element={<Navigate to="/dashboard/wallet" replace />} />
@@ -124,6 +129,7 @@ function AppRoutes() {
         <Route path="/admin/resellers" element={<AdminRoute><AdminResellers /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
         <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+        <Route path="/admin/blog" element={<AdminRoute><AdminBlog /></AdminRoute>} />
         <Route path="*" element={<NotFound />} />
     </Routes>
   );

@@ -10,6 +10,7 @@ const staticPages = [
   { path: "/services/capcut-pro", priority: "0.9", changefreq: "weekly" },
   { path: "/tools/imei-check", priority: "0.8", changefreq: "monthly" },
   { path: "/dashboard/products", priority: "0.8", changefreq: "daily" },
+  { path: "/blog", priority: "0.8", changefreq: "daily" },
   { path: "/terms", priority: "0.3", changefreq: "yearly" },
 ];
 
@@ -43,10 +44,25 @@ Deno.serve(async () => {
     changefreq: "weekly",
   }));
 
+  // Fetch published blog posts
+  const { data: blogPosts } = await supabase
+    .from("blog_posts")
+    .select("slug, published_at, created_at")
+    .eq("is_published", true)
+    .order("published_at", { ascending: false });
+
+  const blogPages = (blogPosts || []).map((p: any) => ({
+    path: `/blog/${p.slug}`,
+    priority: "0.7",
+    changefreq: "weekly",
+    lastmod: (p.published_at || p.created_at)?.split("T")[0] || today,
+  }));
+
   const allPages = [
     ...staticPages.map((p) => ({ ...p, lastmod: today })),
     ...productPages,
     ...categoryPages.map((p) => ({ ...p, lastmod: today })),
+    ...blogPages,
   ];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>

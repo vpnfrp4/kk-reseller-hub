@@ -288,6 +288,7 @@ export default function LandingPage() {
             <Link to="/services/vpn-keys" className="transition-colors hover:text-foreground">VPN Keys</Link>
             <Link to="/services/capcut-pro" className="transition-colors hover:text-foreground">CapCut Pro</Link>
             <Link to="/tools/imei-check" className="transition-colors hover:text-foreground">IMEI Checker</Link>
+            <Link to="/blog" className="transition-colors hover:text-foreground">Blog</Link>
           </nav>
           <div className="flex items-center gap-3">
             <ThemeToggle />
