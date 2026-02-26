@@ -45,12 +45,23 @@ export default function ImeiOrdersPage() {
     queryKey: ["imei-orders", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("imei_orders")
-        .select("*, imei_services(service_name, brand, carrier, country, processing_time)")
+        .from("orders")
+        .select("*")
         .eq("user_id", user!.id)
+        .eq("product_type", "imei")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      // Map to legacy shape for compatibility
+      return (data || []).map((o: any) => ({
+        ...o,
+        imei_services: {
+          service_name: o.product_name,
+          brand: "",
+          carrier: "",
+          country: "",
+          processing_time: "",
+        },
+      }));
     },
     enabled: !!user,
   });

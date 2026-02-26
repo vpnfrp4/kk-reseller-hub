@@ -34,9 +34,6 @@ import ImeiUnlockPage from "./pages/services/ImeiUnlockPage";
 import VpnKeysPage from "./pages/services/VpnKeysPage";
 import CapcutProPage from "./pages/services/CapcutProPage";
 import InstallPage from "./pages/InstallPage";
-import AdminImeiServices from "./pages/admin/AdminImeiServices";
-import AdminImeiOrders from "./pages/admin/AdminImeiOrders";
-import AdminImeiLookups from "./pages/admin/AdminImeiLookups";
 import NotFound from "./pages/NotFound";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 
@@ -114,9 +111,7 @@ function AppRoutes() {
         <Route path="/admin/resellers" element={<AdminRoute><AdminResellers /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
         <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
-        <Route path="/admin/imei-services" element={<AdminRoute><AdminImeiServices /></AdminRoute>} />
-        <Route path="/admin/imei-orders" element={<AdminRoute><AdminImeiOrders /></AdminRoute>} />
-        <Route path="/admin/imei-lookups" element={<AdminRoute><AdminImeiLookups /></AdminRoute>} />
+        <Route path="*" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
     </Routes>
   );
