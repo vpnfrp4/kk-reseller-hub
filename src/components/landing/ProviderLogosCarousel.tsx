@@ -46,7 +46,7 @@ export default function ProviderLogosCarousel() {
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-20 bg-gradient-to-l from-background to-transparent" />
 
         <div
-          className="flex items-center gap-6 animate-ticker whitespace-nowrap px-4"
+          className="flex items-center gap-6 animate-ticker whitespace-nowrap px-4 hover:[animation-play-state:paused]"
           style={{ animationDuration: `${doubled.length * 5}s` }}
         >
           {doubled.map((p, i) => (
