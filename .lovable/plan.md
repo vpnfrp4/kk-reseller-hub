@@ -1,47 +1,47 @@
 
-# Update Orders Page for Product Types
+
+# Update Admin Orders Page for Product Types
 
 ## Overview
-Add `product_type` badges to the Orders list and detail pages, expand status filters to cover IMEI/manual/api statuses (processing, completed, rejected, pending_review), and show IMEI-specific fields (IMEI number, result) on the detail page.
+Add product_type filtering and IMEI-specific field display to the admin Orders page and its detail modal.
 
 ## Changes
 
-### 1. `src/components/shared/MmLabel.tsx` -- Add missing statuses
-Add `processing` and `completed` to the `MmStatus` map:
-- `processing`: amber/spinning style, label "Processing"
-- `completed`: green style, label "Completed"
+### 1. `src/pages/admin/AdminOrders.tsx` -- Product type filter + column + expanded statuses
 
-### 2. `src/pages/OrdersPage.tsx` -- Product type badge column + expanded filters
+**New product_type filter**: Add a second `<Select>` dropdown next to the existing status filter with options: All Types, Digital, IMEI, Manual, API.
 
-**New column**: Add a `product_type` column after `product_name` showing a colored badge:
-- `digital` -- blue "Digital"
-- `imei` -- amber "IMEI"
-- `manual` -- purple "Manual"  
-- `api` -- green "API"
+**Expanded STATUS_OPTIONS**: Add `processing`, `completed`, `rejected` to the existing status options array so admins can filter by all possible statuses.
 
-**Status filter**: Expand the status `<Select>` to include:
-- All, Delivered, Pending, Processing, Completed, Rejected, Pending Review
+**New "Type" column**: Insert a product type badge column (between Product and User) using the same color scheme as the reseller page:
+- `digital` -- blue
+- `imei` -- amber  
+- `manual` -- purple
+- `api` -- green
 
-**Credentials column**: Conditionally render -- for IMEI orders show IMEI number instead; for manual/pending orders show a "Pending" placeholder instead of empty credentials.
+**IMEI column in table**: For IMEI orders, show the IMEI number in a small mono-font tag below the product name cell (no extra column needed -- keeps table compact).
 
-**CSV export**: Add `product_type` column to export.
+**Inline status select expansion**: Add `processing`, `completed`, `rejected` to the per-row status `<Select>` and bulk action buttons.
 
-### 3. `src/pages/OrderDetailPage.tsx` -- IMEI/manual/api awareness
+**Filter logic update**: Add `productTypeFilter` state and extend the `filtered` useMemo to also match on `product_type`.
 
-**Header**: Show a product type badge next to the status badge.
+### 2. `src/components/admin/OrderDetailModal.tsx` -- IMEI fields + result + admin notes
 
-**Status handling**: Expand `isPending` to include `processing`; expand `isDelivered` to include `completed`.
+**Product type badge**: Show a product type badge next to the status badge in the Order Info section.
 
-**Timeline**: Add a 4th step for IMEI orders ("Result Ready") and adjust step logic for `processing`/`completed` statuses.
+**IMEI Number row**: When `order.imei_number` exists, display it in the Order Info grid as a dedicated row with mono font.
 
-**Customer Details section**: Show IMEI number row when `order.imei_number` exists. Show `product_type` row.
+**Result section**: For IMEI/manual orders with `order.result`, show a "Result" section (similar to Credentials) displaying the result text with a copy button.
 
-**Delivery Result**: For IMEI completed orders, show `order.result` as the delivery content (instead of credentials). For standard digital orders, keep existing credentials display.
+**Admin Notes**: Display `order.admin_notes` if present, and add an editable textarea so admins can add/update notes directly from the modal (saves to DB on blur or button click).
 
-**Admin notes**: Display `order.admin_notes` if present (already in DB schema).
+**Expanded status badges**: Add `processing` and `completed` to the `statusBadge` styles map.
+
+**Fulfill action expansion**: When fulfilling IMEI orders, add an optional "Result" textarea input alongside the existing credentials input, so admins can paste IMEI unlock results.
 
 ## Technical Details
 
-- Product type badge will be a small inline helper function in each file (consistent styling)
-- No database changes needed -- all fields (`product_type`, `imei_number`, `result`, `admin_notes`, `fulfillment_mode`) already exist in the `orders` table
-- Status labels reuse the existing `MmStatus` component with the new entries added
+- Product type badge is a small inline helper (consistent with reseller-side badge styling)
+- No database changes needed -- `product_type`, `imei_number`, `result`, `admin_notes` already exist in the `orders` table
+- Admin notes update uses `supabase.from("orders").update({ admin_notes })` which is allowed by existing admin RLS policy
+- Status options extended to: delivered, pending, pending_creation, pending_review, processing, completed, rejected, cancelled
