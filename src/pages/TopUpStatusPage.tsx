@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -37,10 +37,9 @@ function getActiveStep(status: TxStatus): number {
 export default function TopUpStatusPage() {
   const l = useT();
   const { user, profile, refreshProfile } = useAuth();
-  const [searchParams] = useSearchParams();
+  const { id: txId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const txId = searchParams.get("id");
 
   const [showConfetti, setShowConfetti] = useState(false);
   const [prevStatus, setPrevStatus] = useState<TxStatus | null>(null);

@@ -147,7 +147,7 @@ export default function WalletPage() {
         </div>
         <TopUpDialog
           userId={user?.id}
-          onSubmitted={(txId) => navigate(`/dashboard/wallet/topup-status?id=${txId}`)}
+          onSubmitted={(txId) => navigate(`/dashboard/topup-status/${txId}`)}
         />
       </div>
 
