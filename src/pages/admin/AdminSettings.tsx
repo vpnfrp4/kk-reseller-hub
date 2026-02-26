@@ -773,11 +773,43 @@ function ExchangeRateSection() {
           </span>
         </div>
 
-        {/* Last fetched info */}
+        {/* Last fetched & next auto-fetch info */}
         {fetchedAt && (
-          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-            <Clock className="w-3 h-3" />
-            Last fetched: {new Date(fetchedAt).toLocaleString()}
+          <div className="flex flex-col gap-1 text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <Clock className="w-3 h-3" />
+              Last fetched: {new Date(fetchedAt).toLocaleString()}
+            </div>
+            {autoFetch && (() => {
+              const last = new Date(fetchedAt);
+              const nextRun = new Date(last);
+              // Cron runs at 00:00, 06:00, 12:00, 18:00 UTC
+              const h = last.getUTCHours();
+              const nextSlot = Math.ceil((h + 1) / 6) * 6;
+              nextRun.setUTCHours(nextSlot >= 24 ? 0 : nextSlot, 0, 0, 0);
+              if (nextSlot >= 24) nextRun.setUTCDate(nextRun.getUTCDate() + 1);
+              if (nextRun <= new Date()) {
+                // Already past, jump to next slot
+                nextRun.setUTCHours(nextRun.getUTCHours() + 6);
+              }
+              const diff = nextRun.getTime() - Date.now();
+              const hoursLeft = Math.floor(diff / 3600000);
+              const minsLeft = Math.floor((diff % 3600000) / 60000);
+              return (
+                <div className="flex items-center gap-1.5">
+                  <Zap className="w-3 h-3 text-primary" />
+                  <span>
+                    Next auto-fetch:{" "}
+                    <span className="font-medium text-foreground">
+                      {nextRun.toLocaleString()}
+                    </span>
+                    <span className="ml-1 text-muted-foreground">
+                      ({hoursLeft > 0 ? `${hoursLeft}h ` : ""}{minsLeft}m)
+                    </span>
+                  </span>
+                </div>
+              );
+            })()}
           </div>
         )}
 
