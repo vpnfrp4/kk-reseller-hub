@@ -20,12 +20,11 @@ export default function RecentUnlocksTicker() {
     queryKey: ["landing-recent-unlocks"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("orders")
+        .from("recent_completions" as any)
         .select("id, product_name, completed_at, created_at")
-        .in("status", ["completed", "delivered"])
         .order("completed_at", { ascending: false })
         .limit(12);
-      return (data || []) as TickerItem[];
+      return (data || []) as unknown as TickerItem[];
     },
     staleTime: 30_000,
   });
