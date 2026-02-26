@@ -65,7 +65,7 @@ export default function ProductsPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("products")
-        .select("*")
+        .select("*, imei_providers(id, name, avg_rating, success_rate, total_completed, is_verified, fulfillment_type)")
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true });
       return data || [];
@@ -265,6 +265,7 @@ export default function ProductsPage() {
               pricingTiers={getTiersForProduct(product.id)}
               lastRateUpdate={product.base_currency === "USD" ? lastRateUpdate : null}
               usdRate={product.base_currency === "USD" ? usdRate : null}
+              provider={(product as any).imei_providers || null}
             />
           ))
         )}
