@@ -88,6 +88,7 @@ export default function ProductsPage() {
   });
 
   const lastRateUpdate = usdRateSetting?.updated_at || null;
+  const usdRate = usdRateSetting?.value?.rate ? Number(usdRateSetting.value.rate) : null;
 
   const getTiersForProduct = (productId: string) => {
     return (allTiers || []).filter((t: any) => t.product_id === productId);
@@ -257,6 +258,7 @@ export default function ProductsPage() {
               onBuyClick={handleBuyClick}
               pricingTiers={getTiersForProduct(product.id)}
               lastRateUpdate={product.base_currency === "USD" ? lastRateUpdate : null}
+              usdRate={product.base_currency === "USD" ? usdRate : null}
             />
           ))
         )}
