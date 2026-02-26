@@ -212,6 +212,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "order_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "recent_completions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "order_reviews_provider_id_fkey"
             columns: ["provider_id"]
             isOneToOne: false
@@ -731,7 +738,16 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      recent_completions: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          id: string | null
+          product_name: string | null
+          status: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       has_role: {
