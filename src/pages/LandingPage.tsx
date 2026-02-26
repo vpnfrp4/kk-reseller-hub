@@ -188,6 +188,41 @@ function FaqJsonLd() {
   );
 }
 
+/* ───────── Organization + WebSite JSON-LD ───────── */
+function OrgWebsiteJsonLd() {
+  const org = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "KKTechDeals",
+    url: "https://kk-reseller-hub.lovable.app",
+    logo: "https://kk-reseller-hub.lovable.app/pwa-512x512.png",
+    description: "Buy IMEI Unlock, Mobile Legends Diamonds, Hardware Schematics Tools and Digital Licenses in Myanmar. Instant delivery, reseller pricing, secure wallet system.",
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer service",
+      availableLanguage: ["en", "my"],
+    },
+    sameAs: [],
+  };
+  const website = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "KKTechDeals",
+    url: "https://kk-reseller-hub.lovable.app",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: "https://kk-reseller-hub.lovable.app/dashboard/products?q={search_term_string}",
+      "query-input": "required name=search_term_string",
+    },
+  };
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(org) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website) }} />
+    </>
+  );
+}
+
 /* ───────── LIVE STATS HOOK ───────── */
 function useLandingStats() {
   return useQuery({
@@ -239,6 +274,7 @@ export default function LandingPage() {
   return (
     <>
       <FaqJsonLd />
+      <OrgWebsiteJsonLd />
 
       {/* ─── NAV ─── */}
       <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-md">
