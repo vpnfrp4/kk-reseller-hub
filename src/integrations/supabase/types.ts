@@ -719,25 +719,17 @@ export type Database = {
         Args: { p_imei_number: string; p_service_id: string; p_user_id: string }
         Returns: Json
       }
-      process_purchase:
-        | { Args: { p_product_id: string; p_user_id: string }; Returns: Json }
-        | {
-            Args: {
-              p_product_id: string
-              p_quantity?: number
-              p_user_id: string
-            }
-            Returns: Json
-          }
-        | {
-            Args: {
-              p_fulfillment_mode?: string
-              p_product_id: string
-              p_quantity?: number
-              p_user_id: string
-            }
-            Returns: Json
-          }
+      process_purchase: {
+        Args: {
+          p_custom_fields?: Json
+          p_fulfillment_mode?: string
+          p_imei_number?: string
+          p_product_id: string
+          p_quantity?: number
+          p_user_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
