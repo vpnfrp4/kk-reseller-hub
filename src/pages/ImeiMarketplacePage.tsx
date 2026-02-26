@@ -70,7 +70,7 @@ function getSpeedTier(processingTime: string): SpeedInfo {
   if (lower.includes("instant") || lower.includes("minute")) {
     return { tier: "fast", label: processingTime, className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" };
   }
-  if (lower.includes("hour") || lower.match(/1[\s-]*day/) || lower.match(/^1-[23]\s*day/i)) {
+  if (lower.includes("hour") || lower.match(/1[\s-]*day/) || lower.match(/1-3\s*day/i)) {
     return { tier: "medium", label: processingTime, className: "bg-amber-500/15 text-amber-400 border-amber-500/25" };
   }
   return { tier: "slow", label: processingTime, className: "bg-rose-500/15 text-rose-400 border-rose-500/25" };
