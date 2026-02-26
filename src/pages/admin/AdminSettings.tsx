@@ -664,6 +664,8 @@ function ExchangeRateSection() {
   const handleFetchNow = async () => {
     setFetching(true);
     try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const res = await fetch(
@@ -671,7 +673,7 @@ function ExchangeRateSection() {
         {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${anonKey}`,
+            "Authorization": `Bearer ${token || anonKey}`,
             "apikey": anonKey,
             "Content-Type": "application/json",
           },
@@ -679,6 +681,7 @@ function ExchangeRateSection() {
         }
       );
       const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
       if (data?.error) throw new Error(data.error);
       if (data?.skipped) {
         toast.info(`Skipped: ${data.reason}`);
