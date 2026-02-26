@@ -16,7 +16,6 @@ import {
   ArrowLeftRight,
   X,
   Settings,
-  Smartphone,
   Database,
   FileText,
 } from "lucide-react";
@@ -25,6 +24,7 @@ import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
 import { toast } from "sonner";
 import { notifyEvent } from "@/lib/notifications";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Overview", icon: LayoutDashboard, path: "/admin" },
@@ -142,17 +142,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="admin-theme min-h-screen flex bg-background">
-      {/* Overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-background/80 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
-      )}
+      {/* Mobile overlay */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-background/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300",
+          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setSidebarOpen(false)}
+      />
 
-      {/* Sidebar — solid dark panel */}
-      <aside className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-border flex flex-col transition-transform duration-300 ${sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}>
+      {/* Sidebar — premium gradient + glass */}
+      <aside
+        className={cn(
+          "fixed lg:static inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-sidebar-border",
+          "bg-gradient-to-b from-[hsl(222_47%_12%)] to-[hsl(222_47%_7%)] backdrop-blur-xl",
+          "transition-transform duration-300 ease-out",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+        )}
+        style={{ boxShadow: "inset -1px 0 0 rgba(255,255,255,0.04)" }}
+      >
         {/* Logo */}
-        <div className="p-6 border-b border-border">
+        <div className="p-6 border-b border-sidebar-border">
           <Link to="/admin" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 transition-all duration-300 group-hover:bg-primary/15">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 transition-all duration-200 group-hover:bg-primary/15 group-hover:shadow-[0_0_12px_hsl(142_71%_45%/0.15)]">
               <ShieldCheck className="w-5 h-5 text-primary relative z-10" />
             </div>
             <div>
@@ -163,7 +175,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1 mt-2">
+        <nav className="flex-1 p-3 space-y-0.5 mt-2">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
             const badge = badgeMap[item.path] || 0;
@@ -172,13 +184,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${
+                className={cn(
+                  "relative flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                   active
-                    ? "bg-primary/10 text-primary nav-active-indicator"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                }`}
+                    ? "bg-white/[0.08] text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/[0.05]"
+                )}
               >
-                <item.icon className={`w-[18px] h-[18px] ${active ? "text-primary" : ""}`} strokeWidth={active ? 2 : 1.5} />
+                {/* Active left accent bar */}
+                {active && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(142_71%_45%/0.5)]" />
+                )}
+                <item.icon
+                  className={cn(
+                    "w-[18px] h-[18px] transition-all duration-200",
+                    active && "text-primary drop-shadow-[0_0_6px_hsl(142_71%_45%/0.4)]"
+                  )}
+                  strokeWidth={active ? 2 : 1.5}
+                />
                 <span className="flex-1">{item.label}</span>
                 {badge > 0 && (
                   <span className="min-w-[22px] h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1.5">
@@ -191,10 +214,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t border-border space-y-1">
+        <div className="p-3 border-t border-sidebar-border space-y-0.5">
           <Link
             to="/dashboard"
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all duration-200"
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all duration-200"
           >
             <ArrowLeftRight className="w-[18px] h-[18px]" strokeWidth={1.5} />
             Reseller Panel
@@ -208,7 +231,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
         <header className="h-14 border-b border-border flex items-center justify-between px-4 lg:px-8 bg-card sticky top-0 z-30 admin-header">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors">
