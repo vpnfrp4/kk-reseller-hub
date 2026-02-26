@@ -193,7 +193,7 @@ export default function TopUpStatusPage() {
               <div className="space-y-2">
                 <h2 className="text-h1 text-foreground">{l(t.topupStatus.successTitle)}</h2>
                 <p className="text-body text-muted-foreground">
-                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> {l(t.topupStatus.successMsg)}
+                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> ({transaction?.method || "Payment"}) {l(t.topupStatus.successMsg)}
                 </p>
               </div>
 
@@ -238,7 +238,7 @@ export default function TopUpStatusPage() {
               <div className="space-y-2">
                 <h2 className="text-h1 text-foreground">{l(t.topupStatus.rejectedTitle)}</h2>
                 <p className="text-body text-muted-foreground">
-                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> {l(t.topupStatus.rejectedMsg)}
+                  <Money amount={transaction?.amount || 0} className="font-semibold text-foreground inline" /> ({transaction?.method || "Payment"}) {l(t.topupStatus.rejectedMsg)}
                 </p>
                 <p className="text-caption text-muted-foreground">
                   {l(t.topupStatus.retryMsg)}
