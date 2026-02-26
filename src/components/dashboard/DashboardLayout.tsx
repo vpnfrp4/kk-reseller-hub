@@ -14,20 +14,19 @@ import {
   ShieldCheck,
   ArrowLeftRight,
   Bell,
-  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationSettings from "@/components/NotificationSettings";
 import { t } from "@/lib/i18n";
 import { useLang } from "@/contexts/LangContext";
+import { cn } from "@/lib/utils";
 
 const navItems = [
   { mm: t.nav.dashboard.mm, en: t.nav.dashboard.en, icon: LayoutDashboard, path: "/dashboard" },
   { mm: t.nav.wallet.mm, en: t.nav.wallet.en, icon: Wallet, path: "/dashboard/wallet" },
   { mm: t.nav.products.mm, en: t.nav.products.en, icon: ShoppingBag, path: "/dashboard/products" },
   { mm: t.nav.orders.mm, en: t.nav.orders.en, icon: ClipboardList, path: "/dashboard/orders" },
-  { mm: "IMEI Services", en: "IMEI Services", icon: Smartphone, path: "/dashboard/imei-orders" },
   { mm: t.nav.notifications.mm, en: t.nav.notifications.en, icon: Bell, path: "/dashboard/notifications" },
   { mm: t.nav.settings.mm, en: t.nav.settings.en, icon: Settings, path: "/dashboard/settings" },
 ];
@@ -65,23 +64,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen flex bg-background">
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-background/80 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+      {/* Mobile overlay */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-background/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300",
+          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onClick={() => setSidebarOpen(false)}
+      />
 
-      {/* Sidebar — solid dark panel */}
+      {/* Sidebar — premium gradient + glass */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-[260px] flex flex-col bg-sidebar border-r border-border transition-transform duration-300 ${
+        className={cn(
+          "fixed lg:static inset-y-0 left-0 z-50 w-[260px] flex flex-col border-r border-sidebar-border",
+          "bg-gradient-to-b from-[hsl(222_47%_12%)] to-[hsl(222_47%_7%)] backdrop-blur-xl",
+          "transition-transform duration-300 ease-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        }`}
+        )}
+        style={{ boxShadow: "inset -1px 0 0 rgba(255,255,255,0.04)" }}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-border">
+        <div className="p-6 border-b border-sidebar-border">
           <Link to="/dashboard" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 transition-colors group-hover:bg-primary/15">
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 transition-all duration-200 group-hover:bg-primary/15 group-hover:shadow-[0_0_12px_hsl(142_71%_45%/0.15)]">
               <ShieldCheck className="w-5 h-5 text-primary" />
             </div>
             <div>
@@ -94,27 +99,39 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1 mt-2">
+        <nav className="flex-1 p-3 space-y-0.5 mt-2">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
+            const isNotif = item.en === "Notifications";
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-150 ${
+                className={cn(
+                  "relative flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
                   active
-                    ? "bg-primary/10 text-primary nav-active-indicator"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                }`}
+                    ? "bg-white/[0.08] text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/[0.05]"
+                )}
               >
+                {/* Active left accent bar */}
+                {active && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(142_71%_45%/0.5)]" />
+                )}
                 <item.icon
-                  className={`w-[18px] h-[18px] ${active ? "text-primary" : ""}`}
+                  className={cn(
+                    "w-[18px] h-[18px] transition-all duration-200",
+                    active && "text-primary drop-shadow-[0_0_6px_hsl(142_71%_45%/0.4)]"
+                  )}
                   strokeWidth={active ? 2 : 1.5}
                 />
                 <span className="flex-1">{lang === "mm" ? item.mm : item.en}</span>
-                {item.en === "Notifications" && unreadCount > 0 && (
-                  <span className="ml-auto px-2 py-0.5 text-[10px] font-bold rounded-full bg-primary/15 text-primary min-w-[20px] text-center">
+                {isNotif && unreadCount > 0 && (
+                  <span className={cn(
+                    "ml-auto px-2 py-0.5 text-[10px] font-bold rounded-full bg-primary/15 text-primary min-w-[20px] text-center",
+                    "animate-pulse"
+                  )}>
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
@@ -124,12 +141,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t border-border space-y-1">
+        <div className="p-3 border-t border-sidebar-border space-y-0.5">
           {isAdmin && (
             <Link
               to="/admin"
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors duration-150"
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all duration-200"
             >
               <ArrowLeftRight className="w-[18px] h-[18px]" strokeWidth={1.5} />
               <span>{lang === "mm" ? t.nav.adminPanel.mm : t.nav.adminPanel.en}</span>
@@ -159,7 +176,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header — solid surface */}
         <header className="h-14 border-b border-border flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 bg-card">
           <div className="flex items-center gap-3">
             <button
@@ -179,7 +195,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Language Toggle */}
             <button
               onClick={toggleLang}
               className="flex items-center h-8 rounded-lg border border-border bg-secondary text-xs font-semibold uppercase tracking-wider overflow-hidden"
