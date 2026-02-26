@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
-    const { product_id, quantity, fulfillment_mode, custom_fields } = await req.json();
+    const { product_id, quantity, fulfillment_mode, custom_fields, imei_number } = await req.json();
 
     if (!product_id) {
       return new Response(JSON.stringify({ success: false, error: "product_id is required" }), {
@@ -48,7 +48,6 @@ Deno.serve(async (req) => {
     const qty = Math.max(1, Math.min(100, parseInt(quantity) || 1));
     const mode = fulfillment_mode || "instant";
 
-    // Call the atomic purchase function using service role for SECURITY DEFINER
     const serviceClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -59,6 +58,8 @@ Deno.serve(async (req) => {
       p_product_id: product_id,
       p_quantity: qty,
       p_fulfillment_mode: mode,
+      p_imei_number: imei_number || null,
+      p_custom_fields: custom_fields && Object.keys(custom_fields).length > 0 ? custom_fields : null,
     });
 
     if (error) {
@@ -68,17 +69,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const result = data as Record<string, unknown>;
-
-    // If purchase succeeded, store custom fields data on the order
-    if (result.success && result.order_id && custom_fields && Object.keys(custom_fields).length > 0) {
-      await serviceClient
-        .from("orders")
-        .update({ custom_fields_data: custom_fields } as any)
-        .eq("id", result.order_id);
-    }
-
-    return new Response(JSON.stringify(result), {
+    return new Response(JSON.stringify(data), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
