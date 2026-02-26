@@ -28,10 +28,14 @@ import AdminOrders from "./pages/admin/AdminOrders";
 import AdminSettings from "./pages/admin/AdminSettings";
 import LandingPage from "./pages/LandingPage";
 import ImeiCheckPage from "./pages/ImeiCheckPage";
+import ImeiMarketplacePage from "./pages/ImeiMarketplacePage";
+import ImeiOrdersPage from "./pages/ImeiOrdersPage";
 import ImeiUnlockPage from "./pages/services/ImeiUnlockPage";
 import VpnKeysPage from "./pages/services/VpnKeysPage";
 import CapcutProPage from "./pages/services/CapcutProPage";
 import InstallPage from "./pages/InstallPage";
+import AdminImeiServices from "./pages/admin/AdminImeiServices";
+import AdminImeiOrders from "./pages/admin/AdminImeiOrders";
 import NotFound from "./pages/NotFound";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 
@@ -83,6 +87,7 @@ function AppRoutes() {
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/install" element={<InstallPage />} />
       <Route path="/tools/imei-check" element={<ImeiCheckPage />} />
+      <Route path="/imei-marketplace" element={<ImeiMarketplacePage />} />
       <Route path="/services/imei-unlock" element={<ImeiUnlockPage />} />
       <Route path="/services/vpn-keys" element={<VpnKeysPage />} />
       <Route path="/services/capcut-pro" element={<CapcutProPage />} />
@@ -100,6 +105,7 @@ function AppRoutes() {
       <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
       <Route path="/dashboard/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="/dashboard/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
+      <Route path="/dashboard/imei-orders" element={<ProtectedRoute><ImeiOrdersPage /></ProtectedRoute>} />
       <Route path="/admin" element={<AdminRoute><AdminOverview /></AdminRoute>} />
       <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
       <Route path="/admin/credentials" element={<AdminRoute><AdminCredentials /></AdminRoute>} />
@@ -107,6 +113,8 @@ function AppRoutes() {
         <Route path="/admin/resellers" element={<AdminRoute><AdminResellers /></AdminRoute>} />
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
         <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
+        <Route path="/admin/imei-services" element={<AdminRoute><AdminImeiServices /></AdminRoute>} />
+        <Route path="/admin/imei-orders" element={<AdminRoute><AdminImeiOrders /></AdminRoute>} />
         <Route path="*" element={<NotFound />} />
     </Routes>
   );
