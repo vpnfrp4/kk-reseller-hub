@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import PriceComparisonTable from "@/components/marketplace/PriceComparisonTable";
 import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -501,6 +502,9 @@ export default function ProductDetailPage() {
       {product.description && (
         <StructuredDescription description={product.description} />
       )}
+
+      {/* ═══ PRICE COMPARISON ═══ */}
+      <PriceComparisonTable category={product.category} excludeProductId={product.id} />
 
       {/* Modals */}
       <PurchaseConfirmModal
