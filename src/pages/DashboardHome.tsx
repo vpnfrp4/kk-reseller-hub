@@ -385,7 +385,7 @@ export default function DashboardHome() {
         hideTrigger
         onSubmitted={(id) => {
           setTopUpOpen(false);
-          navigate(`/dashboard/topup-status/${id}`);
+          navigate(`/dashboard/wallet/topup-status?id=${id}`);
         }}
       />
     </PageContainer>

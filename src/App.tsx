@@ -112,7 +112,6 @@ function AppRoutes() {
         <Route path="/admin/orders" element={<AdminRoute><AdminOrders /></AdminRoute>} />
         <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
         <Route path="*" element={<NotFound />} />
-        <Route path="*" element={<NotFound />} />
     </Routes>
   );
 }
