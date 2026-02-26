@@ -94,27 +94,51 @@ export type Database = {
       imei_providers: {
         Row: {
           api_url: string | null
+          avg_rating: number | null
+          commission_percent: number | null
           created_at: string
+          fulfillment_type: string | null
           id: string
+          is_verified: boolean | null
+          logo_url: string | null
           name: string
           sort_order: number
           status: string
+          success_rate: number | null
+          total_completed: number | null
+          total_reviews: number | null
         }
         Insert: {
           api_url?: string | null
+          avg_rating?: number | null
+          commission_percent?: number | null
           created_at?: string
+          fulfillment_type?: string | null
           id?: string
+          is_verified?: boolean | null
+          logo_url?: string | null
           name: string
           sort_order?: number
           status?: string
+          success_rate?: number | null
+          total_completed?: number | null
+          total_reviews?: number | null
         }
         Update: {
           api_url?: string | null
+          avg_rating?: number | null
+          commission_percent?: number | null
           created_at?: string
+          fulfillment_type?: string | null
           id?: string
+          is_verified?: boolean | null
+          logo_url?: string | null
           name?: string
           sort_order?: number
           status?: string
+          success_rate?: number | null
+          total_completed?: number | null
+          total_reviews?: number | null
         }
         Relationships: []
       }
@@ -150,6 +174,51 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      order_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          order_id: string
+          provider_id: string | null
+          rating: number
+          user_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id: string
+          provider_id?: string | null
+          rating: number
+          user_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          order_id?: string
+          provider_id?: string | null
+          rating?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_reviews_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "imei_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
