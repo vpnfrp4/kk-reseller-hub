@@ -14,6 +14,98 @@ export type Database = {
   }
   public: {
     Tables: {
+      imei_orders: {
+        Row: {
+          admin_notes: string | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          imei_number: string
+          imei_service_id: string
+          price: number
+          result: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          imei_number: string
+          imei_service_id: string
+          price: number
+          result?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          imei_number?: string
+          imei_service_id?: string
+          price?: number
+          result?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imei_orders_imei_service_id_fkey"
+            columns: ["imei_service_id"]
+            isOneToOne: false
+            referencedRelation: "imei_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imei_services: {
+        Row: {
+          api_provider: string | null
+          brand: string
+          carrier: string
+          country: string
+          created_at: string
+          fulfillment_mode: string
+          id: string
+          price: number
+          processing_time: string
+          service_name: string
+          sort_order: number
+          status: string
+        }
+        Insert: {
+          api_provider?: string | null
+          brand: string
+          carrier?: string
+          country?: string
+          created_at?: string
+          fulfillment_mode?: string
+          id?: string
+          price: number
+          processing_time?: string
+          service_name: string
+          sort_order?: number
+          status?: string
+        }
+        Update: {
+          api_provider?: string | null
+          brand?: string
+          carrier?: string
+          country?: string
+          created_at?: string
+          fulfillment_mode?: string
+          id?: string
+          price?: number
+          processing_time?: string
+          service_name?: string
+          sort_order?: number
+          status?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string
@@ -375,6 +467,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      process_imei_purchase: {
+        Args: { p_imei_number: string; p_service_id: string; p_user_id: string }
+        Returns: Json
       }
       process_purchase:
         | { Args: { p_product_id: string; p_user_id: string }; Returns: Json }
