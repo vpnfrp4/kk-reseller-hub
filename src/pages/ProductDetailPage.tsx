@@ -70,7 +70,7 @@ export default function ProductDetailPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*, imei_providers(id, name, avg_rating, success_rate, total_completed, is_verified, fulfillment_type)")
+        .select("*, imei_providers(id, name, avg_rating, success_rate, total_completed, total_reviews, is_verified, fulfillment_type)")
         .eq("id", id!)
         .single();
       if (error) throw error;
@@ -319,6 +319,59 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </section>
+
+      {/* ═══ 1b. PROVIDER INFO ═══ */}
+      {provider && (
+        <section className="glass-card p-5 md:p-6 space-y-3">
+          <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">
+            Provider
+          </p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-muted/40 border border-border/40 flex items-center justify-center shrink-0">
+              <span className="text-sm font-bold text-muted-foreground">{provider.name?.charAt(0)}</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold text-foreground">{provider.name}</span>
+                {provider.is_verified && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold bg-primary/10 text-primary rounded-md border border-primary/20">
+                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                    Verified
+                  </span>
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground capitalize">{provider.fulfillment_type === "api" ? "Automated" : "Manual"} fulfillment</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-3 pt-3 border-t border-border/30">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">Rating</p>
+              <div className="flex items-center gap-1">
+                <svg className="w-3.5 h-3.5 text-amber-400 fill-amber-400" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                <span className="text-sm font-bold font-mono text-foreground">{provider.avg_rating || "—"}</span>
+                {provider.total_reviews != null && (
+                  <span className="text-[10px] text-muted-foreground">({provider.total_reviews})</span>
+                )}
+              </div>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">Success Rate</p>
+              <span className={cn(
+                "text-sm font-bold font-mono",
+                (provider.success_rate || 0) >= 95 ? "text-primary" : (provider.success_rate || 0) >= 80 ? "text-amber-500" : "text-destructive"
+              )}>
+                {provider.success_rate ?? "—"}%
+              </span>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">Completed</p>
+              <span className="text-sm font-bold font-mono text-foreground">
+                {(provider.total_completed || 0).toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ═══ 2. PRICING MATRIX TABLE ═══ */}
       <section className="glass-card overflow-hidden">
