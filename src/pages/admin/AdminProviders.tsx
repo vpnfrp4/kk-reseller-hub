@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Pencil, Trash2, ShieldCheck, Star, TrendingUp, Check, X } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, ShieldCheck, Star, TrendingUp, Check, X, Upload, ImageIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -32,6 +32,7 @@ interface ProviderForm {
   api_url: string;
   commission_percent: number;
   sort_order: number;
+  logo_url: string;
 }
 
 const emptyForm: ProviderForm = {
@@ -41,6 +42,7 @@ const emptyForm: ProviderForm = {
   api_url: "",
   commission_percent: 8,
   sort_order: 0,
+  logo_url: "",
 };
 
 // Inline editable cell for numeric stats
@@ -153,6 +155,8 @@ export default function AdminProviders() {
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   const { data: providers = [], isLoading } = useQuery({
     queryKey: ["admin-providers"],
@@ -200,8 +204,37 @@ export default function AdminProviders() {
       api_url: provider.api_url || "",
       commission_percent: provider.commission_percent ?? 8,
       sort_order: provider.sort_order || 0,
+      logo_url: provider.logo_url || "",
     });
     setDialogOpen(true);
+  };
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please select an image file");
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Logo must be under 2MB");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `provider-logos/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(path);
+      setForm((f) => ({ ...f, logo_url: urlData.publicUrl }));
+      toast.success("Logo uploaded");
+    } catch (err: any) {
+      toast.error(err.message || "Upload failed");
+    } finally {
+      setUploading(false);
+      if (logoInputRef.current) logoInputRef.current.value = "";
+    }
   };
 
   const handleSave = async () => {
@@ -221,6 +254,7 @@ export default function AdminProviders() {
             api_url: form.api_url.trim() || null,
             commission_percent: form.commission_percent,
             sort_order: form.sort_order,
+            logo_url: form.logo_url.trim() || null,
           })
           .eq("id", editId);
         if (error) throw error;
@@ -235,6 +269,7 @@ export default function AdminProviders() {
             api_url: form.api_url.trim() || null,
             commission_percent: form.commission_percent,
             sort_order: form.sort_order,
+            logo_url: form.logo_url.trim() || null,
           });
         if (error) throw error;
         toast.success("Provider created");
@@ -332,7 +367,14 @@ export default function AdminProviders() {
                 filtered.map((p: any) => (
                   <tr key={p.id} className="border-b border-border/10 hover:bg-muted/10 transition-colors">
                     <td className="px-5 py-3">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2.5">
+                        {p.logo_url ? (
+                          <img src={p.logo_url} alt={p.name} className="h-8 w-8 rounded-lg object-contain bg-muted/30 shrink-0" />
+                        ) : (
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/30 shrink-0">
+                            <ImageIcon className="h-4 w-4 text-muted-foreground/50" />
+                          </div>
+                        )}
                         <span className="font-semibold text-foreground">{p.name}</span>
                         {p.is_verified && <ShieldCheck className="w-3.5 h-3.5 text-primary" />}
                       </div>
@@ -422,6 +464,48 @@ export default function AdminProviders() {
             <DialogTitle>{editId ? "Edit Provider" : "Add Provider"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            {/* Logo Upload */}
+            <div className="space-y-1.5">
+              <Label>Logo</Label>
+              <div className="flex items-center gap-3">
+                {form.logo_url ? (
+                  <img src={form.logo_url} alt="Logo" className="h-12 w-12 rounded-lg object-contain bg-muted/30 border border-border" />
+                ) : (
+                  <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-muted/30 border border-border">
+                    <ImageIcon className="h-5 w-5 text-muted-foreground/50" />
+                  </div>
+                )}
+                <div className="flex flex-col gap-1">
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleLogoUpload}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploading}
+                    onClick={() => logoInputRef.current?.click()}
+                  >
+                    <Upload className="w-3.5 h-3.5 mr-1.5" />
+                    {uploading ? "Uploading..." : "Upload Logo"}
+                  </Button>
+                  {form.logo_url && (
+                    <button
+                      type="button"
+                      className="text-[11px] text-destructive hover:underline text-left"
+                      onClick={() => setForm((f) => ({ ...f, logo_url: "" }))}
+                    >
+                      Remove logo
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+
             <div className="space-y-1.5">
               <Label>Name</Label>
               <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Provider name" />
