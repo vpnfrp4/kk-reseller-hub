@@ -145,16 +145,32 @@ export default function ProductCard({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border/30">
           {/* Provider */}
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-muted/40 border border-border/40 flex items-center justify-center shrink-0">
-              <User className="w-3.5 h-3.5 text-muted-foreground" />
+            <div className={cn(
+              "w-7 h-7 rounded-full border flex items-center justify-center shrink-0",
+              provider?.is_verified
+                ? "bg-primary/10 border-primary/25"
+                : "bg-muted/40 border-border/40"
+            )}>
+              {provider?.is_verified ? (
+                <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+              ) : (
+                <User className="w-3.5 h-3.5 text-muted-foreground" />
+              )}
             </div>
             <div className="min-w-0">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
                 Provider
               </p>
-              <p className="text-xs font-semibold text-foreground truncate">
-                {providerName}
-              </p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs font-semibold text-foreground truncate">
+                  {providerName}
+                </p>
+                {provider?.is_verified && (
+                  <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-px rounded">
+                    Verified
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
