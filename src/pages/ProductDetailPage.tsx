@@ -530,7 +530,7 @@ export default function ProductDetailPage() {
         open={topUpOpen}
         onOpenChange={setTopUpOpen}
         hideTrigger
-        onSubmitted={(txId) => navigate(`/dashboard/wallet/topup-status?id=${txId}`)}
+        onSubmitted={(txId) => navigate(`/dashboard/topup-status/${txId}`)}
       />
     </div>
   );
