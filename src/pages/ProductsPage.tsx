@@ -128,12 +128,18 @@ export default function ProductsPage() {
   };
 
   const handleBuyClick = (product: any) => {
-    const isManual = product.type === "manual";
-    // Manual products → redirect to configuration page
-    if (isManual) {
+    const pt = product.product_type || "digital";
+    // IMEI → redirect to IMEI marketplace for ordering
+    if (pt === "imei") {
+      navigate("/imei-marketplace");
+      return;
+    }
+    // Manual/API → redirect to configuration/detail page
+    if (pt === "manual" || pt === "api") {
       navigate(`/dashboard/products/${product.id}`);
       return;
     }
+    // Digital → check stock
     if (product.stock <= 0) {
       toast.error(l(t.products.outOfStockToast));
       return;
