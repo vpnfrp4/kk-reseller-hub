@@ -17,14 +17,32 @@ import { toast } from "sonner";
 import OrderDetailModal from "@/components/admin/OrderDetailModal";
 import { DataCard, Money } from "@/components/shared";
 
-const STATUS_OPTIONS = ["all", "delivered", "pending", "pending_creation", "pending_review", "cancelled"] as const;
+const STATUS_OPTIONS = ["all", "delivered", "pending", "pending_creation", "pending_review", "processing", "completed", "rejected", "cancelled"] as const;
+const TYPE_OPTIONS = ["all", "digital", "imei", "manual", "api"] as const;
 const PAGE_SIZE_OPTIONS = [10, 25, 50] as const;
+
+const TYPE_BADGE_STYLES: Record<string, string> = {
+  digital: "bg-primary/10 text-primary",
+  imei: "bg-warning/10 text-warning",
+  manual: "bg-accent/20 text-accent-foreground",
+  api: "bg-success/10 text-success",
+};
+
+function productTypeBadge(type: string | null) {
+  const t = type || "digital";
+  return (
+    <span className={`text-[11px] px-2.5 py-1 rounded-full font-medium ${TYPE_BADGE_STYLES[t] || "bg-muted text-muted-foreground"}`}>
+      {t.toUpperCase()}
+    </span>
+  );
+}
 
 export default function AdminOrders() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState<number>(25);
@@ -60,14 +78,13 @@ export default function AdminOrders() {
     },
   });
 
-  // Auto-open order detail from ?order= query param (e.g. from notification link)
+  // Auto-open order detail from ?order= query param
   useEffect(() => {
     const orderId = searchParams.get("order");
     if (orderId && orders && orders.length > 0) {
       const target = orders.find((o: any) => o.id === orderId);
       if (target) {
         setDetailOrder(target);
-        // Clear the param so refreshing doesn't re-open
         setSearchParams({}, { replace: true });
       }
     }
@@ -77,16 +94,18 @@ export default function AdminOrders() {
     if (!orders) return [];
     return orders.filter((o: any) => {
       const matchesStatus = statusFilter === "all" || o.status === statusFilter;
+      const matchesType = typeFilter === "all" || (o.product_type || "digital") === typeFilter;
       const q = search.toLowerCase();
       const matchesSearch =
         !q ||
         o.product_name.toLowerCase().includes(q) ||
         o.id.toLowerCase().includes(q) ||
         o.profile?.name?.toLowerCase().includes(q) ||
-        o.profile?.email?.toLowerCase().includes(q);
-      return matchesStatus && matchesSearch;
+        o.profile?.email?.toLowerCase().includes(q) ||
+        (o.imei_number && o.imei_number.toLowerCase().includes(q));
+      return matchesStatus && matchesType && matchesSearch;
     });
-  }, [orders, search, statusFilter]);
+  }, [orders, search, statusFilter, typeFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -160,10 +179,13 @@ export default function AdminOrders() {
       delivered: "badge-delivered",
       pending: "badge-pending",
       cancelled: "badge-cancelled",
+      processing: "bg-warning/10 text-warning",
+      completed: "bg-success/10 text-success",
+      rejected: "bg-destructive/10 text-destructive",
     };
     return (
       <span className={`text-[11px] px-2.5 py-1 rounded-full ${badgeClass[status] || "bg-muted text-muted-foreground"}`}>
-        {status}
+        {status.replace("_", " ")}
       </span>
     );
   };
@@ -209,7 +231,7 @@ export default function AdminOrders() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search by product, order ID, or user..."
+            placeholder="Search by product, order ID, user, or IMEI..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="pl-9 bg-card border-border"
@@ -223,7 +245,19 @@ export default function AdminOrders() {
           <SelectContent>
             {STATUS_OPTIONS.map((s) => (
               <SelectItem key={s} value={s}>
-                {s === "all" ? "All Statuses" : s.charAt(0).toUpperCase() + s.slice(1)}
+                {s === "all" ? "All Statuses" : s.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
+          <SelectTrigger className="w-full sm:w-[140px] bg-card border-border">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            {TYPE_OPTIONS.map((t) => (
+              <SelectItem key={t} value={t}>
+                {t === "all" ? "All Types" : t.charAt(0).toUpperCase() + t.slice(1)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -241,8 +275,8 @@ export default function AdminOrders() {
         <DataCard className="animate-fade-in">
           <div className="flex items-center gap-3">
             <span className="text-sm text-foreground font-medium">{selectedIds.size} selected</span>
-            <div className="flex gap-2 ml-auto">
-              {["delivered", "pending", "cancelled"].map((s) => (
+            <div className="flex gap-2 ml-auto flex-wrap">
+              {["delivered", "pending", "processing", "completed", "rejected", "cancelled"].map((s) => (
                 <Button
                   key={s}
                   size="sm"
@@ -262,7 +296,7 @@ export default function AdminOrders() {
         </DataCard>
       )}
 
-      {/* Table — custom table kept for checkbox column & inline status select */}
+      {/* Table */}
       <DataCard noPadding className="animate-fade-in" footer={paginationFooter}>
         <div className="overflow-x-auto">
           <table className="premium-table">
@@ -276,6 +310,7 @@ export default function AdminOrders() {
                 </th>
                 <th>Order ID</th>
                 <th>Product</th>
+                <th>Type</th>
                 <th>User</th>
                 <th className="text-right">Price</th>
                 <th className="text-center">Status</th>
@@ -286,13 +321,13 @@ export default function AdminOrders() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center">
+                  <td colSpan={9} className="p-8 text-center">
                     <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
                   </td>
                 </tr>
               ) : paginatedOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-sm text-muted-foreground">
+                  <td colSpan={9} className="p-8 text-center text-sm text-muted-foreground">
                     No orders found
                   </td>
                 </tr>
@@ -306,7 +341,13 @@ export default function AdminOrders() {
                       />
                     </td>
                     <td className="p-default text-xs font-mono text-muted-foreground cursor-pointer hover:text-primary" onClick={() => setDetailOrder(o)}>{o.id.slice(0, 8)}…</td>
-                    <td className="p-default text-sm font-medium text-foreground">{o.product_name}</td>
+                    <td className="p-default">
+                      <p className="text-sm font-medium text-foreground">{o.product_name}</p>
+                      {o.imei_number && (
+                        <p className="text-[11px] font-mono text-muted-foreground mt-0.5">IMEI: {o.imei_number}</p>
+                      )}
+                    </td>
+                    <td className="p-default">{productTypeBadge(o.product_type)}</td>
                     <td className="p-default">
                       <p className="text-sm text-foreground">{o.profile?.name || "—"}</p>
                       <p className="text-xs text-muted-foreground">{o.profile?.email || "Unknown"}</p>
@@ -333,12 +374,15 @@ export default function AdminOrders() {
                           onValueChange={(val) => handleStatusChange(o.id, val)}
                           disabled={updatingId === o.id}
                         >
-                          <SelectTrigger className="w-[100px] h-8 text-xs bg-card border-border">
+                          <SelectTrigger className="w-[110px] h-8 text-xs bg-card border-border">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="delivered">Delivered</SelectItem>
                             <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="processing">Processing</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="rejected">Rejected</SelectItem>
                             <SelectItem value="cancelled">Cancelled</SelectItem>
                           </SelectContent>
                         </Select>

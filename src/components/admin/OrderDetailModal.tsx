@@ -6,9 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { KeyRound, Wallet, ShoppingCart, User, Calendar, Copy, Check, Zap, Clock, Smartphone, UserIcon, CheckCircle2, Loader2 } from "lucide-react";
+import { KeyRound, Wallet, ShoppingCart, User, Calendar, Copy, Check, Zap, Clock, Smartphone, UserIcon, CheckCircle2, Loader2, FileText, StickyNote, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -19,11 +20,40 @@ interface OrderDetailModalProps {
   onStatusUpdated?: () => void;
 }
 
+const TYPE_BADGE_STYLES: Record<string, string> = {
+  digital: "bg-primary/10 text-primary",
+  imei: "bg-warning/10 text-warning",
+  manual: "bg-accent/20 text-accent-foreground",
+  api: "bg-success/10 text-success",
+};
+
+function productTypeBadge(type: string | null) {
+  const t = type || "digital";
+  return (
+    <span className={`text-[11px] px-2.5 py-1 rounded-full font-medium ${TYPE_BADGE_STYLES[t] || "bg-muted text-muted-foreground"}`}>
+      {t.toUpperCase()}
+    </span>
+  );
+}
+
 export default function OrderDetailModal({ order, open, onOpenChange, onStatusUpdated }: OrderDetailModalProps) {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
+  const [copiedResult, setCopiedResult] = useState(false);
   const [updating, setUpdating] = useState(false);
   const [credentialsInput, setCredentialsInput] = useState("");
+  const [resultInput, setResultInput] = useState("");
+  const [adminNotes, setAdminNotes] = useState("");
+  const [notesInitialized, setNotesInitialized] = useState<string | null>(null);
+  const [savingNotes, setSavingNotes] = useState(false);
+
+  // Initialize admin notes when order changes
+  if (order && order.id !== notesInitialized) {
+    setAdminNotes(order.admin_notes || "");
+    setNotesInitialized(order.id);
+    setResultInput("");
+    setCredentialsInput("");
+  }
 
   const { data: transactions } = useQuery({
     queryKey: ["admin-user-transactions", order?.user_id],
@@ -60,6 +90,27 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const copyResult = () => {
+    navigator.clipboard.writeText(order.result || "");
+    setCopiedResult(true);
+    setTimeout(() => setCopiedResult(false), 2000);
+  };
+
+  const saveAdminNotes = async () => {
+    setSavingNotes(true);
+    const { error } = await supabase
+      .from("orders")
+      .update({ admin_notes: adminNotes.trim() || null })
+      .eq("id", order.id);
+    setSavingNotes(false);
+    if (error) {
+      toast.error("Failed to save notes");
+    } else {
+      toast.success("Admin notes saved");
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+    }
+  };
+
   const FULFILLMENT_MODE_LABELS: Record<string, { label: string; icon: any; color: string }> = {
     instant: { label: "Instant Stock Delivery", icon: Zap, color: "bg-success/10 text-success" },
     custom_username: { label: "Custom Username", icon: UserIcon, color: "bg-primary/10 text-primary" },
@@ -80,6 +131,8 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
       pending: "bg-warning/10 text-warning",
       pending_creation: "bg-primary/10 text-primary",
       pending_review: "bg-warning/10 text-warning",
+      processing: "bg-warning/10 text-warning",
+      completed: "bg-success/10 text-success",
       cancelled: "bg-destructive/10 text-destructive",
       approved: "bg-success/10 text-success",
       rejected: "bg-destructive/10 text-destructive",
@@ -90,6 +143,8 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
       </span>
     );
   };
+
+  const isImeiOrder = (order.product_type || "digital") === "imei";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -112,7 +167,10 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
               </div>
               <div>
                 <p className="text-muted-foreground text-xs">Status</p>
-                <div className="mt-0.5">{statusBadge(order.status)}</div>
+                <div className="mt-0.5 flex items-center gap-1.5">
+                  {statusBadge(order.status)}
+                  {productTypeBadge(order.product_type)}
+                </div>
               </div>
               <div>
                 <p className="text-muted-foreground text-xs">Product</p>
@@ -122,6 +180,12 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
                 <p className="text-muted-foreground text-xs">Price</p>
                 <p className="font-mono font-semibold text-foreground">{order.price.toLocaleString()} MMK</p>
               </div>
+              {order.imei_number && (
+                <div className="col-span-2">
+                  <p className="text-muted-foreground text-xs">IMEI Number</p>
+                  <p className="font-mono text-foreground">{order.imei_number}</p>
+                </div>
+              )}
               <div className="col-span-2">
                 <p className="text-muted-foreground text-xs">Date</p>
                 <p className="text-foreground">{new Date(order.created_at).toLocaleString()}</p>
@@ -211,6 +275,53 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
             )}
           </div>
 
+          {/* Result (for IMEI/manual orders) */}
+          {order.result && (
+            <div className="space-y-3 border-t border-border pt-4">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <FileText className="w-4 h-4" />
+                <span className="font-medium text-foreground">Result</span>
+              </div>
+              <div className="relative">
+                <pre className="bg-muted/50 rounded-lg p-3 text-sm font-mono text-foreground whitespace-pre-wrap break-all border border-border">
+                  {order.result}
+                </pre>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="absolute top-2 right-2 h-7 w-7"
+                  onClick={copyResult}
+                >
+                  {copiedResult ? <Check className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Admin Notes */}
+          <div className="space-y-3 border-t border-border pt-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <StickyNote className="w-4 h-4" />
+              <span className="font-medium text-foreground">Admin Notes</span>
+            </div>
+            <Textarea
+              value={adminNotes}
+              onChange={(e) => setAdminNotes(e.target.value)}
+              placeholder="Add internal notes about this order..."
+              className="bg-muted/50 border-border text-sm min-h-[60px]"
+            />
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 text-xs"
+              disabled={savingNotes || adminNotes === (order.admin_notes || "")}
+              onClick={saveAdminNotes}
+            >
+              {savingNotes ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              Save Notes
+            </Button>
+          </div>
+
           {/* Transaction History */}
           <div className="space-y-3 border-t border-border pt-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -243,7 +354,7 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
           </div>
 
           {/* ═══ FULFILL ACTION ═══ */}
-          {(order.status === "pending_creation" || order.status === "pending_review") && (
+          {(order.status === "pending_creation" || order.status === "pending_review" || order.status === "processing") && (
             <div className="space-y-3 border-t border-border pt-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <CheckCircle2 className="w-4 h-4" />
@@ -263,15 +374,31 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
                 </div>
               )}
 
+              {/* Optional result input for IMEI orders */}
+              {isImeiOrder && (
+                <div className="space-y-1">
+                  <p className="text-xs text-muted-foreground">Result (optional — paste IMEI unlock result)</p>
+                  <Textarea
+                    value={resultInput}
+                    onChange={(e) => setResultInput(e.target.value)}
+                    placeholder="e.g. Unlock code: 12345678 or unlock confirmation details"
+                    className="bg-muted/50 border-border text-sm font-mono min-h-[60px]"
+                  />
+                </div>
+              )}
+
               <Button
                 className="w-full gap-2"
                 disabled={updating}
                 onClick={async () => {
                   setUpdating(true);
                   try {
-                    const updatePayload: any = { status: "delivered" };
+                    const updatePayload: any = { status: isImeiOrder ? "completed" : "delivered" };
                     if (credentialsInput.trim()) {
                       updatePayload.credentials = credentialsInput.trim();
+                    }
+                    if (resultInput.trim()) {
+                      updatePayload.result = resultInput.trim();
                     }
                     const { error } = await supabase
                       .from("orders")
@@ -283,13 +410,13 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
                     const deliveredCreds = credentialsInput.trim() || order.credentials;
                     await supabase.from("notifications").insert({
                       user_id: order.user_id,
-                      title: "✅ Order Delivered",
+                      title: isImeiOrder ? "✅ IMEI Order Completed" : "✅ Order Delivered",
                       body: `Your order for ${order.product_name} has been fulfilled.${deliveredCreds ? " Check your order for credentials." : ""}`,
                       type: "order",
                       link: "/orders",
                     });
 
-                    toast.success("Order marked as delivered");
+                    toast.success(isImeiOrder ? "Order marked as completed" : "Order marked as delivered");
                     queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
                     onStatusUpdated?.();
                     onOpenChange(false);
@@ -305,7 +432,7 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
                 ) : (
                   <CheckCircle2 className="w-4 h-4" />
                 )}
-                Mark as Delivered
+                {isImeiOrder ? "Mark as Completed" : "Mark as Delivered"}
               </Button>
             </div>
           )}
