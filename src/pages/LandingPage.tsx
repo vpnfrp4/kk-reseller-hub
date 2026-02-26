@@ -24,6 +24,13 @@ import {
   Send,
   Phone,
   ArrowRight,
+  Search,
+  Package,
+  Users,
+  TrendingUp,
+  Activity,
+  Check,
+  Minus,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -33,6 +40,9 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useCountUpOnView } from "@/hooks/use-count-up";
 
 /* ───────── SCROLL REVEAL ───────── */
 const ScrollReveal = forwardRef<HTMLDivElement, { children: ReactNode; delay?: number; className?: string }>(
@@ -67,14 +77,6 @@ const ScrollReveal = forwardRef<HTMLDivElement, { children: ReactNode; delay?: n
   }
 );
 ScrollReveal.displayName = "ScrollReveal";
-
-/* ───────── TRUST BADGES ───────── */
-const trustBadges = [
-  { icon: Zap, label: "Instant Delivery", desc: "Most orders processed in seconds" },
-  { icon: BarChart3, label: "Wholesale Pricing", desc: "Volume-based tier discounts" },
-  { icon: Clock, label: "24/7 Processing", desc: "Automated order fulfillment" },
-  { icon: Shield, label: "Secure Wallet", desc: "Protected balance with fraud detection" },
-];
 
 /* ───────── SERVICES ───────── */
 const gsmServices = [
@@ -123,16 +125,6 @@ const digitalServices = [
   },
 ];
 
-/* ───────── WHY CHOOSE US ───────── */
-const reasons = [
-  { icon: BarChart3, text: "Real-Time Stock System" },
-  { icon: Clock, text: "Fast Top-Up Approval (5–15 minutes)" },
-  { icon: Eye, text: "Transparent Pricing" },
-  { icon: Wallet, text: "Profit Margin Visibility" },
-  { icon: Shield, text: "Fraud Protection" },
-  { icon: HeadphonesIcon, text: "Myanmar-Friendly Support" },
-];
-
 /* ───────── STEPS ───────── */
 const steps = [
   { icon: UserPlus, title: "Register", desc: "Create your free reseller account in under 2 minutes." },
@@ -165,6 +157,16 @@ const faqs = [
   },
 ];
 
+/* ───────── COMPARISON DATA ───────── */
+const comparisonRows = [
+  { feature: "Pricing Model", kktech: "Transparent wholesale tiers with volume discounts", other: "Hidden fees, inconsistent pricing" },
+  { feature: "Provider Selection", kktech: "Multiple verified providers, best price comparison", other: "Single source, no alternatives" },
+  { feature: "Success Rate Visibility", kktech: "Real-time stats per provider shown upfront", other: "No visibility until after payment" },
+  { feature: "Bulk Ordering", kktech: "Built-in quantity pricing with instant delivery", other: "Manual process, slow turnaround" },
+  { feature: "Delivery Tracking", kktech: "Live order status with receipt generation", other: "Email-only updates, no tracking" },
+  { feature: "Payment Methods", kktech: "KBZPay, WavePay, CB Pay, bank transfers", other: "Credit card or crypto only" },
+];
+
 /* ───────── FAQ JSON-LD ───────── */
 function FaqJsonLd() {
   const structured = {
@@ -184,11 +186,53 @@ function FaqJsonLd() {
   );
 }
 
+/* ───────── LIVE STATS HOOK ───────── */
+function useLandingStats() {
+  return useQuery({
+    queryKey: ["landing-stats"],
+    queryFn: async () => {
+      const [productsRes, providersRes, ordersRes] = await Promise.all([
+        supabase.from("products").select("id", { count: "exact", head: true }),
+        supabase.from("imei_providers").select("id, success_rate, status"),
+        supabase.from("orders").select("id", { count: "exact", head: true }),
+      ]);
+      const activeProviders = (providersRes.data ?? []).filter(p => p.status === "active");
+      const avgSuccess = activeProviders.length > 0
+        ? Math.round(activeProviders.reduce((s, p) => s + (Number(p.success_rate) || 0), 0) / activeProviders.length)
+        : 99;
+      return {
+        products: productsRes.count ?? 0,
+        providers: activeProviders.length,
+        successRate: avgSuccess,
+        orders: ordersRes.count ?? 0,
+      };
+    },
+    staleTime: 60_000,
+  });
+}
+
+/* ───────── ANIMATED STAT ───────── */
+function AnimatedStat({ value, suffix, label, icon: Icon }: { value: number; suffix?: string; label: string; icon: typeof Package }) {
+  const { display, ref } = useCountUpOnView(value, 1200);
+  return (
+    <div ref={ref} className="flex flex-col items-center gap-2 p-6">
+      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
+        <Icon className="h-5 w-5 text-primary" />
+      </div>
+      <span className="text-3xl font-extrabold tabular-nums text-foreground">
+        {display.toLocaleString()}{suffix}
+      </span>
+      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{label}</span>
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════
-   LANDING PAGE — Modern SaaS Design
+   LANDING PAGE
    ═══════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [contactOpen, setContactOpen] = useState(false);
+  const { data: stats } = useLandingStats();
 
   return (
     <>
@@ -220,7 +264,7 @@ export default function LandingPage() {
       </header>
 
       <main>
-        {/* ═══════════ HERO ═══════════ */}
+        {/* ═══════════ MARKETPLACE HERO ═══════════ */}
         <section className="relative overflow-hidden bg-background pb-16 pt-20 sm:pb-28 sm:pt-32">
           {/* Background decoration */}
           <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2">
@@ -232,61 +276,61 @@ export default function LandingPage() {
 
           <ScrollReveal>
             <div className="relative mx-auto max-w-3xl px-5 text-center sm:px-8">
-              {/* Badge */}
+              {/* Animated Badge */}
               <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/[0.08] px-4 py-2">
                 <div className="h-2 w-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-sm font-semibold text-primary">Trusted by 500+ Myanmar Resellers</span>
+                <span className="text-sm font-semibold text-primary">
+                  {stats?.products ?? "..."} Services · 3 Categories · {stats?.providers ?? "..."} Verified Providers
+                </span>
               </div>
 
               <h1 className="text-[2.25rem] font-extrabold leading-[1.15] tracking-tight text-foreground sm:text-[3.25rem]">
-                GSM Unlock &amp; Digital
+                Compare &amp; Buy IMEI
                 <br className="hidden sm:block" />
-                {" "}Reseller Platform
-                <span className="text-primary"> in Myanmar</span>
+                {" "}Unlock Services
+                <span className="text-primary"> Instantly</span>
               </h1>
 
               <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-secondary-foreground sm:text-lg">
-                Instant IMEI Services, VPN Accounts &amp; Digital Tools at Wholesale Pricing.
-                Built for resellers who want speed, transparency, and profit.
+                Multi-provider marketplace with transparent pricing. Compare success rates, delivery times, and prices across verified providers — all in one platform.
               </p>
 
-              <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-                <Button size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
-                  <Link to="/login">
-                    Register as Reseller <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-                <Button variant="outline" size="lg" className="h-12 px-8 text-sm font-semibold border-border" asChild>
-                  <a href="#services">View Services</a>
-                </Button>
-              </div>
-            </div>
-          </ScrollReveal>
-
-          {/* Trust Badges */}
-          <ScrollReveal delay={200}>
-            <div className="relative mx-auto mt-20 max-w-4xl px-5 sm:px-8">
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-                {trustBadges.map((b, i) => (
-                  <ScrollReveal key={b.label} delay={300 + i * 80}>
-                    <div
-                      className="group flex flex-col items-center gap-3 rounded-2xl border border-border bg-card p-6 text-center shadow-card transition-all hover:shadow-elevated"
-                    >
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 transition-colors group-hover:bg-primary/15">
-                        <b.icon className="h-5 w-5 text-primary" />
-                      </div>
-                      <span className="text-sm font-semibold text-foreground">{b.label}</span>
-                      <span className="text-xs leading-snug text-muted-foreground">{b.desc}</span>
-                    </div>
-                  </ScrollReveal>
-                ))}
+              {/* Search-style CTA */}
+              <div className="mx-auto mt-10 max-w-lg">
+                <Link
+                  to="/login"
+                  className="group flex items-center gap-3 rounded-2xl border border-border bg-card p-3 pr-4 shadow-card transition-all hover:shadow-elevated hover:border-primary/30"
+                >
+                  <div className="flex h-11 w-full items-center gap-3 rounded-xl bg-muted/50 px-4 text-sm text-muted-foreground">
+                    <Search className="h-4 w-4 shrink-0" />
+                    <span>Enter IMEI number to find unlock services...</span>
+                  </div>
+                  <Button size="sm" className="shrink-0 px-5 font-semibold">
+                    Search <ArrowRight className="ml-1 h-3.5 w-3.5" />
+                  </Button>
+                </Link>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Free to register · No monthly fees · Pay only for what you order
+                </p>
               </div>
             </div>
           </ScrollReveal>
         </section>
 
+        {/* ═══════════ LIVE STATS ═══════════ */}
+        <section className="border-t border-border bg-muted/20 py-4">
+          <div className="mx-auto max-w-4xl px-5 sm:px-8">
+            <div className="grid grid-cols-2 sm:grid-cols-4 divide-x divide-border">
+              <AnimatedStat icon={Package} value={stats?.products ?? 0} label="Services Available" />
+              <AnimatedStat icon={Users} value={stats?.providers ?? 0} label="Active Providers" />
+              <AnimatedStat icon={TrendingUp} value={stats?.successRate ?? 0} suffix="%" label="Avg Success Rate" />
+              <AnimatedStat icon={Activity} value={stats?.orders ?? 0} label="Orders Processed" />
+            </div>
+          </div>
+        </section>
+
         {/* ═══════════ TRUST NOTICE ═══════════ */}
-        <section className="bg-background pb-16">
+        <section className="bg-background py-16">
           <ScrollReveal className="mx-auto max-w-3xl px-5 sm:px-8">
             <div className="flex gap-4 rounded-2xl border border-primary/20 bg-primary/[0.06] p-6">
               <div className="flex-shrink-0 border-l-[3px] border-primary" />
@@ -366,25 +410,56 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ═══════════ WHY CHOOSE US (visually hidden, SEO indexed) ═══════════ */}
-        <section id="why" className="sr-only" aria-hidden="false">
-          <div className="mx-auto max-w-4xl px-4 sm:px-6">
-            <h2 className="text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              Why Choose KKTech Reseller Platform?
-            </h2>
-            <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {reasons.map((r) => (
-                <div key={r.text} className="flex items-start gap-3 rounded-card border border-border bg-card p-5 shadow-luxury">
-                  <r.icon className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-                  <span className="text-sm font-medium text-foreground">{r.text}</span>
+        {/* ═══════════ COMPARISON TABLE ═══════════ */}
+        <section id="compare" className="py-20 sm:py-28">
+          <div className="mx-auto max-w-4xl px-5 sm:px-8">
+            <ScrollReveal>
+              <div className="mx-auto max-w-2xl text-center">
+                <p className="text-xs font-bold uppercase tracking-[0.15em] text-primary">Why Choose Us</p>
+                <h2 className="mt-3 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                  KKTech vs Traditional Unlock Sites
+                </h2>
+                <p className="mt-3 text-base text-muted-foreground">
+                  See why resellers choose our multi-provider marketplace over legacy platforms.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <ScrollReveal delay={150}>
+              <div className="mt-12 overflow-hidden rounded-2xl border border-border bg-card shadow-card">
+                {/* Header row */}
+                <div className="grid grid-cols-3 border-b border-border bg-muted/40 px-5 py-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  <span>Feature</span>
+                  <span className="text-center text-primary">KKTech</span>
+                  <span className="text-center">Others</span>
                 </div>
-              ))}
-            </div>
+
+                {/* Rows */}
+                {comparisonRows.map((row, i) => (
+                  <div
+                    key={row.feature}
+                    className={`grid grid-cols-3 items-center gap-2 px-5 py-4 text-sm ${
+                      i < comparisonRows.length - 1 ? "border-b border-border/50" : ""
+                    }`}
+                  >
+                    <span className="font-medium text-foreground">{row.feature}</span>
+                    <div className="flex items-start gap-2 justify-center text-center">
+                      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                      <span className="text-muted-foreground text-left">{row.kktech}</span>
+                    </div>
+                    <div className="flex items-start gap-2 justify-center text-center">
+                      <Minus className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/50" />
+                      <span className="text-muted-foreground/60 text-left">{row.other}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </ScrollReveal>
           </div>
         </section>
 
         {/* ═══════════ HOW IT WORKS ═══════════ */}
-        <section id="how" className="py-20 sm:py-28">
+        <section id="how" className="border-t border-border bg-muted/30 py-20 sm:py-28">
           <div className="mx-auto max-w-4xl px-5 sm:px-8">
             <ScrollReveal>
               <div className="mx-auto max-w-2xl text-center">
@@ -545,7 +620,6 @@ export default function LandingPage() {
       {/* ═══════════ FOOTER ═══════════ */}
       <footer className="border-t border-border bg-card py-12">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 sm:grid-cols-3 sm:px-8">
-          {/* Brand */}
           <div>
             <span className="text-xl font-extrabold text-foreground">
               KK<span className="text-primary">Tech</span>
@@ -555,8 +629,6 @@ export default function LandingPage() {
               Instant IMEI services, VPN keys, and premium digital tools at competitive pricing.
             </p>
           </div>
-
-          {/* Links */}
           <div className="flex flex-col gap-2.5 text-sm">
             <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">
               Quick Links
@@ -566,8 +638,6 @@ export default function LandingPage() {
             <Link to="/tools/imei-check" className="text-secondary-foreground transition-colors hover:text-primary">Free IMEI Checker</Link>
             <Link to="/login" className="text-secondary-foreground transition-colors hover:text-primary">Reseller Login</Link>
           </div>
-
-          {/* Policies */}
           <div className="flex flex-col gap-2.5 text-sm">
             <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">
               Policies
@@ -577,7 +647,6 @@ export default function LandingPage() {
             <Link to="/terms" className="text-secondary-foreground transition-colors hover:text-primary">Refund Policy</Link>
           </div>
         </div>
-
         <div className="mx-auto mt-10 max-w-6xl border-t border-border px-5 pt-6 sm:px-8">
           <p className="text-center text-xs text-muted-foreground font-medium">
             © {new Date().getFullYear()} KKTech. All rights reserved.
