@@ -79,6 +79,16 @@ export default function ProductsPage() {
     },
   });
 
+  const { data: usdRateSetting } = useQuery({
+    queryKey: ["usd-mmk-rate-updated"],
+    queryFn: async () => {
+      const { data } = await (supabase as any).from("system_settings").select("*").eq("key", "usd_mmk_rate").single();
+      return data;
+    },
+  });
+
+  const lastRateUpdate = usdRateSetting?.updated_at || null;
+
   const getTiersForProduct = (productId: string) => {
     return (allTiers || []).filter((t: any) => t.product_id === productId);
   };
@@ -246,6 +256,7 @@ export default function ProductsPage() {
               isPurchasing={purchasing === product.id}
               onBuyClick={handleBuyClick}
               pricingTiers={getTiersForProduct(product.id)}
+              lastRateUpdate={product.base_currency === "USD" ? lastRateUpdate : null}
             />
           ))
         )}
