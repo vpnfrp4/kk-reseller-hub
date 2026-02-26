@@ -21,7 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, Info } from "lucide-react";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
 import BulkTierDialog from "@/components/admin/BulkTierDialog";
 import { Progress } from "@/components/ui/progress";
@@ -466,7 +466,35 @@ export default function AdminProducts() {
                         <button
                           key={pt.value}
                           type="button"
-                          onClick={() => setForm((prev) => ({ ...prev, product_type: pt.value as ProductType }))}
+                          onClick={() => {
+                            const newType = pt.value as ProductType;
+                            if (newType === "imei") {
+                              // Auto-configure IMEI defaults
+                              setForm((prev) => ({
+                                ...prev,
+                                product_type: newType,
+                                category: prev.category === "General" ? "IMEI Unlock" : prev.category,
+                                stock: "0",
+                                duration: "",
+                                fulfillment_mode: "manual",
+                              }));
+                              setCustomFields([]);
+                            } else {
+                              // Restore neutral defaults when switching away from IMEI
+                              setForm((prev) => ({
+                                ...prev,
+                                product_type: newType,
+                                // Clear IMEI-specific fields
+                                brand_id: "",
+                                country_id: "",
+                                carrier_id: "",
+                                processing_time: "1-3 Days",
+                                // Restore defaults
+                                stock: newType === "digital" ? prev.stock : "0",
+                                category: prev.category === "IMEI Unlock" ? "General" : prev.category,
+                              }));
+                            }
+                          }}
                           className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border-2 transition-all text-center ${
                             active
                               ? "border-primary bg-primary/5 text-primary"
@@ -539,6 +567,28 @@ export default function AdminProducts() {
                   <Label className="text-muted-foreground text-xs">Description</Label>
                   <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Product description…" className="bg-muted/50 border-border resize-none" rows={2} maxLength={500} />
                 </div>
+
+                {/* ── IMEI Auto-Configured Banner ── */}
+                {isImei && (
+                  <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                      <span className="text-xs font-semibold text-primary">Order Settings Auto-Configured</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-muted-foreground pl-6">
+                      <span>✓ Require IMEI</span>
+                      <span>✗ Require Username</span>
+                      <span>✗ Require Comments</span>
+                      <span>✗ Require Quantity</span>
+                      <span>✗ Image Upload</span>
+                      <span>✗ Download Settings</span>
+                      <span>✗ Stock Management</span>
+                      <span className="flex items-center gap-1">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* ── IMEI-Specific Fields ── */}
                 {isImei && (
