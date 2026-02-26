@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { DollarSign, RefreshCw } from "lucide-react";
+import { DollarSign, RefreshCw, Zap, Clock, Globe } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -390,6 +391,7 @@ function ExchangeRateSection() {
   const queryClient = useQueryClient();
   const [rate, setRate] = useState("");
   const [saving, setSaving] = useState(false);
+  const [fetching, setFetching] = useState(false);
   const [usdProductCount, setUsdProductCount] = useState(0);
 
   const { data: setting } = useQuery({
@@ -404,7 +406,6 @@ function ExchangeRateSection() {
     },
   });
 
-  // Count USD products
   useQuery({
     queryKey: ["usd-product-count"],
     queryFn: async () => {
@@ -417,11 +418,18 @@ function ExchangeRateSection() {
     },
   });
 
+  const settingValue = (setting?.value || {}) as Record<string, any>;
+
   useEffect(() => {
-    if (setting?.value) {
-      setRate(String((setting.value as any).rate || 2100));
+    if (settingValue.rate) {
+      setRate(String(settingValue.rate));
     }
   }, [setting]);
+
+  const autoFetch = settingValue.auto_fetch ?? false;
+  const source = settingValue.source || "manual";
+  const fetchedAt = settingValue.fetched_at;
+  const currentRate = settingValue.rate;
 
   const handleSave = async () => {
     const numRate = parseFloat(rate);
@@ -430,7 +438,7 @@ function ExchangeRateSection() {
     try {
       const { error } = await (supabase as any)
         .from("system_settings")
-        .update({ value: { rate: numRate } })
+        .update({ value: { ...settingValue, rate: numRate, source: "manual" } })
         .eq("key", "usd_mmk_rate");
       if (error) throw error;
       toast.success(`USD rate updated to ${numRate.toLocaleString()} MMK. ${usdProductCount} USD-based product${usdProductCount !== 1 ? "s" : ""} recalculated.`);
@@ -444,7 +452,44 @@ function ExchangeRateSection() {
     }
   };
 
-  const currentRate = setting?.value ? (setting.value as any).rate : null;
+  const handleToggleAutoFetch = async (enabled: boolean) => {
+    try {
+      const { error } = await (supabase as any)
+        .from("system_settings")
+        .update({ value: { ...settingValue, auto_fetch: enabled } })
+        .eq("key", "usd_mmk_rate");
+      if (error) throw error;
+      toast.success(enabled ? "Auto-fetch enabled" : "Auto-fetch disabled");
+      queryClient.invalidateQueries({ queryKey: ["usd-mmk-rate"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update");
+    }
+  };
+
+  const handleFetchNow = async () => {
+    setFetching(true);
+    try {
+      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/fetch-usd-rate?manual=true`,
+        { headers: { "Content-Type": "application/json" } }
+      );
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      if (data.skipped) {
+        toast.info(`Skipped: ${data.reason}`);
+      } else {
+        toast.success(`Rate updated: ${data.old_rate} → ${data.new_rate} MMK`);
+      }
+      queryClient.invalidateQueries({ queryKey: ["usd-mmk-rate"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to fetch rate");
+    } finally {
+      setFetching(false);
+    }
+  };
 
   return (
     <Card>
@@ -457,6 +502,31 @@ function ExchangeRateSection() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Auto-fetch toggle */}
+        <div className="flex items-center justify-between py-2 px-3 rounded-lg border border-border/40 bg-muted/10">
+          <div className="flex items-center gap-3">
+            <Globe className="w-4 h-4 text-primary" />
+            <div>
+              <p className="text-sm font-medium text-foreground">Auto-Fetch Live Rate</p>
+              <p className="text-xs text-muted-foreground">Fetch from exchange rate API every 6 hours</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleFetchNow}
+              disabled={fetching}
+              className="h-7 gap-1 text-xs"
+            >
+              {fetching ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+              Fetch Now
+            </Button>
+            <Switch checked={autoFetch} onCheckedChange={handleToggleAutoFetch} />
+          </div>
+        </div>
+
+        {/* Manual rate input */}
         <div className="flex items-end gap-3">
           <div className="space-y-1.5 flex-1">
             <Label className="text-xs text-muted-foreground">1 USD =</Label>
@@ -478,9 +548,15 @@ function ExchangeRateSection() {
           </Button>
         </div>
 
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        {/* Current rate info with source badge */}
+        <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
           {currentRate && (
-            <span>Current rate: <span className="font-mono font-semibold text-foreground">{Number(currentRate).toLocaleString()}</span> MMK/USD</span>
+            <span className="flex items-center gap-1.5">
+              Current rate: <span className="font-mono font-semibold text-foreground">{Number(currentRate).toLocaleString()}</span> MMK/USD
+              <Badge variant={source === "er-api" ? "default" : "secondary"} className="text-[10px] h-4 px-1.5">
+                {source === "er-api" ? "Live API" : "Manual"}
+              </Badge>
+            </span>
           )}
           <span>•</span>
           <span className="flex items-center gap-1">
@@ -488,6 +564,14 @@ function ExchangeRateSection() {
             {usdProductCount} USD-priced product{usdProductCount !== 1 ? "s" : ""}
           </span>
         </div>
+
+        {/* Last fetched info */}
+        {fetchedAt && (
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Clock className="w-3 h-3" />
+            Last fetched: {new Date(fetchedAt).toLocaleString()}
+          </div>
+        )}
 
         {currentRate && (
           <div className="rounded-lg border border-border/40 bg-muted/10 p-3">

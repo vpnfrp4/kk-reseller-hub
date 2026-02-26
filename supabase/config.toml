@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.approve-topup]
 verify_jwt = false
+
+[functions.fetch-usd-rate]
+verify_jwt = false
