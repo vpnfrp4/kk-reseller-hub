@@ -91,53 +91,6 @@ export type Database = {
         }
         Relationships: []
       }
-      imei_orders: {
-        Row: {
-          admin_notes: string | null
-          completed_at: string | null
-          created_at: string
-          id: string
-          imei_number: string
-          imei_service_id: string
-          price: number
-          result: string | null
-          status: string
-          user_id: string
-        }
-        Insert: {
-          admin_notes?: string | null
-          completed_at?: string | null
-          created_at?: string
-          id?: string
-          imei_number: string
-          imei_service_id: string
-          price: number
-          result?: string | null
-          status?: string
-          user_id: string
-        }
-        Update: {
-          admin_notes?: string | null
-          completed_at?: string | null
-          created_at?: string
-          id?: string
-          imei_number?: string
-          imei_service_id?: string
-          price?: number
-          result?: string | null
-          status?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "imei_orders_imei_service_id_fkey"
-            columns: ["imei_service_id"]
-            isOneToOne: false
-            referencedRelation: "imei_services"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       imei_providers: {
         Row: {
           api_url: string | null
@@ -164,101 +117,6 @@ export type Database = {
           status?: string
         }
         Relationships: []
-      }
-      imei_services: {
-        Row: {
-          api_provider: string | null
-          brand: string
-          brand_id: string | null
-          carrier: string
-          carrier_id: string | null
-          country: string
-          country_id: string | null
-          created_at: string
-          final_price: number
-          fulfillment_mode: string
-          id: string
-          margin_percent: number
-          price: number
-          processing_time: string
-          provider_id: string | null
-          provider_price: number
-          service_name: string
-          sort_order: number
-          status: string
-        }
-        Insert: {
-          api_provider?: string | null
-          brand: string
-          brand_id?: string | null
-          carrier?: string
-          carrier_id?: string | null
-          country?: string
-          country_id?: string | null
-          created_at?: string
-          final_price?: number
-          fulfillment_mode?: string
-          id?: string
-          margin_percent?: number
-          price: number
-          processing_time?: string
-          provider_id?: string | null
-          provider_price?: number
-          service_name: string
-          sort_order?: number
-          status?: string
-        }
-        Update: {
-          api_provider?: string | null
-          brand?: string
-          brand_id?: string | null
-          carrier?: string
-          carrier_id?: string | null
-          country?: string
-          country_id?: string | null
-          created_at?: string
-          final_price?: number
-          fulfillment_mode?: string
-          id?: string
-          margin_percent?: number
-          price?: number
-          processing_time?: string
-          provider_id?: string | null
-          provider_price?: number
-          service_name?: string
-          sort_order?: number
-          status?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "imei_services_brand_id_fkey"
-            columns: ["brand_id"]
-            isOneToOne: false
-            referencedRelation: "imei_brands"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "imei_services_carrier_id_fkey"
-            columns: ["carrier_id"]
-            isOneToOne: false
-            referencedRelation: "imei_carriers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "imei_services_country_id_fkey"
-            columns: ["country_id"]
-            isOneToOne: false
-            referencedRelation: "imei_countries"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "imei_services_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "imei_providers"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       notifications: {
         Row: {
@@ -714,10 +572,6 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
-      }
-      process_imei_purchase: {
-        Args: { p_imei_number: string; p_service_id: string; p_user_id: string }
-        Returns: Json
       }
       process_purchase: {
         Args: {
