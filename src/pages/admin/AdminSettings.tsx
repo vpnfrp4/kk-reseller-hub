@@ -13,8 +13,15 @@ import { toast } from "sonner";
 import {
   Eye, EyeOff, Lock, Bell, BellOff, Volume2, VolumeX,
   Sun, Moon, Monitor, Wallet, ShoppingCart, TrendingDown, Package,
-  CreditCard, Save, Loader2, Trash2,
+  CreditCard, Save, Loader2, Trash2, Plus,
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter,
+  DialogHeader, DialogTitle, DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Select as UiSelect, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel,
   AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
@@ -246,6 +253,69 @@ function PaymentMethodsSection() {
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newMethod, setNewMethod] = useState({
+    provider: "KBZPay",
+    method_id: "kbzpay",
+    name: "",
+    phone: "",
+    binance_uid: "",
+    network: "",
+    accepted_currency: "",
+    min_deposit: 5000,
+  });
+
+  const providerOptions = [
+    { label: "KBZPay", method_id: "kbzpay" },
+    { label: "WavePay", method_id: "wavepay" },
+    { label: "AYA Pay", method_id: "ayapay" },
+    { label: "CB Pay", method_id: "cbpay" },
+    { label: "Binance", method_id: "binance" },
+    { label: "Other", method_id: "other" },
+  ];
+
+  const handleCreate = async () => {
+    if (!newMethod.provider.trim()) {
+      toast.error("Provider is required");
+      return;
+    }
+    const isBinance = newMethod.method_id === "binance";
+    if (!isBinance && !newMethod.name.trim()) {
+      toast.error("Account name is required");
+      return;
+    }
+    if (isBinance && !newMethod.binance_uid.trim()) {
+      toast.error("Binance UID is required");
+      return;
+    }
+    setCreating(true);
+    try {
+      const maxSort = (methods || []).reduce((max: number, m: any) => Math.max(max, m.sort_order || 0), 0);
+      const { error } = await supabase.from("payment_methods").insert({
+        provider: newMethod.provider.trim(),
+        method_id: newMethod.method_id,
+        name: newMethod.name.trim(),
+        phone: newMethod.phone.trim(),
+        binance_uid: newMethod.binance_uid.trim(),
+        network: newMethod.network.trim(),
+        accepted_currency: newMethod.accepted_currency.trim(),
+        min_deposit: newMethod.min_deposit || 5000,
+        sort_order: maxSort + 1,
+        is_active: true,
+      });
+      if (error) throw error;
+      toast.success(`${newMethod.provider} payment method created`);
+      queryClient.invalidateQueries({ queryKey: ["admin-payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
+      setCreateOpen(false);
+      setNewMethod({ provider: "KBZPay", method_id: "kbzpay", name: "", phone: "", binance_uid: "", network: "", accepted_currency: "", min_deposit: 5000 });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create");
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const handleDelete = async (id: string, provider: string) => {
     setDeleting(id);
@@ -324,11 +394,88 @@ function PaymentMethodsSection() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-base">
-          <CreditCard className="w-4 h-4 text-primary" /> Payment Methods
-        </CardTitle>
-        <CardDescription>Manage top-up payment accounts visible to resellers.</CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between gap-4">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <CreditCard className="w-4 h-4 text-primary" /> Payment Methods
+          </CardTitle>
+          <CardDescription>Manage top-up payment accounts visible to resellers.</CardDescription>
+        </div>
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="h-8 gap-1.5 text-xs shrink-0">
+              <Plus className="w-3 h-3" /> Add Method
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add Payment Method</DialogTitle>
+              <DialogDescription>Create a new payment option for reseller top-ups.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Provider</Label>
+                <UiSelect value={newMethod.method_id} onValueChange={(v) => {
+                  const opt = providerOptions.find((o) => o.method_id === v);
+                  setNewMethod((prev) => ({ ...prev, method_id: v, provider: opt?.label || v }));
+                }}>
+                  <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {providerOptions.map((o) => (
+                      <SelectItem key={o.method_id} value={o.method_id}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </UiSelect>
+              </div>
+              {newMethod.method_id === "binance" ? (
+                <>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Binance UID</Label>
+                    <Input value={newMethod.binance_uid} onChange={(e) => setNewMethod((p) => ({ ...p, binance_uid: e.target.value }))}
+                      placeholder="477879311" className="h-9 text-sm" maxLength={50} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Network</Label>
+                      <Input value={newMethod.network} onChange={(e) => setNewMethod((p) => ({ ...p, network: e.target.value }))}
+                        placeholder="TRC20" className="h-9 text-sm" maxLength={20} />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Currency</Label>
+                      <Input value={newMethod.accepted_currency} onChange={(e) => setNewMethod((p) => ({ ...p, accepted_currency: e.target.value }))}
+                        placeholder="USDT" className="h-9 text-sm" maxLength={10} />
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Account Name</Label>
+                    <Input value={newMethod.name} onChange={(e) => setNewMethod((p) => ({ ...p, name: e.target.value }))}
+                      placeholder="Account holder name" className="h-9 text-sm" maxLength={100} />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs text-muted-foreground">Phone Number</Label>
+                    <Input value={newMethod.phone} onChange={(e) => setNewMethod((p) => ({ ...p, phone: e.target.value }))}
+                      placeholder="09xxxxxxxxx" className="h-9 text-sm" maxLength={20} />
+                  </div>
+                </>
+              )}
+              <div className="space-y-1.5">
+                <Label className="text-xs text-muted-foreground">Min Deposit (MMK)</Label>
+                <Input type="number" value={newMethod.min_deposit} onChange={(e) => setNewMethod((p) => ({ ...p, min_deposit: parseInt(e.target.value) || 5000 }))}
+                  className="h-9 text-sm" min={1000} />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+              <Button onClick={handleCreate} disabled={creating} className="gap-1.5">
+                {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                Create
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </CardHeader>
       <CardContent className="space-y-6">
         {(methods || []).map((method: any) => {
