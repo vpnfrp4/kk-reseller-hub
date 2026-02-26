@@ -50,6 +50,21 @@ const BRAND_ICONS: Record<string, string> = {
   LG: "📺",
 };
 
+/** Classify processing time into speed tiers for badge color coding */
+function getSpeedTier(processingTime: string): { label: string; className: string } {
+  const lower = processingTime.toLowerCase();
+  // Instant / minutes → fast (green)
+  if (lower.includes("instant") || lower.includes("minute")) {
+    return { label: processingTime, className: "bg-emerald-500/15 text-emerald-400 border-emerald-500/25" };
+  }
+  // Hours or 1 day → medium (yellow/amber)
+  if (lower.includes("hour") || lower.match(/1[\s-]*day/) || lower.match(/^1-[23]\s*day/i)) {
+    return { label: processingTime, className: "bg-amber-500/15 text-amber-400 border-amber-500/25" };
+  }
+  // Multiple days → slow (red/rose)
+  return { label: processingTime, className: "bg-rose-500/15 text-rose-400 border-rose-500/25" };
+}
+
 export default function ImeiMarketplacePage() {
   const { isAuthenticated, profile } = useAuth();
   const navigate = useNavigate();
@@ -285,10 +300,15 @@ export default function ImeiMarketplacePage() {
                         {service.country}
                       </td>
                       <td className="p-default">
-                        <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          {service.processing_time}
-                        </span>
+                        {(() => {
+                          const tier = getSpeedTier(service.processing_time);
+                          return (
+                            <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${tier.className}`}>
+                              <Clock className="w-3 h-3" />
+                              {tier.label}
+                            </span>
+                          );
+                        })()}
                       </td>
                       <td className="p-default text-right">
                         <Money
@@ -330,10 +350,15 @@ export default function ImeiMarketplacePage() {
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="w-3 h-3" />
-                      {service.processing_time}
-                    </span>
+                    {(() => {
+                      const tier = getSpeedTier(service.processing_time);
+                      return (
+                        <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full border ${tier.className}`}>
+                          <Clock className="w-3 h-3" />
+                          {tier.label}
+                        </span>
+                      );
+                    })()}
                     <Button size="sm" onClick={() => handleOrder(service)}>
                       <Zap className="w-3.5 h-3.5 mr-1" /> Order
                     </Button>
