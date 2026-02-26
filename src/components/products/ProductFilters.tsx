@@ -33,6 +33,9 @@ interface ProductFiltersProps {
   onFulfillmentTypeChange?: (type: string) => void;
   deliverySpeed?: string;
   onDeliverySpeedChange?: (speed: string) => void;
+  providerId?: string;
+  onProviderIdChange?: (id: string) => void;
+  providers?: { id: string; name: string }[];
 }
 
 export default function ProductFilters({
@@ -47,6 +50,9 @@ export default function ProductFilters({
   onFulfillmentTypeChange,
   deliverySpeed = "all",
   onDeliverySpeedChange,
+  providerId = "all",
+  onProviderIdChange,
+  providers = [],
 }: ProductFiltersProps) {
   const l = useT();
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -55,7 +61,8 @@ export default function ProductFilters({
     activeCategory !== "All" ||
     sortBy !== "name" ||
     fulfillmentType !== "all" ||
-    deliverySpeed !== "all";
+    deliverySpeed !== "all" ||
+    providerId !== "all";
 
   const resetFilters = () => {
     onSearchChange("");
@@ -63,6 +70,7 @@ export default function ProductFilters({
     onSortChange("name");
     onFulfillmentTypeChange?.("all");
     onDeliverySpeedChange?.("all");
+    onProviderIdChange?.("all");
   };
 
   return (
@@ -193,6 +201,25 @@ export default function ProductFilters({
               ))}
             </SelectContent>
           </Select>
+
+          {providers.length > 0 && (
+            <Select
+              value={providerId}
+              onValueChange={(v) => onProviderIdChange?.(v)}
+            >
+              <SelectTrigger className="w-[180px] bg-muted/20 border-border/40 text-sm rounded-[var(--radius-input)] h-10">
+                <SelectValue placeholder="Provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Providers</SelectItem>
+                {providers.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       )}
     </div>
