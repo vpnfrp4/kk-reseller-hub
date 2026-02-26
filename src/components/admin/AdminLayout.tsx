@@ -17,6 +17,7 @@ import {
   X,
   Settings,
   Smartphone,
+  Database,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
@@ -30,6 +31,7 @@ const navItems = [
   { label: "Credentials", icon: KeyRound, path: "/admin/credentials" },
   { label: "IMEI Services", icon: Smartphone, path: "/admin/imei-services" },
   { label: "IMEI Orders", icon: Smartphone, path: "/admin/imei-orders" },
+  { label: "IMEI Lookups", icon: Database, path: "/admin/imei-lookups" },
   { label: "Top-ups", icon: Wallet, path: "/admin/topups" },
   { label: "Orders", icon: ShoppingCart, path: "/admin/orders" },
   { label: "Resellers", icon: Users, path: "/admin/resellers" },
