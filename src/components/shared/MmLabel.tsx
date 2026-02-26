@@ -33,6 +33,8 @@ export function MmStatus({ status, className = "" }: { status: string; className
     pending: { mm: "စောင့်ဆိုင်းနေ", en: "Pending", style: "badge-pending" },
     pending_creation: { mm: "ပြင်ဆင်နေ", en: "Preparing", style: "bg-primary/10 text-primary" },
     pending_review: { mm: "စစ်ဆေးနေ", en: "Review", style: "badge-pending" },
+    processing: { mm: "လုပ်ဆောင်နေ", en: "Processing", style: "bg-warning/15 text-warning" },
+    completed: { mm: "ပြီးဆုံး", en: "Completed", style: "badge-delivered" },
     approved: { mm: "အတည်ပြုပြီး", en: "Approved", style: "badge-delivered" },
     rejected: { mm: "ငြင်းပယ်", en: "Rejected", style: "badge-cancelled" },
     cancelled: { mm: "ပယ်ဖျက်", en: "Cancelled", style: "badge-cancelled" },
