@@ -41,6 +41,7 @@ export default function OrdersPage() {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
+  const [productType, setProductType] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const l = useT();
@@ -48,6 +49,7 @@ export default function OrdersPage() {
   const buildQuery = (q: any) => {
     if (search.trim()) q = q.ilike("product_name", `%${search.trim()}%`);
     if (status !== "all") q = q.eq("status", status);
+    if (productType !== "all") q = q.eq("product_type", productType);
     if (dateFrom) q = q.gte("created_at", dateFrom.toISOString());
     if (dateTo) {
       const end = new Date(dateTo);
@@ -57,7 +59,7 @@ export default function OrdersPage() {
     return q;
   };
 
-  const filterKey = [search, status, dateFrom?.toISOString(), dateTo?.toISOString()];
+  const filterKey = [search, status, productType, dateFrom?.toISOString(), dateTo?.toISOString()];
 
   const { data: countData } = useQuery({
     queryKey: ["orders-count", ...filterKey],
@@ -123,12 +125,13 @@ export default function OrdersPage() {
   const clearFilters = () => {
     setSearch("");
     setStatus("all");
+    setProductType("all");
     setDateFrom(undefined);
     setDateTo(undefined);
     setPage(0);
   };
 
-  const hasFilters = search || status !== "all" || dateFrom || dateTo;
+  const hasFilters = search || status !== "all" || productType !== "all" || dateFrom || dateTo;
 
   /* ── Credentials cell renderer ── */
   const renderCredentials = (row: any) => {
@@ -284,6 +287,22 @@ export default function OrdersPage() {
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="rejected">Rejected</SelectItem>
                 <SelectItem value="pending_review">Pending Review</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="min-w-[130px]">
+            <label className="text-[11px] font-medium text-muted-foreground mb-1.5 block uppercase tracking-wider">Type</label>
+            <Select value={productType} onValueChange={(v) => { setProductType(v); setPage(0); }}>
+              <SelectTrigger className="h-9 bg-muted/20 border-border/40 rounded-[var(--radius-input)]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{l(t.products.all)}</SelectItem>
+                <SelectItem value="digital">Digital</SelectItem>
+                <SelectItem value="imei">IMEI</SelectItem>
+                <SelectItem value="manual">Manual</SelectItem>
+                <SelectItem value="api">API</SelectItem>
               </SelectContent>
             </Select>
           </div>
