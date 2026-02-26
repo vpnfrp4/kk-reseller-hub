@@ -12,7 +12,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
 import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
 import ImportantNoticeModal from "@/components/products/ImportantNoticeModal";
@@ -84,6 +84,15 @@ export default function ProductDetailPage() {
   });
 
   const provider = (product as any)?.imei_providers || null;
+
+  useEffect(() => {
+    if (product?.name) {
+      document.title = `${product.name} – Buy Online in Myanmar | KKTechDeals`;
+    }
+    return () => {
+      document.title = "KKTechDeals – Myanmar Unlock & Digital Reseller Marketplace";
+    };
+  }, [product?.name]);
 
   const { data: pricingTiers = [] } = useQuery({
     queryKey: ["pricing-tiers", id],
