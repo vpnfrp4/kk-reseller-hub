@@ -667,8 +667,16 @@ function ExchangeRateSection() {
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const res = await fetch(
-        `${supabaseUrl}/functions/v1/fetch-usd-rate?manual=true`,
-        { headers: { "Authorization": `Bearer ${anonKey}`, "apikey": anonKey } }
+        `${supabaseUrl}/functions/v1/fetch-usd-rate`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${anonKey}`,
+            "apikey": anonKey,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ manual: true }),
+        }
       );
       const data = await res.json();
       if (data?.error) throw new Error(data.error);

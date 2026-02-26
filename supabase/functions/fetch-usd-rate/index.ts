@@ -3,7 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -28,8 +28,17 @@ Deno.serve(async (req) => {
     const autoFetch = currentValue.auto_fetch ?? true;
 
     // Check if this is a scheduled call (not manual) and auto_fetch is disabled
-    const url = new URL(req.url);
-    const isManual = url.searchParams.get("manual") === "true";
+    let isManual = false;
+    try {
+      const url = new URL(req.url);
+      isManual = url.searchParams.get("manual") === "true";
+    } catch { /* ignore */ }
+    if (!isManual && req.method === "POST") {
+      try {
+        const body = await req.json();
+        isManual = body?.manual === true;
+      } catch { /* ignore */ }
+    }
 
     if (!isManual && !autoFetch) {
       return new Response(
@@ -108,4 +117,3 @@ Deno.serve(async (req) => {
     );
   }
 });
-
