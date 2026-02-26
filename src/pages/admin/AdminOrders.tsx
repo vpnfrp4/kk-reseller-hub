@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import OrderDetailModal from "@/components/admin/OrderDetailModal";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 import { DataCard, Money } from "@/components/shared";
 
 const STATUS_OPTIONS = ["all", "delivered", "pending", "pending_creation", "pending_review", "processing", "completed", "rejected", "cancelled"] as const;
@@ -48,6 +49,7 @@ export default function AdminOrders() {
   const [pageSize, setPageSize] = useState<number>(25);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [bulkConfirm, setBulkConfirm] = useState<string | null>(null);
   const [detailOrder, setDetailOrder] = useState<any>(null);
 
   const { data: orders, isLoading } = useQuery({
@@ -292,7 +294,7 @@ export default function AdminOrders() {
                   variant="outline"
                   className="text-xs h-8"
                   disabled={bulkUpdating}
-                  onClick={() => handleBulkStatusChange(s)}
+                  onClick={() => setBulkConfirm(s)}
                 >
                   Mark {s.charAt(0).toUpperCase() + s.slice(1)}
                 </Button>
@@ -410,6 +412,21 @@ export default function AdminOrders() {
         open={!!detailOrder}
         onOpenChange={(open) => { if (!open) setDetailOrder(null); }}
         onStatusUpdated={() => queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] })}
+      />
+
+      <ConfirmModal
+        open={!!bulkConfirm}
+        onOpenChange={(open) => { if (!open) setBulkConfirm(null); }}
+        title="Confirm Bulk Status Change"
+        description={`Are you sure you want to mark ${selectedIds.size} order(s) as "${bulkConfirm}"? This action cannot be undone.`}
+        confirmLabel={bulkUpdating ? "Updating…" : `Update ${selectedIds.size} Order(s)`}
+        onConfirm={() => {
+          if (bulkConfirm) {
+            handleBulkStatusChange(bulkConfirm).then(() => setBulkConfirm(null));
+          }
+        }}
+        destructive={bulkConfirm === "rejected" || bulkConfirm === "cancelled"}
+        loading={bulkUpdating}
       />
     </div>
   );
