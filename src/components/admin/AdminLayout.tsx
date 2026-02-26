@@ -28,6 +28,7 @@ import { notifyEvent } from "@/lib/notifications";
 const navItems = [
   { label: "Overview", icon: LayoutDashboard, path: "/admin" },
   { label: "Products", icon: Package, path: "/admin/products" },
+  { label: "Providers", icon: Database, path: "/admin/providers" },
   { label: "Credentials", icon: KeyRound, path: "/admin/credentials" },
   { label: "Top-ups", icon: Wallet, path: "/admin/topups" },
   { label: "Orders", icon: ShoppingCart, path: "/admin/orders" },
