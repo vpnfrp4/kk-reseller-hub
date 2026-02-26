@@ -14,6 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
+      imei_brands: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      imei_carriers: {
+        Row: {
+          country_id: string
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          country_id: string
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          country_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "imei_carriers_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "imei_countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      imei_countries: {
+        Row: {
+          code: string | null
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          code?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
       imei_orders: {
         Row: {
           admin_notes: string | null
@@ -61,17 +138,51 @@ export type Database = {
           },
         ]
       }
+      imei_providers: {
+        Row: {
+          api_url: string | null
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          status: string
+        }
+        Insert: {
+          api_url?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          sort_order?: number
+          status?: string
+        }
+        Update: {
+          api_url?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          status?: string
+        }
+        Relationships: []
+      }
       imei_services: {
         Row: {
           api_provider: string | null
           brand: string
+          brand_id: string | null
           carrier: string
+          carrier_id: string | null
           country: string
+          country_id: string | null
           created_at: string
+          final_price: number
           fulfillment_mode: string
           id: string
+          margin_percent: number
           price: number
           processing_time: string
+          provider_id: string | null
+          provider_price: number
           service_name: string
           sort_order: number
           status: string
@@ -79,13 +190,20 @@ export type Database = {
         Insert: {
           api_provider?: string | null
           brand: string
+          brand_id?: string | null
           carrier?: string
+          carrier_id?: string | null
           country?: string
+          country_id?: string | null
           created_at?: string
+          final_price?: number
           fulfillment_mode?: string
           id?: string
+          margin_percent?: number
           price: number
           processing_time?: string
+          provider_id?: string | null
+          provider_price?: number
           service_name: string
           sort_order?: number
           status?: string
@@ -93,18 +211,54 @@ export type Database = {
         Update: {
           api_provider?: string | null
           brand?: string
+          brand_id?: string | null
           carrier?: string
+          carrier_id?: string | null
           country?: string
+          country_id?: string | null
           created_at?: string
+          final_price?: number
           fulfillment_mode?: string
           id?: string
+          margin_percent?: number
           price?: number
           processing_time?: string
+          provider_id?: string | null
+          provider_price?: number
           service_name?: string
           sort_order?: number
           status?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "imei_services_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "imei_brands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imei_services_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "imei_carriers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imei_services_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "imei_countries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "imei_services_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "imei_providers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
