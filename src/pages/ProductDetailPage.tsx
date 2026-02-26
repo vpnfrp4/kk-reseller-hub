@@ -90,7 +90,7 @@ export default function ProductDetailPage() {
       document.title = `${product.name} – Buy Online in Myanmar | KKTechDeals`;
     }
     return () => {
-      document.title = "KKTechDeals – Myanmar Unlock & Digital Reseller Marketplace";
+      document.title = "Myanmar Biggest Unlock Marketplace | IMEI, GSM & Digital Services – KKTechDeals";
     };
   }, [product?.name]);
 
