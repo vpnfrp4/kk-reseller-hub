@@ -14,3 +14,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://kk-reseller-hub.lovable.app/sitemap.xml
+Sitemap: https://etickkjsiibsftjtbavy.supabase.co/functions/v1/sitemap
