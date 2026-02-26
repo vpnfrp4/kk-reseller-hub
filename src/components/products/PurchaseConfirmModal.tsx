@@ -45,7 +45,10 @@ export default function PurchaseConfirmModal({
   const l = useT();
   const [quantity, setQuantity] = useState(1);
 
-  const maxQty = product ? Math.min(product.stock, 100) : 1;
+  const pt = product?.product_type || "digital";
+  const hasStock = pt === "digital";
+  const allowQuantity = hasStock; // Only digital products support multi-quantity
+  const maxQty = product ? (hasStock ? Math.min(product.stock, 100) : 1) : 1;
 
   const currentTier = useMemo(() => {
     if (!pricingTiers.length) return null;
@@ -92,51 +95,53 @@ export default function PurchaseConfirmModal({
 
             <Separator />
 
-            {/* Quantity Selector */}
-            <div className="space-y-compact">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">{l(t.products.quantity)}</span>
-                <QuantitySelector
-                  value={quantity}
-                  onChange={setQuantity}
-                  min={1}
-                  max={maxQty}
-                />
-              </div>
+            {/* Quantity Selector — only for digital products */}
+            {allowQuantity && (
+              <div className="space-y-compact">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-foreground">{l(t.products.quantity)}</span>
+                  <QuantitySelector
+                    value={quantity}
+                    onChange={setQuantity}
+                    min={1}
+                    max={maxQty}
+                  />
+                </div>
 
-              {/* Quick-select */}
-              <div className="flex items-center gap-tight">
-                {[5, 10, 20].filter((q) => q <= maxQty).map((q) => (
-                  <button
-                    key={q}
-                    onClick={() => setQuantity(q)}
-                    className={`flex-1 py-2 rounded-btn text-sm font-medium transition-all border ${
-                      quantity === q
-                        ? "bg-primary/10 border-primary/30 text-primary"
-                        : "bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:border-border"
-                    }`}
-                  >
-                    ×{q}
-                  </button>
-                ))}
-                {maxQty > 20 && (
-                  <button
-                    onClick={() => setQuantity(maxQty)}
-                    className={`flex-1 py-2 rounded-btn text-sm font-medium transition-all border ${
-                      quantity === maxQty
-                        ? "bg-primary/10 border-primary/30 text-primary"
-                        : "bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:border-border"
-                    }`}
-                  >
-                    Max
-                  </button>
-                )}
-              </div>
+                {/* Quick-select */}
+                <div className="flex items-center gap-tight">
+                  {[5, 10, 20].filter((q) => q <= maxQty).map((q) => (
+                    <button
+                      key={q}
+                      onClick={() => setQuantity(q)}
+                      className={`flex-1 py-2 rounded-btn text-sm font-medium transition-all border ${
+                        quantity === q
+                          ? "bg-primary/10 border-primary/30 text-primary"
+                          : "bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:border-border"
+                      }`}
+                    >
+                      ×{q}
+                    </button>
+                  ))}
+                  {maxQty > 20 && (
+                    <button
+                      onClick={() => setQuantity(maxQty)}
+                      className={`flex-1 py-2 rounded-btn text-sm font-medium transition-all border ${
+                        quantity === maxQty
+                          ? "bg-primary/10 border-primary/30 text-primary"
+                          : "bg-muted/30 border-border text-muted-foreground hover:text-foreground hover:border-border"
+                      }`}
+                    >
+                      Max
+                    </button>
+                  )}
+                </div>
 
-              <p className="text-caption text-muted-foreground text-right">
-                {product.stock} {l(t.products.available)}
-              </p>
-            </div>
+                <p className="text-caption text-muted-foreground text-right">
+                  {product.stock} {l(t.products.available)}
+                </p>
+              </div>
+            )}
 
             {/* Tier Pricing Table */}
             {pricingTiers.length > 0 && (
