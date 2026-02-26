@@ -3,22 +3,22 @@ import { Link } from "react-router-dom";
 import {
   Shield,
   Zap,
-  Clock,
   Smartphone,
-  Key,
-  Sparkles,
+  Wrench,
+  Monitor,
   UserPlus,
   CreditCard,
   ShoppingCart,
   Truck,
-  ChevronRight,
+  ArrowRight,
+  Users,
   CheckCircle2,
-  HeadphonesIcon,
+  BarChart3,
+  Wallet,
   MessageCircle,
-  X,
   Send,
   Phone,
-  ArrowRight,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -63,48 +63,42 @@ const ScrollReveal = forwardRef<HTMLDivElement, { children: ReactNode; delay?: n
 );
 ScrollReveal.displayName = "ScrollReveal";
 
-/* ───────── CATEGORIES ───────── */
+/* ───────── DATA ───────── */
+const trustStats = [
+  { icon: Users, value: "500+", label: "Active Resellers" },
+  { icon: CheckCircle2, value: "10,000+", label: "Orders Completed" },
+  { icon: BarChart3, value: "99%", label: "Success Rate" },
+  { icon: Wallet, value: "KBZPay", label: "& WavePay Supported" },
+];
+
 const categories = [
   {
     icon: Smartphone,
     title: "IMEI Unlock",
-    desc: "Official carrier unlocks for iPhone, Samsung & all brands. Multi-provider pricing.",
+    desc: "Official carrier unlocks for iPhone, Samsung & all major brands.",
     link: "/services/imei-unlock",
-    tag: "Most Popular",
   },
   {
-    icon: Sparkles,
-    title: "Digital Accounts",
-    desc: "CapCut Pro, Canva Pro, AI tools — wholesale accounts with instant delivery.",
+    icon: Wrench,
+    title: "Hardware & Repair Tools",
+    desc: "GSM tools, server credits, and professional repair solutions.",
     link: "/login",
-    tag: "Instant",
   },
   {
-    icon: Key,
-    title: "VPN Keys",
-    desc: "ExpressVPN, LetsVPN and premium VPN keys at bulk reseller pricing.",
-    link: "/services/vpn-keys",
-    tag: "Bulk Deals",
+    icon: Monitor,
+    title: "Digital Subscriptions",
+    desc: "Premium accounts — CapCut Pro, VPN keys, and more at wholesale.",
+    link: "/login",
   },
 ];
 
-/* ───────── STEPS ───────── */
 const steps = [
   { icon: UserPlus, title: "Register", desc: "Free account in under 2 minutes." },
-  { icon: CreditCard, title: "Top Up", desc: "KBZPay, WavePay, or bank transfer." },
-  { icon: ShoppingCart, title: "Order", desc: "Browse & buy at wholesale prices." },
-  { icon: Truck, title: "Receive", desc: "Instant or scheduled delivery." },
+  { icon: CreditCard, title: "Top Up Wallet", desc: "KBZPay, WavePay, or bank transfer." },
+  { icon: ShoppingCart, title: "Place Order", desc: "Browse & buy at wholesale prices." },
+  { icon: Truck, title: "Receive Delivery", desc: "Instant or scheduled fulfillment." },
 ];
 
-/* ───────── TRUST BADGES ───────── */
-const trustBadges = [
-  { icon: Shield, label: "Verified Providers" },
-  { icon: Zap, label: "Instant Delivery" },
-  { icon: Clock, label: "24/7 Support" },
-  { icon: HeadphonesIcon, label: "Myanmar Payments" },
-];
-
-/* ───────── FAQ ───────── */
 const faqs = [
   {
     q: "How long does IMEI unlock take?",
@@ -124,7 +118,7 @@ const faqs = [
   },
 ];
 
-/* ───────── FAQ JSON-LD ───────── */
+/* ───────── JSON-LD ───────── */
 function FaqJsonLd() {
   const structured = {
     "@context": "https://schema.org",
@@ -135,15 +129,9 @@ function FaqJsonLd() {
       acceptedAnswer: { "@type": "Answer", text: f.a },
     })),
   };
-  return (
-    <script
-      type="application/ld+json"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify(structured) }}
-    />
-  );
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structured) }} />;
 }
 
-/* ───────── Organization + WebSite JSON-LD ───────── */
 function OrgWebsiteJsonLd() {
   const org = {
     "@context": "https://schema.org",
@@ -168,7 +156,7 @@ function OrgWebsiteJsonLd() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   LANDING PAGE — SIMPLIFIED
+   LANDING PAGE — PREMIUM MINIMAL REBUILD
    ═══════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [contactOpen, setContactOpen] = useState(false);
@@ -179,8 +167,8 @@ export default function LandingPage() {
       <OrgWebsiteJsonLd />
 
       {/* ─── NAV ─── */}
-      <header className="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-5xl items-center justify-between px-5 py-4 sm:px-8">
+      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-4">
           <Link to="/" className="text-xl font-extrabold tracking-tight text-foreground">
             KK<span className="text-primary">Tech</span>
           </Link>
@@ -188,7 +176,7 @@ export default function LandingPage() {
             <a href="#services" className="transition-colors hover:text-foreground">Services</a>
             <a href="#how" className="transition-colors hover:text-foreground">How It Works</a>
             <a href="#faq" className="transition-colors hover:text-foreground">FAQ</a>
-            <Link to="/blog" className="transition-colors hover:text-foreground">Blog</Link>
+            <Link to="/tools/imei-check" className="transition-colors hover:text-foreground">IMEI Check</Link>
           </nav>
           <div className="flex items-center gap-3">
             <ThemeToggle />
@@ -203,51 +191,58 @@ export default function LandingPage() {
       </header>
 
       <main>
-        {/* ═══════════ HERO ═══════════ */}
-        <section className="relative overflow-hidden bg-background py-24 sm:py-32">
-          <div className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2">
-            <div className="h-[500px] w-[500px] rounded-full bg-primary/[0.04] blur-[100px]" />
-          </div>
-
-          <ScrollReveal>
-            <div className="relative mx-auto max-w-2xl px-5 text-center sm:px-8">
-              <h1 className="text-[2.5rem] font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-[3.5rem]">
-                Unlock & Resell
-                <br />
-                <span className="text-primary">with Confidence</span>
+        {/* ═══════════ HERO — 90vh ═══════════ */}
+        <section className="relative flex min-h-[90vh] items-center justify-center overflow-hidden bg-background">
+          <div className="mx-auto max-w-[1120px] px-6 py-20 text-center sm:py-0">
+            <ScrollReveal>
+              <h1 className="text-[2.25rem] font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-[3.25rem] lg:text-[3.75rem]">
+                Myanmar's #1 Unlock &<br className="hidden sm:block" /> Digital Services Marketplace
               </h1>
+            </ScrollReveal>
 
-              <p className="mx-auto mt-6 max-w-md text-base leading-relaxed text-muted-foreground sm:text-lg">
-                Myanmar's trusted marketplace for IMEI unlocks, digital accounts, and VPN keys at wholesale prices.
+            <ScrollReveal delay={100}>
+              <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
+                Instant IMEI Unlock, GSM Tools & Digital Accounts for Myanmar Resellers.
               </p>
+            </ScrollReveal>
 
-              <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                <Button size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
+            <ScrollReveal delay={200}>
+              <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-4">
+                <Button size="lg" className="h-13 px-10 text-sm font-semibold" asChild>
                   <Link to="/login">
-                    Start Free <ArrowRight className="ml-2 h-4 w-4" />
+                    Browse Services <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
-                <p className="text-xs text-muted-foreground">
-                  No fees · Pay only for what you order
-                </p>
+                <Button size="lg" variant="outline" className="h-13 px-10 text-sm font-semibold border-border" asChild>
+                  <Link to="/login">Create Free Account</Link>
+                </Button>
               </div>
-            </div>
-          </ScrollReveal>
+            </ScrollReveal>
+
+            <ScrollReveal delay={300}>
+              <p className="mt-8 text-xs tracking-wide text-muted-foreground/60">
+                No monthly fees&ensp;•&ensp;Pay only for what you order
+              </p>
+            </ScrollReveal>
+          </div>
         </section>
 
-        {/* ═══════════ TRUST BADGES ═══════════ */}
-        <section className="border-y border-border bg-muted/20 py-8">
-          <div className="mx-auto max-w-3xl px-5 sm:px-8">
-            <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-              {trustBadges.map((b, i) => (
-                <ScrollReveal key={b.label} delay={i * 60}>
-                  <div className="flex flex-col items-center gap-2.5 text-center">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
-                      <b.icon className="h-5 w-5 text-primary" />
+        {/* ═══════════ TRUST SECTION ═══════════ */}
+        <section className="border-y border-border/50 bg-card/30 py-16 sm:py-20">
+          <div className="mx-auto max-w-[1120px] px-6">
+            <div className="grid grid-cols-2 gap-8 sm:gap-6 lg:grid-cols-4">
+              {trustStats.map((stat, i) => (
+                <ScrollReveal key={stat.label} delay={i * 80}>
+                  <div className="flex flex-col items-center gap-3 text-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
+                      <stat.icon className="h-5 w-5 text-primary" />
                     </div>
-                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                      {b.label}
-                    </span>
+                    <div>
+                      <p className="text-xl font-bold text-foreground sm:text-2xl">{stat.value}</p>
+                      <p className="mt-0.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                        {stat.label}
+                      </p>
+                    </div>
                   </div>
                 </ScrollReveal>
               ))}
@@ -256,8 +251,8 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ CATEGORY CARDS ═══════════ */}
-        <section id="services" className="bg-background py-20 sm:py-28">
-          <div className="mx-auto max-w-4xl px-5 sm:px-8">
+        <section id="services" className="bg-background py-[120px] max-sm:py-20">
+          <div className="mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
               <div className="text-center">
                 <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -269,30 +264,23 @@ export default function LandingPage() {
               </div>
             </ScrollReveal>
 
-            <div className="mt-14 grid gap-5 sm:grid-cols-3">
+            <div className="mt-16 grid gap-6 sm:grid-cols-3">
               {categories.map((cat, i) => (
                 <ScrollReveal key={cat.title} delay={i * 100}>
                   <Link
                     to={cat.link}
-                    className="group relative flex flex-col gap-4 rounded-2xl border border-border bg-card p-8 transition-all hover:border-primary/30 hover:shadow-[0_8px_30px_-12px_hsl(var(--primary)/0.15)]"
+                    className="group flex flex-col gap-6 rounded-2xl border border-border bg-card p-8 sm:p-10 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_40px_-12px_hsl(var(--primary)/0.12)]"
                   >
-                    {/* Tag */}
-                    <span className="absolute right-4 top-4 rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">
-                      {cat.tag}
-                    </span>
-
                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 transition-colors group-hover:bg-primary/15">
                       <cat.icon className="h-7 w-7 text-primary" />
                     </div>
-
                     <div>
                       <h3 className="text-lg font-bold text-foreground">{cat.title}</h3>
                       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                         {cat.desc}
                       </p>
                     </div>
-
-                    <span className="mt-auto flex items-center gap-1.5 text-sm font-semibold text-primary">
+                    <span className="mt-auto flex items-center gap-1.5 text-sm font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">
                       Browse <ArrowRight className="h-3.5 w-3.5" />
                     </span>
                   </Link>
@@ -303,8 +291,8 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ HOW IT WORKS ═══════════ */}
-        <section id="how" className="border-t border-border bg-muted/20 py-20 sm:py-28">
-          <div className="mx-auto max-w-3xl px-5 sm:px-8">
+        <section id="how" className="border-t border-border/50 bg-card/30 py-[120px] max-sm:py-20">
+          <div className="mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
               <div className="text-center">
                 <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -316,14 +304,14 @@ export default function LandingPage() {
               </div>
             </ScrollReveal>
 
-            <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {steps.map((s, i) => (
                 <ScrollReveal key={s.title} delay={i * 80}>
-                  <div className="relative flex flex-col items-center gap-3 rounded-2xl border border-border bg-card px-5 pb-6 pt-8 text-center">
-                    <div className="absolute -top-3 left-5 flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-[11px] font-bold text-primary-foreground">
+                  <div className="relative flex flex-col items-center gap-4 rounded-2xl border border-border bg-card px-6 pb-8 pt-10 text-center">
+                    <div className="absolute -top-3.5 left-6 flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
                       {i + 1}
                     </div>
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
                       <s.icon className="h-5 w-5 text-primary" />
                     </div>
                     <h4 className="text-sm font-bold text-foreground">{s.title}</h4>
@@ -334,8 +322,8 @@ export default function LandingPage() {
             </div>
 
             <ScrollReveal delay={200}>
-              <div className="mt-12 text-center">
-                <Button size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
+              <div className="mt-16 text-center">
+                <Button size="lg" className="h-13 px-10 text-sm font-semibold" asChild>
                   <Link to="/login">
                     Create Free Account <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
@@ -346,10 +334,10 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ FAQ ═══════════ */}
-        <section id="faq" className="bg-background py-20 sm:py-28">
-          <div className="mx-auto max-w-2xl px-5 sm:px-8">
+        <section id="faq" className="bg-background py-[120px] max-sm:py-20">
+          <div className="mx-auto max-w-[800px] px-6">
             <ScrollReveal>
-              <h2 className="mb-10 text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              <h2 className="mb-12 text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 Frequently Asked Questions
               </h2>
             </ScrollReveal>
@@ -358,12 +346,12 @@ export default function LandingPage() {
                 <ScrollReveal key={i} delay={i * 50}>
                   <AccordionItem
                     value={`faq-${i}`}
-                    className="rounded-2xl border border-border bg-card px-5"
+                    className="rounded-2xl border border-border bg-card px-6"
                   >
-                    <AccordionTrigger className="text-left text-sm font-semibold text-foreground hover:no-underline py-4">
+                    <AccordionTrigger className="text-left text-sm font-semibold text-foreground hover:no-underline py-5">
                       {f.q}
                     </AccordionTrigger>
-                    <AccordionContent className="text-sm leading-relaxed text-muted-foreground pb-4">
+                    <AccordionContent className="text-sm leading-relaxed text-muted-foreground pb-5">
                       {f.a}
                     </AccordionContent>
                   </AccordionItem>
@@ -385,26 +373,27 @@ export default function LandingPage() {
       </main>
 
       {/* ═══════════ FOOTER ═══════════ */}
-      <footer className="border-t border-border bg-card py-12">
-        <div className="mx-auto grid max-w-5xl gap-10 px-5 sm:grid-cols-3 sm:px-8">
+      <footer className="border-t border-border/50 bg-card/50 py-16">
+        <div className="mx-auto grid max-w-[1120px] gap-12 px-6 sm:grid-cols-3">
           <div>
             <span className="text-xl font-extrabold text-foreground">
               KK<span className="text-primary">Tech</span>
             </span>
-            <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted-foreground">
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               Myanmar's trusted wholesale unlock & digital reseller platform.
             </p>
           </div>
-          <div className="flex flex-col gap-2.5 text-sm">
+          <div className="flex flex-col gap-3 text-sm">
             <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">
               Quick Links
             </span>
             <a href="#services" className="text-muted-foreground transition-colors hover:text-primary">Services</a>
             <a href="#faq" className="text-muted-foreground transition-colors hover:text-primary">FAQ</a>
             <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-primary">Free IMEI Checker</Link>
+            <Link to="/blog" className="text-muted-foreground transition-colors hover:text-primary">Blog</Link>
             <Link to="/login" className="text-muted-foreground transition-colors hover:text-primary">Reseller Login</Link>
           </div>
-          <div className="flex flex-col gap-2.5 text-sm">
+          <div className="flex flex-col gap-3 text-sm">
             <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">
               Policies
             </span>
@@ -413,8 +402,8 @@ export default function LandingPage() {
             <Link to="/terms" className="text-muted-foreground transition-colors hover:text-primary">Refund Policy</Link>
           </div>
         </div>
-        <div className="mx-auto mt-10 max-w-5xl border-t border-border px-5 pt-6 sm:px-8">
-          <p className="text-center text-xs text-muted-foreground">
+        <div className="mx-auto mt-12 max-w-[1120px] border-t border-border/50 px-6 pt-8">
+          <p className="text-center text-xs text-muted-foreground/60">
             © {new Date().getFullYear()} KKTech. All rights reserved.
           </p>
         </div>
@@ -428,7 +417,7 @@ export default function LandingPage() {
               href="https://t.me/kktech_support"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-elevated transition-all hover:bg-muted"
+              className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-muted"
             >
               <Send className="h-4 w-4 text-[hsl(200_80%_50%)]" />
               Telegram
@@ -437,7 +426,7 @@ export default function LandingPage() {
               href="viber://chat?number=%2B959xxxxxxxxx"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-elevated transition-all hover:bg-muted"
+              className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-muted"
             >
               <Phone className="h-4 w-4 text-[hsl(270_60%_55%)]" />
               Viber
@@ -446,7 +435,7 @@ export default function LandingPage() {
         )}
         <button
           onClick={() => setContactOpen(!contactOpen)}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-elevated transition-transform hover:scale-105 active:scale-95"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform hover:scale-105 active:scale-95"
           aria-label="Contact support"
         >
           {contactOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
