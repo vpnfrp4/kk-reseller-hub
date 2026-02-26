@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Package, Loader2, ArrowUp } from "lucide-react";
 import { toast } from "sonner";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import ProductFilters from "@/components/products/ProductFilters";
 import ProductCard from "@/components/products/ProductCard";
 import ProductCardSkeleton from "@/components/products/ProductCardSkeleton";
@@ -40,6 +40,7 @@ export default function ProductsPage() {
   const [sortBy, setSortBy] = useState<string>("name");
   const [fulfillmentType, setFulfillmentType] = useState("all");
   const [deliverySpeed, setDeliverySpeed] = useState("all");
+  const [providerId, setProviderId] = useState("all");
   const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
   const [noticeProduct, setNoticeProduct] = useState<any | null>(null);
   const [agreedTerms, setAgreedTerms] = useState(false);
@@ -98,9 +99,20 @@ export default function ProductsPage() {
     return (allTiers || []).filter((t: any) => t.product_id === productId);
   };
 
+  const providers = useMemo(() => {
+    const map = new Map<string, string>();
+    (products || []).forEach((p: any) => {
+      if (p.imei_providers?.id && p.imei_providers?.name) {
+        map.set(p.imei_providers.id, p.imei_providers.name);
+      }
+    });
+    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
+  }, [products]);
+
   const filtered = (products || [])
     .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
     .filter((p: any) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
+    .filter((p: any) => providerId === "all" || p.imei_providers?.id === providerId)
     .sort((a: any, b: any) => {
       if (sortBy === "price-low") return a.wholesale_price - b.wholesale_price;
       if (sortBy === "price-high") return b.wholesale_price - a.wholesale_price;
@@ -235,6 +247,9 @@ export default function ProductsPage() {
         onFulfillmentTypeChange={setFulfillmentType}
         deliverySpeed={deliverySpeed}
         onDeliverySpeedChange={setDeliverySpeed}
+        providerId={providerId}
+        onProviderIdChange={setProviderId}
+        providers={providers}
       />
 
       {/* Marketplace sections */}
