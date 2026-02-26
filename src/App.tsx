@@ -93,6 +93,7 @@ function AppRoutes() {
       <Route path="/products" element={<Navigate to="/dashboard/products" replace />} />
       <Route path="/wallet" element={<Navigate to="/dashboard/wallet" replace />} />
       <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
+      <Route path="/dashboard/topup-status/*" element={<Navigate to="/dashboard/wallet/topup-status" replace />} />
       <Route path="/notifications" element={<Navigate to="/dashboard/notifications" replace />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
       <Route path="/dashboard/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
