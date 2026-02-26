@@ -1,0 +1,1 @@
+DROP POLICY IF EXISTS "Public can read completed orders limited" ON public.orders;

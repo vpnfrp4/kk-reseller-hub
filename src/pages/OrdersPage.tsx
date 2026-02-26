@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 import { DataCard, Money, ResponsiveTable } from "@/components/shared";
 import type { Column } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
@@ -36,6 +37,7 @@ function ProductTypeBadge({ type }: { type: string | null }) {
 }
 
 export default function OrdersPage() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [page, setPage] = useState(0);
@@ -47,6 +49,7 @@ export default function OrdersPage() {
   const l = useT();
 
   const buildQuery = (q: any) => {
+    if (user) q = q.eq("user_id", user.id);
     if (search.trim()) q = q.ilike("product_name", `%${search.trim()}%`);
     if (status !== "all") q = q.eq("status", status);
     if (productType !== "all") q = q.eq("product_type", productType);
