@@ -32,7 +32,7 @@ import PwaInstallBanner from "@/components/PwaInstallBanner";
 const LOW_BALANCE_THRESHOLD = 20000;
 
 export default function DashboardHome() {
-  const { profile, refreshProfile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
   const initialized = useRef(false);
   const navigate = useNavigate();
@@ -78,7 +78,7 @@ export default function DashboardHome() {
   const { data: transactions, isLoading: txLoading } = useQuery({
     queryKey: ["recent-transactions"],
     queryFn: async () => {
-      const { data } = await supabase.from("wallet_transactions").select("*").order("created_at", { ascending: false }).limit(5);
+      const { data } = await supabase.from("wallet_transactions").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(5);
       return data || [];
     },
   });
@@ -87,7 +87,7 @@ export default function DashboardHome() {
   const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ["recent-orders"],
     queryFn: async () => {
-      const { data } = await supabase.from("orders").select("*").order("created_at", { ascending: false }).limit(5);
+      const { data } = await supabase.from("orders").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(5);
       return data || [];
     },
   });
@@ -98,8 +98,8 @@ export default function DashboardHome() {
     queryFn: async () => {
       const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
       const [ordersRes, topupsRes] = await Promise.all([
-        supabase.from("orders").select("price").gte("created_at", thirtyDaysAgo),
-        supabase.from("wallet_transactions").select("amount").eq("type", "topup").eq("status", "approved").gte("created_at", thirtyDaysAgo),
+        supabase.from("orders").select("price").eq("user_id", user!.id).gte("created_at", thirtyDaysAgo),
+        supabase.from("wallet_transactions").select("amount").eq("user_id", user!.id).eq("type", "topup").eq("status", "approved").gte("created_at", thirtyDaysAgo),
       ]);
       const orderPrices = (ordersRes.data || []).map((o) => Number(o.price));
       const spendingThisMonth = orderPrices.reduce((a, b) => a + b, 0);
@@ -114,7 +114,7 @@ export default function DashboardHome() {
     queryKey: ["spending-sparkline-7d"],
     queryFn: async () => {
       const sevenDaysAgo = subDays(new Date(), 6).toISOString();
-      const { data } = await supabase.from("orders").select("price, created_at").gte("created_at", sevenDaysAgo).order("created_at", { ascending: true });
+      const { data } = await supabase.from("orders").select("price, created_at").eq("user_id", user!.id).gte("created_at", sevenDaysAgo).order("created_at", { ascending: true });
       const days: Record<string, number> = {};
       for (let i = 6; i >= 0; i--) days[format(subDays(new Date(), i), "yyyy-MM-dd")] = 0;
       (data || []).forEach((row: any) => { const key = format(new Date(row.created_at), "yyyy-MM-dd"); if (key in days) days[key] += Number(row.price); });

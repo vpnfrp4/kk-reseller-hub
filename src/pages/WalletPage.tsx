@@ -33,6 +33,7 @@ export default function WalletPage() {
       const { data } = await supabase
         .from("wallet_transactions")
         .select("*")
+        .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
       return data || [];
     },
