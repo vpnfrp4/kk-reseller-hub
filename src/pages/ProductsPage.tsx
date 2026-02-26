@@ -14,6 +14,8 @@ import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
 import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
 import ImportantNoticeModal from "@/components/products/ImportantNoticeModal";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
+import PopularServices from "@/components/marketplace/PopularServices";
+import RecentUnlocksFeed from "@/components/marketplace/RecentUnlocksFeed";
 
 interface PurchaseResult {
   order_id: string;
@@ -234,6 +236,10 @@ export default function ProductsPage() {
         deliverySpeed={deliverySpeed}
         onDeliverySpeedChange={setDeliverySpeed}
       />
+
+      {/* Marketplace sections */}
+      <PopularServices />
+      <RecentUnlocksFeed />
 
       {/* Marketplace catalog */}
 

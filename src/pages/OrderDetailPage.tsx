@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { PageContainer, Money } from "@/components/shared";
 import { t, useT, statusLabel } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
+import ReviewModal from "@/components/marketplace/ReviewModal";
 import {
   Copy,
   CheckCircle2,
@@ -21,6 +23,7 @@ import {
   AlertTriangle,
   Loader2,
   MessageSquare,
+  Star,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -200,9 +203,11 @@ export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const l = useT();
+  const { user } = useAuth();
 
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [credentialsRevealed, setCredentialsRevealed] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ["order-detail", id],
@@ -214,6 +219,20 @@ export default function OrderDetailPage() {
         .eq("id", id)
         .single();
       if (error) return null;
+      return data;
+    },
+    enabled: !!id,
+  });
+
+  // Check if user already reviewed this order
+  const { data: existingReview } = useQuery({
+    queryKey: ["order-review", id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("order_reviews" as any)
+        .select("id, rating, comment")
+        .eq("order_id", id!)
+        .maybeSingle();
       return data;
     },
     enabled: !!id,
@@ -633,6 +652,54 @@ export default function OrderDetailPage() {
             </GlassSection>
           )}
 
+          {/* ═══ 5c. REVIEW SECTION ═══ */}
+          {isDelivered && (
+            <GlassSection>
+              {existingReview ? (
+                <div className="flex items-start gap-3">
+                  <Star className="w-5 h-5 text-amber-400 fill-amber-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your Review</h4>
+                    <div className="flex items-center gap-1">
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Star
+                          key={s}
+                          className={cn(
+                            "w-4 h-4",
+                            s <= (existingReview as any).rating
+                              ? "text-amber-400 fill-amber-400"
+                              : "text-muted-foreground/30"
+                          )}
+                        />
+                      ))}
+                    </div>
+                    {(existingReview as any).comment && (
+                      <p className="text-sm text-muted-foreground">{(existingReview as any).comment}</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Star className="w-5 h-5 text-muted-foreground shrink-0" />
+                    <div>
+                      <h4 className="text-sm font-semibold text-foreground">Rate this service</h4>
+                      <p className="text-xs text-muted-foreground">Help others by sharing your experience</p>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    className="btn-glow gap-1.5 text-xs"
+                    onClick={() => setReviewOpen(true)}
+                  >
+                    <Star className="w-3.5 h-3.5" />
+                    Write Review
+                  </Button>
+                </div>
+              )}
+            </GlassSection>
+          )}
+
           {/* ═══ 6. ACTIVITY LOG ═══ */}
           <GlassSection>
             <SectionLabel>{l(t.orderDetail.activityLog)}</SectionLabel>
@@ -697,6 +764,17 @@ export default function OrderDetailPage() {
           </Button>
         </div>
       </PageContainer>
+
+      {/* Review Modal */}
+      {order && user && (
+        <ReviewModal
+          open={reviewOpen}
+          onOpenChange={setReviewOpen}
+          orderId={order.id}
+          productName={order.product_name}
+          userId={user.id}
+        />
+      )}
     </div>
   );
 }
