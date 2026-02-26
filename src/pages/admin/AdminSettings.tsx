@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 import {
   Eye, EyeOff, Lock, Bell, BellOff, Volume2, VolumeX,
   Sun, Moon, Monitor, Wallet, ShoppingCart, TrendingDown, Package,
+  CreditCard, Save, Loader2,
 } from "lucide-react";
 import {
   getNotificationPrefs,
@@ -232,11 +234,162 @@ function ThemeSection() {
   );
 }
 
+/* ─── Payment Methods Section ─── */
+function PaymentMethodsSection() {
+  const queryClient = useQueryClient();
+  const [saving, setSaving] = useState<string | null>(null);
+
+  const { data: methods, isLoading } = useQuery({
+    queryKey: ["admin-payment-methods"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("payment_methods")
+        .select("*")
+        .order("sort_order");
+      return data || [];
+    },
+  });
+
+  const [edits, setEdits] = useState<Record<string, any>>({});
+
+  // Sync edits when data loads
+  useEffect(() => {
+    if (methods) {
+      const map: Record<string, any> = {};
+      methods.forEach((m: any) => { map[m.id] = { ...m }; });
+      setEdits(map);
+    }
+  }, [methods]);
+
+  const updateField = (id: string, field: string, value: any) => {
+    setEdits((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], [field]: value },
+    }));
+  };
+
+  const handleSave = async (id: string) => {
+    const edit = edits[id];
+    if (!edit) return;
+    setSaving(id);
+    try {
+      const { error } = await supabase
+        .from("payment_methods")
+        .update({
+          provider: edit.provider,
+          name: edit.name,
+          phone: edit.phone,
+          binance_uid: edit.binance_uid,
+          network: edit.network,
+          accepted_currency: edit.accepted_currency,
+          min_deposit: parseInt(edit.min_deposit) || 5000,
+          is_active: edit.is_active,
+        })
+        .eq("id", id);
+      if (error) throw error;
+      toast.success(`${edit.provider} settings saved`);
+      queryClient.invalidateQueries({ queryKey: ["admin-payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  if (isLoading) return null;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <CreditCard className="w-4 h-4 text-primary" /> Payment Methods
+        </CardTitle>
+        <CardDescription>Manage top-up payment accounts visible to resellers.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {(methods || []).map((method: any) => {
+          const edit = edits[method.id];
+          if (!edit) return null;
+          const isBinance = method.method_id === "binance";
+
+          return (
+            <div key={method.id} className="space-y-4 p-4 rounded-xl border border-border/40 bg-muted/5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-primary/10 text-primary">
+                    {edit.provider}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground uppercase">{method.method_id}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">{edit.is_active ? "Active" : "Inactive"}</span>
+                  <Switch
+                    checked={edit.is_active}
+                    onCheckedChange={(v) => updateField(method.id, "is_active", v)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {isBinance ? (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Binance UID</Label>
+                      <Input value={edit.binance_uid || ""} onChange={(e) => updateField(method.id, "binance_uid", e.target.value)}
+                        placeholder="477879311" className="h-9 text-sm" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Network</Label>
+                      <Input value={edit.network || ""} onChange={(e) => updateField(method.id, "network", e.target.value)}
+                        placeholder="TRC20" className="h-9 text-sm" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Accepted Currency</Label>
+                      <Input value={edit.accepted_currency || ""} onChange={(e) => updateField(method.id, "accepted_currency", e.target.value)}
+                        placeholder="USDT" className="h-9 text-sm" />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Account Name</Label>
+                      <Input value={edit.name || ""} onChange={(e) => updateField(method.id, "name", e.target.value)}
+                        placeholder="Account holder name" className="h-9 text-sm" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-xs text-muted-foreground">Phone Number</Label>
+                      <Input value={edit.phone || ""} onChange={(e) => updateField(method.id, "phone", e.target.value)}
+                        placeholder="09xxxxxxxxx" className="h-9 text-sm" />
+                    </div>
+                  </>
+                )}
+                <div className="space-y-1.5">
+                  <Label className="text-xs text-muted-foreground">Min Deposit (MMK)</Label>
+                  <Input type="number" value={edit.min_deposit || 5000} onChange={(e) => updateField(method.id, "min_deposit", e.target.value)}
+                    className="h-9 text-sm" min={1000} />
+                </div>
+              </div>
+
+              <Button size="sm" onClick={() => handleSave(method.id)} disabled={saving === method.id}
+                className="h-8 gap-1.5 text-xs">
+                {saving === method.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                Save
+              </Button>
+            </div>
+          );
+        })}
+      </CardContent>
+    </Card>
+  );
+}
+
 /* ─── Main Page ─── */
 export default function AdminSettings() {
   return (
     <div className="max-w-2xl space-y-6">
       <ThemeSection />
+      <PaymentMethodsSection />
       <NotificationSection />
       <PasswordSection />
     </div>

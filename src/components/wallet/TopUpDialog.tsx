@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,18 +42,6 @@ interface TopUpDialogProps {
   onSubmitted?: (transactionId: string) => void;
 }
 
-type PaymentAccount = {
-  id: "kpay" | "wavepay";
-  provider: string;
-  name: string;
-  phone: string;
-};
-
-const ACCOUNTS: PaymentAccount[] = [
-  { id: "kpay", provider: "KBZ Pay", name: "Htun Arkar Kyaw", phone: "09787313137" },
-  { id: "wavepay", provider: "Wave Pay", name: "Hnin Thet Wai", phone: "09777818691" },
-];
-
 const PRESET_AMOUNTS = [10000, 30000, 50000, 100000];
 const MIN_AMOUNT = 5000;
 
@@ -70,13 +58,14 @@ export default function TopUpDialog({
   const l = useT();
   const queryClient = useQueryClient();
   const [topupAmount, setTopupAmount] = useState("");
-  const [selectedAccount, setSelectedAccount] = useState<"kpay" | "wavepay">("kpay");
+  const [selectedMethod, setSelectedMethod] = useState<string>("kpay");
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [screenshotPreview, setScreenshotPreview] = useState<string | null>(null);
   const [internalOpen, setInternalOpen] = useState(false);
   const [submissionState, setSubmissionState] = useState<SubmissionState>("idle");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [binanceTxId, setBinanceTxId] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isControlled = controlledOpen !== undefined;
@@ -84,6 +73,22 @@ export default function TopUpDialog({
   const setDialogOpen = isControlled
     ? (open: boolean) => controlledOnOpenChange?.(open)
     : setInternalOpen;
+
+  // Fetch payment methods from DB
+  const { data: paymentMethods } = useQuery({
+    queryKey: ["payment-methods"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("payment_methods")
+        .select("*")
+        .eq("is_active", true)
+        .order("sort_order");
+      return data || [];
+    },
+  });
+
+  const activeMethod = paymentMethods?.find((m: any) => m.method_id === selectedMethod);
+  const isBinance = selectedMethod === "binance";
 
   const PROCESS_STEPS = [
     { icon: CreditCard, label: t.topup.transferFunds },
@@ -98,13 +103,20 @@ export default function TopUpDialog({
     }
   }, [dialogOpen, defaultAmount]);
 
+  // Set default selected method when methods load
+  useEffect(() => {
+    if (paymentMethods && paymentMethods.length > 0 && !paymentMethods.find((m: any) => m.method_id === selectedMethod)) {
+      setSelectedMethod(paymentMethods[0].method_id);
+    }
+  }, [paymentMethods]);
+
   const parsedAmount = parseInt(topupAmount) || 0;
   const isAmountTooLow = topupAmount.length > 0 && parsedAmount < MIN_AMOUNT && parsedAmount > 0;
 
-  const handleCopy = useCallback((phone: string, provider: string) => {
-    navigator.clipboard.writeText(phone);
-    setCopiedId(phone);
-    toast({ title: l(t.topupExtra.copiedToast), description: `${provider} ${l(t.topupExtra.copiedDesc)}` });
+  const handleCopy = useCallback((text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedId(text);
+    toast({ title: l(t.topupExtra.copiedToast), description: `${label} ${l(t.topupExtra.copiedDesc)}` });
     setTimeout(() => setCopiedId(null), 2000);
   }, [l]);
 
@@ -132,6 +144,7 @@ export default function TopUpDialog({
   const handleSubmitTopup = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topupAmount || !screenshot || !userId || parsedAmount < MIN_AMOUNT) return;
+    if (isBinance && !binanceTxId.trim()) return;
     setSubmissionState("uploading");
 
     try {
@@ -142,14 +155,19 @@ export default function TopUpDialog({
         .upload(filePath, screenshot);
       if (uploadError) throw uploadError;
 
-      const account = ACCOUNTS.find((a) => a.id === selectedAccount)!;
+      const method = activeMethod;
+      const methodLabel = method?.provider || selectedMethod;
+      const description = isBinance
+        ? `Wallet Top-up via ${methodLabel} (TxID: ${binanceTxId.trim()})`
+        : `Wallet Top-up via ${methodLabel}`;
+
       const { data: insertedTx, error: insertError } = await supabase.from("wallet_transactions").insert({
         user_id: userId,
         type: "topup",
         amount: parsedAmount,
         status: "pending",
-        method: account.provider,
-        description: `Wallet Top-up via ${account.provider}`,
+        method: methodLabel,
+        description,
         screenshot_url: filePath,
       }).select("id").single();
 
@@ -159,7 +177,6 @@ export default function TopUpDialog({
       queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] });
 
       if (insertedTx?.id && onSubmitted) {
-        // Navigate first, then close dialog to avoid unmount race
         onSubmitted(insertedTx.id);
         return;
       }
@@ -175,9 +192,26 @@ export default function TopUpDialog({
     if (!open) {
       setSubmissionState("idle");
       setTopupAmount("");
+      setBinanceTxId("");
       handleRemoveFile();
     }
   };
+
+  const CopyButton = ({ text, label }: { text: string; label: string }) => (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); handleCopy(text, label); }}
+      className={cn(
+        "p-1.5 rounded-lg transition-all duration-200",
+        copiedId === text
+          ? "bg-success/10 text-success scale-110"
+          : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/60"
+      )}
+      title="Copy"
+    >
+      {copiedId === text ? <CheckCircle2 className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+    </button>
+  );
 
   return (
     <Dialog open={dialogOpen} onOpenChange={resetOnClose}>
@@ -305,13 +339,14 @@ export default function TopUpDialog({
                 {l(t.topup.paymentMethods)}
               </Label>
               <div className="space-y-3">
-                {ACCOUNTS.map((account) => {
-                  const isSelected = selectedAccount === account.id;
+                {(paymentMethods || []).map((account: any) => {
+                  const isSelected = selectedMethod === account.method_id;
+                  const isBinanceMethod = account.method_id === "binance";
                   return (
                     <button
-                      key={account.id}
+                      key={account.method_id}
                       type="button"
-                      onClick={() => setSelectedAccount(account.id)}
+                      onClick={() => setSelectedMethod(account.method_id)}
                       className={cn(
                         "w-full text-left rounded-[16px] p-6 border-2 transition-all duration-200 relative",
                         isSelected
@@ -338,33 +373,33 @@ export default function TopUpDialog({
                             )}
                           </div>
 
-                          <p className="text-sm font-semibold text-foreground">{account.name}</p>
-
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-xl font-bold text-foreground tracking-wide">
-                              {account.phone}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleCopy(account.phone, account.provider);
-                              }}
-                              className={cn(
-                                "p-1.5 rounded-lg transition-all duration-200",
-                                copiedId === account.phone
-                                  ? "bg-success/10 text-success scale-110"
-                                  : "bg-muted/40 text-muted-foreground hover:text-foreground hover:bg-muted/60"
-                              )}
-                              title="Copy number"
-                            >
-                              {copiedId === account.phone ? (
-                                <CheckCircle2 className="w-4 h-4" />
-                              ) : (
-                                <Copy className="w-4 h-4" />
-                              )}
-                            </button>
-                          </div>
+                          {isBinanceMethod ? (
+                            <>
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-muted-foreground">UID:</span>
+                                  <span className="font-mono text-lg font-bold text-foreground tracking-wide">
+                                    {account.binance_uid}
+                                  </span>
+                                  <CopyButton text={account.binance_uid} label="Binance UID" />
+                                </div>
+                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                                  <span>Network: <span className="font-semibold text-foreground">{account.network}</span></span>
+                                  <span>Currency: <span className="font-semibold text-foreground">{account.accepted_currency}</span></span>
+                                </div>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <p className="text-sm font-semibold text-foreground">{account.name}</p>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-xl font-bold text-foreground tracking-wide">
+                                  {account.phone}
+                                </span>
+                                <CopyButton text={account.phone} label={account.provider} />
+                              </div>
+                            </>
+                          )}
                         </div>
 
                         <div className={cn(
@@ -381,6 +416,26 @@ export default function TopUpDialog({
                 })}
               </div>
             </div>
+
+            {/* ── BINANCE TRANSACTION ID ── */}
+            {isBinance && (
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Transaction ID (TxID)
+                </Label>
+                <Input
+                  type="text"
+                  placeholder="Enter your Binance Transaction ID"
+                  value={binanceTxId}
+                  onChange={(e) => setBinanceTxId(e.target.value)}
+                  className="bg-muted/20 border-border/50 font-mono text-sm h-11 rounded-[var(--radius-input)] focus:border-primary/50 focus:ring-primary/20"
+                  required
+                />
+                <p className="text-[11px] text-muted-foreground/70">
+                  Find this in your Binance transaction history after sending USDT.
+                </p>
+              </div>
+            )}
 
             {/* ── PROCESS STEPS ── */}
             <div className="rounded-[var(--radius-card)] border border-border/40 bg-muted/10 p-4">
@@ -481,7 +536,7 @@ export default function TopUpDialog({
               <Button
                 type="submit"
                 className="w-full h-12 text-sm font-bold rounded-[var(--radius-btn)] btn-glow relative overflow-hidden active:scale-[0.98] transition-transform duration-100"
-                disabled={!topupAmount || !screenshot || parsedAmount < MIN_AMOUNT || submissionState === "uploading"}
+                disabled={!topupAmount || !screenshot || parsedAmount < MIN_AMOUNT || submissionState === "uploading" || (isBinance && !binanceTxId.trim())}
               >
                 {submissionState === "uploading" ? (
                   <span className="flex items-center gap-2">

@@ -223,6 +223,54 @@ export type Database = {
           },
         ]
       }
+      payment_methods: {
+        Row: {
+          accepted_currency: string | null
+          binance_uid: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          method_id: string
+          min_deposit: number
+          name: string
+          network: string | null
+          phone: string | null
+          provider: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          accepted_currency?: string | null
+          binance_uid?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          method_id: string
+          min_deposit?: number
+          name?: string
+          network?: string | null
+          phone?: string | null
+          provider: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          accepted_currency?: string | null
+          binance_uid?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          method_id?: string
+          min_deposit?: number
+          name?: string
+          network?: string | null
+          phone?: string | null
+          provider?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pricing_tiers: {
         Row: {
           created_at: string
