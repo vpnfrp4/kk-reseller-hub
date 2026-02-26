@@ -330,8 +330,32 @@ export default function ProductDetailPage() {
   const insufficientBalance = balance < product.wholesale_price;
   const currentDeliveryBadge = deliveryTimeConfig[effectiveMode] || l(t.detailExtra.instantDelivery);
 
+  const productJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description || product.name,
+    sku: (product as any).product_code,
+    category: product.category,
+    image: (product as any).image_url || "https://kk-reseller-hub.lovable.app/pwa-512x512.png",
+    brand: { "@type": "Brand", name: "KKTechDeals" },
+    offers: {
+      "@type": "Offer",
+      url: `https://kk-reseller-hub.lovable.app/dashboard/products/${product.id}`,
+      priceCurrency: "MMK",
+      price: product.wholesale_price,
+      availability: isOutOfStock
+        ? "https://schema.org/OutOfStock"
+        : isLowStock
+        ? "https://schema.org/LimitedAvailability"
+        : "https://schema.org/InStock",
+      seller: { "@type": "Organization", name: "KKTechDeals" },
+    },
+  };
+
   return (
     <div className="space-y-[var(--space-card)] max-w-2xl mx-auto animate-fade-in">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(productJsonLd) }} />
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
         { label: l(t.nav.products), path: "/dashboard/products" },
