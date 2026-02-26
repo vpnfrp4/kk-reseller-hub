@@ -1,24 +1,49 @@
 
+# Critical Security Fix: User Data Isolation
 
-## Plan: Seed Provider Data and Link to Products
+## Problem
+New users see other users' order history, transactions, and wallet activity. The root cause is twofold:
+1. Frontend queries do NOT filter by `user_id`
+2. The RLS policy "Public can read completed orders limited" on the `orders` table exposes all completed/delivered orders to every user
 
-### Current State
-- 5 providers exist: KKTech (verified, 4.9 rating), DHRU, GSMUnlockHub, UnlockBase, iRemoval (all unverified, 0 ratings, 0 completions)
-- All products are linked to KKTech (`0df39ae4-...`)
-- The 4 other providers have no products linked and no meaningful stats
+## Fix Plan
 
-### Changes
-Update the 4 existing non-KKTech providers with realistic seed data:
+### 1. Database Migration -- Fix the leaky RLS policy
+- **Drop** the policy `Public can read completed orders limited` on `orders`. This policy allows any user (even unauthenticated) to SELECT all completed/delivered orders, leaking credentials and pricing to everyone.
+- **Replace** with a scoped view or limited public feed (only `product_name`, `status`, `completed_at`) via the existing `recent_completions` view, which already exists and exposes only safe fields.
 
-1. **DHRU** (`b116db11-...`): rating 4.7, success_rate 96, total_completed 342, is_verified true, fulfillment_type "api", total_reviews 89
-2. **GSMUnlockHub** (`853155a0-...`): rating 4.2, success_rate 88, total_completed 156, is_verified true, fulfillment_type "manual", total_reviews 41
-3. **UnlockBase** (`804e5401-...`): rating 3.8, success_rate 82, total_completed 73, is_verified false, fulfillment_type "manual", total_reviews 18
-4. **iRemoval** (`07aa0c07-...`): rating 4.5, success_rate 94, total_completed 210, is_verified true, fulfillment_type "api", total_reviews 55
+### 2. Frontend: Add `user_id` filters to all reseller-facing queries
 
-Then link some existing products to different providers to diversify the catalog (update `provider_id` on ~4-6 products across categories).
+**`src/pages/OrdersPage.tsx`**
+- Add `.eq("user_id", user.id)` to the orders count query and orders list query
+- Add `.eq("user_id", user.id)` to the CSV export query
+- Get `user` from `useAuth()` context
 
-### Implementation
-- 4 UPDATE statements on `imei_providers` for stats
-- ~4-6 UPDATE statements on `products` to reassign `provider_id`
-- All via the data insert tool (no schema changes)
+**`src/pages/WalletPage.tsx`**
+- Add `.eq("user_id", user.id)` to the wallet_transactions query (line 33-36)
 
+**`src/pages/DashboardHome.tsx`**
+- Add `.eq("user_id", user.id)` to "recent-transactions" query (line 81)
+- Add `.eq("user_id", user.id)` to "recent-orders" query (line 90)
+- Add `.eq("user_id", user.id)` to "wallet-health" orders and topups queries (lines 101-102)
+- Add `.eq("user_id", user.id)` to "spending-sparkline-7d" query (line 117)
+- Get `user` from existing `useAuth()` destructure
+
+**`src/pages/NotificationsPage.tsx`**
+- Add `.eq("user_id", user.id)` to notifications query (line 82-86) -- RLS exists but add for defense-in-depth
+
+### 3. Files Changed Summary
+
+| File | Change |
+|------|--------|
+| Database migration | Drop `Public can read completed orders limited` policy |
+| `src/pages/OrdersPage.tsx` | Add `useAuth()`, filter all queries by `user.id` |
+| `src/pages/WalletPage.tsx` | Add `user_id` filter to transactions query |
+| `src/pages/DashboardHome.tsx` | Add `user_id` filter to 4 queries |
+| `src/pages/NotificationsPage.tsx` | Add `user_id` filter (defense-in-depth) |
+
+### 4. Impact
+- New users will see empty state (no orders/transactions) until they make their own
+- Admin queries remain unaffected (admin pages use separate queries with admin RLS)
+- The `recent_completions` view continues to power the public "recent unlocks" ticker safely
+- Existing marketplace features (RecentUnlocksFeed, RecentUnlocksTicker) that use `recent_completions` are unaffected
