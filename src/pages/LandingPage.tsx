@@ -43,6 +43,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCountUpOnView } from "@/hooks/use-count-up";
+import RecentUnlocksTicker from "@/components/landing/RecentUnlocksTicker";
 
 /* ───────── SCROLL REVEAL ───────── */
 const ScrollReveal = forwardRef<HTMLDivElement, { children: ReactNode; delay?: number; className?: string }>(
@@ -316,6 +317,9 @@ export default function LandingPage() {
             </div>
           </ScrollReveal>
         </section>
+
+        {/* ═══════════ RECENT UNLOCKS TICKER ═══════════ */}
+        <RecentUnlocksTicker />
 
         {/* ═══════════ LIVE STATS ═══════════ */}
         <section className="border-t border-border bg-muted/20 py-4">

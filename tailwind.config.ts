@@ -137,6 +137,10 @@ export default {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        ticker: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -146,6 +150,7 @@ export default {
         "stagger-in": "stagger-in 0.35s ease-out forwards",
         "row-in": "row-in 0.25s ease-out forwards",
         shimmer: "shimmer 2s linear infinite",
+        ticker: "ticker linear infinite",
       },
       boxShadow: {
         card: "var(--shadow-card)",
