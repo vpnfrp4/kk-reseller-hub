@@ -561,6 +561,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_history: {
+        Row: {
+          created_at: string
+          id: string
+          rate: number
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rate: number
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rate?: number
+          source?: string
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           key: string

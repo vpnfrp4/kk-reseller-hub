@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
 import { DollarSign, RefreshCw, Zap, Clock, Globe } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -774,8 +775,79 @@ function ExchangeRateSection() {
             </p>
           </div>
         )}
+
+        <RateHistoryChart />
       </CardContent>
     </Card>
+  );
+}
+
+/* ─── Rate History Chart ─── */
+function RateHistoryChart() {
+  const { data: history, isLoading } = useQuery({
+    queryKey: ["rate-history"],
+    queryFn: async () => {
+      const { data } = await (supabase as any)
+        .from("rate_history")
+        .select("*")
+        .order("created_at", { ascending: true })
+        .limit(50);
+      return data || [];
+    },
+  });
+
+  const chartData = useMemo(() => {
+    if (!history?.length) return [];
+    return history.map((h: any) => ({
+      date: new Date(h.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      time: new Date(h.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+      rate: Number(h.rate),
+      source: h.source,
+    }));
+  }, [history]);
+
+  if (isLoading || !chartData.length) return null;
+
+  const rates = chartData.map((d: any) => d.rate);
+  const minRate = Math.min(...rates);
+  const maxRate = Math.max(...rates);
+  const padding = Math.max((maxRate - minRate) * 0.15, 50);
+
+  return (
+    <div className="space-y-2 pt-2">
+      <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
+        <TrendingDown className="w-3 h-3" /> Rate History
+      </p>
+      <div className="rounded-lg border border-border/40 bg-muted/5 p-3">
+        <div className="h-48">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+              <defs>
+                <linearGradient id="rateGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+              <YAxis domain={[minRate - padding, maxRate + padding]} tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v: number) => v.toLocaleString()} width={55} />
+              <RechartsTooltip
+                contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                labelStyle={{ color: "hsl(var(--foreground))", fontWeight: 600 }}
+                formatter={(value: number, _: any, props: any) => [
+                  `${value.toLocaleString()} MMK (${props.payload.source})`,
+                  "Rate"
+                ]}
+                labelFormatter={(label: string, payload: any[]) => payload?.[0]?.payload ? `${label} ${payload[0].payload.time}` : label}
+              />
+              <Area type="monotone" dataKey="rate" stroke="hsl(var(--primary))" strokeWidth={2} fill="url(#rateGrad)" dot={{ r: 3, fill: "hsl(var(--primary))", strokeWidth: 0 }} activeDot={{ r: 5, strokeWidth: 2, stroke: "hsl(var(--background))" }} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+        <p className="text-[10px] text-muted-foreground text-center mt-1">
+          Showing last {chartData.length} rate change{chartData.length !== 1 ? "s" : ""}
+        </p>
+      </div>
+    </div>
   );
 }
 
