@@ -69,7 +69,7 @@ export default function ProductDetailPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("products")
-        .select("*")
+        .select("*, imei_providers(id, name, avg_rating, success_rate, total_completed, is_verified, fulfillment_type)")
         .eq("id", id!)
         .single();
       if (error) throw error;
@@ -77,6 +77,8 @@ export default function ProductDetailPage() {
     },
     enabled: !!id,
   });
+
+  const provider = (product as any)?.imei_providers || null;
 
   const { data: pricingTiers = [] } = useQuery({
     queryKey: ["pricing-tiers", id],

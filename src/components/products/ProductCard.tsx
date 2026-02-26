@@ -18,6 +18,16 @@ interface PricingTier {
   unit_price: number;
 }
 
+interface ProviderInfo {
+  id: string;
+  name: string;
+  avg_rating: number | null;
+  success_rate: number | null;
+  total_completed: number | null;
+  is_verified: boolean | null;
+  fulfillment_type: string | null;
+}
+
 interface ProductCardProps {
   product: any;
   index: number;
@@ -26,6 +36,7 @@ interface ProductCardProps {
   pricingTiers?: PricingTier[];
   lastRateUpdate?: string | null;
   usdRate?: number | null;
+  provider?: ProviderInfo | null;
 }
 
 export default function ProductCard({
@@ -34,6 +45,7 @@ export default function ProductCard({
   isPurchasing,
   onBuyClick,
   pricingTiers = [],
+  provider,
 }: ProductCardProps) {
   const l = useT();
   const pt = product.product_type || "digital";
@@ -68,11 +80,10 @@ export default function ProductCard({
       ? "Manual"
       : "Instant";
 
-  // Mock provider data — will be replaced by real DB data in Phase 2
-  const providerName = product.brand || product.category || "KKTech";
-  const successRate = 98;
-  const providerRating = 4.8;
-  const completedOrders = 1200;
+  const providerName = provider?.name || product.brand || product.category || "—";
+  const successRate = provider?.success_rate ?? null;
+  const providerRating = provider?.avg_rating ?? null;
+  const completedOrders = provider?.total_completed ?? null;
 
   const buyLabel = () => {
     if (isPurchasing) return l(t.products.processing);
@@ -155,7 +166,7 @@ export default function ProductCard({
             <div className="flex items-center gap-1">
               <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
               <span className="text-sm font-semibold text-foreground font-mono">
-                {providerRating}
+                {providerRating !== null ? providerRating : "—"}
               </span>
             </div>
           </div>
@@ -168,7 +179,7 @@ export default function ProductCard({
             <div className="flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-primary" />
               <span className="text-sm font-semibold text-primary font-mono">
-                {successRate}%
+                {successRate !== null ? `${successRate}%` : "—"}
               </span>
             </div>
           </div>
@@ -181,7 +192,7 @@ export default function ProductCard({
             <div className="flex items-center gap-1">
               <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
               <span className="text-sm font-semibold text-foreground font-mono">
-                {completedOrders.toLocaleString()}
+                {completedOrders !== null ? completedOrders.toLocaleString() : "—"}
               </span>
             </div>
           </div>
