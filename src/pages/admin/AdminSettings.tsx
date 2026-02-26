@@ -13,8 +13,13 @@ import { toast } from "sonner";
 import {
   Eye, EyeOff, Lock, Bell, BellOff, Volume2, VolumeX,
   Sun, Moon, Monitor, Wallet, ShoppingCart, TrendingDown, Package,
-  CreditCard, Save, Loader2,
+  CreditCard, Save, Loader2, Trash2,
 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent, AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   getNotificationPrefs,
   setNotificationPrefs,
@@ -240,6 +245,22 @@ function ThemeSection() {
 function PaymentMethodsSection() {
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+
+  const handleDelete = async (id: string, provider: string) => {
+    setDeleting(id);
+    try {
+      const { error } = await supabase.from("payment_methods").delete().eq("id", id);
+      if (error) throw error;
+      toast.success(`${provider} payment method deleted`);
+      queryClient.invalidateQueries({ queryKey: ["admin-payment-methods"] });
+      queryClient.invalidateQueries({ queryKey: ["payment-methods"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete");
+    } finally {
+      setDeleting(null);
+    }
+  };
 
   const { data: methods, isLoading } = useQuery({
     queryKey: ["admin-payment-methods"],
@@ -373,11 +394,37 @@ function PaymentMethodsSection() {
                 </div>
               </div>
 
-              <Button size="sm" onClick={() => handleSave(method.id)} disabled={saving === method.id}
-                className="h-8 gap-1.5 text-xs">
-                {saving === method.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                Save
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button size="sm" onClick={() => handleSave(method.id)} disabled={saving === method.id}
+                  className="h-8 gap-1.5 text-xs">
+                  {saving === method.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                  Save
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                      disabled={deleting === method.id}>
+                      {deleting === method.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                      Delete
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete {edit.provider}?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently remove this payment method. Resellers will no longer see it as a top-up option.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleDelete(method.id, edit.provider)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           );
         })}
