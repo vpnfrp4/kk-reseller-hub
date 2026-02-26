@@ -36,6 +36,8 @@ export default function ProductsPage() {
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<string>("name");
+  const [fulfillmentType, setFulfillmentType] = useState("all");
+  const [deliverySpeed, setDeliverySpeed] = useState("all");
   const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
   const [noticeProduct, setNoticeProduct] = useState<any | null>(null);
   const [agreedTerms, setAgreedTerms] = useState(false);
@@ -227,15 +229,13 @@ export default function ProductsPage() {
         activeCategory={activeCategory}
         onCategoryChange={setActiveCategory}
         products={products || []}
+        fulfillmentType={fulfillmentType}
+        onFulfillmentTypeChange={setFulfillmentType}
+        deliverySpeed={deliverySpeed}
+        onDeliverySpeedChange={setDeliverySpeed}
       />
 
-      {/* Service Catalog Table Header */}
-      {!isLoading && filtered.length > 0 && (
-        <div className="hidden sm:grid grid-cols-[1fr_auto] items-center gap-4 px-[var(--space-card)] py-[var(--space-tight)] text-[10px] uppercase tracking-widest font-semibold text-muted-foreground border-b border-border/20">
-          <span>Service</span>
-          <span className="text-right">Actions</span>
-        </div>
-      )}
+      {/* Marketplace catalog */}
 
       <div className="flex flex-col gap-[var(--space-compact)]">
         {isLoading ? (

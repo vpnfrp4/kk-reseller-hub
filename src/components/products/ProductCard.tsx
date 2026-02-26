@@ -1,10 +1,16 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { t, useT } from "@/lib/i18n";
-import { ChevronRight, Smartphone, Clock, Cpu, RefreshCw } from "lucide-react";
-import { formatDistanceToNow } from "date-fns";
+import { useT, t } from "@/lib/i18n";
+import {
+  ChevronRight,
+  Clock,
+  ShieldCheck,
+  Star,
+  Zap,
+  User,
+  TrendingUp,
+} from "lucide-react";
 
 interface PricingTier {
   min_qty: number;
@@ -22,44 +28,56 @@ interface ProductCardProps {
   usdRate?: number | null;
 }
 
-export default function ProductCard({ product, index, isPurchasing, onBuyClick, pricingTiers = [], lastRateUpdate, usdRate }: ProductCardProps) {
+export default function ProductCard({
+  product,
+  index,
+  isPurchasing,
+  onBuyClick,
+  pricingTiers = [],
+}: ProductCardProps) {
   const l = useT();
   const pt = product.product_type || "digital";
   const isDigital = pt === "digital";
-  const isImei = pt === "imei";
-  const isManualType = pt === "manual";
-  const isApiType = pt === "api";
-  const hasStock = isDigital; // Only digital products track stock
+  const hasStock = isDigital;
   const isOutOfStock = hasStock ? product.stock === 0 : false;
-  const isLowStock = hasStock ? product.stock > 0 && product.stock <= 5 : false;
-  const profitPerUnit = product.retail_price - product.wholesale_price;
+
   const hasTiers = pricingTiers.length > 0;
-  const lowestTier = hasTiers ? [...pricingTiers].sort((a, b) => a.unit_price - b.unit_price)[0] : null;
+  const lowestTier = hasTiers
+    ? [...pricingTiers].sort((a, b) => a.unit_price - b.unit_price)[0]
+    : null;
+  const displayPrice = product.wholesale_price;
+  const hasVolumeDiscount =
+    hasTiers && lowestTier && lowestTier.unit_price < displayPrice;
 
-  const statusDisplay = () => {
-    if (isOutOfStock) return { text: l(t.products.outOfStock), className: "bg-destructive/10 text-destructive", dot: "bg-destructive" };
-    if (isLowStock) return { text: `${product.stock} ${l(t.products.left)}`, className: "bg-warning/10 text-warning", dot: "bg-warning" };
-    if (isImei) return { text: product.processing_time || "1-3 Days", className: "bg-amber-500/10 text-amber-600 dark:text-amber-400", dot: "bg-amber-500" };
-    if (isManualType) return { text: l(t.products.inStock), className: "bg-primary/10 text-primary", dot: "bg-primary" };
-    if (isApiType) return { text: "Auto", className: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500" };
-    return { text: `${product.stock} ${l(t.products.inStock)}`, className: "bg-primary/10 text-primary", dot: "bg-primary" };
-  };
+  // Delivery time from config or processing_time
+  const deliveryConfig =
+    product.delivery_time_config &&
+    typeof product.delivery_time_config === "object"
+      ? (product.delivery_time_config as Record<string, string>)
+      : {};
+  const deliveryTime =
+    pt === "imei"
+      ? product.processing_time || "1-3 Days"
+      : deliveryConfig["instant"] || "Instant Delivery";
 
-  const status = statusDisplay();
+  // Fulfillment type badge
+  const fulfillmentLabel =
+    pt === "api"
+      ? "Auto"
+      : pt === "imei" || pt === "manual"
+      ? "Manual"
+      : "Instant";
 
-  const typeBadge = () => {
-    if (isImei) return <Smartphone className="w-3 h-3 text-amber-500 shrink-0" />;
-    if (isManualType) return <Clock className="w-3 h-3 text-muted-foreground shrink-0" />;
-    if (isApiType) return <Cpu className="w-3 h-3 text-emerald-500 shrink-0" />;
-    return null;
-  };
+  // Mock provider data — will be replaced by real DB data in Phase 2
+  const providerName = product.brand || product.category || "KKTech";
+  const successRate = 98;
+  const providerRating = 4.8;
+  const completedOrders = 1200;
 
-  // Button label based on product type
   const buyLabel = () => {
     if (isPurchasing) return l(t.products.processing);
     if (isOutOfStock) return l(t.products.outOfStock);
-    if (isImei) return "Order";
-    return l(t.products.buyNow);
+    return "Order Now";
   };
 
   return (
@@ -67,114 +85,140 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
       className={cn(
         "group relative glass-card opacity-0 animate-stagger-in",
         "transition-all duration-300 ease-out",
-        "hover:border-primary/40 hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 hover:scale-[1.005]"
+        "hover:border-primary/40 hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5"
       )}
-      style={{ animationDelay: `${index * 0.07}s` }}
+      style={{ animationDelay: `${index * 0.06}s` }}
     >
-      <div className="p-5 md:p-6 space-y-5">
-        {/* Row 1: Service Identity */}
+      <div className="p-5 md:p-6 space-y-4">
+        {/* Row 1: Service Name + Status */}
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1 space-y-2">
             <Link to={`/dashboard/products/${product.id}`}>
-              <h3 className="text-[18px] md:text-xl font-semibold text-foreground leading-tight tracking-wide hover:text-primary transition-colors flex items-center gap-2">
+              <h3 className="text-lg md:text-xl font-semibold text-foreground leading-tight tracking-wide hover:text-primary transition-colors">
                 {product.name}
-                {typeBadge()}
               </h3>
             </Link>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-primary/10 text-primary rounded-md border border-primary/20">
                 {product.category}
               </span>
               {product.duration && (
-                <span className="text-xs text-muted-foreground">{product.duration}</span>
-              )}
-              {isImei && product.brand && (
-                <span className="text-[10px] text-muted-foreground">{product.brand} · {product.country || "All"}</span>
+                <span className="text-xs text-muted-foreground">
+                  {product.duration}
+                </span>
               )}
             </div>
           </div>
-          {/* Status indicator */}
-          <div className={cn("shrink-0 flex items-center gap-1.5 rounded-[var(--radius-btn)] px-2.5 py-1 text-[11px] font-semibold tracking-wide", status.className)}>
-            <span className={cn("h-1.5 w-1.5 rounded-full", status.dot)} />
-            {status.text}
-          </div>
-        </div>
 
-        {/* Row 2: Pricing Data */}
-        <div className="grid grid-cols-3 gap-4 md:gap-6 pt-4 border-t border-border/30">
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
-              Wholesale
-            </p>
-            <p className="text-xl md:text-2xl font-bold font-mono tabular-nums text-foreground leading-none drop-shadow-[0_0_6px_hsl(var(--primary)/0.4)]">
-              {product.wholesale_price.toLocaleString()}
-              <span className="text-xs font-normal text-muted-foreground ml-1">MMK</span>
-            </p>
-            {product.base_currency === "USD" && product.base_price > 0 && (
-              <div className="flex items-center gap-1.5 mt-0.5">
-                <p className="text-[10px] text-muted-foreground font-mono">${product.base_price} USD</p>
-                {lastRateUpdate && (
-                  <TooltipProvider delayDuration={200}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground/60 cursor-help">
-                          <RefreshCw className="w-2.5 h-2.5" />
-                          {formatDistanceToNow(new Date(lastRateUpdate), { addSuffix: true })}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="text-xs">
-                        <p className="font-semibold">1 USD = {usdRate ? usdRate.toLocaleString() : "—"} MMK</p>
-                        <p className="text-muted-foreground text-[10px]">
-                          Synced {new Date(lastRateUpdate).toLocaleString()}
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </div>
+          {/* Fulfillment type badge */}
+          <div
+            className={cn(
+              "shrink-0 flex items-center gap-1.5 rounded-[var(--radius-btn)] px-2.5 py-1 text-[11px] font-semibold tracking-wide",
+              fulfillmentLabel === "Instant"
+                ? "bg-primary/10 text-primary"
+                : fulfillmentLabel === "Auto"
+                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
             )}
-          </div>
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
-              Retail
-            </p>
-            <p className="text-base md:text-lg font-medium font-mono tabular-nums text-muted-foreground leading-none">
-              {product.retail_price.toLocaleString()}
-              <span className="text-xs font-normal text-muted-foreground/70 ml-1">MMK</span>
-            </p>
-          </div>
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-1.5">
-              Margin
-            </p>
-            <p className={cn(
-              "text-base md:text-lg font-semibold font-mono tabular-nums leading-none",
-              profitPerUnit > 0 ? "text-primary" : "text-muted-foreground"
-            )}>
-              {profitPerUnit > 0 ? "+" : ""}{profitPerUnit.toLocaleString()}
-              <span className="text-xs font-normal text-muted-foreground/70 ml-1">MMK</span>
-            </p>
+          >
+            {fulfillmentLabel === "Instant" ? (
+              <Zap className="w-3 h-3" />
+            ) : (
+              <Clock className="w-3 h-3" />
+            )}
+            {fulfillmentLabel}
           </div>
         </div>
 
-        {/* Row 3: Volume note + Actions */}
-        <div className="flex items-center justify-between gap-3 pt-1">
-          <div className="min-w-0 flex-1">
-            {hasTiers && lowestTier && lowestTier.unit_price < product.wholesale_price && (
-              <p className="text-[11px] text-muted-foreground">
-                Volume: {l(t.products.from)}{" "}
-                <span className="font-mono font-semibold text-primary">
-                  {lowestTier.unit_price.toLocaleString()}
-                </span>{" "}
-                MMK ({lowestTier.min_qty}+ {l(t.products.qty)})
+        {/* Row 2: Provider + Delivery + Stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border/30">
+          {/* Provider */}
+          <div className="flex items-center gap-2">
+            <div className="w-7 h-7 rounded-full bg-muted/40 border border-border/40 flex items-center justify-center shrink-0">
+              <User className="w-3.5 h-3.5 text-muted-foreground" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+                Provider
               </p>
-            )}
+              <p className="text-xs font-semibold text-foreground truncate">
+                {providerName}
+              </p>
+            </div>
           </div>
 
+          {/* Rating */}
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+              Rating
+            </p>
+            <div className="flex items-center gap-1">
+              <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+              <span className="text-sm font-semibold text-foreground font-mono">
+                {providerRating}
+              </span>
+            </div>
+          </div>
+
+          {/* Success Rate */}
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+              Success
+            </p>
+            <div className="flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+              <span className="text-sm font-semibold text-primary font-mono">
+                {successRate}%
+              </span>
+            </div>
+          </div>
+
+          {/* Completed */}
+          <div>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+              Completed
+            </p>
+            <div className="flex items-center gap-1">
+              <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-sm font-semibold text-foreground font-mono">
+                {completedOrders.toLocaleString()}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Row 3: Price + Delivery + Actions */}
+        <div className="flex items-end justify-between gap-4 pt-3 border-t border-border/30">
+          {/* Price block */}
+          <div className="space-y-1">
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+              Price
+            </p>
+            <p className="text-2xl md:text-3xl font-bold font-mono tabular-nums text-foreground leading-none drop-shadow-[0_0_6px_hsl(var(--primary)/0.4)]">
+              {displayPrice.toLocaleString()}
+              <span className="text-xs font-normal text-muted-foreground ml-1">
+                MMK
+              </span>
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                {deliveryTime}
+              </span>
+              {hasVolumeDiscount && lowestTier && (
+                <span className="text-[11px] text-primary font-medium">
+                  {l(t.products.from)} {lowestTier.unit_price.toLocaleString()}{" "}
+                  MMK ({lowestTier.min_qty}+)
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Actions */}
           <div className="flex items-center gap-2 shrink-0">
             <Button
               size="sm"
-              className="h-9 rounded-[var(--radius-btn)] px-5 text-xs font-semibold btn-glow"
+              className="h-10 rounded-[var(--radius-btn)] px-6 text-xs font-semibold btn-glow"
               onClick={() => onBuyClick(product)}
               disabled={isOutOfStock || isPurchasing}
             >
@@ -189,7 +233,7 @@ export default function ProductCard({ product, index, isPurchasing, onBuyClick, 
             </Button>
             <Link
               to={`/dashboard/products/${product.id}`}
-              className="inline-flex items-center gap-1 h-9 px-3 rounded-[var(--radius-btn)] text-xs font-medium text-muted-foreground border border-border/40 bg-muted/20 hover:bg-muted/40 hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1 h-10 px-3 rounded-[var(--radius-btn)] text-xs font-medium text-muted-foreground border border-border/40 bg-muted/20 hover:bg-muted/40 hover:text-foreground transition-colors"
             >
               Details
               <ChevronRight className="w-3 h-3" />
