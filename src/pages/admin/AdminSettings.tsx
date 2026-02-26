@@ -664,19 +664,21 @@ function ExchangeRateSection() {
   const handleFetchNow = async () => {
     setFetching(true);
     try {
-      const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
       const res = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/fetch-usd-rate?manual=true`,
-        { headers: { "Content-Type": "application/json" } }
+        `${supabaseUrl}/functions/v1/fetch-usd-rate?manual=true`,
+        { headers: { "Authorization": `Bearer ${anonKey}`, "apikey": anonKey } }
       );
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      if (data.skipped) {
+      if (data?.error) throw new Error(data.error);
+      if (data?.skipped) {
         toast.info(`Skipped: ${data.reason}`);
       } else {
         toast.success(`Rate updated: ${data.old_rate} → ${data.new_rate} MMK`);
       }
       queryClient.invalidateQueries({ queryKey: ["usd-mmk-rate"] });
+      queryClient.invalidateQueries({ queryKey: ["rate-history"] });
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
     } catch (err: any) {
