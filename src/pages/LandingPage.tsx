@@ -2,20 +2,10 @@ import { useState, useRef, useEffect, forwardRef, CSSProperties, ReactNode } fro
 import { SITE_URL } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import {
-  Shield,
-  Zap,
   Smartphone,
   Wrench,
   Monitor,
-  UserPlus,
-  CreditCard,
-  ShoppingCart,
-  Truck,
   ArrowRight,
-  Users,
-  CheckCircle2,
-  BarChart3,
-  Wallet,
   MessageCircle,
   Send,
   Phone,
@@ -65,13 +55,6 @@ const ScrollReveal = forwardRef<HTMLDivElement, { children: ReactNode; delay?: n
 ScrollReveal.displayName = "ScrollReveal";
 
 /* ───────── DATA ───────── */
-const trustStats = [
-  { icon: Users, value: "500+", label: "Active Resellers" },
-  { icon: CheckCircle2, value: "10,000+", label: "Orders Completed" },
-  { icon: BarChart3, value: "99%", label: "Success Rate" },
-  { icon: Wallet, value: "KBZPay", label: "& WavePay Supported" },
-];
-
 const categories = [
   {
     icon: Smartphone,
@@ -91,13 +74,6 @@ const categories = [
     desc: "Premium accounts — CapCut Pro, VPN keys, and more at wholesale.",
     link: "/login",
   },
-];
-
-const steps = [
-  { icon: UserPlus, title: "Register", desc: "Free account in under 2 minutes." },
-  { icon: CreditCard, title: "Top Up Wallet", desc: "KBZPay, WavePay, or bank transfer." },
-  { icon: ShoppingCart, title: "Place Order", desc: "Browse & buy at wholesale prices." },
-  { icon: Truck, title: "Receive Delivery", desc: "Instant or scheduled fulfillment." },
 ];
 
 const faqs = [
@@ -140,7 +116,7 @@ function OrgWebsiteJsonLd() {
     name: "KKTechDeals",
     url: SITE_URL,
     logo: `${SITE_URL}/pwa-512x512.png`,
-    description: "Myanmar's trusted IMEI unlock and digital reseller marketplace.",
+    description: "Myanmar's trusted IMEI unlock and digital reseller platform.",
   };
   const website = {
     "@context": "https://schema.org",
@@ -157,7 +133,7 @@ function OrgWebsiteJsonLd() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   LANDING PAGE — PREMIUM MINIMAL REBUILD
+   LANDING PAGE — PREMIUM MINIMAL
    ═══════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [contactOpen, setContactOpen] = useState(false);
@@ -168,14 +144,13 @@ export default function LandingPage() {
       <OrgWebsiteJsonLd />
 
       {/* ─── NAV ─── */}
-      <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur-md">
+      <header className="sticky top-0 z-50 border-b border-border/30 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-4">
           <Link to="/" className="text-xl font-extrabold tracking-tight text-foreground">
             KK<span className="gold-shimmer">Tech</span>
           </Link>
           <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
             <a href="#services" className="transition-colors hover:text-foreground">Services</a>
-            <a href="#how" className="transition-colors hover:text-foreground">How It Works</a>
             <a href="#faq" className="transition-colors hover:text-foreground">FAQ</a>
             <Link to="/tools/imei-check" className="transition-colors hover:text-foreground">IMEI Check</Link>
           </nav>
@@ -192,76 +167,63 @@ export default function LandingPage() {
       </header>
 
       <main>
-        {/* ═══════════ HERO ═══════════ */}
+        {/* ═══════════ HERO — Ultra Minimal ═══════════ */}
         <section className="relative overflow-hidden bg-background">
-          {/* Radial glow */}
+          {/* Very subtle radial warmth */}
           <div
             className="pointer-events-none absolute inset-0"
-            style={{ background: "radial-gradient(800px circle at 50% 20%, rgba(212,175,55,0.08), transparent 60%)" }}
+            style={{ background: "radial-gradient(900px circle at 50% 30%, hsl(43 65% 52% / 0.04), transparent 60%)" }}
           />
-          {/* Noise overlay */}
-          <div
-            className="pointer-events-none absolute inset-0 opacity-[0.02]"
-            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")", backgroundRepeat: "repeat", backgroundSize: "128px 128px" }}
-          />
-          <div className="relative mx-auto max-w-[1120px] px-6 pt-32 pb-40 md:pt-40 md:pb-48 text-center">
+
+          <div className="relative mx-auto max-w-[1120px] px-6 pt-36 pb-32 md:pt-44 md:pb-40 text-center">
             <ScrollReveal>
-              <h1 className="text-[2.25rem] font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-[3.25rem] lg:text-[3.75rem]">
-                Myanmar's #1 Unlock &<br className="hidden sm:block" /> Digital Services Marketplace
+              <h1 className="text-[2.5rem] font-extrabold leading-[1.08] tracking-tight text-foreground sm:text-[3.5rem] lg:text-[4rem]">
+                Digital Unlock & GSM Services
+                <br />
+                <span className="text-muted-foreground">For Professional Resellers</span>
               </h1>
             </ScrollReveal>
 
-            <ScrollReveal delay={100}>
-              <p className="mx-auto mt-6 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
-                Instant IMEI Unlock, GSM Tools & Digital Accounts for Myanmar Resellers.
+            <ScrollReveal delay={120}>
+              <p className="mx-auto mt-7 max-w-xl text-base text-muted-foreground sm:text-lg">
+                Instant IMEI unlock, repair tools, and digital services in one secure platform.
               </p>
             </ScrollReveal>
 
-            <ScrollReveal delay={200}>
-              <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center sm:gap-4">
-                <Button size="lg" className="h-13 px-10 text-sm font-semibold" asChild>
-                  <Link to="/login">
-                    Browse Services <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
+            <ScrollReveal delay={240}>
+              <div className="mt-14 flex flex-col items-center gap-5">
+                <Button size="lg" className="h-13 px-12 text-sm font-semibold" asChild>
+                  <Link to="/login">Get Started</Link>
                 </Button>
-                <Button size="lg" variant="outline" className="h-13 px-10 text-sm font-semibold border-border" asChild>
-                  <Link to="/login">Create Free Account</Link>
-                </Button>
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
+                >
+                  Browse Services <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
               </div>
             </ScrollReveal>
+          </div>
+        </section>
 
-            <ScrollReveal delay={300}>
-              <p className="mt-8 text-xs tracking-wide text-muted-foreground/60">
-                No monthly fees&ensp;•&ensp;Pay only for what you order
-              </p>
+        {/* ═══════════ TRUST STRIP — Elegant Typography ═══════════ */}
+        <section className="border-y border-border/30">
+          <div className="mx-auto max-w-[1120px] px-6 py-8">
+            <ScrollReveal>
+              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">500+ Resellers</span>
+                <span className="text-primary/40">•</span>
+                <span className="font-semibold text-foreground">10,000+ Orders</span>
+                <span className="text-primary/40">•</span>
+                <span className="font-semibold text-foreground">99% Success Rate</span>
+                <span className="text-primary/40">•</span>
+                <span className="font-semibold text-foreground">KBZPay & Wave Supported</span>
+              </div>
             </ScrollReveal>
           </div>
         </section>
 
-        {/* ═══════════ TRUST SECTION ═══════════ */}
-        <section className="border-y border-border/50 bg-card/30 py-16 sm:py-20">
-          <div className="mx-auto max-w-[1120px] px-6">
-            <div className="grid grid-cols-2 gap-8 sm:gap-6 lg:grid-cols-4">
-              {trustStats.map((stat, i) => (
-                <ScrollReveal key={stat.label} delay={i * 80}>
-                  <div className="flex flex-col items-center gap-3 text-center">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-                      <stat.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div>
-                      <p className="text-xl font-bold text-foreground sm:text-2xl">{stat.value}</p>
-                      <p className="mt-0.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                        {stat.label}
-                      </p>
-                    </div>
-                  </div>
-                </ScrollReveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════ CATEGORY CARDS ═══════════ */}
+        {/* ═══════════ SERVICES — Clean Minimal Blocks ═══════════ */}
         <section id="services" className="bg-background py-[120px] max-sm:py-20">
           <div className="mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
@@ -270,7 +232,7 @@ export default function LandingPage() {
                   What We Offer
                 </h2>
                 <p className="mt-3 text-base text-muted-foreground">
-                  Three categories. Thousands of products. One platform.
+                  Three categories. One platform.
                 </p>
               </div>
             </ScrollReveal>
@@ -280,72 +242,26 @@ export default function LandingPage() {
                 <ScrollReveal key={cat.title} delay={i * 100}>
                   <Link
                     to={cat.link}
-                    className="group flex flex-col gap-6 rounded-2xl border border-border bg-card p-8 sm:p-10 transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_40px_-12px_hsl(var(--primary)/0.12)]"
+                    className="group flex flex-col gap-5 rounded-2xl border border-border/50 bg-card/50 p-8 sm:p-10 transition-all duration-200 hover:-translate-y-0.5 hover:border-border"
                   >
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 transition-colors group-hover:bg-primary/15">
-                      <cat.icon className="h-7 w-7 text-primary" />
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/8">
+                      <cat.icon className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-foreground">{cat.title}</h3>
+                      <h3 className="text-base font-semibold text-foreground">{cat.title}</h3>
                       <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                         {cat.desc}
                       </p>
                     </div>
-                    <span className="mt-auto flex items-center gap-1.5 text-sm font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">
-                      Browse <ArrowRight className="h-3.5 w-3.5" />
-                    </span>
                   </Link>
                 </ScrollReveal>
               ))}
             </div>
-          </div>
-        </section>
-
-        {/* ═══════════ HOW IT WORKS ═══════════ */}
-        <section id="how" className="border-t border-border/50 bg-card/30 py-[120px] max-sm:py-20">
-          <div className="mx-auto max-w-[1120px] px-6">
-            <ScrollReveal>
-              <div className="text-center">
-                <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  How It Works
-                </h2>
-                <p className="mt-3 text-base text-muted-foreground">
-                  Four steps to start reselling.
-                </p>
-              </div>
-            </ScrollReveal>
-
-            <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {steps.map((s, i) => (
-                <ScrollReveal key={s.title} delay={i * 80}>
-                  <div className="relative flex flex-col items-center gap-4 rounded-2xl border border-border bg-card px-6 pb-8 pt-10 text-center">
-                    <div className="absolute -top-3.5 left-6 flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
-                      {i + 1}
-                    </div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
-                      <s.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <h4 className="text-sm font-bold text-foreground">{s.title}</h4>
-                    <p className="text-xs leading-relaxed text-muted-foreground">{s.desc}</p>
-                  </div>
-                </ScrollReveal>
-              ))}
-            </div>
-
-            <ScrollReveal delay={200}>
-              <div className="mt-16 text-center">
-                <Button size="lg" className="h-13 px-10 text-sm font-semibold" asChild>
-                  <Link to="/login">
-                    Create Free Account <ArrowRight className="ml-2 h-4 w-4" />
-                  </Link>
-                </Button>
-              </div>
-            </ScrollReveal>
           </div>
         </section>
 
         {/* ═══════════ FAQ ═══════════ */}
-        <section id="faq" className="bg-background py-[120px] max-sm:py-20">
+        <section id="faq" className="border-t border-border/30 bg-background py-[120px] max-sm:py-20">
           <div className="mx-auto max-w-[800px] px-6">
             <ScrollReveal>
               <h2 className="mb-12 text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -357,7 +273,7 @@ export default function LandingPage() {
                 <ScrollReveal key={i} delay={i * 50}>
                   <AccordionItem
                     value={`faq-${i}`}
-                    className="rounded-2xl border border-border bg-card px-6"
+                    className="rounded-2xl border border-border/50 bg-card/50 px-6"
                   >
                     <AccordionTrigger className="text-left text-sm font-semibold text-foreground hover:no-underline py-5">
                       {f.q}
@@ -384,14 +300,14 @@ export default function LandingPage() {
       </main>
 
       {/* ═══════════ FOOTER ═══════════ */}
-      <footer className="border-t border-border/50 bg-card/50 py-16">
+      <footer className="border-t border-border/30 bg-card/30 py-16">
         <div className="mx-auto grid max-w-[1120px] gap-12 px-6 sm:grid-cols-3">
           <div>
             <span className="text-xl font-extrabold text-foreground">
               KK<span className="gold-shimmer">Tech</span>
             </span>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              Myanmar's trusted wholesale unlock & digital reseller platform.
+              Professional unlock & digital reseller platform.
             </p>
           </div>
           <div className="flex flex-col gap-3 text-sm">
@@ -413,7 +329,7 @@ export default function LandingPage() {
             <Link to="/terms" className="text-muted-foreground transition-colors hover:text-primary">Refund Policy</Link>
           </div>
         </div>
-        <div className="mx-auto mt-12 max-w-[1120px] border-t border-border/50 px-6 pt-8">
+        <div className="mx-auto mt-12 max-w-[1120px] border-t border-border/30 px-6 pt-8">
           <p className="text-center text-xs text-muted-foreground/60">
             © {new Date().getFullYear()} KKTech. All rights reserved.
           </p>
