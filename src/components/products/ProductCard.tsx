@@ -96,7 +96,8 @@ export default function ProductCard({
       className={cn(
         "group relative glass-card opacity-0 animate-stagger-in",
         "transition-all duration-300 ease-out",
-        "hover:border-primary/40 hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5"
+        "border-primary/[0.06]",
+        "hover:border-primary/30 hover:shadow-[0_4px_30px_-4px_rgba(212,175,55,0.12)] hover:-translate-y-1"
       )}
       style={{ animationDelay: `${index * 0.06}s` }}
     >
@@ -128,8 +129,8 @@ export default function ProductCard({
               fulfillmentLabel === "Instant"
                 ? "bg-primary/10 text-primary"
                 : fulfillmentLabel === "Auto"
-                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                : "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                ? "bg-primary/10 text-primary"
+                : "bg-muted/40 text-muted-foreground"
             )}
           >
             {fulfillmentLabel === "Instant" ? (
@@ -180,7 +181,7 @@ export default function ProductCard({
               Rating
             </p>
             <div className="flex items-center gap-1">
-              <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+              <Star className="w-3.5 h-3.5 text-primary fill-primary" />
               <span className="text-sm font-semibold text-foreground font-mono">
                 {providerRating !== null ? providerRating : "—"}
               </span>
@@ -221,7 +222,7 @@ export default function ProductCard({
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
               Price
             </p>
-            <p className="text-2xl md:text-3xl font-bold font-mono tabular-nums text-foreground leading-none drop-shadow-[0_0_6px_hsl(var(--primary)/0.4)]">
+            <p className="text-2xl md:text-3xl font-bold font-mono tabular-nums text-primary leading-none">
               {displayPrice.toLocaleString()}
               <span className="text-xs font-normal text-muted-foreground ml-1">
                 MMK
@@ -260,7 +261,7 @@ export default function ProductCard({
             </Button>
             <Link
               to={`/dashboard/products/${product.id}`}
-              className="inline-flex items-center gap-1 h-10 px-3 rounded-[var(--radius-btn)] text-xs font-medium text-muted-foreground border border-border/40 bg-muted/20 hover:bg-muted/40 hover:text-foreground transition-colors"
+              className="inline-flex items-center gap-1 h-10 px-3 rounded-[var(--radius-btn)] text-xs font-medium text-muted-foreground border border-primary/20 bg-transparent hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all"
             >
               Details
               <ChevronRight className="w-3 h-3" />
