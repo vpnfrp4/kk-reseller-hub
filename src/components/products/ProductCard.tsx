@@ -61,7 +61,6 @@ export default function ProductCard({
   const hasVolumeDiscount =
     hasTiers && lowestTier && lowestTier.unit_price < displayPrice;
 
-  // Delivery time from config or processing_time
   const deliveryConfig =
     product.delivery_time_config &&
     typeof product.delivery_time_config === "object"
@@ -72,7 +71,6 @@ export default function ProductCard({
       ? product.processing_time || "1-3 Days"
       : deliveryConfig["instant"] || "Instant Delivery";
 
-  // Fulfillment type badge
   const fulfillmentLabel =
     pt === "api"
       ? "Auto"
@@ -94,19 +92,27 @@ export default function ProductCard({
   return (
     <div
       className={cn(
-        "group relative glass-card opacity-0 animate-stagger-in",
-        "transition-all duration-300 ease-out",
-        "border-primary/[0.06]",
-        "hover:border-primary/30 hover:shadow-[0_4px_30px_-4px_rgba(212,175,55,0.12)] hover:-translate-y-1"
+        "group relative opacity-0 animate-stagger-in overflow-hidden",
+        "rounded-[var(--radius-card)]",
+        "border border-border/40",
+        "transition-all duration-[220ms] ease-in-out",
+        /* Hover: gold left accent via box-shadow inset + lift + glow */
+        "hover:-translate-y-1",
+        "hover:shadow-[inset_3px_0_0_hsl(var(--primary)),0_8px_24px_rgba(0,0,0,0.6),0_0_20px_rgba(212,175,55,0.06)]",
+        "hover:border-border/60",
       )}
-      style={{ animationDelay: `${index * 0.06}s` }}
+      style={{
+        animationDelay: `${index * 0.06}s`,
+        background: "linear-gradient(145deg, #15151C 0%, #111116 100%)",
+        boxShadow: "0 6px 16px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.02)",
+      }}
     >
       <div className="p-5 md:p-6 space-y-4">
         {/* Row 1: Service Name + Status */}
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 flex-1 space-y-2">
             <Link to={`/dashboard/products/${product.id}`}>
-              <h3 className="text-lg md:text-xl font-semibold text-foreground leading-tight tracking-wide hover:text-primary transition-colors">
+              <h3 className="text-lg md:text-xl font-semibold text-foreground leading-tight tracking-wide hover:text-primary transition-colors duration-200">
                 {product.name}
               </h3>
             </Link>
@@ -122,15 +128,13 @@ export default function ProductCard({
             </div>
           </div>
 
-          {/* Fulfillment type badge */}
+          {/* Fulfillment badge — institutional style */}
           <div
             className={cn(
-              "shrink-0 flex items-center gap-1.5 rounded-[var(--radius-btn)] px-2.5 py-1 text-[11px] font-semibold tracking-wide",
-              fulfillmentLabel === "Instant"
-                ? "bg-primary/10 text-primary"
-                : fulfillmentLabel === "Auto"
-                ? "bg-primary/10 text-primary"
-                : "bg-muted/40 text-muted-foreground"
+              "shrink-0 flex items-center gap-1.5 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider border",
+              fulfillmentLabel === "Manual"
+                ? "bg-muted/30 text-muted-foreground border-border/40"
+                : "bg-primary/[0.08] text-primary border-primary/20"
             )}
           >
             {fulfillmentLabel === "Instant" ? (
@@ -142,10 +146,10 @@ export default function ProductCard({
           </div>
         </div>
 
-        {/* Row 2: Provider + Delivery + Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-border/30">
+        {/* Row 2: Stats Grid — structured 4-column with separators */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 pt-3 border-t border-border/20">
           {/* Provider */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 px-1 py-1.5 sm:border-r sm:border-border/15">
             <div className={cn(
               "w-7 h-7 rounded-full border flex items-center justify-center shrink-0",
               provider?.is_verified
@@ -159,7 +163,7 @@ export default function ProductCard({
               )}
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+              <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">
                 Provider
               </p>
               <div className="flex items-center gap-1.5">
@@ -167,8 +171,8 @@ export default function ProductCard({
                   {providerName}
                 </p>
                 {provider?.is_verified && (
-                  <span className="shrink-0 text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-px rounded">
-                    Verified
+                  <span className="shrink-0 text-[8px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1 py-px rounded">
+                    ✓
                   </span>
                 )}
               </div>
@@ -176,39 +180,39 @@ export default function ProductCard({
           </div>
 
           {/* Rating */}
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+          <div className="px-3 py-1.5 sm:border-r sm:border-border/15">
+            <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium mb-0.5">
               Rating
             </p>
             <div className="flex items-center gap-1">
               <Star className="w-3.5 h-3.5 text-primary fill-primary" />
-              <span className="text-sm font-semibold text-foreground font-mono">
+              <span className="text-sm font-bold text-foreground font-mono">
                 {providerRating !== null ? providerRating : "—"}
               </span>
             </div>
           </div>
 
           {/* Success Rate */}
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+          <div className="px-3 py-1.5 sm:border-r sm:border-border/15">
+            <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium mb-0.5">
               Success
             </p>
             <div className="flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5 text-primary" />
-              <span className="text-sm font-semibold text-primary font-mono">
+              <span className="text-sm font-bold text-primary font-mono">
                 {successRate !== null ? `${successRate}%` : "—"}
               </span>
             </div>
           </div>
 
           {/* Completed */}
-          <div>
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">
+          <div className="px-3 py-1.5">
+            <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium mb-0.5">
               Completed
             </p>
             <div className="flex items-center gap-1">
               <TrendingUp className="w-3.5 h-3.5 text-muted-foreground" />
-              <span className="text-sm font-semibold text-foreground font-mono">
+              <span className="text-sm font-bold text-foreground font-mono">
                 {completedOrders !== null ? completedOrders.toLocaleString() : "—"}
               </span>
             </div>
@@ -216,15 +220,19 @@ export default function ProductCard({
         </div>
 
         {/* Row 3: Price + Delivery + Actions */}
-        <div className="flex items-end justify-between gap-4 pt-3 border-t border-border/30">
-          {/* Price block */}
-          <div className="space-y-1">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+        <div className="flex items-end justify-between gap-4 pt-1">
+          {/* Price container — premium tinted surface */}
+          <div
+            className="space-y-1.5 rounded-lg px-4 py-3 border border-primary/10"
+            style={{ background: "linear-gradient(135deg, hsl(43 65% 52% / 0.04) 0%, transparent 100%)" }}
+          >
+            <div className="h-px w-8 bg-primary/30 mb-2" />
+            <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">
               Price
             </p>
-            <p className="text-2xl md:text-3xl font-bold font-mono tabular-nums text-primary leading-none">
+            <p className="text-2xl md:text-3xl font-bold font-mono tabular-nums text-primary leading-none drop-shadow-[0_0_6px_rgba(212,175,55,0.15)]">
               {displayPrice.toLocaleString()}
-              <span className="text-xs font-normal text-muted-foreground ml-1">
+              <span className="text-[10px] font-normal text-muted-foreground ml-1">
                 MMK
               </span>
             </p>
@@ -246,7 +254,12 @@ export default function ProductCard({
           <div className="flex items-center gap-2 shrink-0">
             <Button
               size="sm"
-              className="h-10 rounded-[var(--radius-btn)] px-6 text-xs font-semibold btn-glow"
+              className={cn(
+                "h-10 rounded-[var(--radius-btn)] px-6 text-xs font-semibold btn-glow",
+                "transition-all duration-200 ease-in-out",
+                "hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)]",
+                "active:scale-[0.97] active:translate-y-0"
+              )}
               onClick={() => onBuyClick(product)}
               disabled={isOutOfStock || isPurchasing}
             >
@@ -261,7 +274,7 @@ export default function ProductCard({
             </Button>
             <Link
               to={`/dashboard/products/${product.id}`}
-              className="inline-flex items-center gap-1 h-10 px-3 rounded-[var(--radius-btn)] text-xs font-medium text-muted-foreground border border-primary/20 bg-transparent hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all"
+              className="inline-flex items-center gap-1 h-10 px-3 rounded-[var(--radius-btn)] text-xs font-medium text-muted-foreground border border-border/40 bg-transparent hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all duration-200"
             >
               Details
               <ChevronRight className="w-3 h-3" />
