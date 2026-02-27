@@ -161,10 +161,19 @@ export default function WalletPage() {
               <Wallet className="w-5 h-5 text-primary" />
               <MmLabel mm={t.wallet.availableBalance.mm} en={t.wallet.availableBalance.en} className="text-[11px] uppercase tracking-wider font-medium text-muted-foreground" />
             </div>
-            <p className={cn(
-              "text-4xl font-bold font-mono tabular-nums text-foreground tracking-tight transition-all duration-500",
-              balanceFlash && "scale-105 text-primary"
-            )}>
+            <p
+              className={cn(
+                "text-4xl font-bold font-mono tabular-nums tracking-tight transition-all duration-500",
+                balanceFlash ? "scale-105 text-primary" : "text-foreground"
+              )}
+              style={!balanceFlash ? {
+                backgroundImage: "linear-gradient(90deg, hsl(var(--foreground)) 0%, hsl(43 65% 72%) 40%, hsl(43 65% 52%) 50%, hsl(43 65% 72%) 60%, hsl(var(--foreground)) 100%)",
+                backgroundSize: "200% 100%",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                animation: "gold-shimmer 4s ease-in-out infinite",
+              } : undefined}
+            >
               {displayBalance.toLocaleString()}
             </p>
             <p className="text-[11px] text-muted-foreground/50 mt-[var(--space-micro)]">MMK</p>
