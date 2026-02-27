@@ -110,62 +110,75 @@ function StatusTimeline({ steps }: { steps: TimelineStepData[] }) {
   const l = useT();
   return (
     <div className="flex items-start justify-between gap-2">
-      {steps.map((step, i) => (
-        <div key={i} className="flex-1 flex flex-col items-center text-center">
-          {/* Connector + Circle */}
-          <div className="flex items-center w-full mb-3">
-            {i > 0 && (
+      {steps.map((step, i) => {
+        const isFailed = l(step.label).toLowerCase().includes("fail") || l(step.label).toLowerCase().includes("reject") || l(step.label).toLowerCase().includes("cancel");
+        return (
+          <div key={i} className="flex-1 flex flex-col items-center text-center">
+            {/* Connector + Circle */}
+            <div className="flex items-center w-full mb-3">
+              {i > 0 && (
+                <div
+                  className={cn(
+                    "flex-1 h-px transition-all",
+                    step.isDone ? "bg-primary/40" : "bg-border",
+                  )}
+                />
+              )}
               <div
                 className={cn(
-                  "flex-1 h-px",
-                  step.isDone ? "bg-success/40" : "bg-border",
+                  "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all",
+                  step.isDone && !isFailed
+                    ? "bg-primary text-primary-foreground shadow-[0_0_12px_rgba(212,175,55,0.3)]"
+                    : step.isDone && isFailed
+                      ? "bg-destructive text-destructive-foreground shadow-[0_0_12px_rgba(220,38,38,0.3)]"
+                      : step.isActive
+                        ? "bg-primary/10 border-2 border-primary text-primary shadow-[0_0_8px_rgba(212,175,55,0.15)]"
+                        : "bg-muted border border-border text-muted-foreground",
                 )}
-              />
-            )}
-            <div
-              className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all",
-                step.isDone
-                  ? "bg-success text-success-foreground"
-                  : step.isActive
-                    ? "bg-primary/15 border-2 border-primary text-primary"
-                    : "bg-muted border border-border text-muted-foreground",
-              )}
-            >
-              {step.isDone ? (
-                <CheckCircle2 className="w-4 h-4" />
-              ) : (
-                <span className="text-xs font-bold">{i + 1}</span>
+              >
+                {step.isDone ? (
+                  isFailed ? (
+                    <AlertTriangle className="w-4 h-4" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4" />
+                  )
+                ) : step.isActive ? (
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                ) : (
+                  <span className="text-xs font-bold">{i + 1}</span>
+                )}
+              </div>
+              {i < steps.length - 1 && (
+                <div
+                  className={cn(
+                    "flex-1 h-px transition-all",
+                    step.isDone ? "bg-primary/40" : "bg-border",
+                  )}
+                />
               )}
             </div>
-            {i < steps.length - 1 && (
-              <div
-                className={cn(
-                  "flex-1 h-px",
-                  step.isDone ? "bg-success/40" : "bg-border",
-                )}
-              />
+            <p
+              className={cn(
+                "text-xs font-medium",
+                step.isDone && !isFailed
+                  ? "text-primary"
+                  : step.isDone && isFailed
+                    ? "text-destructive"
+                    : step.isActive
+                      ? "text-primary"
+                      : "text-muted-foreground",
+              )}
+            >
+              {l(step.label)}
+            </p>
+            {step.timestamp && (
+              <p className="text-[10px] text-muted-foreground/60 mt-0.5">
+                {format(new Date(step.timestamp), "HH:mm")}
+              </p>
             )}
           </div>
-          <p
-            className={cn(
-              "text-xs font-medium",
-              step.isDone
-                ? "text-foreground"
-                : step.isActive
-                  ? "text-primary"
-                  : "text-muted-foreground",
-            )}
-          >
-            {l(step.label)}
-          </p>
-          {step.timestamp && (
-            <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-              {format(new Date(step.timestamp), "HH:mm")}
-            </p>
-          )}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -657,7 +670,7 @@ export default function OrderDetailPage() {
             <GlassSection>
               {existingReview ? (
                 <div className="flex items-start gap-3">
-                  <Star className="w-5 h-5 text-amber-400 fill-amber-400 shrink-0 mt-0.5" />
+                  <Star className="w-5 h-5 text-primary fill-primary shrink-0 mt-0.5" />
                   <div className="space-y-1">
                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Your Review</h4>
                     <div className="flex items-center gap-1">
@@ -667,7 +680,7 @@ export default function OrderDetailPage() {
                           className={cn(
                             "w-4 h-4",
                             s <= (existingReview as any).rating
-                              ? "text-amber-400 fill-amber-400"
+                              ? "text-primary fill-primary"
                               : "text-muted-foreground/30"
                           )}
                         />
