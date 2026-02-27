@@ -89,6 +89,7 @@ export default function TopUpDialog({
 
   const activeMethod = paymentMethods?.find((m: any) => m.method_id === selectedMethod);
   const isBinance = selectedMethod === "binance";
+  const hasMethodSelected = !!selectedMethod && !!activeMethod;
 
   const PROCESS_STEPS = [
     { icon: CreditCard, label: t.topup.transferFunds },
@@ -143,7 +144,7 @@ export default function TopUpDialog({
 
   const handleSubmitTopup = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!topupAmount || !screenshot || !userId || parsedAmount < MIN_AMOUNT) return;
+    if (!topupAmount || !screenshot || !userId || parsedAmount < MIN_AMOUNT || !hasMethodSelected) return;
     if (isBinance && !binanceTxId.trim()) return;
     setSubmissionState("uploading");
 
@@ -333,7 +334,7 @@ export default function TopUpDialog({
               <p className="text-xs text-muted-foreground/60">{l(t.topupExtra.mostResellers)}</p>
             </div>
 
-            {/* ── PAYMENT METHODS ── */}
+            {/* ── PAYMENT METHODS (Click-to-Reveal) ── */}
             <div className="space-y-3">
               <Label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 {l(t.topup.paymentMethods)}
@@ -343,75 +344,114 @@ export default function TopUpDialog({
                   const isSelected = selectedMethod === account.method_id;
                   const isBinanceMethod = account.method_id === "binance";
                   return (
-                    <button
+                    <div
                       key={account.method_id}
-                      type="button"
-                      onClick={() => setSelectedMethod(account.method_id)}
                       className={cn(
-                        "w-full text-left rounded-[16px] p-6 border-2 transition-all duration-200 relative",
+                        "rounded-[16px] border transition-all duration-200 overflow-hidden",
                         isSelected
-                          ? "border-primary bg-primary/[0.03]"
-                          : "border-border bg-card hover:border-muted-foreground/30"
+                          ? "border-primary/40 bg-primary/[0.03] shadow-[0_0_20px_hsl(43_65%_52%/0.06)]"
+                          : "border-border/50 bg-secondary/40 hover:border-muted-foreground/20"
                       )}
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-3 flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className={cn(
-                              "text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full",
-                              isSelected
-                                ? "bg-primary/10 text-primary"
-                                : "bg-muted/60 text-muted-foreground"
-                            )}>
-                              {account.provider}
+                      {/* ── Collapsed Header ── */}
+                      <button
+                        type="button"
+                        onClick={() => setSelectedMethod(isSelected ? "" : account.method_id)}
+                        className="w-full text-left px-5 py-4 flex items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className={cn(
+                            "text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded-full shrink-0",
+                            isSelected
+                              ? "bg-primary/10 text-primary"
+                              : "bg-muted/60 text-muted-foreground"
+                          )}>
+                            {account.provider}
+                          </span>
+                          <span className={cn(
+                            "text-sm font-medium truncate",
+                            isSelected ? "text-foreground" : "text-muted-foreground"
+                          )}>
+                            {account.name || account.provider}
+                          </span>
+                          <div className="flex items-center gap-1 text-primary/70 shrink-0">
+                            <BadgeCheck className="w-3.5 h-3.5" />
+                            <span className="text-[10px] font-medium">{l(t.topup.verified)}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {!isSelected && (
+                            <span className="text-[10px] text-muted-foreground/50 hidden sm:inline">
+                              Tap to view
                             </span>
-                            {isSelected && (
-                              <div className="flex items-center gap-1 text-primary">
-                                <BadgeCheck className="w-3.5 h-3.5" />
-                                <span className="text-[10px] font-medium">{l(t.topup.verified)}</span>
+                          )}
+                          <ArrowRight
+                            className={cn(
+                              "w-4 h-4 transition-transform duration-200",
+                              isSelected
+                                ? "rotate-90 text-primary"
+                                : "text-muted-foreground/40"
+                            )}
+                          />
+                        </div>
+                      </button>
+
+                      {/* ── Expanded Details ── */}
+                      <div
+                        className={cn(
+                          "grid transition-all duration-200 ease-in-out",
+                          isSelected ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                        )}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="px-5 pb-5 pt-1 space-y-3 border-t border-border/20">
+                            {isBinanceMethod ? (
+                              <div className="space-y-3">
+                                <div>
+                                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Binance UID</span>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="font-mono text-xl font-bold text-foreground tracking-wide">
+                                      {account.binance_uid}
+                                    </span>
+                                    <CopyButton text={account.binance_uid} label="Binance UID" />
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <div>
+                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Network</span>
+                                    <p className="text-sm font-semibold text-foreground mt-0.5">{account.network}</p>
+                                  </div>
+                                  <div>
+                                    <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Currency</span>
+                                    <p className="text-sm font-semibold text-foreground mt-0.5">{account.accepted_currency}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                <div>
+                                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Account Name</span>
+                                  <p className="text-sm font-semibold text-foreground mt-0.5">{account.name}</p>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Phone Number</span>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="font-mono text-xl font-bold text-foreground tracking-wide">
+                                      {account.phone}
+                                    </span>
+                                    <CopyButton text={account.phone} label={account.provider} />
+                                  </div>
+                                </div>
                               </div>
                             )}
+                            <p className="text-[10px] text-muted-foreground/40 flex items-center gap-1.5 pt-1 border-t border-border/15">
+                              <Shield className="w-3 h-3" />
+                              Transfer only to official verified accounts.
+                            </p>
                           </div>
-
-                          {isBinanceMethod ? (
-                            <>
-                              <div className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs text-muted-foreground">UID:</span>
-                                  <span className="font-mono text-lg font-bold text-foreground tracking-wide">
-                                    {account.binance_uid}
-                                  </span>
-                                  <CopyButton text={account.binance_uid} label="Binance UID" />
-                                </div>
-                                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                                  <span>Network: <span className="font-semibold text-foreground">{account.network}</span></span>
-                                  <span>Currency: <span className="font-semibold text-foreground">{account.accepted_currency}</span></span>
-                                </div>
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <p className="text-sm font-semibold text-foreground">{account.name}</p>
-                              <div className="flex items-center gap-2">
-                                <span className="font-mono text-xl font-bold text-foreground tracking-wide">
-                                  {account.phone}
-                                </span>
-                                <CopyButton text={account.phone} label={account.provider} />
-                              </div>
-                            </>
-                          )}
-                        </div>
-
-                        <div className={cn(
-                          "w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-1 transition-all duration-200",
-                          isSelected
-                            ? "border-primary bg-primary"
-                            : "border-border"
-                        )}>
-                          {isSelected && <CheckCircle2 className="w-3 h-3 text-primary-foreground" />}
                         </div>
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -536,7 +576,7 @@ export default function TopUpDialog({
               <Button
                 type="submit"
                 className="w-full h-12 text-sm font-bold rounded-[var(--radius-btn)] btn-glow relative overflow-hidden active:scale-[0.98] transition-transform duration-100"
-                disabled={!topupAmount || !screenshot || parsedAmount < MIN_AMOUNT || submissionState === "uploading" || (isBinance && !binanceTxId.trim())}
+                disabled={!topupAmount || !screenshot || parsedAmount < MIN_AMOUNT || !hasMethodSelected || submissionState === "uploading" || (isBinance && !binanceTxId.trim())}
               >
                 {submissionState === "uploading" ? (
                   <span className="flex items-center gap-2">
