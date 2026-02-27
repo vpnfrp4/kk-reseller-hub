@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { SITE_URL } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 import { Calendar, ArrowRight, BookOpen } from "lucide-react";
@@ -135,7 +136,7 @@ export default function BlogListPage() {
             "@context": "https://schema.org",
             "@type": "Blog",
             name: "KKTechDeals Blog",
-            url: "https://kk-reseller-hub.lovable.app/blog",
+            url: `${SITE_URL}/blog`,
             description: "Tips, tutorials, and industry insights on IMEI unlocking, GSM services, and digital products in Myanmar.",
           }),
         }}

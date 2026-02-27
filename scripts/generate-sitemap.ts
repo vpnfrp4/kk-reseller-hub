@@ -1,4 +1,4 @@
-const SITE_URL = "https://kk-reseller-hub.lovable.app";
+const SITE_URL = "https://kktech.shop";
 
 const pages = [
   { path: "/", priority: "1.0", changefreq: "weekly" },

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, forwardRef, CSSProperties, ReactNode } from "react";
+import { SITE_URL } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import {
   Shield,
@@ -137,15 +138,15 @@ function OrgWebsiteJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: "KKTechDeals",
-    url: "https://kk-reseller-hub.lovable.app",
-    logo: "https://kk-reseller-hub.lovable.app/pwa-512x512.png",
+    url: SITE_URL,
+    logo: `${SITE_URL}/pwa-512x512.png`,
     description: "Myanmar's trusted IMEI unlock and digital reseller marketplace.",
   };
   const website = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "KKTechDeals",
-    url: "https://kk-reseller-hub.lovable.app",
+    url: SITE_URL,
   };
   return (
     <>

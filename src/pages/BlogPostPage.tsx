@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { SITE_URL } from "@/lib/utils";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
@@ -60,7 +61,7 @@ export default function BlogPostPage() {
     setMeta("og:title", metaTitle);
     setMeta("og:description", desc);
     setMeta("og:type", "article");
-    setMeta("og:url", `https://kk-reseller-hub.lovable.app/blog/${post.slug}`);
+    setMeta("og:url", `${SITE_URL}/blog/${post.slug}`);
     if (post.cover_image_url) setMeta("og:image", post.cover_image_url);
     if (post.meta_keywords) setMeta("keywords", post.meta_keywords);
 
@@ -162,7 +163,7 @@ export default function BlogPostPage() {
             "@type": "BlogPosting",
             headline: post.title,
             description: post.meta_description || post.excerpt,
-            url: `https://kk-reseller-hub.lovable.app/blog/${post.slug}`,
+            url: `${SITE_URL}/blog/${post.slug}`,
             datePublished: publishDate,
             dateModified: post.created_at,
             image: post.cover_image_url || undefined,
@@ -170,7 +171,7 @@ export default function BlogPostPage() {
             publisher: {
               "@type": "Organization",
               name: "KKTechDeals",
-              logo: { "@type": "ImageObject", url: "https://kk-reseller-hub.lovable.app/pwa-512x512.png" },
+              logo: { "@type": "ImageObject", url: `${SITE_URL}/pwa-512x512.png` },
             },
           }),
         }}

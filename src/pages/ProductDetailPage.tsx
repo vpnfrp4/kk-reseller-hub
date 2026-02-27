@@ -1,4 +1,5 @@
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { SITE_URL } from "@/lib/utils";
 import PriceComparisonTable from "@/components/marketplace/PriceComparisonTable";
 import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
@@ -337,11 +338,11 @@ export default function ProductDetailPage() {
     description: product.description || product.name,
     sku: (product as any).product_code,
     category: product.category,
-    image: (product as any).image_url || "https://kk-reseller-hub.lovable.app/pwa-512x512.png",
+    image: (product as any).image_url || `${SITE_URL}/pwa-512x512.png`,
     brand: { "@type": "Brand", name: "KKTechDeals" },
     offers: {
       "@type": "Offer",
-      url: `https://kk-reseller-hub.lovable.app/dashboard/products/${product.id}`,
+      url: `${SITE_URL}/dashboard/products/${product.id}`,
       priceCurrency: "MMK",
       price: product.wholesale_price,
       availability: isOutOfStock
