@@ -87,7 +87,16 @@ export default function StatCard({
       </div>
 
       <div className="flex items-end justify-between">
-        <p className={cn("font-extrabold font-mono tabular-nums text-foreground tracking-tight", featured ? "text-4xl" : "text-3xl")}>
+        <p
+          className={cn("font-extrabold font-mono tabular-nums tracking-tight", featured ? "text-4xl" : "text-3xl")}
+          style={{
+            backgroundImage: "linear-gradient(90deg, hsl(var(--foreground)) 0%, hsl(43 65% 72%) 40%, hsl(43 65% 52%) 50%, hsl(43 65% 72%) 60%, hsl(var(--foreground)) 100%)",
+            backgroundSize: "200% 100%",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            animation: "gold-shimmer 4s ease-in-out infinite",
+          }}
+        >
           {isCurrency ? (
             <Money amount={Number(displayValue)} currency={currency} />
           ) : (
