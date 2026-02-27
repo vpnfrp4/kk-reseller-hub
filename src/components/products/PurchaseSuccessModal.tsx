@@ -240,7 +240,7 @@ export default function PurchaseSuccessModal({
                 <BadgePercent className="w-4 h-4 text-success" />
                 <span className="text-sm font-semibold text-success">
                   {l(t.success.saved)} {totalSavings.toLocaleString()} MMK
-                  {showConfetti ? " 🎉" : ""}
+                  {showConfetti ? "" : ""}
                 </span>
               </div>
             )}

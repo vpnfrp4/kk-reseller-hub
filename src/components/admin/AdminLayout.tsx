@@ -151,31 +151,30 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* Sidebar — premium gradient + glass */}
+      {/* Sidebar — premium fintech */}
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-sidebar-border",
-          "bg-gradient-to-b from-[hsl(222_47%_12%)] to-[hsl(222_47%_7%)] backdrop-blur-xl",
+          "fixed lg:static inset-y-0 left-0 z-50 w-[260px] flex flex-col",
+          "bg-sidebar border-r border-sidebar-border",
           "transition-transform duration-300 ease-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
-        style={{ boxShadow: "inset -1px 0 0 rgba(255,255,255,0.04)" }}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-sidebar-border">
+        <div className="px-5 py-5 border-b border-sidebar-border">
           <Link to="/admin" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20 transition-all duration-200 group-hover:bg-primary/15 group-hover:shadow-[0_0_12px_hsl(142_71%_45%/0.15)]">
-              <ShieldCheck className="w-5 h-5 text-primary relative z-10" />
+            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 transition-colors duration-200 group-hover:bg-primary/15">
+              <ShieldCheck className="w-[18px] h-[18px] text-primary" />
             </div>
             <div>
-              <span className="text-base font-bold text-foreground tracking-tight">KKTech</span>
+              <span className="text-[15px] font-bold text-foreground tracking-tight">KKTech</span>
               <span className="text-[10px] block text-primary font-bold uppercase tracking-[0.2em]">Command Center</span>
             </div>
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-0.5 mt-2">
+        <nav className="flex-1 px-3 pt-4 pb-2 flex flex-col gap-1">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
             const badge = badgeMap[item.path] || 0;
@@ -185,24 +184,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "relative flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
+                  "relative flex items-center gap-3 h-[44px] rounded-lg text-sm transition-all duration-200",
+                  "pl-5 pr-3",
                   active
-                    ? "bg-white/[0.08] text-foreground"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/[0.05]"
+                    ? "bg-secondary text-foreground font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
                 )}
               >
-                {/* Active left accent bar */}
                 {active && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(142_71%_45%/0.5)]" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
                 )}
                 <item.icon
                   className={cn(
-                    "w-[18px] h-[18px] transition-all duration-200",
-                    active && "text-primary drop-shadow-[0_0_6px_hsl(142_71%_45%/0.4)]"
+                    "w-[18px] h-[18px] shrink-0 transition-colors duration-200",
+                    active ? "text-primary" : ""
                   )}
                   strokeWidth={active ? 2 : 1.5}
                 />
-                <span className="flex-1">{item.label}</span>
+                <span className="flex-1 truncate">{item.label}</span>
                 {badge > 0 && (
                   <span className="min-w-[22px] h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1.5">
                     {badge}
@@ -214,16 +213,20 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* Footer */}
-        <div className="p-3 border-t border-sidebar-border space-y-0.5">
+        <div className="mt-auto border-t border-sidebar-border px-3 pt-3 pb-3 space-y-1">
           <Link
             to="/dashboard"
-            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-white/[0.05] transition-all duration-200"
+            className="flex items-center gap-3 h-[44px] pl-5 pr-3 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all duration-200"
           >
-            <ArrowLeftRight className="w-[18px] h-[18px]" strokeWidth={1.5} />
+            <ArrowLeftRight className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
             Reseller Panel
           </Link>
-          <Button variant="ghost" className="w-full justify-start text-muted-foreground hover:text-destructive h-10 px-4" onClick={handleLogout}>
-            <LogOut className="w-[18px] h-[18px] mr-3" strokeWidth={1.5} />
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[44px] pl-5 text-sm rounded-lg"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-[18px] h-[18px] mr-3 shrink-0" strokeWidth={1.5} />
             Sign Out
           </Button>
         </div>

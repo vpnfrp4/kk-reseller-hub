@@ -93,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (newData.balance > prev.balance) {
               const added = newData.balance - prev.balance;
               notifyEvent(
-                "💰 Top-Up Approved!",
+                "Top-Up Approved",
                 `${added.toLocaleString()} MMK has been added to your wallet.`,
                 "success",
                 "topupApproved"
@@ -111,7 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               const prefs = getNotificationPrefs();
               if (prefs.lowBalance && newData.balance > 0 && newData.balance <= prefs.lowBalanceThreshold) {
                 notifyEvent(
-                  "⚠️ Low Balance",
+                  "Low Balance",
                   `Your balance is ${newData.balance.toLocaleString()} MMK. Consider topping up.`,
                   "error",
                   "lowBalance"

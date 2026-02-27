@@ -112,7 +112,7 @@ export default function AdminProducts() {
 
   // Unified form state
   const [form, setForm] = useState({
-    name: "", icon: "📦", category: "General", description: "",
+    name: "", icon: "box", category: "General", description: "",
     retail_price: "", wholesale_price: "", duration: "", stock: "",
     image_url: "",
     product_type: "digital" as ProductType,
@@ -209,7 +209,7 @@ export default function AdminProducts() {
 
   const resetForm = () => {
     setForm({
-      name: "", icon: "📦", category: "General", description: "",
+      name: "", icon: "box", category: "General", description: "",
       retail_price: "", wholesale_price: "", duration: "", stock: "",
       image_url: "", product_type: "digital",
       brand_id: "", country_id: "", carrier_id: "",
@@ -612,15 +612,15 @@ export default function AdminProducts() {
                       <span className="text-xs font-semibold text-primary">Order Settings Auto-Configured</span>
                     </div>
                     <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-muted-foreground pl-6">
-                      <span>✓ Require IMEI</span>
-                      <span>✗ Require Username</span>
-                      <span>✗ Require Comments</span>
-                      <span>✗ Require Quantity</span>
-                      <span>✗ Image Upload</span>
-                      <span>✗ Download Settings</span>
-                      <span>✗ Stock Management</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" /> Require IMEI</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-muted-foreground/40" /> Require Username</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-muted-foreground/40" /> Require Comments</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-muted-foreground/40" /> Require Quantity</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-muted-foreground/40" /> Image Upload</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-muted-foreground/40" /> Download Settings</span>
+                      <span className="flex items-center gap-1"><span className="inline-block w-1.5 h-1.5 rounded-full bg-muted-foreground/40" /> Stock Management</span>
                       <span className="flex items-center gap-1">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500" /> Active
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-primary" /> Active
                       </span>
                     </div>
                   </div>

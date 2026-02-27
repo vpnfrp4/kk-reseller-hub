@@ -252,8 +252,8 @@ export default function BulkImageUpload({ products }: { products: Product[] }) {
                         <SelectContent>
                           {products.map((p) => (
                             <SelectItem key={p.id} value={p.id} className="text-xs">
-                              <span className="mr-1.5">{p.icon}</span>
                               {p.name}
+                              {p.image_url && " (has image)"}
                               {p.image_url && " (has image)"}
                             </SelectItem>
                           ))}
