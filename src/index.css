@@ -300,11 +300,25 @@
 @layer components {
   /* ─── Solid Cards (luxury dark surfaces) ─── */
   .glass-card {
+    position: relative;
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
     transition: border-color var(--transition-base);
+  }
+
+  .glass-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)' opacity='1'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    mix-blend-mode: overlay;
+    z-index: 1;
   }
 
   .glass-card:hover {
