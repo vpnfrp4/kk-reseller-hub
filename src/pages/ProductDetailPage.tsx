@@ -15,7 +15,7 @@ import {
   Clock,
   ShieldCheck,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import StructuredDescription from "@/components/products/StructuredDescription";
 import { cn } from "@/lib/utils";
 import { t, useT } from "@/lib/i18n";
@@ -30,6 +30,8 @@ export default function ProductDetailPage() {
   const [providerExpanded, setProviderExpanded] = useState(false);
   const [noticeOpen, setNoticeOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+  const heroCTARef = useRef<HTMLButtonElement>(null);
 
   const SPEC_ITEMS = [
     { label: "Activation", value: t.detailExtra.activation },
@@ -70,6 +72,18 @@ export default function ProductDetailPage() {
       document.title = "Myanmar Biggest Unlock Marketplace | IMEI, GSM & Digital Services – KKTechDeals";
     };
   }, [product?.name]);
+
+  // Intersection observer: show sticky CTA when hero button scrolls out of view
+  useEffect(() => {
+    const el = heroCTARef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowStickyBar(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [product]);
 
   const { data: pricingTiers = [] } = useQuery({
     queryKey: ["pricing-tiers", id],
@@ -270,6 +284,7 @@ export default function ProductDetailPage() {
               )}
             </div>
             <Button
+              ref={heroCTARef}
               className={cn(
                 "h-11 rounded-[var(--radius-btn)] px-8 font-semibold text-sm gap-2 btn-glow",
                 "transition-all duration-200 ease-in-out",
@@ -569,21 +584,35 @@ export default function ProductDetailPage() {
         )}
       </section>
 
-      {/* ── Bottom CTA ── */}
+      {/* ── Sticky CTA — only visible when hero button scrolls out of view ── */}
       {!isOutOfStock && (
-        <div className="pb-4">
-          <Button
-            className={cn(
-              "w-full h-12 rounded-[var(--radius-btn)] font-semibold text-sm gap-2 btn-glow",
-              "transition-all duration-200 ease-in-out",
-              "hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)]",
-              "active:scale-[0.97] active:translate-y-0"
-            )}
-            onClick={() => navigate(`/dashboard/order/${product.id}`)}
+        <div
+          className={cn(
+            "fixed bottom-0 left-0 right-0 z-40 transition-all duration-200 ease-out pointer-events-none",
+            showStickyBar
+              ? "opacity-100 translate-y-0"
+              : "opacity-0 translate-y-4"
+          )}
+        >
+          <div className="max-w-2xl mx-auto px-4 pb-4 pt-3 pointer-events-auto"
+            style={{
+              background: "linear-gradient(to top, hsl(var(--background)) 60%, transparent)",
+            }}
           >
-            Proceed to Order — {product.wholesale_price.toLocaleString()} MMK
-            <ArrowRight className="w-4 h-4" />
-          </Button>
+            <Button
+              className={cn(
+                "w-full h-11 rounded-[var(--radius-btn)] font-semibold text-sm gap-2 btn-glow",
+                "transition-all duration-200 ease-in-out",
+                "hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)]",
+                "active:scale-[0.97] active:translate-y-0",
+                "shadow-[0_-4px_20px_rgba(0,0,0,0.4)]"
+              )}
+              onClick={() => navigate(`/dashboard/order/${product.id}`)}
+            >
+              Proceed to Order — {product.wholesale_price.toLocaleString()} MMK
+              <ArrowRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       )}
 
