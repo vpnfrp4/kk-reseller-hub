@@ -59,19 +59,19 @@ const categories = [
   {
     icon: Smartphone,
     title: "IMEI Unlock",
-    desc: "Official carrier unlocks for iPhone, Samsung & all major brands.",
+    desc: "Direct access to global unlock services with structured provider routing.",
     link: "/services/imei-unlock",
   },
   {
     icon: Wrench,
     title: "Hardware & Repair Tools",
-    desc: "GSM tools, server credits, and professional repair solutions.",
+    desc: "Professional activation and licensing solutions for repair technicians.",
     link: "/login",
   },
   {
     icon: Monitor,
     title: "Digital Subscriptions",
-    desc: "Premium accounts — CapCut Pro, VPN keys, and more at wholesale.",
+    desc: "Secure digital account provisioning for controlled reseller distribution.",
     link: "/login",
   },
 ];
@@ -113,15 +113,15 @@ function OrgWebsiteJsonLd() {
   const org = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: "KKTechDeals",
+    name: "KKTech",
     url: SITE_URL,
     logo: `${SITE_URL}/pwa-512x512.png`,
-    description: "Myanmar's trusted IMEI unlock and digital reseller platform.",
+    description: "Professional digital service infrastructure for resellers. IMEI unlock, GSM tools, and digital accounts.",
   };
   const website = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    name: "KKTechDeals",
+    name: "KKTech",
     url: SITE_URL,
   };
   return (
@@ -177,16 +177,19 @@ export default function LandingPage() {
 
           <div className="relative mx-auto max-w-[1120px] px-6 pt-36 pb-32 md:pt-44 md:pb-40 text-center">
             <ScrollReveal>
+              <p className="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">
+                Reseller-First Infrastructure
+              </p>
               <h1 className="text-[2.5rem] font-extrabold leading-[1.08] tracking-tight text-foreground sm:text-[3.5rem] lg:text-[4rem]">
-                Digital Unlock & GSM Services
+                Execution Layer for
                 <br />
-                <span className="text-muted-foreground">For Professional Resellers</span>
+                <span className="text-muted-foreground">Digital Unlock & GSM Services.</span>
               </h1>
             </ScrollReveal>
 
             <ScrollReveal delay={120}>
-              <p className="mx-auto mt-7 max-w-xl text-base text-muted-foreground sm:text-lg">
-                Instant IMEI unlock, repair tools, and digital services in one secure platform.
+              <p className="mx-auto mt-7 max-w-lg text-base text-muted-foreground/80 sm:text-lg">
+                One platform. Professional execution. Reliable outcomes.
               </p>
             </ScrollReveal>
 
@@ -206,18 +209,18 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ═══════════ TRUST STRIP — Elegant Typography ═══════════ */}
+        {/* ═══════════ TRUST STRIP ═══════════ */}
         <section className="border-y border-border/30">
           <div className="mx-auto max-w-[1120px] px-6 py-8">
             <ScrollReveal>
               <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">500+ Resellers</span>
+                <span className="font-semibold text-foreground">Fast Processing</span>
                 <span className="text-primary/40">•</span>
-                <span className="font-semibold text-foreground">10,000+ Orders</span>
+                <span className="font-semibold text-foreground">Verified Providers</span>
                 <span className="text-primary/40">•</span>
-                <span className="font-semibold text-foreground">99% Success Rate</span>
+                <span className="font-semibold text-foreground">Transparent Pricing</span>
                 <span className="text-primary/40">•</span>
-                <span className="font-semibold text-foreground">KBZPay & Wave Supported</span>
+                <span className="font-semibold text-foreground">Reliable Delivery</span>
               </div>
             </ScrollReveal>
           </div>
@@ -228,11 +231,14 @@ export default function LandingPage() {
           <div className="mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
               <div className="text-center">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">
+                  Services
+                </p>
                 <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  What We Offer
+                  Structured for Scale
                 </h2>
                 <p className="mt-3 text-base text-muted-foreground">
-                  Three categories. One platform.
+                  Three categories. One controlled environment.
                 </p>
               </div>
             </ScrollReveal>
@@ -290,11 +296,11 @@ export default function LandingPage() {
 
         {/* ═══════════ SEO CONTENT (sr-only) ═══════════ */}
         <section className="sr-only" aria-hidden="false">
-          <h2>Myanmar's Trusted GSM Unlock Server &amp; Digital Reseller Hub</h2>
+          <h2>KKTech — Professional Digital Service Infrastructure for Resellers</h2>
           <p>
-            KKTech is a comprehensive GSM unlock server and digital reseller platform built for the Myanmar market.
-            Access premium IMEI unlock services, digital accounts, and VPN keys at competitive wholesale prices
-            with instant delivery. We support KBZPay, WavePay, CB Pay, AYA Pay, and direct bank transfers.
+            KKTech is a controlled digital service infrastructure for professional resellers.
+            Access IMEI unlock services, GSM tools, and digital accounts through a secure,
+            structured environment with transparent pricing and reliable delivery.
           </p>
         </section>
       </main>
@@ -307,7 +313,7 @@ export default function LandingPage() {
               KK<span className="gold-shimmer">Tech</span>
             </span>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              Professional unlock & digital reseller platform.
+              Controlled digital service infrastructure for professional resellers.
             </p>
           </div>
           <div className="flex flex-col gap-3 text-sm">
