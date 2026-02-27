@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Layers, Plus, Trash2, Copy, AlertTriangle } from "lucide-react";
+import { Layers, Plus, Trash2, Copy, AlertTriangle, Package } from "lucide-react";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
@@ -181,7 +181,7 @@ export default function BulkTierDialog() {
                       {p.image_url ? (
                         <img src={p.image_url} alt="" className="w-6 h-6 rounded object-cover border border-border/50" />
                       ) : (
-                        <span className="text-sm">{p.icon}</span>
+                        <Package className="w-4 h-4 text-muted-foreground shrink-0" />
                       )}
                       <span className="text-sm text-foreground truncate">{p.name}</span>
                       <span className="text-[11px] text-muted-foreground">{p.duration}</span>

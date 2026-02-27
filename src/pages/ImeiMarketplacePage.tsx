@@ -40,15 +40,7 @@ interface ImeiService {
   status: string;
 }
 
-const BRAND_ICONS: Record<string, string> = {
-  Apple: "🍎",
-  Samsung: "📱",
-  Xiaomi: "📲",
-  Huawei: "📡",
-  Google: "🔍",
-  Motorola: "📞",
-  LG: "📺",
-};
+/* Brand icons removed — use Smartphone icon consistently */
 
 type SpeedTier = "fast" | "medium" | "slow";
 
@@ -59,9 +51,9 @@ interface SpeedInfo {
 }
 
 const SPEED_TIERS: Record<SpeedTier, { filterLabel: string; dot: string }> = {
-  fast: { filterLabel: "⚡ Fast", dot: "bg-emerald-400" },
-  medium: { filterLabel: "⏳ Medium", dot: "bg-amber-400" },
-  slow: { filterLabel: "🕐 Slow", dot: "bg-rose-400" },
+  fast: { filterLabel: "Fast", dot: "bg-primary" },
+  medium: { filterLabel: "Medium", dot: "bg-muted-foreground" },
+  slow: { filterLabel: "Slow", dot: "bg-destructive" },
 };
 
 /** Classify processing time into speed tiers for badge color coding */
@@ -341,7 +333,7 @@ export default function ImeiMarketplacePage() {
                       </td>
                       <td className="p-default">
                         <span className="inline-flex items-center gap-1.5 text-sm">
-                          <span>{BRAND_ICONS[service.brand] || "📱"}</span>
+                          <Smartphone className="w-4 h-4 text-muted-foreground shrink-0" />
                           <span className="text-muted-foreground">{service.brand}</span>
                         </span>
                       </td>
@@ -393,7 +385,7 @@ export default function ImeiMarketplacePage() {
                         {service.service_name}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">
-                        {BRAND_ICONS[service.brand] || "📱"} {service.brand} · {service.carrier} · {service.country}
+                        {service.brand} · {service.carrier} · {service.country}
                       </p>
                     </div>
                     <Money

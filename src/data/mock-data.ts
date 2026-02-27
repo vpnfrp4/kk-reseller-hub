@@ -19,12 +19,12 @@ export const mockTransactions: WalletTransaction[] = [
 ];
 
 export const mockProducts: Product[] = [
-  { id: "p-001", name: "ExpressVPN", icon: "🛡️", category: "VPN", retailPrice: 8000, wholesalePrice: 5000, duration: "1 Month", stock: 24 },
-  { id: "p-002", name: "ExpressVPN", icon: "🛡️", category: "VPN", retailPrice: 45000, wholesalePrice: 28000, duration: "1 Year", stock: 12 },
-  { id: "p-003", name: "LetsVPN", icon: "🌐", category: "VPN", retailPrice: 5000, wholesalePrice: 3000, duration: "1 Month", stock: 50 },
-  { id: "p-004", name: "LetsVPN", icon: "🌐", category: "VPN", retailPrice: 30000, wholesalePrice: 18000, duration: "1 Year", stock: 20 },
-  { id: "p-005", name: "CapCut Pro", icon: "🎬", category: "Creative", retailPrice: 12000, wholesalePrice: 8000, duration: "1 Year", stock: 15 },
-  { id: "p-006", name: "Canva Pro", icon: "🎨", category: "Creative", retailPrice: 15000, wholesalePrice: 10000, duration: "1 Year", stock: 8 },
+  { id: "p-001", name: "ExpressVPN", icon: "shield", category: "VPN", retailPrice: 8000, wholesalePrice: 5000, duration: "1 Month", stock: 24 },
+  { id: "p-002", name: "ExpressVPN", icon: "shield", category: "VPN", retailPrice: 45000, wholesalePrice: 28000, duration: "1 Year", stock: 12 },
+  { id: "p-003", name: "LetsVPN", icon: "globe", category: "VPN", retailPrice: 5000, wholesalePrice: 3000, duration: "1 Month", stock: 50 },
+  { id: "p-004", name: "LetsVPN", icon: "globe", category: "VPN", retailPrice: 30000, wholesalePrice: 18000, duration: "1 Year", stock: 20 },
+  { id: "p-005", name: "CapCut Pro", icon: "film", category: "Creative", retailPrice: 12000, wholesalePrice: 8000, duration: "1 Year", stock: 15 },
+  { id: "p-006", name: "Canva Pro", icon: "palette", category: "Creative", retailPrice: 15000, wholesalePrice: 10000, duration: "1 Year", stock: 8 },
 ];
 
 export const mockOrders: Order[] = [

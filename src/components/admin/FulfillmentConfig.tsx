@@ -25,10 +25,10 @@ const FULFILLMENT_MODES = [
 ] as const;
 
 const DEFAULT_DELIVERY_TIMES: Record<string, string> = {
-  instant: "⚡ Instant Delivery",
-  custom_username: "⏳ 5–30 Minutes",
-  imei: "⏳ 5–30 Minutes",
-  manual: "⏳ 1–24 Hours",
+  instant: "Instant Delivery",
+  custom_username: "5–30 Minutes",
+  imei: "5–30 Minutes",
+  manual: "1–24 Hours",
 };
 
 interface CustomField {
@@ -201,7 +201,7 @@ export default function FulfillmentConfig({
                   value={deliveryTimeConfig[mode] || DEFAULT_DELIVERY_TIMES[mode] || ""}
                   onChange={(e) => updateDeliveryTime(mode, e.target.value)}
                   className="bg-muted/50 border-border text-sm"
-                  placeholder="e.g. ⚡ Instant Delivery"
+                  placeholder="e.g. Instant Delivery"
                 />
               </div>
             );

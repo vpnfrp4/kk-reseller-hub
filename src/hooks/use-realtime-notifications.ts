@@ -100,7 +100,7 @@ export function useRealtimeNotifications() {
             // Persist to DB for notification history
             supabase.from("notifications").insert({
               user_id: user.id,
-              title: "⚠️ Low Balance Alert",
+              title: "Low Balance Alert",
               body,
               type: "warning",
               link: "/dashboard/wallet",
@@ -108,7 +108,7 @@ export function useRealtimeNotifications() {
               queryClient.invalidateQueries({ queryKey: ["notifications"] });
             });
 
-            toast.warning("⚠️ Low Balance Alert", {
+            toast.warning("Low Balance Alert", {
               description: body,
               action: { label: "Top Up", onClick: () => navRef.current("/dashboard/wallet") },
               duration: 8000,
