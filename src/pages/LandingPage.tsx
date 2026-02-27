@@ -194,7 +194,17 @@ export default function LandingPage() {
       <main>
         {/* ═══════════ HERO ═══════════ */}
         <section className="relative overflow-hidden bg-background">
-          <div className="mx-auto max-w-[1120px] px-6 pt-32 pb-40 md:pt-40 md:pb-48 text-center">
+          {/* Radial glow */}
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{ background: "radial-gradient(800px circle at 50% 20%, rgba(16,185,129,0.12), transparent 60%)" }}
+          />
+          {/* Noise overlay */}
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.02]"
+            style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")", backgroundRepeat: "repeat", backgroundSize: "128px 128px" }}
+          />
+          <div className="relative mx-auto max-w-[1120px] px-6 pt-32 pb-40 md:pt-40 md:pb-48 text-center">
             <ScrollReveal>
               <h1 className="text-[2.25rem] font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-[3.25rem] lg:text-[3.75rem]">
                 Myanmar's #1 Unlock &<br className="hidden sm:block" /> Digital Services Marketplace
