@@ -191,9 +191,9 @@ export default function LandingPage() {
       </header>
 
       <main>
-        {/* ═══════════ HERO — 90vh ═══════════ */}
-        <section className="relative flex min-h-[90vh] items-center justify-center overflow-hidden bg-background">
-          <div className="mx-auto max-w-[1120px] px-6 py-20 text-center sm:py-0">
+        {/* ═══════════ HERO ═══════════ */}
+        <section className="relative overflow-hidden bg-background">
+          <div className="mx-auto max-w-[1120px] px-6 pt-32 pb-40 md:pt-40 md:pb-48 text-center">
             <ScrollReveal>
               <h1 className="text-[2.25rem] font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-[3.25rem] lg:text-[3.75rem]">
                 Myanmar's #1 Unlock &<br className="hidden sm:block" /> Digital Services Marketplace
