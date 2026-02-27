@@ -171,7 +171,7 @@ export default function LandingPage() {
       <header className="sticky top-0 z-50 border-b border-border/50 bg-background/95 backdrop-blur-md">
         <div className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-4">
           <Link to="/" className="text-xl font-extrabold tracking-tight text-foreground">
-            KK<span className="text-primary">Tech</span>
+            KK<span className="gold-shimmer">Tech</span>
           </Link>
           <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
             <a href="#services" className="transition-colors hover:text-foreground">Services</a>
@@ -197,7 +197,7 @@ export default function LandingPage() {
           {/* Radial glow */}
           <div
             className="pointer-events-none absolute inset-0"
-            style={{ background: "radial-gradient(800px circle at 50% 20%, rgba(16,185,129,0.12), transparent 60%)" }}
+            style={{ background: "radial-gradient(800px circle at 50% 20%, rgba(212,175,55,0.08), transparent 60%)" }}
           />
           {/* Noise overlay */}
           <div
@@ -388,7 +388,7 @@ export default function LandingPage() {
         <div className="mx-auto grid max-w-[1120px] gap-12 px-6 sm:grid-cols-3">
           <div>
             <span className="text-xl font-extrabold text-foreground">
-              KK<span className="text-primary">Tech</span>
+              KK<span className="gold-shimmer">Tech</span>
             </span>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               Myanmar's trusted wholesale unlock & digital reseller platform.

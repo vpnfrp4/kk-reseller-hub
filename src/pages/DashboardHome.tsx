@@ -180,11 +180,11 @@ export default function DashboardHome() {
             }
           >
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
+              <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">
                 {l(t.dashboard.balance)}
               </p>
               <div className="flex items-baseline gap-3">
-                <p className="text-5xl lg:text-6xl font-extrabold font-mono tabular-nums text-foreground tracking-tighter leading-none">
+                <p className="text-5xl lg:text-6xl font-extrabold font-mono tabular-nums text-foreground tracking-tighter leading-none gold-shimmer">
                   {displayBalance.toLocaleString()}
                 </p>
                 <span className="text-base font-semibold text-muted-foreground">MMK</span>

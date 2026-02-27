@@ -16,6 +16,7 @@ export default {
       fontFamily: {
         sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "sans-serif"],
         mono: ["JetBrains Mono", "monospace"],
+        display: ["Inter", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
       },
       /* ─── Spacing Scale ─── */
       spacing: {
