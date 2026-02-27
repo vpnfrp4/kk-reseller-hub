@@ -445,9 +445,11 @@
     transition: opacity 0.4s ease-out, transform 0.5s ease-out;
   }
 
-  /* ─── Wallet Hero — Black Glass Card with Gold Border Glow ─── */
+  /* ─── Wallet Hero — Black Glass Card with Gold Border Glow + Grain ─── */
   .wallet-hero {
-    background: linear-gradient(135deg, hsl(var(--wallet-hero-from)), hsl(var(--wallet-hero-to)));
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"),
+      linear-gradient(135deg, hsl(var(--wallet-hero-from)), hsl(var(--wallet-hero-to)));
     border: 1px solid hsl(var(--primary) / 0.12);
     border-radius: var(--radius-modal);
     position: relative;
@@ -455,6 +457,7 @@
     box-shadow: var(--shadow-card), 0 0 40px rgba(212, 175, 55, 0.03);
   }
 
+  /* Gold radial blob — top right */
   .wallet-hero::before {
     content: '';
     position: absolute;
@@ -463,10 +466,12 @@
     width: 280px;
     height: 280px;
     border-radius: 50%;
-    background: radial-gradient(circle, hsl(43 65% 52% / 0.04), transparent 70%);
+    background: radial-gradient(circle, hsl(43 65% 52% / 0.06), transparent 70%);
     pointer-events: none;
+    animation: gold-pulse 6s ease-in-out infinite;
   }
 
+  /* Gold radial blob — bottom left */
   .wallet-hero::after {
     content: '';
     position: absolute;
@@ -477,6 +482,7 @@
     border-radius: 50%;
     background: radial-gradient(circle, var(--wallet-hero-blob), transparent 70%);
     pointer-events: none;
+    animation: gold-pulse 6s ease-in-out 3s infinite;
   }
 
   /* ─── Status Badges ─── */
