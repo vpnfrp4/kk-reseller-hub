@@ -85,9 +85,9 @@ function StatusBadge({ status }: { status: string }) {
 /* ── Product Type Badge ── */
 function ProductTypeBadge({ type }: { type: string | null }) {
   const map: Record<string, { label: string; style: string }> = {
-    digital: { label: "Digital", style: "bg-blue-500/10 text-blue-500" },
-    imei: { label: "IMEI", style: "bg-warning/10 text-warning" },
-    manual: { label: "Manual", style: "bg-purple-500/10 text-purple-500" },
+    digital: { label: "Digital", style: "bg-muted text-muted-foreground" },
+    imei: { label: "IMEI", style: "bg-muted text-muted-foreground" },
+    manual: { label: "Manual", style: "bg-muted text-muted-foreground" },
     api: { label: "API", style: "bg-success/10 text-success" },
   };
   const s = map[type || "digital"] || map.digital;
