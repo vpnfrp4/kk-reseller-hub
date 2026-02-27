@@ -4,10 +4,10 @@ import PriceComparisonTable from "@/components/marketplace/PriceComparisonTable"
 import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
-  AlertTriangle,
+  ArrowRight,
   ChevronDown,
   Star,
   MessageSquare,
@@ -15,51 +15,21 @@ import {
   Clock,
   ShieldCheck,
 } from "lucide-react";
-import { toast } from "sonner";
 import { useState, useEffect } from "react";
-import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
-import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
-import ImportantNoticeModal from "@/components/products/ImportantNoticeModal";
 import StructuredDescription from "@/components/products/StructuredDescription";
-import TopUpDialog from "@/components/wallet/TopUpDialog";
 import { cn } from "@/lib/utils";
-import FulfillmentModeSelector from "@/components/products/FulfillmentModeSelector";
 import { t, useT } from "@/lib/i18n";
 import ReviewModal from "@/components/marketplace/ReviewModal";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-interface PurchaseResult {
-  order_id: string;
-  credentials: string;
-  product_name: string;
-  price: number;
-  quantity?: number;
-  unit_price?: number;
-}
-
 export default function ProductDetailPage() {
   const l = useT();
   const { id } = useParams<{ id: string }>();
-  const { user, profile, refreshProfile } = useAuth();
-  const queryClient = useQueryClient();
+  const { user } = useAuth();
   const navigate = useNavigate();
-  const [purchasing, setPurchasing] = useState(false);
-  const [result, setResult] = useState<PurchaseResult | null>(null);
-  const [noticeOpen, setNoticeOpen] = useState(false);
-
-  const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
-  const [noticeProduct, setNoticeProduct] = useState<any | null>(null);
-  const [agreedTerms, setAgreedTerms] = useState(false);
-  const [lastSavings, setLastSavings] = useState(0);
-
-  const [topUpOpen, setTopUpOpen] = useState(false);
-  const [topUpDefaultAmount, setTopUpDefaultAmount] = useState<number | undefined>();
-
-  const [selectedMode, setSelectedMode] = useState<string>("instant");
-  const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [reviewOpen, setReviewOpen] = useState(false);
   const [providerExpanded, setProviderExpanded] = useState(false);
+  const [noticeOpen, setNoticeOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
 
   const SPEC_ITEMS = [
     { label: "Activation", value: t.detailExtra.activation },
@@ -75,6 +45,7 @@ export default function ProductDetailPage() {
     { label: t.detailExtra.noticeVerify },
   ];
 
+  // ── Data fetching ──
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
     queryFn: async () => {
@@ -109,19 +80,6 @@ export default function ProductDetailPage() {
         .eq("product_id", id!)
         .order("min_qty", { ascending: true });
       return data || [];
-    },
-    enabled: !!id,
-  });
-
-  const { data: customFields = [] } = useQuery({
-    queryKey: ["product-custom-fields", id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("product_custom_fields" as any)
-        .select("*")
-        .eq("product_id", id!)
-        .order("sort_order", { ascending: true });
-      return (data || []) as any[];
     },
     enabled: !!id,
   });
@@ -173,135 +131,7 @@ export default function ProductDetailPage() {
     enabled: !!userCompletedOrder && !!user,
   });
 
-  const mapErrorMessage = (msg: string): string => {
-    const lower = msg.toLowerCase();
-    if (lower.includes("out of stock") || lower.includes("no credentials available") || lower.includes("not enough stock")) {
-      return l(t.detailExtra.outOfStockErr);
-    }
-    if (lower.includes("insufficient balance")) {
-      return l(t.detailExtra.insufficientErr);
-    }
-    return msg;
-  };
-
-  const validateCustomFields = (): boolean => {
-    const modes: string[] = product ? (Array.isArray(product.fulfillment_modes) ? (product.fulfillment_modes as any[]).map(String) : ["instant"]) : ["instant"];
-    const currentMode = modes.includes(selectedMode) ? selectedMode : modes[0];
-    const activeFields = customFields.filter((f: any) => f.linked_mode === currentMode);
-    const errors: Record<string, string> = {};
-
-    for (const field of activeFields) {
-      const value = (customFieldValues[field.field_name] || "").trim();
-      if (field.required && !value) {
-        errors[field.field_name] = `${field.field_name} ${l(t.detailExtra.fieldRequired)}`;
-        continue;
-      }
-      if (value) {
-        if (field.field_type === "select") {
-          const opts = Array.isArray(field.options) ? field.options : [];
-          if (opts.length > 0 && !opts.includes(value)) {
-            errors[field.field_name] = l(t.detailExtra.validSelection);
-            continue;
-          }
-        }
-        if (field.min_length && value.length < field.min_length) {
-          errors[field.field_name] = `${l(t.detailExtra.minChars)} ${field.min_length} ${l(t.detailExtra.chars)}`;
-          continue;
-        }
-        if (field.max_length && value.length > field.max_length) {
-          errors[field.field_name] = `${l(t.detailExtra.maxChars)} ${field.max_length} ${l(t.detailExtra.chars)}`;
-          continue;
-        }
-        if (field.field_type === "email") {
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRegex.test(value)) {
-            errors[field.field_name] = l(t.detailExtra.invalidEmail);
-            continue;
-          }
-        }
-        if (field.field_type === "number" && isNaN(Number(value))) {
-          errors[field.field_name] = l(t.detailExtra.mustBeNumber);
-          continue;
-        }
-      }
-    }
-
-    setFieldErrors(errors);
-    return Object.keys(errors).length === 0;
-  };
-
-  const handleBuyClick = () => {
-    if (!product) return;
-    const pt = (product as any).product_type || "digital";
-    const hasStock = pt === "digital";
-    if (hasStock && product.stock <= 0) {
-      toast.error(l(t.detailExtra.outOfStockErr));
-      return;
-    }
-    if (!validateCustomFields()) {
-      toast.error(l(t.detailExtra.fillRequired));
-      return;
-    }
-    setNoticeProduct(product);
-  };
-
-  const handleNoticeConfirm = () => {
-    setConfirmProduct(noticeProduct);
-    setNoticeProduct(null);
-    setAgreedTerms(false);
-  };
-
-  const handleTopUp = (amount: number) => {
-    setConfirmProduct(null);
-    setTopUpDefaultAmount(amount);
-    setTopUpOpen(true);
-  };
-
-  const productModes: string[] = product ? (Array.isArray(product.fulfillment_modes) ? (product.fulfillment_modes as any[]).map(String) : ["instant"]) : ["instant"];
-  const deliveryTimeConfig: Record<string, string> = product?.delivery_time_config && typeof product.delivery_time_config === "object"
-    ? product.delivery_time_config as Record<string, string>
-    : {};
-  const effectiveMode = productModes.includes(selectedMode) ? selectedMode : productModes[0];
-
-  const handleBuy = async (prod: any, quantity: number = 1) => {
-    const highestTierPrice = pricingTiers.length > 0 ? Math.max(...pricingTiers.map((t: any) => t.unit_price)) : prod.wholesale_price;
-    const sortedTiers = [...pricingTiers].sort((a: any, b: any) => b.min_qty - a.min_qty);
-    const activeTier = sortedTiers.find((t: any) => quantity >= t.min_qty && (t.max_qty === null || quantity <= t.max_qty));
-    const unitPrice = activeTier ? (activeTier as any).unit_price : prod.wholesale_price;
-    const savings = (highestTierPrice - unitPrice) * quantity;
-
-    setConfirmProduct(null);
-    setPurchasing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("purchase", {
-        body: {
-          product_id: prod.id,
-          quantity,
-          fulfillment_mode: effectiveMode,
-          custom_fields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
-        },
-      });
-      if (error) throw new Error(error.message);
-      if (data && !data.success) {
-        toast.error(mapErrorMessage(data.error as string));
-        return;
-      }
-      setLastSavings(savings);
-      setResult(data as PurchaseResult);
-      queryClient.invalidateQueries({ queryKey: ["product", id] });
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
-      queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
-      refreshProfile();
-    } catch (err: any) {
-      toast.error(mapErrorMessage(err.message || "Purchase failed. Please try again."));
-    } finally {
-      setPurchasing(false);
-    }
-  };
-
+  // ── Loading / Not Found ──
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -319,6 +149,7 @@ export default function ProductDetailPage() {
     );
   }
 
+  // ── Derived values ──
   const productType = (product as any).product_type || "digital";
   const hasStockTracking = productType === "digital";
   const isOutOfStock = hasStockTracking ? product.stock === 0 : false;
@@ -331,9 +162,13 @@ export default function ProductDetailPage() {
   const profitPerUnit = product.retail_price - product.wholesale_price;
   const showMargin = profitPerUnit !== 0;
   const showRetail = product.retail_price !== product.wholesale_price;
-  const balance = profile?.balance || 0;
-  const insufficientBalance = balance < product.wholesale_price;
-  const currentDeliveryBadge = deliveryTimeConfig[effectiveMode] || l(t.detailExtra.instantDelivery);
+
+  const deliveryTimeConfig: Record<string, string> = product?.delivery_time_config && typeof product.delivery_time_config === "object"
+    ? product.delivery_time_config as Record<string, string>
+    : {};
+  const productModes: string[] = Array.isArray(product.fulfillment_modes) ? (product.fulfillment_modes as any[]).map(String) : ["instant"];
+  const defaultMode = productModes[0] || "instant";
+  const currentDeliveryBadge = deliveryTimeConfig[defaultMode] || l(t.detailExtra.instantDelivery);
 
   const fulfillmentLabel = productType === "api" ? "Auto" : productType === "imei" || productType === "manual" ? "Manual" : "Instant";
 
@@ -370,7 +205,7 @@ export default function ProductDetailPage() {
       ]} />
 
       {/* ═══════════════════════════════════════
-           1. HERO — Product + Price + Order
+           1. HERO — Product Brochure
          ═══════════════════════════════════════ */}
       <section
         className="rounded-[var(--radius-card)] border border-border/40 p-6 md:p-8"
@@ -389,7 +224,6 @@ export default function ProductDetailPage() {
               <span className="inline-flex items-center px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-primary/[0.08] text-primary rounded-md border border-primary/20">
                 {product.category}
               </span>
-              {/* Stock badge */}
               <span
                 className={cn(
                   "inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md border",
@@ -401,7 +235,6 @@ export default function ProductDetailPage() {
                 <span className={cn("h-1.5 w-1.5 rounded-full", isOutOfStock ? "bg-destructive" : "bg-primary")} />
                 {isOutOfStock ? l(t.products.outOfStock) : !hasStockTracking ? (isImeiProduct ? (product.processing_time || "1-3 Days") : l(t.products.inStock)) : isLowStock ? `${product.stock} ${l(t.products.left)}` : `${product.stock} ${l(t.products.inStock)}`}
               </span>
-              {/* Fulfillment badge */}
               <span
                 className={cn(
                   "inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded-md border",
@@ -422,7 +255,7 @@ export default function ProductDetailPage() {
             </p>
           </div>
 
-          {/* Right: Price + Action */}
+          {/* Right: Price + CTA */}
           <div className="flex flex-col items-end gap-3 shrink-0">
             <div className="text-right">
               <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium mb-1">Price</p>
@@ -438,23 +271,19 @@ export default function ProductDetailPage() {
             </div>
             <Button
               className={cn(
-                "h-11 rounded-[var(--radius-btn)] px-8 font-semibold text-sm btn-glow",
+                "h-11 rounded-[var(--radius-btn)] px-8 font-semibold text-sm gap-2 btn-glow",
                 "transition-all duration-200 ease-in-out",
                 "hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)]",
                 "active:scale-[0.97] active:translate-y-0"
               )}
-              onClick={handleBuyClick}
-              disabled={isOutOfStock || purchasing}
+              onClick={() => navigate(`/dashboard/order/${product.id}`)}
+              disabled={isOutOfStock}
             >
-              {purchasing ? (
+              {isOutOfStock ? l(t.products.outOfStock) : (
                 <>
-                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
-                  {l(t.products.processing)}
+                  Proceed to Order
+                  <ArrowRight className="w-4 h-4" />
                 </>
-              ) : isOutOfStock ? (
-                l(t.products.outOfStock)
-              ) : (
-                "Order Now"
               )}
             </Button>
           </div>
@@ -544,83 +373,7 @@ export default function ProductDetailPage() {
       )}
 
       {/* ═══════════════════════════════════════
-           3. ORDER CONFIGURATION
-         ═══════════════════════════════════════ */}
-      <section
-        className="rounded-[var(--radius-card)] border border-border/40 p-5 md:p-6 space-y-4"
-        style={{ background: "linear-gradient(145deg, #15151C 0%, #111116 100%)" }}
-      >
-        <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">
-          {l(t.detailExtra.orderConfig)}
-        </p>
-
-        <FulfillmentModeSelector
-          productId={product.id}
-          fulfillmentModes={productModes}
-          deliveryTimeConfig={deliveryTimeConfig}
-          selectedMode={effectiveMode}
-          onModeChange={setSelectedMode}
-          customFieldValues={customFieldValues}
-          onCustomFieldChange={(name, val) => {
-            setCustomFieldValues(prev => ({ ...prev, [name]: val }));
-            setFieldErrors(prev => { const n = { ...prev }; delete n[name]; return n; });
-          }}
-          fieldErrors={fieldErrors}
-        />
-
-        {/* Wallet balance */}
-        <div className="flex items-center justify-between rounded-lg border border-border/20 bg-muted/10 px-4 py-3">
-          <span className="text-[11px] text-muted-foreground">{l(t.detailExtra.walletBalance)}</span>
-          <span className="text-sm font-bold font-mono tabular-nums text-foreground">{balance.toLocaleString()} MMK</span>
-        </div>
-
-        {/* Insufficient balance warning */}
-        {insufficientBalance && !isOutOfStock && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border-l-2 border-warning bg-warning/[0.04] px-4 py-3">
-            <div className="flex items-center gap-2 min-w-0">
-              <AlertTriangle className="w-3.5 h-3.5 text-warning shrink-0" />
-              <p className="text-[11px] text-foreground">
-                {l(t.detail.insufficientBalance)}{" "}
-                <span className="text-muted-foreground">
-                  {l(t.detail.needMore)} {(product.wholesale_price - balance).toLocaleString()} MMK
-                </span>
-              </p>
-            </div>
-            <button
-              onClick={() => handleTopUp(product.wholesale_price - balance)}
-              className="btn-glow px-3 py-1.5 text-[11px] shrink-0"
-            >
-              {l(t.wallet.topUp)}
-            </button>
-          </div>
-        )}
-
-        <Button
-          className={cn(
-            "w-full h-11 rounded-[var(--radius-btn)] font-semibold text-sm btn-glow",
-            "transition-all duration-200 ease-in-out",
-            "hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)]",
-            "active:scale-[0.97] active:translate-y-0"
-          )}
-          onClick={handleBuyClick}
-          disabled={isOutOfStock || purchasing}
-        >
-          {purchasing ? (
-            <>
-              <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin mr-2" />
-              {l(t.products.processing)}
-            </>
-          ) : isOutOfStock ? (
-            l(t.products.outOfStock)
-          ) : (
-            <>{l(t.detailExtra.confirmOrder)} — {product.wholesale_price.toLocaleString()} MMK</>
-          )}
-        </Button>
-      </section>
-
-      {/* ═══════════════════════════════════════
-           4. TABBED SECONDARY CONTENT
-              Details | Specifications | Comparison
+           3. TABBED SECONDARY CONTENT
          ═══════════════════════════════════════ */}
       <Tabs defaultValue="details" className="w-full">
         <TabsList className="w-full bg-muted/20 border border-border/30 rounded-[var(--radius-card)] p-1 h-auto">
@@ -646,7 +399,6 @@ export default function ProductDetailPage() {
               {l(t.detailExtra.pricingStructure)}
             </p>
 
-            {/* Compact price grid — only show what differs */}
             <div className={cn("grid gap-0 divide-x divide-border/20", showRetail ? "grid-cols-3" : "grid-cols-1")}>
               <div className="pr-4">
                 <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium mb-1">{l(t.detailExtra.wholesale)}</p>
@@ -675,7 +427,6 @@ export default function ProductDetailPage() {
               )}
             </div>
 
-            {/* Volume tiers */}
             {hasTiers && (
               <div className="border-t border-border/20 pt-3 space-y-0">
                 <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium mb-2">Volume Pricing</p>
@@ -701,7 +452,6 @@ export default function ProductDetailPage() {
             )}
           </div>
 
-          {/* Description */}
           {product.description && (
             <StructuredDescription description={product.description} />
           )}
@@ -753,7 +503,7 @@ export default function ProductDetailPage() {
       </Tabs>
 
       {/* ═══════════════════════════════════════
-           5. REVIEWS — Minimal
+           4. REVIEWS — Minimal
          ═══════════════════════════════════════ */}
       <section
         className="rounded-[var(--radius-card)] border border-border/40 p-5 md:p-6"
@@ -761,9 +511,7 @@ export default function ProductDetailPage() {
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">
-              Reviews
-            </p>
+            <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">Reviews</p>
             {reviews.length > 0 && (
               <span className="text-[10px] text-muted-foreground">({reviews.length})</span>
             )}
@@ -821,35 +569,25 @@ export default function ProductDetailPage() {
         )}
       </section>
 
-      {/* ── Modals ── */}
-      <PurchaseConfirmModal
-        product={confirmProduct}
-        agreedTerms={agreedTerms}
-        onAgreedTermsChange={setAgreedTerms}
-        onConfirm={handleBuy}
-        onClose={() => setConfirmProduct(null)}
-        pricingTiers={pricingTiers as any[]}
-        userBalance={profile?.balance || 0}
-        onTopUp={handleTopUp}
-      />
-      <ImportantNoticeModal
-        open={!!noticeProduct}
-        onContinue={handleNoticeConfirm}
-        onCancel={() => setNoticeProduct(null)}
-      />
-      <PurchaseSuccessModal
-        result={result}
-        onClose={() => { setResult(null); setLastSavings(0); }}
-        totalSavings={lastSavings}
-      />
-      <TopUpDialog
-        userId={user?.id}
-        defaultAmount={topUpDefaultAmount}
-        open={topUpOpen}
-        onOpenChange={setTopUpOpen}
-        hideTrigger
-        onSubmitted={(txId) => navigate(`/dashboard/topup-status/${txId}`)}
-      />
+      {/* ── Bottom CTA ── */}
+      {!isOutOfStock && (
+        <div className="pb-4">
+          <Button
+            className={cn(
+              "w-full h-12 rounded-[var(--radius-btn)] font-semibold text-sm gap-2 btn-glow",
+              "transition-all duration-200 ease-in-out",
+              "hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(212,175,55,0.2)]",
+              "active:scale-[0.97] active:translate-y-0"
+            )}
+            onClick={() => navigate(`/dashboard/order/${product.id}`)}
+          >
+            Proceed to Order — {product.wholesale_price.toLocaleString()} MMK
+            <ArrowRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
+
+      {/* ── Review Modal ── */}
       {userCompletedOrder && user && (
         <ReviewModal
           open={reviewOpen}
