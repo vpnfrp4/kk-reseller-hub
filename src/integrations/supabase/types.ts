@@ -584,7 +584,7 @@ export type Database = {
           margin_percent?: number | null
           name: string
           processing_time?: string | null
-          product_code: string
+          product_code?: string
           product_type?: string
           provider_id?: string | null
           provider_price?: number | null
