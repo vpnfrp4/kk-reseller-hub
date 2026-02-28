@@ -265,7 +265,7 @@ export default function LandingPage() {
                 <ScrollReveal key={cat.title} delay={i * 100}>
                   <Link
                     to={cat.link}
-                    className="group flex flex-col gap-5 rounded-2xl border border-border/50 bg-card/50 p-8 sm:p-10 transition-all duration-300 hover:-translate-y-1 hover:border-primary/30 hover:shadow-[0_0_24px_-6px_hsl(var(--primary)/0.15)]"
+                    className="group flex flex-col gap-5 rounded-2xl border border-border/50 bg-card/50 p-8 sm:p-10 transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/40 hover:shadow-[0_0_40px_-4px_hsl(var(--primary)/0.25),0_0_16px_-2px_hsl(var(--primary)/0.1)]"
                   >
                     <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/8 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-[-6deg]">
                       <cat.icon className="h-5 w-5 text-primary transition-transform duration-300 group-hover:scale-110" />
