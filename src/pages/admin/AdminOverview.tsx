@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, subDays } from "date-fns";
 import { PageContainer, DataCard, Money } from "@/components/shared";
+import CollapsibleSection from "@/components/shared/CollapsibleSection";
 import MiniSparkline from "@/components/admin/MiniSparkline";
 import { useCountUp } from "@/hooks/use-count-up";
 import {
@@ -301,6 +302,45 @@ export default function AdminOverview() {
     },
   });
 
+  // Pending orders for collapsible
+  const { data: pendingOrders } = useQuery({
+    queryKey: ["admin-pending-orders-list"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("id, order_code, product_name, price, created_at, user_id, status")
+        .in("status", ["pending_creation", "pending_review"])
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (!data || data.length === 0) return [];
+      const userIds = [...new Set(data.map((o: any) => o.user_id))];
+      const { data: profiles } = await supabase.from("profiles").select("user_id, name, email").in("user_id", userIds);
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+      return data.map((o: any) => ({ ...o, profile: profileMap[o.user_id] || null }));
+    },
+  });
+
+  // Pending topups for collapsible
+  const { data: pendingTopups } = useQuery({
+    queryKey: ["admin-pending-topups-list"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("wallet_transactions")
+        .select("id, amount, method, created_at, user_id, status")
+        .eq("type", "topup")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (!data || data.length === 0) return [];
+      const userIds = [...new Set(data.map((t: any) => t.user_id))];
+      const { data: profiles } = await supabase.from("profiles").select("user_id, name, email").in("user_id", userIds);
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+      return data.map((t: any) => ({ ...t, profile: profileMap[t.user_id] || null }));
+    },
+  });
+
   // Low balance resellers
   const { data: lowBalanceResellers } = useQuery({
     queryKey: ["admin-low-balance", threshold],
@@ -360,6 +400,99 @@ export default function AdminOverview() {
         {(stats?.lowStockProducts || []).length === 0 && (stats?.expiringSoon || 0) === 0 && (stats?.pendingOrders || 0) === 0 && (lowBalanceResellers?.length || 0) === 0 && (
           <span className="text-[11px] text-success font-medium">All clear ✓</span>
         )}
+      </div>
+
+      {/* ═══ 2b. COLLAPSIBLE ACTION SECTIONS ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-default">
+        {/* Pending Orders */}
+        <CollapsibleSection
+          title="Orders Pending Review"
+          totalCount={pendingOrders?.length || 0}
+          previewCount={3}
+          className="animate-fade-in [animation-delay:0.22s]"
+          summary={`${(pendingOrders?.length || 0) - 3} more orders awaiting action`}
+          headerRight={
+            <Link to="/admin/orders" className="text-[11px] text-primary hover:underline font-semibold" onClick={(e) => e.stopPropagation()}>
+              View all
+            </Link>
+          }
+        >
+          {(!pendingOrders || pendingOrders.length === 0) ? (
+            <div className="p-card text-center">
+              <CheckCircle2 className="w-6 h-6 text-success/40 mx-auto mb-tight" />
+              <p className="text-sm text-muted-foreground">No orders pending review</p>
+            </div>
+          ) : (
+            pendingOrders.map((o: any) => (
+              <Link
+                key={o.id}
+                to={`/admin/orders?order=${o.id}`}
+                className="flex items-center gap-compact p-compact border-b border-border/30 last:border-0 hover:bg-muted/30 transition-colors"
+              >
+                <div className="w-7 h-7 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
+                  <Clock className="w-3.5 h-3.5 text-warning" strokeWidth={1.5} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{o.product_name}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {o.profile?.name || o.profile?.email || "Unknown"} &middot; {o.order_code}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <Money amount={o.price} className="text-xs font-semibold text-foreground font-mono" />
+                  <p className="text-[9px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</p>
+                </div>
+              </Link>
+            ))
+          )}
+        </CollapsibleSection>
+
+        {/* Pending Top-ups */}
+        <CollapsibleSection
+          title="Top-up Requests"
+          totalCount={pendingTopups?.length || 0}
+          previewCount={3}
+          className="animate-fade-in [animation-delay:0.25s]"
+          summary={`${(pendingTopups?.length || 0) - 3} more top-ups awaiting approval`}
+          headerRight={
+            <Link to="/admin/topups" className="text-[11px] text-primary hover:underline font-semibold" onClick={(e) => e.stopPropagation()}>
+              View all
+            </Link>
+          }
+        >
+          {(!pendingTopups || pendingTopups.length === 0) ? (
+            <div className="p-card text-center">
+              <CheckCircle2 className="w-6 h-6 text-success/40 mx-auto mb-tight" />
+              <p className="text-sm text-muted-foreground">No pending top-ups</p>
+            </div>
+          ) : (
+            pendingTopups.map((t: any) => (
+              <Link
+                key={t.id}
+                to="/admin/topups"
+                className="flex items-center gap-compact p-compact border-b border-border/30 last:border-0 hover:bg-muted/30 transition-colors"
+              >
+                <div className="w-7 h-7 rounded-full bg-ice/10 flex items-center justify-center shrink-0">
+                  <Wallet className="w-3.5 h-3.5 text-ice" strokeWidth={1.5} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {t.profile?.name || t.profile?.email || "Unknown"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    via {t.method || "Unknown"} &middot; Pending
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-xs font-semibold text-success font-mono">
+                    +<Money amount={t.amount} className="inline text-xs" />
+                  </span>
+                  <p className="text-[9px] text-muted-foreground">{new Date(t.created_at).toLocaleDateString()}</p>
+                </div>
+              </Link>
+            ))
+          )}
+        </CollapsibleSection>
       </div>
 
       {/* ═══ 3. REAL-TIME ACTIVITY + 4. PRODUCT PERFORMANCE ═══ */}
