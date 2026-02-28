@@ -645,7 +645,7 @@ export default function AdminProducts() {
                       )}
                       {form.description.trim() && (
                         <Button type="button" variant="ghost" size="sm" className="h-6 text-[10px] gap-1 px-2 text-muted-foreground"
-                          onClick={() => { if (confirm("Regenerate description? This will replace the current content.")) handleGenerateDescription(true); }}>
+                          onClick={() => handleGenerateDescription(true)}>
                           <RotateCcw className="w-3 h-3" /> Regenerate
                         </Button>
                       )}
@@ -661,7 +661,7 @@ export default function AdminProducts() {
                       <button
                         key={m.value}
                         type="button"
-                        onClick={() => setDescMode(m.value)}
+                        onClick={() => { setDescMode(m.value); if (form.description.trim() && form.name.trim()) { const selectedBrand = brands.find((b) => b.id === form.brand_id); const selectedCarrier = allCarriers.find((c) => c.id === form.carrier_id); const selectedCountry = countries.find((c) => c.id === form.country_id); const desc = generateProductDescription({ name: form.name, category: form.category, productType: form.product_type, duration: form.duration, processingTime: form.processing_time || undefined, brand: selectedBrand?.name, carrier: selectedCarrier?.name, country: selectedCountry?.name }, m.value); setForm((prev) => ({ ...prev, description: desc })); descManuallyEdited.current = false; } }}
                         className={`flex-1 text-[10px] font-semibold py-1 rounded-md transition-all ${
                           descMode === m.value
                             ? "bg-primary text-primary-foreground shadow-sm"
