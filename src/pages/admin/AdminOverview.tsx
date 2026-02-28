@@ -302,6 +302,45 @@ export default function AdminOverview() {
     },
   });
 
+  // Pending orders for collapsible
+  const { data: pendingOrders } = useQuery({
+    queryKey: ["admin-pending-orders-list"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("orders")
+        .select("id, order_code, product_name, price, created_at, user_id, status")
+        .in("status", ["pending_creation", "pending_review"])
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (!data || data.length === 0) return [];
+      const userIds = [...new Set(data.map((o: any) => o.user_id))];
+      const { data: profiles } = await supabase.from("profiles").select("user_id, name, email").in("user_id", userIds);
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+      return data.map((o: any) => ({ ...o, profile: profileMap[o.user_id] || null }));
+    },
+  });
+
+  // Pending topups for collapsible
+  const { data: pendingTopups } = useQuery({
+    queryKey: ["admin-pending-topups-list"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("wallet_transactions")
+        .select("id, amount, method, created_at, user_id, status")
+        .eq("type", "topup")
+        .eq("status", "pending")
+        .order("created_at", { ascending: false })
+        .limit(20);
+      if (!data || data.length === 0) return [];
+      const userIds = [...new Set(data.map((t: any) => t.user_id))];
+      const { data: profiles } = await supabase.from("profiles").select("user_id, name, email").in("user_id", userIds);
+      const profileMap: Record<string, any> = {};
+      (profiles || []).forEach((p: any) => { profileMap[p.user_id] = p; });
+      return data.map((t: any) => ({ ...t, profile: profileMap[t.user_id] || null }));
+    },
+  });
+
   // Low balance resellers
   const { data: lowBalanceResellers } = useQuery({
     queryKey: ["admin-low-balance", threshold],
