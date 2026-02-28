@@ -276,6 +276,13 @@ export type Database = {
             referencedRelation: "imei_providers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "order_reviews_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "imei_providers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       orders: {
@@ -656,6 +663,13 @@ export type Database = {
             referencedRelation: "imei_providers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "products_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "imei_providers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -789,6 +803,51 @@ export type Database = {
       }
     }
     Views: {
+      imei_providers_public: {
+        Row: {
+          avg_rating: number | null
+          created_at: string | null
+          fulfillment_type: string | null
+          id: string | null
+          is_verified: boolean | null
+          logo_url: string | null
+          name: string | null
+          sort_order: number | null
+          status: string | null
+          success_rate: number | null
+          total_completed: number | null
+          total_reviews: number | null
+        }
+        Insert: {
+          avg_rating?: number | null
+          created_at?: string | null
+          fulfillment_type?: string | null
+          id?: string | null
+          is_verified?: boolean | null
+          logo_url?: string | null
+          name?: string | null
+          sort_order?: number | null
+          status?: string | null
+          success_rate?: number | null
+          total_completed?: number | null
+          total_reviews?: number | null
+        }
+        Update: {
+          avg_rating?: number | null
+          created_at?: string | null
+          fulfillment_type?: string | null
+          id?: string | null
+          is_verified?: boolean | null
+          logo_url?: string | null
+          name?: string | null
+          sort_order?: number | null
+          status?: string | null
+          success_rate?: number | null
+          total_completed?: number | null
+          total_reviews?: number | null
+        }
+        Relationships: []
+      }
       recent_completions: {
         Row: {
           completed_at: string | null
