@@ -402,6 +402,99 @@ export default function AdminOverview() {
         )}
       </div>
 
+      {/* ═══ 2b. COLLAPSIBLE ACTION SECTIONS ═══ */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-default">
+        {/* Pending Orders */}
+        <CollapsibleSection
+          title="Orders Pending Review"
+          totalCount={pendingOrders?.length || 0}
+          previewCount={3}
+          className="animate-fade-in [animation-delay:0.22s]"
+          summary={`${(pendingOrders?.length || 0) - 3} more orders awaiting action`}
+          headerRight={
+            <Link to="/admin/orders" className="text-[11px] text-primary hover:underline font-semibold" onClick={(e) => e.stopPropagation()}>
+              View all
+            </Link>
+          }
+        >
+          {(!pendingOrders || pendingOrders.length === 0) ? (
+            <div className="p-card text-center">
+              <CheckCircle2 className="w-6 h-6 text-success/40 mx-auto mb-tight" />
+              <p className="text-sm text-muted-foreground">No orders pending review</p>
+            </div>
+          ) : (
+            pendingOrders.map((o: any) => (
+              <Link
+                key={o.id}
+                to={`/admin/orders?order=${o.id}`}
+                className="flex items-center gap-compact p-compact border-b border-border/30 last:border-0 hover:bg-muted/30 transition-colors"
+              >
+                <div className="w-7 h-7 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
+                  <Clock className="w-3.5 h-3.5 text-warning" strokeWidth={1.5} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">{o.product_name}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {o.profile?.name || o.profile?.email || "Unknown"} &middot; {o.order_code}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <Money amount={o.price} className="text-xs font-semibold text-foreground font-mono" />
+                  <p className="text-[9px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</p>
+                </div>
+              </Link>
+            ))
+          )}
+        </CollapsibleSection>
+
+        {/* Pending Top-ups */}
+        <CollapsibleSection
+          title="Top-up Requests"
+          totalCount={pendingTopups?.length || 0}
+          previewCount={3}
+          className="animate-fade-in [animation-delay:0.25s]"
+          summary={`${(pendingTopups?.length || 0) - 3} more top-ups awaiting approval`}
+          headerRight={
+            <Link to="/admin/topups" className="text-[11px] text-primary hover:underline font-semibold" onClick={(e) => e.stopPropagation()}>
+              View all
+            </Link>
+          }
+        >
+          {(!pendingTopups || pendingTopups.length === 0) ? (
+            <div className="p-card text-center">
+              <CheckCircle2 className="w-6 h-6 text-success/40 mx-auto mb-tight" />
+              <p className="text-sm text-muted-foreground">No pending top-ups</p>
+            </div>
+          ) : (
+            pendingTopups.map((t: any) => (
+              <Link
+                key={t.id}
+                to="/admin/topups"
+                className="flex items-center gap-compact p-compact border-b border-border/30 last:border-0 hover:bg-muted/30 transition-colors"
+              >
+                <div className="w-7 h-7 rounded-full bg-ice/10 flex items-center justify-center shrink-0">
+                  <Wallet className="w-3.5 h-3.5 text-ice" strokeWidth={1.5} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-foreground truncate">
+                    {t.profile?.name || t.profile?.email || "Unknown"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    via {t.method || "Unknown"} &middot; Pending
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-xs font-semibold text-success font-mono">
+                    +<Money amount={t.amount} className="inline text-xs" />
+                  </span>
+                  <p className="text-[9px] text-muted-foreground">{new Date(t.created_at).toLocaleDateString()}</p>
+                </div>
+              </Link>
+            ))
+          )}
+        </CollapsibleSection>
+      </div>
+
       {/* ═══ 3. REAL-TIME ACTIVITY + 4. PRODUCT PERFORMANCE ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-default">
         {/* Live Feed */}
