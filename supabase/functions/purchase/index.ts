@@ -53,13 +53,18 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // Merge API-specific fields into custom_fields
+    const mergedCustomFields = { ...(custom_fields || {}) };
+    if (link) mergedCustomFields.__link = link;
+    if (service_id) mergedCustomFields.__service_id = service_id;
+
     const { data, error } = await serviceClient.rpc("process_purchase", {
       p_user_id: userId,
       p_product_id: product_id,
       p_quantity: qty,
       p_fulfillment_mode: mode,
       p_imei_number: imei_number || null,
-      p_custom_fields: custom_fields && Object.keys(custom_fields).length > 0 ? custom_fields : null,
+      p_custom_fields: Object.keys(mergedCustomFields).length > 0 ? mergedCustomFields : null,
     });
 
     if (error) {
