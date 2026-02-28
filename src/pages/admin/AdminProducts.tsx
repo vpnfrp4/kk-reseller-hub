@@ -1273,8 +1273,10 @@ export default function AdminProducts() {
                                 <SelectTrigger className="bg-muted/50 border-border h-8 text-xs"><SelectValue /></SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="text">Text</SelectItem>
+                                  <SelectItem value="url">URL</SelectItem>
                                   <SelectItem value="email">Email</SelectItem>
                                   <SelectItem value="number">Number</SelectItem>
+                                  <SelectItem value="quantity">Quantity</SelectItem>
                                   <SelectItem value="select">Select</SelectItem>
                                 </SelectContent>
                               </Select>
