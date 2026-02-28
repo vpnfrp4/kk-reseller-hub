@@ -356,13 +356,25 @@ export default function OrderFlowPage() {
     const savings = totalSavingsCalc;
     setPurchasing(true);
     try {
+      // Build purchase body
+      const purchaseBody: any = {
+        product_id: product.id,
+        quantity: isApiProduct ? (apiQuantity || 1) : quantity,
+        fulfillment_mode: effectiveMode,
+        custom_fields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
+      };
+
+      // For API products, extract link from URL fields and include service_id
+      if (isApiProduct) {
+        const urlField = activeFields.find((f: any) => f.field_type === "url");
+        if (urlField) {
+          purchaseBody.link = customFieldValues[urlField.field_name] || "";
+        }
+        purchaseBody.service_id = (product as any).api_service_id || "";
+      }
+
       const { data, error } = await supabase.functions.invoke("purchase", {
-        body: {
-          product_id: product.id,
-          quantity,
-          fulfillment_mode: effectiveMode,
-          custom_fields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
-        },
+        body: purchaseBody,
       });
       if (error) throw new Error(error.message);
       if (data && !data.success) {
