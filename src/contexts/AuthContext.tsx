@@ -12,6 +12,7 @@ interface Profile {
   balance: number;
   total_spent: number;
   total_orders: number;
+  avatar_url: string | null;
 }
 
 interface AuthContextType {

@@ -5,13 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { User, Camera, Mail, Calendar } from "lucide-react";
+import { User, Camera, Mail, Calendar, Loader2, Trash2 } from "lucide-react";
 import { t, useT } from "@/lib/i18n";
 
 export default function ProfileTab() {
-  const { profile, refreshProfile } = useAuth();
+  const { profile, refreshProfile, user } = useAuth();
   const [name, setName] = useState(profile?.name || "");
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const l = useT();
 
   const handleUpdateName = async (e: React.FormEvent) => {
@@ -32,6 +34,91 @@ export default function ProfileTab() {
     toast.success(l(t.settings.nameUpdated));
   };
 
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+      toast.error("File too large. Maximum size is 2MB.");
+      return;
+    }
+    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Invalid file type. Use JPG, PNG, or WebP.");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const filePath = `${user.id}/avatar.${ext}`;
+
+      // Upload to storage (upsert)
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true, cacheControl: "3600" });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
+
+      // Update profile
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: avatarUrl } as any)
+        .eq("user_id", user.id);
+
+      if (updateError) throw updateError;
+
+      await refreshProfile();
+      toast.success("Avatar updated successfully");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload avatar");
+    } finally {
+      setUploading(false);
+      // Reset input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!user) return;
+    setUploading(true);
+    try {
+      // List files in user folder and remove them
+      const { data: files } = await supabase.storage
+        .from("avatars")
+        .list(user.id);
+
+      if (files && files.length > 0) {
+        const paths = files.map((f) => `${user.id}/${f.name}`);
+        await supabase.storage.from("avatars").remove(paths);
+      }
+
+      // Clear avatar_url in profile
+      const { error } = await supabase
+        .from("profiles")
+        .update({ avatar_url: null } as any)
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      await refreshProfile();
+      toast.success("Avatar removed");
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove avatar");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const initials = (profile?.name || profile?.email || "U")
     .split(" ")
     .map((w) => w[0])
@@ -39,22 +126,46 @@ export default function ProfileTab() {
     .join("")
     .toUpperCase();
 
+  const avatarUrl = profile?.avatar_url;
+
   return (
     <div className="space-y-default">
       {/* Avatar + Identity */}
       <div className="glass-card p-card">
         <div className="flex items-start gap-card">
           <div className="relative group">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center text-2xl font-bold text-primary tracking-tight">
-              {initials}
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center overflow-hidden">
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Avatar"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-2xl font-bold text-primary tracking-tight">
+                  {initials}
+                </span>
+              )}
             </div>
             <button
-              className="absolute inset-0 rounded-2xl bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-not-allowed"
-              title="Avatar upload coming soon"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="absolute inset-0 rounded-2xl bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
               type="button"
             >
-              <Camera className="w-5 h-5 text-muted-foreground" />
+              {uploading ? (
+                <Loader2 className="w-5 h-5 text-primary animate-spin" />
+              ) : (
+                <Camera className="w-5 h-5 text-muted-foreground" />
+              )}
             </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={handleAvatarUpload}
+            />
           </div>
 
           <div className="flex-1 min-w-0 space-y-micro">
@@ -68,6 +179,30 @@ export default function ProfileTab() {
             <div className="flex items-center gap-tight text-xs text-muted-foreground/60">
               <Calendar className="w-3 h-3 shrink-0" />
               <span>Member</span>
+            </div>
+            <div className="flex items-center gap-tight pt-micro">
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-[11px] gap-1.5"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                <Camera className="w-3 h-3" />
+                {avatarUrl ? "Change Avatar" : "Upload Avatar"}
+              </Button>
+              {avatarUrl && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-[11px] gap-1.5 text-destructive/60 hover:text-destructive"
+                  onClick={handleRemoveAvatar}
+                  disabled={uploading}
+                >
+                  <Trash2 className="w-3 h-3" />
+                  Remove
+                </Button>
+              )}
             </div>
           </div>
         </div>
