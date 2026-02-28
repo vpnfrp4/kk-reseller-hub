@@ -184,9 +184,16 @@ export default function OrderFlowPage() {
   const effectiveMode = productModes.includes(selectedMode) ? selectedMode : productModes[0];
   const activeFields = customFields.filter((f: any) => f.linked_mode === effectiveMode);
   const productType = (product as any)?.product_type || "digital";
+  const isApiProduct = productType === "api";
   const hasStockTracking = productType === "digital";
   const allowQuantity = hasStockTracking;
   const maxQty = product ? (hasStockTracking ? Math.min(product.stock, 100) : 1) : 1;
+
+  // For API products: find quantity field for real-time price calc
+  const apiQuantityField = isApiProduct ? activeFields.find((f: any) => f.field_type === "quantity") : null;
+  const apiQuantity = apiQuantityField ? (parseInt(customFieldValues[apiQuantityField.field_name]) || 0) : 0;
+  const apiMinQty = apiQuantityField ? (apiQuantityField.min_length || (product as any)?.api_min_quantity || 1) : 1;
+  const apiMaxQty = apiQuantityField ? (apiQuantityField.max_length || (product as any)?.api_max_quantity || 100000) : 100000;
 
   const currentTier = useMemo(() => {
     if (!pricingTiers.length) return null;
@@ -195,7 +202,9 @@ export default function OrderFlowPage() {
   }, [pricingTiers, quantity]);
 
   const unitPrice = currentTier ? (currentTier as any).unit_price : (product?.wholesale_price || 0);
-  const totalPrice = unitPrice * quantity;
+  // For API products, price = unit_price * apiQuantity (per-unit pricing)
+  const apiTotalPrice = isApiProduct && apiQuantity > 0 ? unitPrice * apiQuantity : 0;
+  const totalPrice = isApiProduct ? apiTotalPrice : unitPrice * quantity;
   const balance = profile?.balance || 0;
   const deficit = totalPrice - balance;
   const hasInsufficientBalance = deficit > 0;
@@ -211,7 +220,7 @@ export default function OrderFlowPage() {
   const totalSavingsCalc = (baseTierPrice - unitPrice) * quantity;
 
   const hasCustomFields = activeFields.length > 0;
-  const needsDetailsStep = hasCustomFields || productModes.length > 1;
+  const needsDetailsStep = hasCustomFields || productModes.length > 1 || isApiProduct;
 
   // Skip details step if not needed
   const activeSteps = needsDetailsStep ? STEPS : STEPS.filter(s => s.key !== "details");
@@ -234,11 +243,48 @@ export default function OrderFlowPage() {
             continue;
           }
         }
-        if (field.min_length && value.length < field.min_length) {
+        if (field.field_type === "url") {
+          try {
+            const url = new URL(value);
+            if (!["http:", "https:"].includes(url.protocol)) {
+              errors[field.field_name] = "URL must start with http:// or https://";
+              continue;
+            }
+          } catch {
+            errors[field.field_name] = "Please enter a valid URL";
+            continue;
+          }
+          // Regex validation rule
+          if (field.validation_rule) {
+            try {
+              const regex = new RegExp(field.validation_rule);
+              if (!regex.test(value)) {
+                errors[field.field_name] = "URL format does not match the required pattern";
+                continue;
+              }
+            } catch { /* invalid regex, skip */ }
+          }
+        }
+        if (field.field_type === "quantity" || field.field_type === "number") {
+          const num = Number(value);
+          if (isNaN(num)) {
+            errors[field.field_name] = "Must be a number";
+            continue;
+          }
+          if (field.min_length && num < field.min_length) {
+            errors[field.field_name] = `Minimum: ${field.min_length}`;
+            continue;
+          }
+          if (field.max_length && num > field.max_length) {
+            errors[field.field_name] = `Maximum: ${field.max_length}`;
+            continue;
+          }
+        }
+        if (field.min_length && field.field_type !== "number" && field.field_type !== "quantity" && value.length < field.min_length) {
           errors[field.field_name] = `Minimum ${field.min_length} characters`;
           continue;
         }
-        if (field.max_length && value.length > field.max_length) {
+        if (field.max_length && field.field_type !== "number" && field.field_type !== "quantity" && value.length > field.max_length) {
           errors[field.field_name] = `Maximum ${field.max_length} characters`;
           continue;
         }
@@ -249,9 +295,15 @@ export default function OrderFlowPage() {
             continue;
           }
         }
-        if (field.field_type === "number" && isNaN(Number(value))) {
-          errors[field.field_name] = "Must be a number";
-          continue;
+        // Text field validation rule
+        if (field.field_type === "text" && field.validation_rule) {
+          try {
+            const regex = new RegExp(field.validation_rule);
+            if (!regex.test(value)) {
+              errors[field.field_name] = "Input does not match the required format";
+              continue;
+            }
+          } catch { /* invalid regex, skip */ }
         }
       }
     }
@@ -304,13 +356,25 @@ export default function OrderFlowPage() {
     const savings = totalSavingsCalc;
     setPurchasing(true);
     try {
+      // Build purchase body
+      const purchaseBody: any = {
+        product_id: product.id,
+        quantity: isApiProduct ? (apiQuantity || 1) : quantity,
+        fulfillment_mode: effectiveMode,
+        custom_fields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
+      };
+
+      // For API products, extract link from URL fields and include service_id
+      if (isApiProduct) {
+        const urlField = activeFields.find((f: any) => f.field_type === "url");
+        if (urlField) {
+          purchaseBody.link = customFieldValues[urlField.field_name] || "";
+        }
+        purchaseBody.service_id = (product as any).api_service_id || "";
+      }
+
       const { data, error } = await supabase.functions.invoke("purchase", {
-        body: {
-          product_id: product.id,
-          quantity,
-          fulfillment_mode: effectiveMode,
-          custom_fields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined,
-        },
+        body: purchaseBody,
       });
       if (error) throw new Error(error.message);
       if (data && !data.success) {
@@ -390,6 +454,26 @@ export default function OrderFlowPage() {
          ════════════════════════════════════════ */}
       {currentStepKey === "configure" && (
         <div className="space-y-6 animate-fade-in">
+          {/* API product info card */}
+          {isApiProduct && (
+            <div
+              className="rounded-[var(--radius-card)] border border-border/40 p-5 space-y-3"
+              style={{ background: "linear-gradient(145deg, #15151C 0%, #111116 100%)" }}
+            >
+              <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">Service Info</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Unit Price</span>
+                  <Money amount={unitPrice} className="text-foreground" />
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Delivery</span>
+                  <span className="text-foreground">{deliveryTimeConfig[effectiveMode] || product?.processing_time || "Pending"}</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Quantity and details are configured in the next step.</p>
+            </div>
+          )}
           {/* Quantity selector for digital products */}
           {allowQuantity && (
             <div
@@ -552,7 +636,7 @@ export default function OrderFlowPage() {
               style={{ background: "linear-gradient(145deg, #15151C 0%, #111116 100%)" }}
             >
               <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">
-                Required Information
+                {isApiProduct ? "Order Details" : "Required Information"}
               </p>
               {activeFields.map((field: any) => (
                 <div key={field.id} className="space-y-1.5">
@@ -569,7 +653,7 @@ export default function OrderFlowPage() {
                       }}
                     >
                       <SelectTrigger className={cn("bg-muted/30 border-border/40", fieldErrors[field.field_name] && "border-destructive")}>
-                        <SelectValue placeholder={`Select ${field.field_name.toLowerCase()}`} />
+                        <SelectValue placeholder={field.placeholder || `Select ${field.field_name.toLowerCase()}`} />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border z-50">
                         {(field.options as string[]).map((opt: string) => (
@@ -579,28 +663,65 @@ export default function OrderFlowPage() {
                     </Select>
                   ) : (
                     <Input
-                      type={field.field_type === "email" ? "email" : field.field_type === "number" ? "number" : "text"}
+                      type={field.field_type === "email" ? "email" : (field.field_type === "number" || field.field_type === "quantity") ? "number" : field.field_type === "url" ? "url" : "text"}
                       value={customFieldValues[field.field_name] || ""}
                       onChange={(e) => {
                         setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }));
                         setFieldErrors(prev => { const n = { ...prev }; delete n[field.field_name]; return n; });
                       }}
-                      placeholder={`Enter ${field.field_name.toLowerCase()}`}
-                      className={cn("bg-muted/30 border-border/40", fieldErrors[field.field_name] && "border-destructive")}
+                      placeholder={field.placeholder || `Enter ${field.field_name.toLowerCase()}`}
+                      min={field.field_type === "quantity" ? (field.min_length || 1) : undefined}
+                      max={field.field_type === "quantity" ? (field.max_length || undefined) : undefined}
+                      className={cn("bg-muted/30 border-border/40 font-mono", fieldErrors[field.field_name] && "border-destructive")}
                     />
                   )}
                   {fieldErrors[field.field_name] && (
                     <p className="text-[11px] text-destructive">{fieldErrors[field.field_name]}</p>
                   )}
-                  {(field.min_length || field.max_length) && (
+                  {(field.field_type === "quantity" || field.field_type === "number") && (field.min_length || field.max_length) && (
                     <p className="text-[10px] text-muted-foreground">
-                      {field.min_length ? `Min: ${field.min_length}` : ""}
+                      {field.min_length ? `Min: ${field.min_length.toLocaleString()}` : ""}
                       {field.min_length && field.max_length ? " · " : ""}
-                      {field.max_length ? `Max: ${field.max_length}` : ""}
+                      {field.max_length ? `Max: ${field.max_length.toLocaleString()}` : ""}
+                    </p>
+                  )}
+                  {field.field_type !== "quantity" && field.field_type !== "number" && (field.min_length || field.max_length) && (
+                    <p className="text-[10px] text-muted-foreground">
+                      {field.min_length ? `Min: ${field.min_length} chars` : ""}
+                      {field.min_length && field.max_length ? " · " : ""}
+                      {field.max_length ? `Max: ${field.max_length} chars` : ""}
                     </p>
                   )}
                 </div>
               ))}
+            </div>
+          )}
+
+          {/* Real-time price calculation for API products */}
+          {isApiProduct && apiQuantity > 0 && (
+            <div
+              className="rounded-[var(--radius-card)] border border-border/40 p-5 space-y-3"
+              style={{ background: "linear-gradient(145deg, #15151C 0%, #111116 100%)" }}
+            >
+              <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">Price Calculation</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Unit Price</span>
+                  <Money amount={unitPrice} className="text-foreground" />
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Quantity</span>
+                  <span className="font-mono tabular-nums text-foreground">{apiQuantity.toLocaleString()}</span>
+                </div>
+                <div className="h-px bg-border/20" />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-foreground">Total</span>
+                  <p className="text-xl font-bold font-mono tabular-nums text-primary">
+                    {apiTotalPrice.toLocaleString()}
+                    <span className="text-xs font-normal text-muted-foreground ml-1">MMK</span>
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 

@@ -44,6 +44,8 @@ interface CustomField {
   linked_mode: string;
   sort_order: number;
   options: string[];
+  placeholder: string;
+  validation_rule: string;
 }
 
 interface LookupItem { id: string; name: string; sort_order?: number }
@@ -368,6 +370,8 @@ export default function AdminProducts() {
       required: f.required, min_length: f.min_length, max_length: f.max_length,
       linked_mode: f.linked_mode, sort_order: f.sort_order,
       options: Array.isArray(f.options) ? f.options : [],
+      placeholder: f.placeholder || "",
+      validation_rule: f.validation_rule || "",
     })));
   };
 
@@ -492,6 +496,8 @@ export default function AdminProducts() {
         required: f.required, min_length: f.min_length, max_length: f.max_length,
         linked_mode: f.linked_mode, sort_order: i,
         options: f.field_type === "select" && f.options.length > 0 ? f.options : null,
+        placeholder: f.placeholder || "",
+        validation_rule: f.validation_rule || "",
       }));
       const { error } = await supabase.from("product_custom_fields").insert(rows);
       if (error) toast.error("Failed to save custom fields: " + error.message);
@@ -1233,15 +1239,15 @@ export default function AdminProducts() {
                   </div>
                 )}
 
-                {/* ── Custom Fields (Manual type) ── */}
-                {isManual && (
+                {/* ── Custom Fields (Manual & API type) ── */}
+                {(isManual || isApi) && (
                   <>
                     <Separator />
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <Label className="text-muted-foreground text-xs font-medium">Custom Fields</Label>
                         <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1"
-                          onClick={() => setCustomFields([...customFields, { field_name: "", field_type: "text", required: true, min_length: null, max_length: null, linked_mode: "manual", sort_order: customFields.length, options: [] }])}>
+                          onClick={() => setCustomFields([...customFields, { field_name: "", field_type: "text", required: true, min_length: null, max_length: null, linked_mode: isApi ? "api" : "manual", sort_order: customFields.length, options: [], placeholder: "", validation_rule: "" }])}>
                           <Plus className="w-3 h-3" /> Add Field
                         </Button>
                       </div>
@@ -1267,8 +1273,10 @@ export default function AdminProducts() {
                                 <SelectTrigger className="bg-muted/50 border-border h-8 text-xs"><SelectValue /></SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="text">Text</SelectItem>
+                                  <SelectItem value="url">URL</SelectItem>
                                   <SelectItem value="email">Email</SelectItem>
                                   <SelectItem value="number">Number</SelectItem>
+                                  <SelectItem value="quantity">Quantity</SelectItem>
                                   <SelectItem value="select">Select</SelectItem>
                                 </SelectContent>
                               </Select>
@@ -1278,6 +1286,35 @@ export default function AdminProducts() {
                             <Switch checked={field.required} onCheckedChange={(checked) => { const u = [...customFields]; u[idx] = { ...u[idx], required: checked }; setCustomFields(u); }} className="scale-75" />
                             <Label className="text-muted-foreground text-[10px]">Required</Label>
                           </div>
+                          {/* Placeholder */}
+                          <div className="space-y-1">
+                            <Label className="text-muted-foreground text-[10px]">Placeholder</Label>
+                            <Input value={field.placeholder} onChange={(e) => { const u = [...customFields]; u[idx] = { ...u[idx], placeholder: e.target.value }; setCustomFields(u); }}
+                              placeholder="e.g. https://facebook.com/..." className="bg-muted/50 border-border h-7 text-xs" />
+                          </div>
+                          {/* Min/Max for number & quantity */}
+                          {(field.field_type === "number" || field.field_type === "quantity") && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="space-y-1">
+                                <Label className="text-muted-foreground text-[10px]">Min Value</Label>
+                                <Input type="number" value={field.min_length ?? ""} onChange={(e) => { const u = [...customFields]; u[idx] = { ...u[idx], min_length: e.target.value ? parseInt(e.target.value) : null }; setCustomFields(u); }}
+                                  placeholder="1" className="bg-muted/50 border-border h-7 text-xs font-mono" />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-muted-foreground text-[10px]">Max Value</Label>
+                                <Input type="number" value={field.max_length ?? ""} onChange={(e) => { const u = [...customFields]; u[idx] = { ...u[idx], max_length: e.target.value ? parseInt(e.target.value) : null }; setCustomFields(u); }}
+                                  placeholder="10000" className="bg-muted/50 border-border h-7 text-xs font-mono" />
+                              </div>
+                            </div>
+                          )}
+                          {/* Validation rule */}
+                          {(field.field_type === "url" || field.field_type === "text") && (
+                            <div className="space-y-1">
+                              <Label className="text-muted-foreground text-[10px]">Validation Rule (regex, optional)</Label>
+                              <Input value={field.validation_rule} onChange={(e) => { const u = [...customFields]; u[idx] = { ...u[idx], validation_rule: e.target.value }; setCustomFields(u); }}
+                                placeholder="e.g. ^https://(www\.)?facebook\.com/" className="bg-muted/50 border-border h-7 text-xs font-mono" />
+                            </div>
+                          )}
                           {field.field_type === "select" && (
                             <div className="space-y-1.5 pt-1 border-t border-border/50">
                               <div className="flex items-center justify-between">
