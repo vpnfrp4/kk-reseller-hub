@@ -559,6 +559,7 @@ export default function AdminProducts() {
       payload.retail_price = parseInt(form.retail_price) || payload.wholesale_price;
       payload.stock = 0;
       payload.fulfillment_modes = ["api"];
+      payload.api_service_id = form.api_service_id || null;
     } else if (pt === "manual") {
       if (isUsd && basePriceNum > 0) {
         payload.wholesale_price = Math.round(basePriceNum * usdRate);
