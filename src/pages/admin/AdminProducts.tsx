@@ -473,6 +473,8 @@ export default function AdminProducts() {
       base_currency: p.base_currency || "MMK",
       base_price: (p.base_price || 0).toString(),
       api_service_id: p.api_service_id || "",
+      api_min_quantity: (p.api_min_quantity || 1).toString(),
+      api_max_quantity: (p.api_max_quantity || "").toString(),
     });
     setImagePreview(p.image_url || null);
     descManuallyEdited.current = !!(p.description && p.description.trim());
