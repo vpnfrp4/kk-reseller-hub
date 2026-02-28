@@ -370,6 +370,8 @@ export default function AdminProducts() {
       required: f.required, min_length: f.min_length, max_length: f.max_length,
       linked_mode: f.linked_mode, sort_order: f.sort_order,
       options: Array.isArray(f.options) ? f.options : [],
+      placeholder: f.placeholder || "",
+      validation_rule: f.validation_rule || "",
     })));
   };
 
