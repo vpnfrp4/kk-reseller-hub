@@ -371,7 +371,48 @@ export default function AdminProducts() {
     })));
   };
 
-  const openEdit = (p: any) => {
+  const fetchApiServices = async (providerId: string) => {
+    if (!providerId) return;
+    setApiServicesLoading(true);
+    setApiServicesError(null);
+    setApiServices([]);
+    try {
+      const { data, error } = await supabase.functions.invoke("fetch-provider-services", {
+        body: { provider_id: providerId },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        setApiServicesError(data.error);
+        return;
+      }
+      setApiServices(data?.services || []);
+    } catch (err: any) {
+      setApiServicesError(err.message || "Failed to fetch services");
+    } finally {
+      setApiServicesLoading(false);
+    }
+  };
+
+  const handleSelectService = (service: any) => {
+    const usdToMmk = usdRate || 2100;
+    // SMM panel rates are typically in USD
+    const providerCostMmk = Math.round((service.rate || 0) * usdToMmk);
+    const marginPct = parseInt(form.margin_percent) || 30;
+    
+    setForm((prev) => ({
+      ...prev,
+      api_service_id: service.service_id,
+      name: prev.name || service.name,
+      provider_price: providerCostMmk.toString(),
+      processing_time: service.type === "Default" ? "Instant" : "1-30 Minutes",
+      duration: "",
+    }));
+    setAutoFilledFields(new Set(["api_service_id", "provider_price", "processing_time"]));
+    setTimeout(() => setAutoFilledFields(new Set()), 3000);
+    toast.success(`Service #${service.service_id} selected — ${service.name.slice(0, 50)}`);
+  };
+
+
     setEditing(p);
     setForm({
       name: p.name, icon: p.icon, category: p.category, description: p.description || "",
