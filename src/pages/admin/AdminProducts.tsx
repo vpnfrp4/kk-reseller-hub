@@ -21,7 +21,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, Info } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, Info, FileText } from "lucide-react";
+import { generateProductDescription } from "@/lib/description-templates";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
 import BulkTierDialog from "@/components/admin/BulkTierDialog";
 import { Progress } from "@/components/ui/progress";
@@ -109,6 +110,7 @@ export default function AdminProducts() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const descManuallyEdited = useRef(false);
 
   // Unified form state
   const [form, setForm] = useState({
@@ -220,6 +222,26 @@ export default function AdminProducts() {
     setEditing(null);
     setImagePreview(null);
     setCustomFields([]);
+    descManuallyEdited.current = false;
+  };
+
+  const handleGenerateDescription = (force = false) => {
+    if (!force && descManuallyEdited.current && form.description.trim()) return;
+    const selectedBrand = brands.find((b) => b.id === form.brand_id);
+    const selectedCarrier = allCarriers.find((c) => c.id === form.carrier_id);
+    const selectedCountry = countries.find((c) => c.id === form.country_id);
+    const desc = generateProductDescription({
+      name: form.name || "Product",
+      category: form.category,
+      productType: form.product_type,
+      duration: form.duration,
+      processingTime: form.processing_time,
+      brand: selectedBrand?.name,
+      carrier: selectedCarrier?.name,
+      country: selectedCountry?.name,
+    });
+    setForm((prev) => ({ ...prev, description: desc }));
+    descManuallyEdited.current = false;
   };
 
   const loadCustomFields = async (productId: string) => {
@@ -252,6 +274,7 @@ export default function AdminProducts() {
       base_price: (p.base_price || 0).toString(),
     });
     setImagePreview(p.image_url || null);
+    descManuallyEdited.current = !!(p.description && p.description.trim());
     loadCustomFields(p.id);
     setDialogOpen(true);
   };
@@ -600,8 +623,25 @@ export default function AdminProducts() {
                   )}
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">Description</Label>
-                  <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Product description…" className="bg-muted/50 border-border resize-none" rows={2} maxLength={500} />
+                  <div className="flex items-center justify-between">
+                    <Label className="text-muted-foreground text-xs">Description</Label>
+                    <div className="flex gap-1">
+                      {!form.description.trim() && (
+                        <Button type="button" variant="outline" size="sm" className="h-6 text-[10px] gap-1 px-2"
+                          onClick={() => handleGenerateDescription(true)}>
+                          <FileText className="w-3 h-3" /> Generate
+                        </Button>
+                      )}
+                      {form.description.trim() && (
+                        <Button type="button" variant="ghost" size="sm" className="h-6 text-[10px] gap-1 px-2 text-muted-foreground"
+                          onClick={() => { if (confirm("Regenerate description? This will replace the current content.")) handleGenerateDescription(true); }}>
+                          <RotateCcw className="w-3 h-3" /> Regenerate
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  <Textarea value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; }} placeholder="Product description… or click Generate to auto-fill" className="bg-muted/50 border-border resize-none text-xs" rows={6} maxLength={2000} />
+                  <p className="text-[10px] text-muted-foreground">{form.description.length}/2000 — Category-aware template engine</p>
                 </div>
 
                 {/* ── IMEI Auto-Configured Banner ── */}
