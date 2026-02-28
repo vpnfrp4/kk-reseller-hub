@@ -67,7 +67,7 @@ export default function ProfileTab() {
             </div>
             <div className="flex items-center gap-tight text-xs text-muted-foreground/60">
               <Calendar className="w-3 h-3 shrink-0" />
-              <span>Member since {profile ? new Date(profile.created_at || Date.now()).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "---"}</span>
+              <span>Member</span>
             </div>
           </div>
         </div>
