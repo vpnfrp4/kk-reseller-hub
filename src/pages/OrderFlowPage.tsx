@@ -202,7 +202,9 @@ export default function OrderFlowPage() {
   }, [pricingTiers, quantity]);
 
   const unitPrice = currentTier ? (currentTier as any).unit_price : (product?.wholesale_price || 0);
-  const totalPrice = unitPrice * quantity;
+  // For API products, price = unit_price * apiQuantity (per-unit pricing)
+  const apiTotalPrice = isApiProduct && apiQuantity > 0 ? unitPrice * apiQuantity : 0;
+  const totalPrice = isApiProduct ? apiTotalPrice : unitPrice * quantity;
   const balance = profile?.balance || 0;
   const deficit = totalPrice - balance;
   const hasInsufficientBalance = deficit > 0;
