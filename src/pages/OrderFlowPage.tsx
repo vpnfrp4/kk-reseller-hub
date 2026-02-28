@@ -454,6 +454,26 @@ export default function OrderFlowPage() {
          ════════════════════════════════════════ */}
       {currentStepKey === "configure" && (
         <div className="space-y-6 animate-fade-in">
+          {/* API product info card */}
+          {isApiProduct && (
+            <div
+              className="rounded-[var(--radius-card)] border border-border/40 p-5 space-y-3"
+              style={{ background: "linear-gradient(145deg, #15151C 0%, #111116 100%)" }}
+            >
+              <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">Service Info</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Unit Price</span>
+                  <Money amount={unitPrice} className="text-foreground" />
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Delivery</span>
+                  <span className="text-foreground">{deliveryTimeConfig[effectiveMode] || product?.processing_time || "Pending"}</span>
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Quantity and details are configured in the next step.</p>
+            </div>
+          )}
           {/* Quantity selector for digital products */}
           {allowQuantity && (
             <div

@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
-    const { product_id, quantity, fulfillment_mode, custom_fields, imei_number } = await req.json();
+    const { product_id, quantity, fulfillment_mode, custom_fields, imei_number, link, service_id } = await req.json();
 
     if (!product_id) {
       return new Response(JSON.stringify({ success: false, error: "product_id is required" }), {
