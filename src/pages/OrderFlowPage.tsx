@@ -665,6 +665,34 @@ export default function OrderFlowPage() {
             </div>
           )}
 
+          {/* Real-time price calculation for API products */}
+          {isApiProduct && apiQuantity > 0 && (
+            <div
+              className="rounded-[var(--radius-card)] border border-border/40 p-5 space-y-3"
+              style={{ background: "linear-gradient(145deg, #15151C 0%, #111116 100%)" }}
+            >
+              <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">Price Calculation</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Unit Price</span>
+                  <Money amount={unitPrice} className="text-foreground" />
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Quantity</span>
+                  <span className="font-mono tabular-nums text-foreground">{apiQuantity.toLocaleString()}</span>
+                </div>
+                <div className="h-px bg-border/20" />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-foreground">Total</span>
+                  <p className="text-xl font-bold font-mono tabular-nums text-primary">
+                    {apiTotalPrice.toLocaleString()}
+                    <span className="text-xs font-normal text-muted-foreground ml-1">MMK</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Estimated delivery */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground px-1">
             <Clock className="w-3 h-3" />
