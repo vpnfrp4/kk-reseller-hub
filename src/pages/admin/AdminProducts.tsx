@@ -496,6 +496,8 @@ export default function AdminProducts() {
         required: f.required, min_length: f.min_length, max_length: f.max_length,
         linked_mode: f.linked_mode, sort_order: i,
         options: f.field_type === "select" && f.options.length > 0 ? f.options : null,
+        placeholder: f.placeholder || "",
+        validation_rule: f.validation_rule || "",
       }));
       const { error } = await supabase.from("product_custom_fields").insert(rows);
       if (error) toast.error("Failed to save custom fields: " + error.message);
