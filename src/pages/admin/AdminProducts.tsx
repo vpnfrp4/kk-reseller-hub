@@ -412,7 +412,7 @@ export default function AdminProducts() {
     toast.success(`Service #${service.service_id} selected — ${service.name.slice(0, 50)}`);
   };
 
-
+  const openEdit = (p: any) => {
     setEditing(p);
     setForm({
       name: p.name, icon: p.icon, category: p.category, description: p.description || "",
