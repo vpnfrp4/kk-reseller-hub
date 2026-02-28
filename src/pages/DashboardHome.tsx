@@ -24,6 +24,7 @@ import { format, subDays } from "date-fns";
 import { PageContainer, Money } from "@/components/shared";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
 import MiniSparkline from "@/components/admin/MiniSparkline";
+import CollapsibleSection from "@/components/shared/CollapsibleSection";
 import { cn } from "@/lib/utils";
 import { t, useT } from "@/lib/i18n";
 import { MmStatus } from "@/components/shared/MmLabel";
@@ -296,24 +297,11 @@ export default function DashboardHome() {
       )}
 
       {/* RECENT ACTIVITY */}
-      <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.25s" }}>
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <h3 className="text-base font-semibold text-foreground">{l(t.dashboard.recentActivity)}</h3>
-          <div className="flex gap-3">
-            <Link to="/dashboard/wallet" className="text-sm text-primary hover:underline font-medium">
-              {l(t.dashboard.allTransactions)}
-            </Link>
-            <span className="text-border">|</span>
-            <Link to="/dashboard/orders" className="text-sm text-primary hover:underline font-medium">
-              {l(t.dashboard.allOrders)}
-            </Link>
-          </div>
-        </div>
-
+      <div className="animate-fade-in" style={{ animationDelay: "0.25s" }}>
         <CrossFade
           isLoading={txLoading && ordersLoading}
           skeleton={
-            <div className="p-6 space-y-0">
+            <div className="glass-card p-6 space-y-0">
               {Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="flex items-center justify-between py-4 border-b border-border/40 last:border-0">
                   <div className="space-y-2">
@@ -326,7 +314,27 @@ export default function DashboardHome() {
             </div>
           }
         >
-          <div>
+          <CollapsibleSection
+            title={l(t.dashboard.recentActivity)}
+            totalCount={recentActivity.length}
+            previewCount={3}
+            summary={
+              recentActivity.length > 3
+                ? `+${recentActivity.length - 3} more \u00b7 Last: ${recentActivity[3]?.label?.slice(0, 30) || ""}`
+                : undefined
+            }
+            headerRight={
+              <div className="flex gap-3">
+                <Link to="/dashboard/wallet" className="text-sm text-primary hover:underline font-medium" onClick={(e) => e.stopPropagation()}>
+                  {l(t.dashboard.allTransactions)}
+                </Link>
+                <span className="text-border">|</span>
+                <Link to="/dashboard/orders" className="text-sm text-primary hover:underline font-medium" onClick={(e) => e.stopPropagation()}>
+                  {l(t.dashboard.allOrders)}
+                </Link>
+              </div>
+            }
+          >
             {recentActivity.length === 0 ? (
               <p className="text-base text-muted-foreground py-8 text-center">
                 {l(t.dashboard.noActivity)}
@@ -335,8 +343,7 @@ export default function DashboardHome() {
               recentActivity.map((item, i) => (
                 <div
                   key={`${item.type}-${item.id}`}
-                  className="flex items-center justify-between px-6 py-4 border-b border-border/40 last:border-0 hover:bg-secondary/30 transition-colors opacity-0 animate-row-in"
-                  style={{ animationDelay: `${i * 0.04}s` }}
+                  className="flex items-center justify-between px-6 py-4 border-b border-border/40 last:border-0 hover:bg-secondary/30 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div
@@ -374,7 +381,7 @@ export default function DashboardHome() {
                 </div>
               ))
             )}
-          </div>
+          </CollapsibleSection>
         </CrossFade>
       </div>
 
