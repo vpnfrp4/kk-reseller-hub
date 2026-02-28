@@ -21,8 +21,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, Info, FileText } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, Info, FileText, Sparkles } from "lucide-react";
 import { generateProductDescription, type DescriptionMode } from "@/lib/description-templates";
+import { optimizeTitle } from "@/lib/title-optimizer";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
 import BulkTierDialog from "@/components/admin/BulkTierDialog";
 import { Progress } from "@/components/ui/progress";
@@ -111,7 +112,9 @@ export default function AdminProducts() {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const descManuallyEdited = useRef(false);
+  const titleManuallyEdited = useRef(false);
   const [descMode, setDescMode] = useState<DescriptionMode>("ultra-short");
+  const [optimizedMeta, setOptimizedMeta] = useState<{ shortTitle: string; seoSlug: string } | null>(null);
 
   // Unified form state
   const [form, setForm] = useState({
@@ -224,6 +227,19 @@ export default function AdminProducts() {
     setImagePreview(null);
     setCustomFields([]);
     descManuallyEdited.current = false;
+    titleManuallyEdited.current = false;
+    setOptimizedMeta(null);
+  };
+
+  const handleOptimizeTitle = (force = false) => {
+    if (!force && titleManuallyEdited.current && form.name.trim()) return;
+    const raw = form.name.trim();
+    if (!raw) { toast.error("Enter a service name first"); return; }
+    const result = optimizeTitle(raw);
+    setForm((prev) => ({ ...prev, name: result.displayTitle }));
+    setOptimizedMeta({ shortTitle: result.shortTitle, seoSlug: result.seoSlug });
+    titleManuallyEdited.current = false;
+    toast.success("Title optimized");
   };
 
   const handleGenerateDescription = (force = false) => {
@@ -613,8 +629,32 @@ export default function AdminProducts() {
                 {/* ── Common Fields ── */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label className="text-muted-foreground text-xs">Name</Label>
-                    <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required className="bg-muted/50 border-border" />
+                    <div className="flex items-center justify-between">
+                      <Label className="text-muted-foreground text-xs">Name</Label>
+                      <div className="flex gap-1">
+                        {form.name.trim() && !titleManuallyEdited.current && optimizedMeta && (
+                          <Button type="button" variant="ghost" size="sm" className="h-5 text-[9px] gap-1 px-1.5 text-muted-foreground"
+                            onClick={() => handleOptimizeTitle(true)}>
+                            <RotateCcw className="w-2.5 h-2.5" /> Re-optimize
+                          </Button>
+                        )}
+                        <Button type="button" variant="outline" size="sm" className="h-5 text-[9px] gap-1 px-2"
+                          onClick={() => handleOptimizeTitle(true)}>
+                          <Sparkles className="w-2.5 h-2.5" /> Optimize
+                        </Button>
+                      </div>
+                    </div>
+                    <Input value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); titleManuallyEdited.current = true; setOptimizedMeta(null); }} required className="bg-muted/50 border-border" />
+                    {optimizedMeta && (
+                      <div className="flex flex-wrap gap-2 mt-1">
+                        <span className="inline-flex items-center gap-1 text-[9px] font-mono text-muted-foreground bg-muted/60 rounded px-1.5 py-0.5">
+                          Short: {optimizedMeta.shortTitle}
+                        </span>
+                        <span className="inline-flex items-center gap-1 text-[9px] font-mono text-muted-foreground bg-muted/60 rounded px-1.5 py-0.5">
+                          /{optimizedMeta.seoSlug}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-1">
                     <Label className="text-muted-foreground text-xs">Icon (emoji)</Label>
