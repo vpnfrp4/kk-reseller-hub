@@ -28,6 +28,7 @@ export default function ProviderProfilePage() {
         .eq("id", id!)
         .single();
       if (error) throw error;
+      return data as any;
       return data;
     },
     enabled: !!id,
