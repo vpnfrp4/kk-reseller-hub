@@ -184,9 +184,16 @@ export default function OrderFlowPage() {
   const effectiveMode = productModes.includes(selectedMode) ? selectedMode : productModes[0];
   const activeFields = customFields.filter((f: any) => f.linked_mode === effectiveMode);
   const productType = (product as any)?.product_type || "digital";
+  const isApiProduct = productType === "api";
   const hasStockTracking = productType === "digital";
   const allowQuantity = hasStockTracking;
   const maxQty = product ? (hasStockTracking ? Math.min(product.stock, 100) : 1) : 1;
+
+  // For API products: find quantity field for real-time price calc
+  const apiQuantityField = isApiProduct ? activeFields.find((f: any) => f.field_type === "quantity") : null;
+  const apiQuantity = apiQuantityField ? (parseInt(customFieldValues[apiQuantityField.field_name]) || 0) : 0;
+  const apiMinQty = apiQuantityField ? (apiQuantityField.min_length || (product as any)?.api_min_quantity || 1) : 1;
+  const apiMaxQty = apiQuantityField ? (apiQuantityField.max_length || (product as any)?.api_max_quantity || 100000) : 100000;
 
   const currentTier = useMemo(() => {
     if (!pricingTiers.length) return null;
