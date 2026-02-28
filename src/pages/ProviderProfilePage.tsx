@@ -23,7 +23,7 @@ export default function ProviderProfilePage() {
     queryKey: ["provider-profile", id],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("imei_providers")
+        .from("imei_providers_public" as any)
         .select("*")
         .eq("id", id!)
         .single();

@@ -39,7 +39,7 @@ export default function PriceComparisonTable({
     queryKey: ["providers-lookup"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("imei_providers")
+        .from("imei_providers_public" as any)
         .select("id, name, avg_rating, success_rate, total_completed, is_verified, fulfillment_type");
       return data || [];
     },

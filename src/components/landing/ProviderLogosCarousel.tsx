@@ -15,7 +15,7 @@ export default function ProviderLogosCarousel() {
     queryKey: ["landing-providers-carousel"],
     queryFn: async () => {
       const { data } = await supabase
-        .from("imei_providers")
+        .from("imei_providers_public" as any)
         .select("id, name, logo_url, is_verified")
         .eq("status", "active")
         .order("sort_order");
