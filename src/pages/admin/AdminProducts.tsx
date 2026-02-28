@@ -409,6 +409,8 @@ export default function AdminProducts() {
       provider_price: providerCostMmk.toString(),
       processing_time: service.type === "Default" ? "Instant" : "1-30 Minutes",
       duration: "",
+      api_min_quantity: String(parseInt(service.min) || 1),
+      api_max_quantity: String(parseInt(service.max) || 10000),
     }));
 
     // Auto-generate default API custom fields (URL + Quantity)
