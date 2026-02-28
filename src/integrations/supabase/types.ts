@@ -144,6 +144,7 @@ export type Database = {
       }
       imei_providers: {
         Row: {
+          api_key: string | null
           api_url: string | null
           avg_rating: number | null
           commission_percent: number | null
@@ -160,6 +161,7 @@ export type Database = {
           total_reviews: number | null
         }
         Insert: {
+          api_key?: string | null
           api_url?: string | null
           avg_rating?: number | null
           commission_percent?: number | null
@@ -176,6 +178,7 @@ export type Database = {
           total_reviews?: number | null
         }
         Update: {
+          api_key?: string | null
           api_url?: string | null
           avg_rating?: number | null
           commission_percent?: number | null
@@ -536,7 +539,12 @@ export type Database = {
       }
       products: {
         Row: {
+          api_max_quantity: number | null
+          api_min_quantity: number | null
           api_provider: string | null
+          api_rate: number | null
+          api_refill: boolean | null
+          api_service_id: string | null
           base_currency: string
           base_price: number
           brand: string | null
@@ -569,7 +577,12 @@ export type Database = {
           wholesale_price: number
         }
         Insert: {
+          api_max_quantity?: number | null
+          api_min_quantity?: number | null
           api_provider?: string | null
+          api_rate?: number | null
+          api_refill?: boolean | null
+          api_service_id?: string | null
           base_currency?: string
           base_price?: number
           brand?: string | null
@@ -602,7 +615,12 @@ export type Database = {
           wholesale_price: number
         }
         Update: {
+          api_max_quantity?: number | null
+          api_min_quantity?: number | null
           api_provider?: string | null
+          api_rate?: number | null
+          api_refill?: boolean | null
+          api_service_id?: string | null
           base_currency?: string
           base_price?: number
           brand?: string | null
