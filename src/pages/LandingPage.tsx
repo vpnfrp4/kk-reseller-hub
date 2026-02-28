@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
+import ProviderLogosCarousel from "@/components/landing/ProviderLogosCarousel";
 import {
   Accordion,
   AccordionContent,
