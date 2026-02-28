@@ -232,6 +232,7 @@ export default function AdminProducts() {
       provider_id: "", provider_price: "0", margin_percent: "30",
       processing_time: "1-3 Days", fulfillment_mode: "manual",
       base_currency: "MMK", base_price: "",
+      api_service_id: "",
     });
     setEditing(null);
     setImagePreview(null);
@@ -241,6 +242,9 @@ export default function AdminProducts() {
     setOptimizedMeta(null);
     setAutoFilledFields(new Set());
     manualOverrides.current = new Set();
+    setApiServices([]);
+    setApiServiceSearch("");
+    setApiServicesError(null);
   };
 
   const handleOptimizeTitle = (force = false) => {
