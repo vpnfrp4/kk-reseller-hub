@@ -202,9 +202,46 @@ export default function OrderFlowPage() {
   }, [pricingTiers, quantity]);
 
   const unitPrice = currentTier ? (currentTier as any).unit_price : (product?.wholesale_price || 0);
-  // For API products, price = unit_price * apiQuantity (per-unit pricing)
-  const apiTotalPrice = isApiProduct && apiQuantity > 0 ? unitPrice * apiQuantity : 0;
-  const totalPrice = isApiProduct ? apiTotalPrice : unitPrice * quantity;
+
+  // Fetch exchange rate for API per-1000 pricing
+  const { data: usdRate } = useQuery({
+    queryKey: ["usd-rate-order"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("system_settings")
+        .select("value")
+        .eq("key", "usd_mmk_rate")
+        .single();
+      return Number((data?.value as any)?.rate) || 0;
+    },
+    enabled: isApiProduct,
+  });
+
+  const { data: marginConfig } = useQuery({
+    queryKey: ["margin-config-order"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("system_settings")
+        .select("value")
+        .eq("key", "margin_config")
+        .single();
+      return (data?.value || { global_margin: 20, category_margins: {} }) as any;
+    },
+    enabled: isApiProduct,
+  });
+
+  // API per-1000 pricing calculation (mirrors server-side logic)
+  const apiUnitPrice = useMemo(() => {
+    if (!isApiProduct || !product?.api_rate || !usdRate) return unitPrice;
+    const margin = (product as any).margin_percent ||
+      (marginConfig?.category_margins?.[(product as any).category] as number) ||
+      marginConfig?.global_margin || 20;
+    return Math.ceil((product.api_rate / 1000) * usdRate * (1 + margin / 100));
+  }, [isApiProduct, product, usdRate, marginConfig, unitPrice]);
+
+  const effectiveUnitPrice = isApiProduct ? apiUnitPrice : unitPrice;
+  const apiTotalPrice = isApiProduct && apiQuantity > 0 ? apiUnitPrice * apiQuantity : 0;
+  const totalPrice = isApiProduct ? apiTotalPrice : effectiveUnitPrice * quantity;
   const balance = profile?.balance || 0;
   const deficit = totalPrice - balance;
   const hasInsufficientBalance = deficit > 0;
@@ -464,7 +501,7 @@ export default function OrderFlowPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Unit Price</span>
-                  <Money amount={unitPrice} className="text-foreground" />
+                  <Money amount={effectiveUnitPrice} className="text-foreground" />
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Delivery</span>
@@ -538,7 +575,7 @@ export default function OrderFlowPage() {
           >
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">{l(t.products.unitPrice)}</span>
-              <Money amount={unitPrice} className="text-foreground" />
+              <Money amount={effectiveUnitPrice} className="text-foreground" />
             </div>
             {quantity > 1 && (
               <div className="flex items-center justify-between text-sm">
@@ -707,7 +744,7 @@ export default function OrderFlowPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Unit Price</span>
-                  <Money amount={unitPrice} className="text-foreground" />
+                  <Money amount={effectiveUnitPrice} className="text-foreground" />
                 </div>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Quantity</span>
@@ -720,6 +757,19 @@ export default function OrderFlowPage() {
                     {apiTotalPrice.toLocaleString()}
                     <span className="text-xs font-normal text-muted-foreground ml-1">MMK</span>
                   </p>
+                </div>
+                <div className="h-px bg-border/20" />
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Wallet Balance</span>
+                  <span className="font-mono tabular-nums text-foreground">{balance.toLocaleString()} MMK</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">After Purchase</span>
+                  <span className={`font-mono tabular-nums font-medium ${
+                    balance - apiTotalPrice < 0 ? "text-destructive" : "text-chart-2"
+                  }`}>
+                    {(balance - apiTotalPrice).toLocaleString()} MMK
+                  </span>
                 </div>
               </div>
             </div>
