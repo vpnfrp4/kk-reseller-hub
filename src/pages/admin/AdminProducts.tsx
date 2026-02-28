@@ -1286,6 +1286,35 @@ export default function AdminProducts() {
                             <Switch checked={field.required} onCheckedChange={(checked) => { const u = [...customFields]; u[idx] = { ...u[idx], required: checked }; setCustomFields(u); }} className="scale-75" />
                             <Label className="text-muted-foreground text-[10px]">Required</Label>
                           </div>
+                          {/* Placeholder */}
+                          <div className="space-y-1">
+                            <Label className="text-muted-foreground text-[10px]">Placeholder</Label>
+                            <Input value={field.placeholder} onChange={(e) => { const u = [...customFields]; u[idx] = { ...u[idx], placeholder: e.target.value }; setCustomFields(u); }}
+                              placeholder="e.g. https://facebook.com/..." className="bg-muted/50 border-border h-7 text-xs" />
+                          </div>
+                          {/* Min/Max for number & quantity */}
+                          {(field.field_type === "number" || field.field_type === "quantity") && (
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="space-y-1">
+                                <Label className="text-muted-foreground text-[10px]">Min Value</Label>
+                                <Input type="number" value={field.min_length ?? ""} onChange={(e) => { const u = [...customFields]; u[idx] = { ...u[idx], min_length: e.target.value ? parseInt(e.target.value) : null }; setCustomFields(u); }}
+                                  placeholder="1" className="bg-muted/50 border-border h-7 text-xs font-mono" />
+                              </div>
+                              <div className="space-y-1">
+                                <Label className="text-muted-foreground text-[10px]">Max Value</Label>
+                                <Input type="number" value={field.max_length ?? ""} onChange={(e) => { const u = [...customFields]; u[idx] = { ...u[idx], max_length: e.target.value ? parseInt(e.target.value) : null }; setCustomFields(u); }}
+                                  placeholder="10000" className="bg-muted/50 border-border h-7 text-xs font-mono" />
+                              </div>
+                            </div>
+                          )}
+                          {/* Validation rule */}
+                          {(field.field_type === "url" || field.field_type === "text") && (
+                            <div className="space-y-1">
+                              <Label className="text-muted-foreground text-[10px]">Validation Rule (regex, optional)</Label>
+                              <Input value={field.validation_rule} onChange={(e) => { const u = [...customFields]; u[idx] = { ...u[idx], validation_rule: e.target.value }; setCustomFields(u); }}
+                                placeholder="e.g. ^https://(www\.)?facebook\.com/" className="bg-muted/50 border-border h-7 text-xs font-mono" />
+                            </div>
+                          )}
                           {field.field_type === "select" && (
                             <div className="space-y-1.5 pt-1 border-t border-border/50">
                               <div className="flex items-center justify-between">
