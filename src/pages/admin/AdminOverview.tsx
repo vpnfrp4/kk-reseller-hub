@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format, subDays } from "date-fns";
 import { PageContainer, DataCard, Money } from "@/components/shared";
+import CollapsibleSection from "@/components/shared/CollapsibleSection";
 import MiniSparkline from "@/components/admin/MiniSparkline";
 import { useCountUp } from "@/hooks/use-count-up";
 import {
