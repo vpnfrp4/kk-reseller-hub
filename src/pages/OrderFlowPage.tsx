@@ -220,7 +220,7 @@ export default function OrderFlowPage() {
   const totalSavingsCalc = (baseTierPrice - unitPrice) * quantity;
 
   const hasCustomFields = activeFields.length > 0;
-  const needsDetailsStep = hasCustomFields || productModes.length > 1;
+  const needsDetailsStep = hasCustomFields || productModes.length > 1 || isApiProduct;
 
   // Skip details step if not needed
   const activeSteps = needsDetailsStep ? STEPS : STEPS.filter(s => s.key !== "details");
