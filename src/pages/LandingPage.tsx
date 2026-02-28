@@ -244,6 +244,9 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* ═══════════ PROVIDER LOGOS ═══════════ */}
+        <ProviderLogosCarousel />
+
         {/* ═══════════ SERVICES — Clean Minimal Blocks ═══════════ */}
         <section id="services" className="bg-background py-[120px] max-sm:py-20">
           <div className="mx-auto max-w-[1120px] px-6">
