@@ -385,10 +385,13 @@ export default function AdminProducts() {
       fulfillment_mode: p.fulfillment_mode || "manual",
       base_currency: p.base_currency || "MMK",
       base_price: (p.base_price || 0).toString(),
+      api_service_id: p.api_service_id || "",
     });
     setImagePreview(p.image_url || null);
     descManuallyEdited.current = !!(p.description && p.description.trim());
     loadCustomFields(p.id);
+    setApiServices([]);
+    setApiServiceSearch("");
     setDialogOpen(true);
   };
 
