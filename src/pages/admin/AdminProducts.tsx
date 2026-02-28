@@ -136,6 +136,8 @@ export default function AdminProducts() {
     base_price: "",
     // API service fields
     api_service_id: "",
+    api_min_quantity: "1",
+    api_max_quantity: "",
   });
 
   // API service fetching state
