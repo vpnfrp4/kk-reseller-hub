@@ -1233,8 +1233,8 @@ export default function AdminProducts() {
                   </div>
                 )}
 
-                {/* ── Custom Fields (Manual type) ── */}
-                {isManual && (
+                {/* ── Custom Fields (Manual & API type) ── */}
+                {(isManual || isApi) && (
                   <>
                     <Separator />
                     <div className="space-y-3">
