@@ -401,7 +401,6 @@ export default function AdminProducts() {
     const usdToMmk = usdRate || 2100;
     // SMM panel rates are typically in USD
     const providerCostMmk = Math.round((service.rate || 0) * usdToMmk);
-    const marginPct = parseInt(form.margin_percent) || 30;
     
     setForm((prev) => ({
       ...prev,
@@ -411,9 +410,46 @@ export default function AdminProducts() {
       processing_time: service.type === "Default" ? "Instant" : "1-30 Minutes",
       duration: "",
     }));
-    setAutoFilledFields(new Set(["api_service_id", "provider_price", "processing_time"]));
+
+    // Auto-generate default API custom fields (URL + Quantity)
+    const minQty = parseInt(service.min) || 1;
+    const maxQty = parseInt(service.max) || 10000;
+
+    const apiUrlField: CustomField = {
+      field_name: "URL",
+      field_type: "text",
+      required: true,
+      min_length: 5,
+      max_length: 500,
+      linked_mode: "api",
+      sort_order: 0,
+      options: [],
+      placeholder: "https://example.com/post/123",
+      validation_rule: "url",
+    };
+
+    const apiQtyField: CustomField = {
+      field_name: "Quantity",
+      field_type: "number",
+      required: true,
+      min_length: minQty,
+      max_length: maxQty,
+      linked_mode: "api",
+      sort_order: 1,
+      options: [],
+      placeholder: `Min ${minQty} — Max ${maxQty}`,
+      validation_rule: "",
+    };
+
+    // Replace existing api-linked fields, keep others
+    setCustomFields((prev) => {
+      const nonApi = prev.filter((f) => f.linked_mode !== "api");
+      return [...nonApi, apiUrlField, apiQtyField];
+    });
+
+    setAutoFilledFields(new Set(["api_service_id", "provider_price", "processing_time", "custom_fields"]));
     setTimeout(() => setAutoFilledFields(new Set()), 3000);
-    toast.success(`Service #${service.service_id} selected — ${service.name.slice(0, 50)}`);
+    toast.success(`Service #${service.service_id} selected — URL & Quantity fields auto-generated`);
   };
 
   const openEdit = (p: any) => {
