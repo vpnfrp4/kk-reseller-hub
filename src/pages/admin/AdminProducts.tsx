@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import { useState, useRef, useCallback, useEffect, useMemo, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -21,7 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, Info, FileText, Sparkles, Zap } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, Info, FileText, Sparkles, Zap, Loader2, Search, RefreshCw } from "lucide-react";
 import { generateProductDescription, type DescriptionMode } from "@/lib/description-templates";
 import { optimizeTitle, autoBuildProduct, type AutoBuildResult } from "@/lib/title-optimizer";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
@@ -132,7 +132,15 @@ export default function AdminProducts() {
     // Currency
     base_currency: "MMK" as "MMK" | "USD",
     base_price: "",
+    // API service fields
+    api_service_id: "",
   });
+
+  // API service fetching state
+  const [apiServices, setApiServices] = useState<any[]>([]);
+  const [apiServicesLoading, setApiServicesLoading] = useState(false);
+  const [apiServiceSearch, setApiServiceSearch] = useState("");
+  const [apiServicesError, setApiServicesError] = useState<string | null>(null);
 
   // USD rate
   const { data: usdRateSetting } = useQuery({
@@ -224,6 +232,7 @@ export default function AdminProducts() {
       provider_id: "", provider_price: "0", margin_percent: "30",
       processing_time: "1-3 Days", fulfillment_mode: "manual",
       base_currency: "MMK", base_price: "",
+      api_service_id: "",
     });
     setEditing(null);
     setImagePreview(null);
@@ -233,6 +242,9 @@ export default function AdminProducts() {
     setOptimizedMeta(null);
     setAutoFilledFields(new Set());
     manualOverrides.current = new Set();
+    setApiServices([]);
+    setApiServiceSearch("");
+    setApiServicesError(null);
   };
 
   const handleOptimizeTitle = (force = false) => {
@@ -359,6 +371,47 @@ export default function AdminProducts() {
     })));
   };
 
+  const fetchApiServices = async (providerId: string) => {
+    if (!providerId) return;
+    setApiServicesLoading(true);
+    setApiServicesError(null);
+    setApiServices([]);
+    try {
+      const { data, error } = await supabase.functions.invoke("fetch-provider-services", {
+        body: { provider_id: providerId },
+      });
+      if (error) throw error;
+      if (data?.error) {
+        setApiServicesError(data.error);
+        return;
+      }
+      setApiServices(data?.services || []);
+    } catch (err: any) {
+      setApiServicesError(err.message || "Failed to fetch services");
+    } finally {
+      setApiServicesLoading(false);
+    }
+  };
+
+  const handleSelectService = (service: any) => {
+    const usdToMmk = usdRate || 2100;
+    // SMM panel rates are typically in USD
+    const providerCostMmk = Math.round((service.rate || 0) * usdToMmk);
+    const marginPct = parseInt(form.margin_percent) || 30;
+    
+    setForm((prev) => ({
+      ...prev,
+      api_service_id: service.service_id,
+      name: prev.name || service.name,
+      provider_price: providerCostMmk.toString(),
+      processing_time: service.type === "Default" ? "Instant" : "1-30 Minutes",
+      duration: "",
+    }));
+    setAutoFilledFields(new Set(["api_service_id", "provider_price", "processing_time"]));
+    setTimeout(() => setAutoFilledFields(new Set()), 3000);
+    toast.success(`Service #${service.service_id} selected — ${service.name.slice(0, 50)}`);
+  };
+
   const openEdit = (p: any) => {
     setEditing(p);
     setForm({
@@ -373,10 +426,13 @@ export default function AdminProducts() {
       fulfillment_mode: p.fulfillment_mode || "manual",
       base_currency: p.base_currency || "MMK",
       base_price: (p.base_price || 0).toString(),
+      api_service_id: p.api_service_id || "",
     });
     setImagePreview(p.image_url || null);
     descManuallyEdited.current = !!(p.description && p.description.trim());
     loadCustomFields(p.id);
+    setApiServices([]);
+    setApiServiceSearch("");
     setDialogOpen(true);
   };
 
@@ -503,6 +559,7 @@ export default function AdminProducts() {
       payload.retail_price = parseInt(form.retail_price) || payload.wholesale_price;
       payload.stock = 0;
       payload.fulfillment_modes = ["api"];
+      payload.api_service_id = form.api_service_id || null;
     } else if (pt === "manual") {
       if (isUsd && basePriceNum > 0) {
         payload.wholesale_price = Math.round(basePriceNum * usdRate);
@@ -959,11 +1016,111 @@ export default function AdminProducts() {
                       </Label>
                       <div className="space-y-1">
                         <Label className="text-muted-foreground text-[10px]">API Provider</Label>
-                        <Select value={form.provider_id} onValueChange={(v) => setForm({ ...form, provider_id: v })}>
-                          <SelectTrigger className="bg-muted/50 border-border"><SelectValue placeholder="Select provider" /></SelectTrigger>
-                          <SelectContent>{providers.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
-                        </Select>
+                        <div className="flex gap-2">
+                          <Select value={form.provider_id} onValueChange={(v) => { setForm({ ...form, provider_id: v }); setApiServices([]); setApiServicesError(null); }}>
+                            <SelectTrigger className="bg-muted/50 border-border flex-1"><SelectValue placeholder="Select provider" /></SelectTrigger>
+                            <SelectContent>{providers.map((p) => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}</SelectContent>
+                          </Select>
+                          {form.provider_id && (
+                            <Button type="button" variant="outline" size="sm" className="h-10 gap-1.5 text-xs shrink-0"
+                              onClick={() => fetchApiServices(form.provider_id)} disabled={apiServicesLoading}>
+                              {apiServicesLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                              {apiServicesLoading ? "Fetching..." : "Fetch Services"}
+                            </Button>
+                          )}
+                        </div>
                       </div>
+
+                      {/* API Services List */}
+                      {apiServicesError && (
+                        <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3">
+                          <p className="text-xs text-destructive">{apiServicesError}</p>
+                          <p className="text-[10px] text-muted-foreground mt-1">Ensure the provider has API URL and API Key configured in Provider settings.</p>
+                        </div>
+                      )}
+
+                      {apiServices.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-muted-foreground text-[10px]">Select Service ({apiServices.length} available)</Label>
+                            {form.api_service_id && (
+                              <span className="text-[10px] font-mono text-primary bg-primary/10 px-2 py-0.5 rounded">
+                                ID: {form.api_service_id}
+                              </span>
+                            )}
+                          </div>
+                          <div className="relative">
+                            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                            <Input
+                              value={apiServiceSearch}
+                              onChange={(e) => setApiServiceSearch(e.target.value)}
+                              placeholder="Search services..."
+                              className="bg-muted/50 border-border h-8 text-xs pl-8"
+                            />
+                          </div>
+                          <div className="max-h-48 overflow-y-auto rounded-lg border border-border bg-muted/10 divide-y divide-border/40">
+                            {apiServices
+                              .filter((s) => {
+                                if (!apiServiceSearch) return true;
+                                const q = apiServiceSearch.toLowerCase();
+                                return s.name.toLowerCase().includes(q) || s.service_id.includes(q) || (s.category || "").toLowerCase().includes(q);
+                              })
+                              .slice(0, 100)
+                              .map((s: any) => {
+                                const isSelected = form.api_service_id === s.service_id;
+                                return (
+                                  <button
+                                    key={s.service_id}
+                                    type="button"
+                                    onClick={() => handleSelectService(s)}
+                                    className={`w-full text-left px-3 py-2 transition-colors ${
+                                      isSelected ? "bg-primary/10" : "hover:bg-muted/40"
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between gap-2">
+                                      <div className="min-w-0 flex-1">
+                                        <p className={`text-[11px] font-medium truncate ${isSelected ? "text-primary" : "text-foreground"}`}>
+                                          {s.name}
+                                        </p>
+                                        <p className="text-[9px] text-muted-foreground truncate">
+                                          {s.category} · ID: {s.service_id}
+                                        </p>
+                                      </div>
+                                      <div className="text-right shrink-0 space-y-0.5">
+                                        <p className="text-[10px] font-mono font-bold text-foreground">${s.rate}</p>
+                                        <p className="text-[9px] text-muted-foreground">{s.min}-{s.max}</p>
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-2 mt-1">
+                                      {s.refill && <span className="text-[8px] font-semibold text-primary bg-primary/10 px-1.5 py-px rounded">Refill</span>}
+                                      {s.cancel && <span className="text-[8px] font-semibold text-muted-foreground bg-secondary px-1.5 py-px rounded">Cancel</span>}
+                                    </div>
+                                  </button>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Selected service summary */}
+                      {form.api_service_id && apiServices.length > 0 && (() => {
+                        const sel = apiServices.find((s) => s.service_id === form.api_service_id);
+                        if (!sel) return null;
+                        return (
+                          <div className="rounded-lg border border-primary/20 bg-primary/5 p-3 space-y-1.5">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle2 className="w-4 h-4 text-primary shrink-0" />
+                              <span className="text-xs font-semibold text-primary">Service Linked</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[10px] text-muted-foreground pl-6">
+                              <span>Rate: <span className="font-mono text-foreground">${sel.rate}</span></span>
+                              <span>Min: <span className="font-mono text-foreground">{sel.min}</span></span>
+                              <span>Max: <span className="font-mono text-foreground">{sel.max}</span></span>
+                              <span>Refill: <span className="font-mono text-foreground">{sel.refill ? "Yes" : "No"}</span></span>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </>
                 )}
