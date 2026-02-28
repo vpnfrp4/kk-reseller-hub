@@ -497,9 +497,11 @@ export type Database = {
           max_length: number | null
           min_length: number | null
           options: Json | null
+          placeholder: string | null
           product_id: string
           required: boolean
           sort_order: number
+          validation_rule: string | null
         }
         Insert: {
           created_at?: string
@@ -510,9 +512,11 @@ export type Database = {
           max_length?: number | null
           min_length?: number | null
           options?: Json | null
+          placeholder?: string | null
           product_id: string
           required?: boolean
           sort_order?: number
+          validation_rule?: string | null
         }
         Update: {
           created_at?: string
@@ -523,9 +527,11 @@ export type Database = {
           max_length?: number | null
           min_length?: number | null
           options?: Json | null
+          placeholder?: string | null
           product_id?: string
           required?: boolean
           sort_order?: number
+          validation_rule?: string | null
         }
         Relationships: [
           {
