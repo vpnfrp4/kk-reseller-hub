@@ -44,6 +44,8 @@ interface CustomField {
   linked_mode: string;
   sort_order: number;
   options: string[];
+  placeholder: string;
+  validation_rule: string;
 }
 
 interface LookupItem { id: string; name: string; sort_order?: number }
