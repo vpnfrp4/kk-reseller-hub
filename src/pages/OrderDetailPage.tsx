@@ -24,7 +24,9 @@ import {
   Loader2,
   MessageSquare,
   Star,
+  Lock,
 } from "lucide-react";
+import CredentialCards from "@/components/orders/CredentialCards";
 import { toast } from "sonner";
 
 /* ═══════════════════════════════════════════════════════
@@ -580,86 +582,32 @@ export default function OrderDetailPage() {
           </GlassSection>
 
           {/* ═══ 5. DELIVERY RESULT (if completed) ═══ */}
+          {/* ═══ 5. STRUCTURED CREDENTIAL CARDS ═══ */}
           {isDelivered &&
             credentialLines.length > 0 &&
             credentialLines[0] !== "Pending manual fulfillment" && (
               <GlassSection>
-                <div className="flex items-center justify-between mb-5">
-                  <SectionLabel>
-                    {isImei ? "IMEI Result" : l(t.orderDetail.deliveryResult)}
-                  </SectionLabel>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs text-muted-foreground hover:text-foreground gap-1.5 -mt-2"
-                    onClick={() => setCredentialsRevealed(!credentialsRevealed)}
-                  >
-                    {credentialsRevealed ? (
-                      <EyeOff className="w-3.5 h-3.5" />
-                    ) : (
-                      <Eye className="w-3.5 h-3.5" />
-                    )}
-                    {credentialsRevealed
-                      ? l(t.orderDetail.hide)
-                      : l(t.orderDetail.reveal)}
-                  </Button>
-                </div>
-
-                <div className="space-y-3">
-                  {credentialLines.map((line: string, i: number) => (
-                    <div
-                      key={i}
-                      className="flex items-center justify-between gap-3 rounded-[var(--radius-card)] border border-border/30 bg-background/40 px-4 py-3"
-                    >
-                      <code className="text-sm font-mono text-foreground truncate flex-1">
-                        {credentialsRevealed
-                          ? line
-                          : "•".repeat(Math.min(line.length, 24))}
-                      </code>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 shrink-0"
-                        onClick={() => handleCopy(line, `cred-${i}`)}
-                      >
-                        {copiedField === `cred-${i}` ? (
-                          <CheckCircle2 className="w-4 h-4 text-success" />
-                        ) : (
-                          <Copy className="w-4 h-4 text-muted-foreground" />
-                        )}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Copy all */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-4 btn-glass gap-1.5 text-xs w-full sm:w-auto"
-                  onClick={() => {
-                    handleCopy(deliveryContent, "all-creds");
-                    toast.success(l(t.orderDetail.copied));
-                  }}
-                >
-                  {copiedField === "all-creds" ? (
-                    <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-                  ) : (
-                    <Copy className="w-3.5 h-3.5" />
-                  )}
-                  {l(t.success.copyAll)}
-                </Button>
+                <CredentialCards
+                  rawCredentials={deliveryContent}
+                  isImei={isImei}
+                />
               </GlassSection>
             )}
 
-          {/* ═══ 5b. ADMIN NOTES ═══ */}
+          {/* ═══ 5b. ADMIN NOTES (visible to user as fulfillment note) ═══ */}
           {order.admin_notes && (
-            <GlassSection>
+            <GlassSection className="border-l-2 border-l-muted-foreground/20">
               <div className="flex items-start gap-3">
-                <MessageSquare className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Admin Notes</h4>
-                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">{order.admin_notes}</p>
+                <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
+                  <Lock className="w-4 h-4 text-muted-foreground" />
+                </div>
+                <div className="space-y-1.5 min-w-0">
+                  <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                    Fulfillment Notes
+                  </h4>
+                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap break-words">
+                    {order.admin_notes}
+                  </p>
                 </div>
               </div>
             </GlassSection>
