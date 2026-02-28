@@ -610,7 +610,8 @@ export default function AdminProducts() {
       payload.stock = 0;
       payload.fulfillment_modes = ["api"];
       payload.api_service_id = form.api_service_id || null;
-    } else if (pt === "manual") {
+      payload.api_min_quantity = parseInt(form.api_min_quantity) || 1;
+      payload.api_max_quantity = parseInt(form.api_max_quantity) || null;
       if (isUsd && basePriceNum > 0) {
         payload.wholesale_price = Math.round(basePriceNum * usdRate);
         payload.retail_price = parseInt(form.retail_price) || Math.round(basePriceNum * usdRate);
