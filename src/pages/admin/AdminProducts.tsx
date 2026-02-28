@@ -1241,7 +1241,7 @@ export default function AdminProducts() {
                       <div className="flex items-center justify-between">
                         <Label className="text-muted-foreground text-xs font-medium">Custom Fields</Label>
                         <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1"
-                          onClick={() => setCustomFields([...customFields, { field_name: "", field_type: "text", required: true, min_length: null, max_length: null, linked_mode: "manual", sort_order: customFields.length, options: [] }])}>
+                          onClick={() => setCustomFields([...customFields, { field_name: "", field_type: "text", required: true, min_length: null, max_length: null, linked_mode: isApi ? "api" : "manual", sort_order: customFields.length, options: [], placeholder: "", validation_rule: "" }])}>
                           <Plus className="w-3 h-3" /> Add Field
                         </Button>
                       </div>
