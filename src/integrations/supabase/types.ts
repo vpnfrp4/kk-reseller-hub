@@ -304,6 +304,8 @@ export type Database = {
           product_id: string | null
           product_name: string
           product_type: string | null
+          profit_amount: number | null
+          provider_cost: number | null
           result: string | null
           status: string
           user_id: string
@@ -323,6 +325,8 @@ export type Database = {
           product_id?: string | null
           product_name: string
           product_type?: string | null
+          profit_amount?: number | null
+          provider_cost?: number | null
           result?: string | null
           status?: string
           user_id: string
@@ -342,6 +346,8 @@ export type Database = {
           product_id?: string | null
           product_name?: string
           product_type?: string | null
+          profit_amount?: number | null
+          provider_cost?: number | null
           result?: string | null
           status?: string
           user_id?: string
