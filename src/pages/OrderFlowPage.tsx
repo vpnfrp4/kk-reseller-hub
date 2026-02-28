@@ -604,7 +604,7 @@ export default function OrderFlowPage() {
               style={{ background: "linear-gradient(145deg, #15151C 0%, #111116 100%)" }}
             >
               <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">
-                Required Information
+                {isApiProduct ? "Order Details" : "Required Information"}
               </p>
               {activeFields.map((field: any) => (
                 <div key={field.id} className="space-y-1.5">
@@ -621,7 +621,7 @@ export default function OrderFlowPage() {
                       }}
                     >
                       <SelectTrigger className={cn("bg-muted/30 border-border/40", fieldErrors[field.field_name] && "border-destructive")}>
-                        <SelectValue placeholder={`Select ${field.field_name.toLowerCase()}`} />
+                        <SelectValue placeholder={field.placeholder || `Select ${field.field_name.toLowerCase()}`} />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border z-50">
                         {(field.options as string[]).map((opt: string) => (
@@ -631,24 +631,33 @@ export default function OrderFlowPage() {
                     </Select>
                   ) : (
                     <Input
-                      type={field.field_type === "email" ? "email" : field.field_type === "number" ? "number" : "text"}
+                      type={field.field_type === "email" ? "email" : (field.field_type === "number" || field.field_type === "quantity") ? "number" : field.field_type === "url" ? "url" : "text"}
                       value={customFieldValues[field.field_name] || ""}
                       onChange={(e) => {
                         setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }));
                         setFieldErrors(prev => { const n = { ...prev }; delete n[field.field_name]; return n; });
                       }}
-                      placeholder={`Enter ${field.field_name.toLowerCase()}`}
-                      className={cn("bg-muted/30 border-border/40", fieldErrors[field.field_name] && "border-destructive")}
+                      placeholder={field.placeholder || `Enter ${field.field_name.toLowerCase()}`}
+                      min={field.field_type === "quantity" ? (field.min_length || 1) : undefined}
+                      max={field.field_type === "quantity" ? (field.max_length || undefined) : undefined}
+                      className={cn("bg-muted/30 border-border/40 font-mono", fieldErrors[field.field_name] && "border-destructive")}
                     />
                   )}
                   {fieldErrors[field.field_name] && (
                     <p className="text-[11px] text-destructive">{fieldErrors[field.field_name]}</p>
                   )}
-                  {(field.min_length || field.max_length) && (
+                  {(field.field_type === "quantity" || field.field_type === "number") && (field.min_length || field.max_length) && (
                     <p className="text-[10px] text-muted-foreground">
-                      {field.min_length ? `Min: ${field.min_length}` : ""}
+                      {field.min_length ? `Min: ${field.min_length.toLocaleString()}` : ""}
                       {field.min_length && field.max_length ? " · " : ""}
-                      {field.max_length ? `Max: ${field.max_length}` : ""}
+                      {field.max_length ? `Max: ${field.max_length.toLocaleString()}` : ""}
+                    </p>
+                  )}
+                  {field.field_type !== "quantity" && field.field_type !== "number" && (field.min_length || field.max_length) && (
+                    <p className="text-[10px] text-muted-foreground">
+                      {field.min_length ? `Min: ${field.min_length} chars` : ""}
+                      {field.min_length && field.max_length ? " · " : ""}
+                      {field.max_length ? `Max: ${field.max_length} chars` : ""}
                     </p>
                   )}
                 </div>
