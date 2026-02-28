@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
+import ProviderLogosCarousel from "@/components/landing/ProviderLogosCarousel";
 import {
   Accordion,
   AccordionContent,
@@ -242,6 +243,9 @@ export default function LandingPage() {
             </ScrollReveal>
           </div>
         </section>
+
+        {/* ═══════════ PROVIDER LOGOS ═══════════ */}
+        <ProviderLogosCarousel />
 
         {/* ═══════════ SERVICES — Clean Minimal Blocks ═══════════ */}
         <section id="services" className="bg-background py-[120px] max-sm:py-20">
