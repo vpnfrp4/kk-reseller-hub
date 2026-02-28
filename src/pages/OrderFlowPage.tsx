@@ -243,11 +243,48 @@ export default function OrderFlowPage() {
             continue;
           }
         }
-        if (field.min_length && value.length < field.min_length) {
+        if (field.field_type === "url") {
+          try {
+            const url = new URL(value);
+            if (!["http:", "https:"].includes(url.protocol)) {
+              errors[field.field_name] = "URL must start with http:// or https://";
+              continue;
+            }
+          } catch {
+            errors[field.field_name] = "Please enter a valid URL";
+            continue;
+          }
+          // Regex validation rule
+          if (field.validation_rule) {
+            try {
+              const regex = new RegExp(field.validation_rule);
+              if (!regex.test(value)) {
+                errors[field.field_name] = "URL format does not match the required pattern";
+                continue;
+              }
+            } catch { /* invalid regex, skip */ }
+          }
+        }
+        if (field.field_type === "quantity" || field.field_type === "number") {
+          const num = Number(value);
+          if (isNaN(num)) {
+            errors[field.field_name] = "Must be a number";
+            continue;
+          }
+          if (field.min_length && num < field.min_length) {
+            errors[field.field_name] = `Minimum: ${field.min_length}`;
+            continue;
+          }
+          if (field.max_length && num > field.max_length) {
+            errors[field.field_name] = `Maximum: ${field.max_length}`;
+            continue;
+          }
+        }
+        if (field.min_length && field.field_type !== "number" && field.field_type !== "quantity" && value.length < field.min_length) {
           errors[field.field_name] = `Minimum ${field.min_length} characters`;
           continue;
         }
-        if (field.max_length && value.length > field.max_length) {
+        if (field.max_length && field.field_type !== "number" && field.field_type !== "quantity" && value.length > field.max_length) {
           errors[field.field_name] = `Maximum ${field.max_length} characters`;
           continue;
         }
@@ -258,9 +295,15 @@ export default function OrderFlowPage() {
             continue;
           }
         }
-        if (field.field_type === "number" && isNaN(Number(value))) {
-          errors[field.field_name] = "Must be a number";
-          continue;
+        // Text field validation rule
+        if (field.field_type === "text" && field.validation_rule) {
+          try {
+            const regex = new RegExp(field.validation_rule);
+            if (!regex.test(value)) {
+              errors[field.field_name] = "Input does not match the required format";
+              continue;
+            }
+          } catch { /* invalid regex, skip */ }
         }
       }
     }
