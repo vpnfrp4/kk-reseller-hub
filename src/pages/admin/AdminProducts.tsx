@@ -21,9 +21,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, Info, FileText, Sparkles } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, Info, FileText, Sparkles, Zap } from "lucide-react";
 import { generateProductDescription, type DescriptionMode } from "@/lib/description-templates";
-import { optimizeTitle } from "@/lib/title-optimizer";
+import { optimizeTitle, autoBuildProduct, type AutoBuildResult } from "@/lib/title-optimizer";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
 import BulkTierDialog from "@/components/admin/BulkTierDialog";
 import { Progress } from "@/components/ui/progress";
@@ -115,6 +115,8 @@ export default function AdminProducts() {
   const titleManuallyEdited = useRef(false);
   const [descMode, setDescMode] = useState<DescriptionMode>("ultra-short");
   const [optimizedMeta, setOptimizedMeta] = useState<{ shortTitle: string; seoSlug: string } | null>(null);
+  const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
+  const manualOverrides = useRef<Set<string>>(new Set());
 
   // Unified form state
   const [form, setForm] = useState({
@@ -229,6 +231,8 @@ export default function AdminProducts() {
     descManuallyEdited.current = false;
     titleManuallyEdited.current = false;
     setOptimizedMeta(null);
+    setAutoFilledFields(new Set());
+    manualOverrides.current = new Set();
   };
 
   const handleOptimizeTitle = (force = false) => {
@@ -240,6 +244,86 @@ export default function AdminProducts() {
     setOptimizedMeta({ shortTitle: result.shortTitle, seoSlug: result.seoSlug });
     titleManuallyEdited.current = false;
     toast.success("Title optimized");
+  };
+
+  const handleAutoBuild = () => {
+    const raw = form.name.trim();
+    if (!raw) { toast.error("Enter a service name first"); return; }
+
+    const result = autoBuildProduct(raw);
+    const filled = new Set<string>();
+    const overrides = manualOverrides.current;
+
+    const updates: Partial<typeof form> = {};
+
+    // Title — always apply
+    if (!overrides.has("name")) {
+      updates.name = result.displayTitle;
+      filled.add("name");
+    }
+    setOptimizedMeta({ shortTitle: result.shortTitle, seoSlug: result.seoSlug });
+
+    // Category
+    if (!overrides.has("category") && result.meta.category !== "General") {
+      updates.category = result.meta.category;
+      filled.add("category");
+    }
+
+    // Product type
+    if (!overrides.has("product_type")) {
+      updates.product_type = result.meta.productType;
+      filled.add("product_type");
+    }
+
+    // Icon
+    if (!overrides.has("icon")) {
+      updates.icon = result.meta.icon;
+      filled.add("icon");
+    }
+
+    // Duration
+    if (!overrides.has("duration") && result.meta.duration) {
+      updates.duration = result.meta.duration;
+      filled.add("duration");
+    }
+
+    // Processing time
+    if (!overrides.has("processing_time") && result.meta.processingTime) {
+      updates.processing_time = result.meta.processingTime;
+      filled.add("processing_time");
+    }
+
+    setForm((prev) => ({ ...prev, ...updates }));
+    setAutoFilledFields(filled);
+    titleManuallyEdited.current = false;
+
+    // Auto-generate description after a tick so form state is updated
+    setTimeout(() => {
+      setForm((prev) => {
+        const merged = { ...prev, ...updates };
+        const desc = generateProductDescription({
+          name: merged.name || "Product",
+          category: merged.category,
+          productType: merged.product_type,
+          duration: merged.duration,
+          processingTime: merged.processing_time,
+        }, descMode);
+        if (!overrides.has("description")) {
+          filled.add("description");
+          setAutoFilledFields(new Set(filled));
+          descManuallyEdited.current = false;
+          return { ...merged, description: desc };
+        }
+        return merged;
+      });
+    }, 0);
+
+    // Clear highlight after 3 seconds
+    setTimeout(() => setAutoFilledFields(new Set()), 3000);
+
+    toast.success(`Auto-filled ${filled.size} fields`, {
+      description: result.meta.warranty ? `Warranty detected: ${result.meta.warranty}` : undefined,
+    });
   };
 
   const handleGenerateDescription = (force = false) => {
@@ -626,25 +710,33 @@ export default function AdminProducts() {
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                 </div>
 
+                {/* ── Auto Build Button ── */}
+                <div className="flex gap-2">
+                  <Button type="button" onClick={handleAutoBuild} className="flex-1 h-9 gap-2 text-sm font-semibold">
+                    <Zap className="w-4 h-4" /> Auto Build
+                  </Button>
+                  {autoFilledFields.size > 0 && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 border border-primary/20 rounded-md px-2.5 animate-fade-in">
+                      <CheckCircle2 className="w-3 h-3" /> {autoFilledFields.size} fields filled
+                    </span>
+                  )}
+                </div>
+
                 {/* ── Common Fields ── */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center justify-between">
-                      <Label className="text-muted-foreground text-xs">Name</Label>
-                      <div className="flex gap-1">
-                        {form.name.trim() && !titleManuallyEdited.current && optimizedMeta && (
-                          <Button type="button" variant="ghost" size="sm" className="h-5 text-[9px] gap-1 px-1.5 text-muted-foreground"
-                            onClick={() => handleOptimizeTitle(true)}>
-                            <RotateCcw className="w-2.5 h-2.5" /> Re-optimize
-                          </Button>
-                        )}
-                        <Button type="button" variant="outline" size="sm" className="h-5 text-[9px] gap-1 px-2"
-                          onClick={() => handleOptimizeTitle(true)}>
-                          <Sparkles className="w-2.5 h-2.5" /> Optimize
-                        </Button>
+                      <div className="flex items-center gap-1.5">
+                        <Label className="text-muted-foreground text-xs">Name</Label>
+                        {autoFilledFields.has("name") && <span className="text-[8px] font-bold text-primary bg-primary/10 rounded px-1 py-px animate-fade-in">AUTO</span>}
                       </div>
+                      <Button type="button" variant="ghost" size="sm" className="h-5 text-[9px] gap-1 px-1.5 text-muted-foreground"
+                        onClick={() => handleOptimizeTitle(true)}>
+                        <Sparkles className="w-2.5 h-2.5" /> Optimize
+                      </Button>
                     </div>
-                    <Input value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); titleManuallyEdited.current = true; setOptimizedMeta(null); }} required className="bg-muted/50 border-border" />
+                    <Input value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); titleManuallyEdited.current = true; setOptimizedMeta(null); manualOverrides.current.add("name"); }} required
+                      className={`bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("name") ? "ring-1 ring-primary/40" : ""}`} />
                     {optimizedMeta && (
                       <div className="flex flex-wrap gap-2 mt-1">
                         <span className="inline-flex items-center gap-1 text-[9px] font-mono text-muted-foreground bg-muted/60 rounded px-1.5 py-0.5">
@@ -657,25 +749,73 @@ export default function AdminProducts() {
                     )}
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-muted-foreground text-xs">Icon (emoji)</Label>
-                    <Input value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} className="bg-muted/50 border-border" />
+                    <div className="flex items-center gap-1.5">
+                      <Label className="text-muted-foreground text-xs">Icon (emoji)</Label>
+                      {autoFilledFields.has("icon") && <span className="text-[8px] font-bold text-primary bg-primary/10 rounded px-1 py-px animate-fade-in">AUTO</span>}
+                    </div>
+                    <Input value={form.icon} onChange={(e) => { setForm({ ...form, icon: e.target.value }); manualOverrides.current.add("icon"); }}
+                      className={`bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("icon") ? "ring-1 ring-primary/40" : ""}`} />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
-                    <Label className="text-muted-foreground text-xs">Category</Label>
-                    <Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required className="bg-muted/50 border-border" />
+                    <div className="flex items-center gap-1.5">
+                      <Label className="text-muted-foreground text-xs">Category</Label>
+                      {autoFilledFields.has("category") && <span className="text-[8px] font-bold text-primary bg-primary/10 rounded px-1 py-px animate-fade-in">AUTO</span>}
+                    </div>
+                    <Input value={form.category} onChange={(e) => { setForm({ ...form, category: e.target.value }); manualOverrides.current.add("category"); }} required
+                      className={`bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("category") ? "ring-1 ring-primary/40" : ""}`} />
                   </div>
                   {!isImei && (
                     <div className="space-y-1">
-                      <Label className="text-muted-foreground text-xs">Duration</Label>
-                      <Input value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} placeholder="1 Month" className="bg-muted/50 border-border" />
+                      <div className="flex items-center gap-1.5">
+                        <Label className="text-muted-foreground text-xs">Duration</Label>
+                        {autoFilledFields.has("duration") && <span className="text-[8px] font-bold text-primary bg-primary/10 rounded px-1 py-px animate-fade-in">AUTO</span>}
+                      </div>
+                      <Input value={form.duration} onChange={(e) => { setForm({ ...form, duration: e.target.value }); manualOverrides.current.add("duration"); }} placeholder="1 Month"
+                        className={`bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("duration") ? "ring-1 ring-primary/40" : ""}`} />
+                    </div>
+                  )}
+                </div>
+                {/* ── Delivery Time (always visible) ── */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-1.5">
+                      <Label className="text-muted-foreground text-xs">Delivery Time</Label>
+                      {autoFilledFields.has("processing_time") && <span className="text-[8px] font-bold text-primary bg-primary/10 rounded px-1 py-px animate-fade-in">AUTO</span>}
+                    </div>
+                    <Select value={form.processing_time} onValueChange={(v) => { setForm({ ...form, processing_time: v }); manualOverrides.current.add("processing_time"); }}>
+                      <SelectTrigger className={`bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("processing_time") ? "ring-1 ring-primary/40" : ""}`}><SelectValue placeholder="Auto-detect or select" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Instant">⚡ Instant</SelectItem>
+                        <SelectItem value="Instant - 24/7">⚡ Instant - 24/7</SelectItem>
+                        <SelectItem value="1-30 Minutes">⏳ 1-30 Minutes</SelectItem>
+                        <SelectItem value="1-6 Hours">⏳ 1-6 Hours</SelectItem>
+                        <SelectItem value="1-24 Hours">⏳ 1-24 Hours</SelectItem>
+                        <SelectItem value="1-3 Days">📅 1-3 Days</SelectItem>
+                        <SelectItem value="2-5 Days">📅 2-5 Days</SelectItem>
+                        <SelectItem value="3-7 Days">📅 3-7 Days</SelectItem>
+                        <SelectItem value="5-15 Days">📅 5-15 Days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {isImei && (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <Label className="text-muted-foreground text-xs">Duration</Label>
+                        {autoFilledFields.has("duration") && <span className="text-[8px] font-bold text-primary bg-primary/10 rounded px-1 py-px animate-fade-in">AUTO</span>}
+                      </div>
+                      <Input value={form.duration} onChange={(e) => { setForm({ ...form, duration: e.target.value }); manualOverrides.current.add("duration"); }} placeholder="Auto-detect"
+                        className={`bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("duration") ? "ring-1 ring-primary/40" : ""}`} />
                     </div>
                   )}
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label className="text-muted-foreground text-xs">Description</Label>
+                    <div className="flex items-center gap-1.5">
+                      <Label className="text-muted-foreground text-xs">Description</Label>
+                      {autoFilledFields.has("description") && <span className="text-[8px] font-bold text-primary bg-primary/10 rounded px-1 py-px animate-fade-in">AUTO</span>}
+                    </div>
                     <div className="flex gap-1">
                       {!form.description.trim() && (
                         <Button type="button" variant="outline" size="sm" className="h-6 text-[10px] gap-1 px-2"
@@ -712,7 +852,7 @@ export default function AdminProducts() {
                       </button>
                     ))}
                   </div>
-                  <Textarea value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; }} placeholder="Enter service name and click Generate" className="bg-muted/50 border-border resize-none text-xs font-mono" rows={descMode === "ultra-short" ? 6 : 10} maxLength={3000} />
+                  <Textarea value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; manualOverrides.current.add("description"); }} placeholder="Enter service name and click Auto Build" className={`bg-muted/50 border-border resize-none text-xs font-mono transition-all duration-500 ${autoFilledFields.has("description") ? "ring-1 ring-primary/40" : ""}`} rows={descMode === "ultra-short" ? 6 : 10} maxLength={3000} />
                   <p className="text-[10px] text-muted-foreground">{form.description.length}/3000 — {descMode === "ultra-short" ? "5-line compressed" : descMode === "standard" ? "7-section structured" : "SEO-optimized extended"}</p>
                 </div>
 
