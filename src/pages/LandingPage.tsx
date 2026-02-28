@@ -137,6 +137,13 @@ function OrgWebsiteJsonLd() {
    ═══════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [contactOpen, setContactOpen] = useState(false);
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <>
@@ -169,10 +176,20 @@ export default function LandingPage() {
       <main>
         {/* ═══════════ HERO — Ultra Minimal ═══════════ */}
         <section className="relative overflow-hidden bg-background">
-          {/* Very subtle radial warmth */}
+          {/* Parallax radial warmth */}
           <div
-            className="pointer-events-none absolute inset-0"
-            style={{ background: "radial-gradient(900px circle at 50% 30%, hsl(43 65% 52% / 0.04), transparent 60%)" }}
+            className="pointer-events-none absolute inset-0 will-change-transform"
+            style={{
+              background: "radial-gradient(900px circle at 50% 30%, hsl(43 65% 52% / 0.04), transparent 60%)",
+              transform: `translateY(${scrollY * 0.3}px) scale(${1 + scrollY * 0.0002})`,
+            }}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 will-change-transform"
+            style={{
+              background: "radial-gradient(600px circle at 30% 60%, hsl(43 65% 52% / 0.02), transparent 50%)",
+              transform: `translateY(${scrollY * 0.15}px)`,
+            }}
           />
 
           <div className="relative mx-auto max-w-[1120px] px-6 pt-36 pb-32 md:pt-44 md:pb-40 text-center">
