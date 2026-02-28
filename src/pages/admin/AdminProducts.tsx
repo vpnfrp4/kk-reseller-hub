@@ -136,6 +136,8 @@ export default function AdminProducts() {
     base_price: "",
     // API service fields
     api_service_id: "",
+    api_min_quantity: "1",
+    api_max_quantity: "",
   });
 
   // API service fetching state
@@ -235,6 +237,8 @@ export default function AdminProducts() {
       processing_time: "1-3 Days", fulfillment_mode: "manual",
       base_currency: "MMK", base_price: "",
       api_service_id: "",
+      api_min_quantity: "1",
+      api_max_quantity: "",
     });
     setEditing(null);
     setImagePreview(null);
@@ -409,6 +413,8 @@ export default function AdminProducts() {
       provider_price: providerCostMmk.toString(),
       processing_time: service.type === "Default" ? "Instant" : "1-30 Minutes",
       duration: "",
+      api_min_quantity: String(parseInt(service.min) || 1),
+      api_max_quantity: String(parseInt(service.max) || 10000),
     }));
 
     // Auto-generate default API custom fields (URL + Quantity)
@@ -467,6 +473,8 @@ export default function AdminProducts() {
       base_currency: p.base_currency || "MMK",
       base_price: (p.base_price || 0).toString(),
       api_service_id: p.api_service_id || "",
+      api_min_quantity: (p.api_min_quantity || 1).toString(),
+      api_max_quantity: (p.api_max_quantity || "").toString(),
     });
     setImagePreview(p.image_url || null);
     descManuallyEdited.current = !!(p.description && p.description.trim());
@@ -602,6 +610,8 @@ export default function AdminProducts() {
       payload.stock = 0;
       payload.fulfillment_modes = ["api"];
       payload.api_service_id = form.api_service_id || null;
+      payload.api_min_quantity = parseInt(form.api_min_quantity) || 1;
+      payload.api_max_quantity = parseInt(form.api_max_quantity) || null;
     } else if (pt === "manual") {
       if (isUsd && basePriceNum > 0) {
         payload.wholesale_price = Math.round(basePriceNum * usdRate);
