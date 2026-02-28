@@ -132,7 +132,15 @@ export default function AdminProducts() {
     // Currency
     base_currency: "MMK" as "MMK" | "USD",
     base_price: "",
+    // API service fields
+    api_service_id: "",
   });
+
+  // API service fetching state
+  const [apiServices, setApiServices] = useState<any[]>([]);
+  const [apiServicesLoading, setApiServicesLoading] = useState(false);
+  const [apiServiceSearch, setApiServiceSearch] = useState("");
+  const [apiServicesError, setApiServicesError] = useState<string | null>(null);
 
   // USD rate
   const { data: usdRateSetting } = useQuery({
