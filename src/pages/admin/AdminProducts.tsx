@@ -22,7 +22,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, Info, FileText } from "lucide-react";
-import { generateProductDescription } from "@/lib/description-templates";
+import { generateProductDescription, type DescriptionMode } from "@/lib/description-templates";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
 import BulkTierDialog from "@/components/admin/BulkTierDialog";
 import { Progress } from "@/components/ui/progress";
@@ -111,6 +111,7 @@ export default function AdminProducts() {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const descManuallyEdited = useRef(false);
+  const [descMode, setDescMode] = useState<DescriptionMode>("ultra-short");
 
   // Unified form state
   const [form, setForm] = useState({
@@ -239,7 +240,7 @@ export default function AdminProducts() {
       brand: selectedBrand?.name,
       carrier: selectedCarrier?.name,
       country: selectedCountry?.name,
-    });
+    }, descMode);
     setForm((prev) => ({ ...prev, description: desc }));
     descManuallyEdited.current = false;
   };
@@ -632,7 +633,7 @@ export default function AdminProducts() {
                     </div>
                   )}
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label className="text-muted-foreground text-xs">Description</Label>
                     <div className="flex gap-1">
@@ -650,8 +651,29 @@ export default function AdminProducts() {
                       )}
                     </div>
                   </div>
-                  <Textarea value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; }} placeholder="Product description… or click Generate to auto-fill" className="bg-muted/50 border-border resize-none text-xs" rows={6} maxLength={2000} />
-                  <p className="text-[10px] text-muted-foreground">{form.description.length}/2000 — Category-aware template engine</p>
+                  {/* Mode Selector */}
+                  <div className="flex gap-1 rounded-lg bg-muted/50 p-0.5 border border-border">
+                    {([
+                      { value: "ultra-short" as DescriptionMode, label: "Ultra Short" },
+                      { value: "standard" as DescriptionMode, label: "Standard" },
+                      { value: "seo-full" as DescriptionMode, label: "SEO Full" },
+                    ]).map((m) => (
+                      <button
+                        key={m.value}
+                        type="button"
+                        onClick={() => setDescMode(m.value)}
+                        className={`flex-1 text-[10px] font-semibold py-1 rounded-md transition-all ${
+                          descMode === m.value
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
+                  <Textarea value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; }} placeholder="Enter service name and click Generate" className="bg-muted/50 border-border resize-none text-xs font-mono" rows={descMode === "ultra-short" ? 6 : 10} maxLength={3000} />
+                  <p className="text-[10px] text-muted-foreground">{form.description.length}/3000 — {descMode === "ultra-short" ? "5-line compressed" : descMode === "standard" ? "7-section structured" : "SEO-optimized extended"}</p>
                 </div>
 
                 {/* ── IMEI Auto-Configured Banner ── */}
