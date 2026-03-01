@@ -206,22 +206,21 @@ export default function LandingPage() {
             </ScrollReveal>
 
             <ScrollReveal delay={120}>
-              <p className="mx-auto mt-7 max-w-lg text-base text-muted-foreground/80 sm:text-lg">
+              <p className="mx-auto mt-7 max-w-lg text-base text-muted-foreground/80 sm:text-lg leading-relaxed">
                 One platform. Professional execution. Reliable outcomes.
               </p>
             </ScrollReveal>
 
             <ScrollReveal delay={240}>
-              <div className="mt-14 flex flex-col items-center gap-5">
-                <Button size="lg" className="h-13 px-12 text-sm font-semibold" asChild>
+              <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                <Button size="lg" className="h-13 min-w-[180px] px-10 text-sm font-semibold shadow-[0_4px_24px_-4px_hsl(var(--primary)/0.35)] hover:shadow-[0_6px_32px_-4px_hsl(var(--primary)/0.5)] transition-shadow" asChild>
                   <Link to="/login">Get Started</Link>
                 </Button>
-                <Link
-                  to="/login"
-                  className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-primary"
-                >
-                  Browse Services <ArrowRight className="h-3.5 w-3.5" />
-                </Link>
+                <Button variant="outline" size="lg" className="h-13 min-w-[180px] px-10 text-sm font-semibold border-border/60 hover:border-primary/40" asChild>
+                  <Link to="/login" className="inline-flex items-center gap-2">
+                    Browse Services <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </Button>
               </div>
             </ScrollReveal>
           </div>
