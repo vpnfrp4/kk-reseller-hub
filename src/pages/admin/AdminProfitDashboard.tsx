@@ -92,8 +92,8 @@ export default function AdminProfitDashboard() {
     return apiProducts.map((p: any) => {
       const rate = p.api_rate || 0;
       const margin = p.margin_percent || marginConfig?.global_margin || 20;
-      const costPer1000 = Math.ceil((rate / 1000) * exchangeRate * 1000);
-      const sellPer1000 = Math.ceil((rate / 1000) * exchangeRate * (1 + margin / 100) * 1000);
+      const costPer1000 = Math.ceil(rate * exchangeRate);
+      const sellPer1000 = Math.ceil(costPer1000 * (1 + margin / 100));
       const profitPer1000 = sellPer1000 - costPer1000;
       const profitPct = costPer1000 > 0 ? (profitPer1000 / costPer1000) * 100 : 0;
 
