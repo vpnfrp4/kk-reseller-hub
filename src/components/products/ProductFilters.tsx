@@ -4,8 +4,6 @@ import { t, useT } from "@/lib/i18n";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
-const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts", "IMEI Unlock"] as const;
-
 const FULFILLMENT_TYPES = [
   { value: "all", label: "All Types" },
   { value: "instant", label: "Instant" },
@@ -124,38 +122,43 @@ export default function ProductFilters({
         </button>
       </div>
 
-      {/* Category pills */}
+      {/* Category pills — dynamic from data */}
       <div className="flex gap-2 flex-wrap">
-        {CATEGORIES.map((cat) => {
-          const count =
-            cat === "All"
-              ? products.length
-              : products.filter((p: any) => p.category === cat).length;
-          if (count === 0 && cat !== "All") return null;
-          const label = cat === "All" ? l(t.products.all) : cat;
-          return (
-            <button
-              key={cat}
-              onClick={() => onCategoryChange(cat)}
-              className={`px-4 py-2 rounded-[var(--radius-btn)] text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
-                activeCategory === cat
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted/20 text-muted-foreground hover:text-foreground hover:bg-muted/40 border border-border/40"
-              }`}
-            >
-              {label}
-              <span
-                className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+        {(() => {
+          const cats = new Set<string>();
+          products.forEach((p: any) => { if (p.category) cats.add(p.category); });
+          const categories = ["All", ...Array.from(cats).sort()];
+          return categories.map((cat) => {
+            const count =
+              cat === "All"
+                ? products.length
+                : products.filter((p: any) => p.category === cat).length;
+            if (count === 0 && cat !== "All") return null;
+            const label = cat === "All" ? l(t.products.all) : cat;
+            return (
+              <button
+                key={cat}
+                onClick={() => onCategoryChange(cat)}
+                className={`px-4 py-2 rounded-[var(--radius-btn)] text-xs font-medium transition-all duration-200 flex items-center gap-1.5 ${
                   activeCategory === cat
-                    ? "bg-primary-foreground/20"
-                    : "bg-muted/40"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted/20 text-muted-foreground hover:text-foreground hover:bg-muted/40 border border-border/40"
                 }`}
               >
-                {count}
-              </span>
-            </button>
-          );
-        })}
+                {label}
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+                    activeCategory === cat
+                      ? "bg-primary-foreground/20"
+                      : "bg-muted/40"
+                  }`}
+                >
+                  {count}
+                </span>
+              </button>
+            );
+          });
+        })()}
         {hasActiveFilters && (
           <button
             onClick={resetFilters}

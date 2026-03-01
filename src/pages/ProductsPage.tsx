@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { t, useT } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, Loader2, ArrowUp } from "lucide-react";
+import { Package, Loader2, ArrowUp, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import ProductFilters from "@/components/products/ProductFilters";
@@ -14,8 +14,7 @@ import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
 import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
 import ImportantNoticeModal from "@/components/products/ImportantNoticeModal";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
-import PopularServices from "@/components/marketplace/PopularServices";
-import RecentUnlocksFeed from "@/components/marketplace/RecentUnlocksFeed";
+import { cn } from "@/lib/utils";
 
 interface PurchaseResult {
   order_id: string;
@@ -26,7 +25,7 @@ interface PurchaseResult {
   unit_price?: number;
 }
 
-const PAGE_SIZE = 9;
+const PAGE_SIZE = 24;
 
 export default function ProductsPage() {
   const l = useT();
@@ -48,6 +47,7 @@ export default function ProductsPage() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
 
   // Smart top-up state
   const [topUpOpen, setTopUpOpen] = useState(false);
@@ -143,6 +143,25 @@ export default function ProductsPage() {
     return () => observer.disconnect();
   }, [hasMore, loadMore]);
 
+  // Group visible products by category
+  const groupedProducts = useMemo(() => {
+    const groups = new Map<string, any[]>();
+    for (const p of visibleProducts) {
+      const cat = p.category || "Other";
+      if (!groups.has(cat)) groups.set(cat, []);
+      groups.get(cat)!.push(p);
+    }
+    return Array.from(groups, ([category, items]) => ({ category, items }));
+  }, [visibleProducts]);
+
+  const toggleCategory = (cat: string) => {
+    setCollapsedCategories((prev) => {
+      const next = new Set(prev);
+      next.has(cat) ? next.delete(cat) : next.add(cat);
+      return next;
+    });
+  };
+
   const mapErrorMessage = (msg: string): string => {
     const lower = msg.toLowerCase();
     if (lower.includes("out of stock") || lower.includes("no credentials available") || lower.includes("not enough stock")) {
@@ -156,21 +175,9 @@ export default function ProductsPage() {
 
   const handleBuyClick = (product: any) => {
     const pt = product.product_type || "digital";
-    // IMEI → redirect to IMEI marketplace for ordering
-    if (pt === "imei") {
-      navigate("/imei-marketplace");
-      return;
-    }
-    // Manual/API → redirect to configuration/detail page
-    if (pt === "manual" || pt === "api") {
-      navigate(`/dashboard/products/${product.id}`);
-      return;
-    }
-    // Digital → check stock
-    if (product.stock <= 0) {
-      toast.error(l(t.products.outOfStockToast));
-      return;
-    }
+    if (pt === "imei") { navigate("/imei-marketplace"); return; }
+    if (pt === "manual" || pt === "api") { navigate(`/dashboard/products/${product.id}`); return; }
+    if (product.stock <= 0) { toast.error(l(t.products.outOfStockToast)); return; }
     setNoticeProduct(product);
   };
 
@@ -222,9 +229,12 @@ export default function ProductsPage() {
     }
   };
 
+  // Running card index for stagger animation across groups
+  let globalIndex = 0;
+
   return (
     <>
-    <div className="space-y-[var(--space-section)]">
+    <div className="space-y-[var(--space-default)]">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
         { label: l(t.products.title) },
@@ -252,39 +262,74 @@ export default function ProductsPage() {
         providers={providers}
       />
 
-      {/* Marketplace sections */}
-      <PopularServices />
-      <RecentUnlocksFeed />
-
-      {/* Marketplace catalog */}
-
-      <div className="flex flex-col gap-[var(--space-compact)]">
-        {isLoading ? (
-          Array.from({ length: 4 }).map((_, i) => (
+      {/* Categorized product grid */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
             <ProductCardSkeleton key={i} index={i} />
-          ))
-        ) : filtered.length === 0 ? (
-          <div className="glass-card p-[var(--space-page)] text-center">
-            <Package className="mx-auto mb-3 h-8 w-8 text-muted-foreground/30" />
-            <p className="font-medium text-foreground text-sm">{l(t.products.noProducts)}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{l(t.products.adjustFilter)}</p>
-          </div>
-        ) : (
-          visibleProducts.map((product: any, i: number) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              index={i}
-              isPurchasing={purchasing === product.id}
-              onBuyClick={handleBuyClick}
-              pricingTiers={getTiersForProduct(product.id)}
-              lastRateUpdate={product.base_currency === "USD" ? lastRateUpdate : null}
-              usdRate={product.base_currency === "USD" ? usdRate : null}
-              provider={(product as any).imei_providers || null}
-            />
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="rounded-[var(--radius-card)] border border-border/40 bg-card p-[var(--space-page)] text-center">
+          <Package className="mx-auto mb-3 h-8 w-8 text-muted-foreground/30" />
+          <p className="font-medium text-foreground text-sm">{l(t.products.noProducts)}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{l(t.products.adjustFilter)}</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {groupedProducts.map(({ category, items }) => {
+            const isCollapsed = collapsedCategories.has(category);
+            const startIndex = globalIndex;
+            globalIndex += items.length;
+
+            return (
+              <div key={category} className="animate-fade-in">
+                {/* Category header — collapsible */}
+                <button
+                  onClick={() => toggleCategory(category)}
+                  className="w-full flex items-center gap-3 mb-3 group/cat"
+                >
+                  <span className="text-[11px] uppercase tracking-widest font-semibold text-foreground">
+                    {category}
+                  </span>
+                  <span className="text-[10px] font-mono text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+                    {items.length}
+                  </span>
+                  <div className="flex-1 h-px bg-border/30" />
+                  <ChevronDown
+                    className={cn(
+                      "w-4 h-4 text-muted-foreground transition-transform duration-200",
+                      isCollapsed && "-rotate-90"
+                    )}
+                  />
+                </button>
+
+                {/* Grid — smooth collapse */}
+                <div
+                  className={cn(
+                    "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 transition-all duration-300 ease-out",
+                    isCollapsed ? "max-h-0 overflow-hidden opacity-0" : "max-h-[5000px] opacity-100"
+                  )}
+                >
+                  {items.map((product: any, i: number) => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      index={startIndex + i}
+                      isPurchasing={purchasing === product.id}
+                      onBuyClick={handleBuyClick}
+                      pricingTiers={getTiersForProduct(product.id)}
+                      lastRateUpdate={product.base_currency === "USD" ? lastRateUpdate : null}
+                      usdRate={product.base_currency === "USD" ? usdRate : null}
+                      provider={(product as any).imei_providers || null}
+                    />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {!isLoading && hasMore && (
         <div ref={sentinelRef} className="flex justify-center py-[var(--space-card)]">
@@ -293,7 +338,7 @@ export default function ProductsPage() {
       )}
 
       {!isLoading && filtered.length > 0 && (
-         <p className="text-center text-xs text-muted-foreground">
+        <p className="text-center text-xs text-muted-foreground">
           {l(t.products.showing)} {visibleProducts.length} / {filtered.length}
         </p>
       )}
@@ -321,7 +366,6 @@ export default function ProductsPage() {
         totalSavings={lastSavings}
       />
 
-      {/* Hidden TopUpDialog triggered from insufficient balance prompt */}
       <TopUpDialog
         userId={user?.id}
         defaultAmount={topUpDefaultAmount}
