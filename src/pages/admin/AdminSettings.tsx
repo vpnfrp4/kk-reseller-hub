@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, Fragment } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts";
-import { DollarSign, RefreshCw, Zap, Clock, Globe } from "lucide-react";
+import { DollarSign, RefreshCw, Zap, Clock, Globe, List } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -896,6 +896,42 @@ function RateHistoryChart() {
   );
 }
 
+/* ─── Service Margin Row ─── */
+function ServiceMarginRow({ service, saving, onSave }: {
+  service: any; saving: boolean; onSave: (id: string, margin: number) => void;
+}) {
+  const [margin, setMargin] = useState<number>(service.margin_percent ?? 30);
+  const changed = margin !== (service.margin_percent ?? 30);
+
+  return (
+    <div className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-muted/10 group">
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-medium text-foreground truncate">{service.name}</p>
+        <p className="text-[10px] text-muted-foreground">
+          ID: {service.provider_service_id} • Rate: ${service.rate}/1k • Min: {service.min} • Max: {service.max}
+        </p>
+      </div>
+      <div className="flex items-center gap-1.5 shrink-0">
+        <Input
+          type="number"
+          value={margin}
+          onChange={(e) => setMargin(Math.max(0, parseFloat(e.target.value) || 0))}
+          className="w-16 h-7 text-xs text-center font-mono"
+          min={0}
+          max={999}
+        />
+        <span className="text-[10px] text-muted-foreground">%</span>
+        {changed && (
+          <Button size="sm" variant="outline" className="h-6 px-2 text-[10px]"
+            onClick={() => onSave(service.id, margin)} disabled={saving}>
+            {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /* ─── API Providers Section ─── */
 function ApiProvidersSection() {
   const queryClient = useQueryClient();
@@ -906,6 +942,8 @@ function ApiProvidersSection() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [testing, setTesting] = useState<string | null>(null);
   const [fetchingServices, setFetchingServices] = useState<string | null>(null);
+  const [servicesOpen, setServicesOpen] = useState<string | null>(null);
+  const [savingMargin, setSavingMargin] = useState<string | null>(null);
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
 
   const emptyForm = { name: "", api_url: "", api_key: "", api_type: "generic", is_active: true };
@@ -1060,6 +1098,53 @@ function ApiProvidersSection() {
       setFetchingServices(null);
     }
   };
+  // Services query for the currently open provider
+  const { data: servicesList, refetch: refetchServices } = useQuery({
+    queryKey: ["admin-api-services", servicesOpen],
+    queryFn: async () => {
+      if (!servicesOpen) return [];
+      const { data } = await supabase
+        .from("api_services")
+        .select("*")
+        .eq("provider_id", servicesOpen)
+        .order("category")
+        .order("name");
+      return (data || []) as any[];
+    },
+    enabled: !!servicesOpen,
+  });
+
+  // Service counts per provider
+  const { data: serviceCounts } = useQuery({
+    queryKey: ["admin-api-service-counts"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("api_services")
+        .select("provider_id");
+      const counts: Record<string, number> = {};
+      (data || []).forEach((s: any) => {
+        counts[s.provider_id] = (counts[s.provider_id] || 0) + 1;
+      });
+      return counts;
+    },
+  });
+
+  const handleSaveMargin = async (serviceId: string, margin: number) => {
+    setSavingMargin(serviceId);
+    try {
+      const { error } = await supabase
+        .from("api_services")
+        .update({ margin_percent: margin })
+        .eq("id", serviceId);
+      if (error) throw error;
+      toast.success("Margin updated");
+      refetchServices();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update margin");
+    } finally {
+      setSavingMargin(null);
+    }
+  };
 
   const ProviderForm = ({ data, onChange, showKey, onToggleKey }: {
     data: any; onChange: (field: string, value: any) => void;
@@ -1155,7 +1240,12 @@ function ApiProvidersSection() {
               <Switch checked={p.is_active} onCheckedChange={(v) => handleToggle(p.id, v, p.name)} />
             </div>
 
-            <div className="text-xs text-muted-foreground font-mono truncate">{p.api_url || "No URL set"}</div>
+            <div className="text-xs text-muted-foreground font-mono truncate">
+              {p.api_url || "No URL set"}
+              {(serviceCounts?.[p.id] || 0) > 0 && (
+                <span className="ml-2 font-sans text-primary">• {serviceCounts[p.id]} services</span>
+              )}
+            </div>
 
             <div className="flex items-center gap-2 flex-wrap">
               <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs"
@@ -1169,6 +1259,42 @@ function ApiProvidersSection() {
                 {fetchingServices === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
                 Fetch Services
               </Button>
+
+              <Dialog open={servicesOpen === p.id} onOpenChange={(open) => setServicesOpen(open ? p.id : null)}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs">
+                    <List className="w-3 h-3" /> Services{(serviceCounts?.[p.id] || 0) > 0 ? ` (${serviceCounts[p.id]})` : ""}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
+                  <DialogHeader>
+                    <DialogTitle>{p.name} — Services</DialogTitle>
+                    <DialogDescription>Edit margin per service. Default: 30%. Leave at 30 for global fallback.</DialogDescription>
+                  </DialogHeader>
+                  <div className="flex-1 overflow-auto space-y-1 pr-1">
+                    {!servicesList?.length ? (
+                      <p className="text-sm text-muted-foreground text-center py-8">No services synced yet. Click "Fetch Services" first.</p>
+                    ) : (
+                      (() => {
+                        const grouped = new Map<string, any[]>();
+                        servicesList.forEach((s: any) => {
+                          const cat = s.category || "Uncategorized";
+                          if (!grouped.has(cat)) grouped.set(cat, []);
+                          grouped.get(cat)!.push(s);
+                        });
+                        return Array.from(grouped, ([cat, items]) => (
+                          <Fragment key={cat}>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pt-3 pb-1 sticky top-0 bg-card z-10">{cat} ({items.length})</p>
+                            {items.map((s: any) => (
+                              <ServiceMarginRow key={s.id} service={s} saving={savingMargin === s.id} onSave={handleSaveMargin} />
+                            ))}
+                          </Fragment>
+                        ));
+                      })()
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
 
               <Dialog open={editOpen === p.id} onOpenChange={(open) => {
                 setEditOpen(open ? p.id : null);
