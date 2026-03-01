@@ -905,6 +905,7 @@ function ApiProvidersSection() {
   const [saving, setSaving] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [testing, setTesting] = useState<string | null>(null);
+  const [fetchingServices, setFetchingServices] = useState<string | null>(null);
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
 
   const emptyForm = { name: "", api_url: "", api_key: "", api_type: "generic", is_active: true };
@@ -1031,6 +1032,35 @@ function ApiProvidersSection() {
     }
   };
 
+  const handleFetchServices = async (id: string, name: string) => {
+    setFetchingServices(id);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const res = await fetch(`${supabaseUrl}/functions/v1/fetch-api-services`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token || anonKey}`,
+          apikey: anonKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ provider_id: id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`${name}: ${data.message} — ${data.inserted} new, ${data.updated} updated${data.errors ? `, ${data.errors} errors` : ""}`);
+      } else {
+        toast.error(data.message || data.error || "Fetch failed");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Fetch failed");
+    } finally {
+      setFetchingServices(null);
+    }
+  };
+
   const ProviderForm = ({ data, onChange, showKey, onToggleKey }: {
     data: any; onChange: (field: string, value: any) => void;
     showKey: boolean; onToggleKey: () => void;
@@ -1132,6 +1162,12 @@ function ApiProvidersSection() {
                 onClick={() => handleTest(p.id)} disabled={testing === p.id}>
                 {testing === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
                 Test Connection
+              </Button>
+
+              <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs"
+                onClick={() => handleFetchServices(p.id, p.name)} disabled={fetchingServices === p.id}>
+                {fetchingServices === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                Fetch Services
               </Button>
 
               <Dialog open={editOpen === p.id} onOpenChange={(open) => {
