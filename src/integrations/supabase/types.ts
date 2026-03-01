@@ -44,6 +44,56 @@ export type Database = {
         }
         Relationships: []
       }
+      api_services: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          max: number
+          min: number
+          name: string
+          provider_id: string
+          provider_service_id: number
+          rate: number
+          type: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max?: number
+          min?: number
+          name?: string
+          provider_id: string
+          provider_service_id: number
+          rate?: number
+          type?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          max?: number
+          min?: number
+          name?: string
+          provider_id?: string
+          provider_service_id?: number
+          rate?: number
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_services_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "api_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blog_posts: {
         Row: {
           author_id: string
