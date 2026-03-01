@@ -401,6 +401,11 @@
   }
 
   /* ─── Buttons ─── */
+  @keyframes btn-shimmer-sweep {
+    0% { left: -100%; }
+    100% { left: 200%; }
+  }
+
   .btn-glow {
     background: linear-gradient(135deg, hsl(43 65% 52%), hsl(43 80% 60%), hsl(43 60% 47%));
     color: hsl(240 12% 4%);
@@ -409,6 +414,20 @@
     transition: all var(--transition-base);
     box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 0 0 0 rgba(212,175,55,0);
     letter-spacing: 0.02em;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-glow::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    animation: btn-shimmer-sweep 3s ease-in-out infinite;
+    pointer-events: none;
   }
 
   .btn-glow:hover {
