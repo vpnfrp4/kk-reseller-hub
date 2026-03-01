@@ -58,6 +58,19 @@ Deno.serve(async (req) => {
     if (link) mergedCustomFields.__link = link;
     if (service_id) mergedCustomFields.__service_id = service_id;
 
+    // For API products with a service_id, fetch service-level margin to override product margin
+    let serviceMargin: number | null = null;
+    if (service_id) {
+      const { data: svcData } = await serviceClient
+        .from("api_services")
+        .select("margin_percent")
+        .eq("provider_service_id", parseInt(service_id))
+        .maybeSingle();
+
+      if (svcData?.margin_percent != null && svcData.margin_percent > 0) {
+        serviceMargin = svcData.margin_percent;
+      }
+    }
     const { data, error } = await serviceClient.rpc("process_purchase", {
       p_user_id: userId,
       p_product_id: product_id,
@@ -65,6 +78,7 @@ Deno.serve(async (req) => {
       p_fulfillment_mode: mode,
       p_imei_number: imei_number || null,
       p_custom_fields: Object.keys(mergedCustomFields).length > 0 ? mergedCustomFields : null,
+      p_service_margin: serviceMargin,
     });
 
     if (error) {
