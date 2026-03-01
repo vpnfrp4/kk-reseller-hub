@@ -50,6 +50,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          margin_percent: number
           max: number
           min: number
           name: string
@@ -63,6 +64,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          margin_percent?: number
           max?: number
           min?: number
           name?: string
@@ -76,6 +78,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          margin_percent?: number
           max?: number
           min?: number
           name?: string
