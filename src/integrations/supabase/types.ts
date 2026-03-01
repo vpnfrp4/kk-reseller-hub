@@ -983,17 +983,30 @@ export type Database = {
         }
         Returns: boolean
       }
-      process_purchase: {
-        Args: {
-          p_custom_fields?: Json
-          p_fulfillment_mode?: string
-          p_imei_number?: string
-          p_product_id: string
-          p_quantity?: number
-          p_user_id: string
-        }
-        Returns: Json
-      }
+      process_purchase:
+        | {
+            Args: {
+              p_custom_fields?: Json
+              p_fulfillment_mode?: string
+              p_imei_number?: string
+              p_product_id: string
+              p_quantity?: number
+              p_user_id: string
+            }
+            Returns: Json
+          }
+        | {
+            Args: {
+              p_custom_fields?: Json
+              p_fulfillment_mode?: string
+              p_imei_number?: string
+              p_product_id: string
+              p_quantity?: number
+              p_service_margin?: number
+              p_user_id: string
+            }
+            Returns: Json
+          }
       random_alnum4: { Args: never; Returns: string }
       recalculate_usd_prices: { Args: never; Returns: undefined }
     }
