@@ -213,7 +213,7 @@ export default function LandingPage() {
 
             <ScrollReveal delay={240}>
               <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                <Button size="lg" className="h-13 min-w-[180px] px-10 text-sm font-semibold shadow-[0_4px_24px_-4px_hsl(var(--primary)/0.35)] hover:shadow-[0_6px_32px_-4px_hsl(var(--primary)/0.5)] transition-shadow" asChild>
+                <Button variant="premium" size="lg" className="h-13 min-w-[180px] px-10 text-sm" asChild>
                   <Link to="/login">Get Started</Link>
                 </Button>
                 <Button variant="outline" size="lg" className="h-13 min-w-[180px] px-10 text-sm font-semibold border-border/60 hover:border-primary/40" asChild>
