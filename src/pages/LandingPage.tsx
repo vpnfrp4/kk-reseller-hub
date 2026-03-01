@@ -291,16 +291,22 @@ export default function LandingPage() {
         <section id="faq" className="border-t border-border/30 bg-background py-[120px] max-sm:py-20">
           <div className="mx-auto max-w-[800px] px-6">
             <ScrollReveal>
-              <h2 className="mb-12 text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              <p className="mb-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-primary/70">
+                Support
+              </p>
+              <h2 className="mb-4 text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 Frequently Asked Questions
               </h2>
+              <p className="mb-12 text-center text-sm text-muted-foreground">
+                Quick answers to common questions about our platform.
+              </p>
             </ScrollReveal>
             <Accordion type="single" collapsible className="space-y-3">
               {faqs.map((f, i) => (
                 <ScrollReveal key={i} delay={i * 50}>
                   <AccordionItem
                     value={`faq-${i}`}
-                    className="rounded-2xl border border-border/50 bg-card/50 px-6"
+                    className="rounded-2xl border border-border/50 bg-card/50 px-6 transition-colors hover:border-primary/20"
                   >
                     <AccordionTrigger className="text-left text-sm font-semibold text-foreground hover:no-underline py-5">
                       {f.q}
@@ -312,6 +318,39 @@ export default function LandingPage() {
                 </ScrollReveal>
               ))}
             </Accordion>
+          </div>
+        </section>
+
+        {/* ═══════════ CTA BANNER ═══════════ */}
+        <section className="bg-background py-[100px] max-sm:py-16">
+          <div className="mx-auto max-w-[1120px] px-6">
+            <ScrollReveal>
+              <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-gradient-to-br from-primary/5 via-card/80 to-primary/5 px-8 py-16 text-center sm:px-16 sm:py-20">
+                {/* Subtle glow */}
+                <div className="pointer-events-none absolute inset-0 rounded-3xl bg-[radial-gradient(600px_circle_at_50%_40%,hsl(var(--primary)/0.08),transparent_60%)]" />
+                <div className="relative">
+                  <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">
+                    Start Today
+                  </p>
+                  <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
+                    Ready to Scale Your Business?
+                  </h2>
+                  <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground sm:text-base">
+                    Join verified resellers already using KKTech for reliable digital service fulfillment.
+                  </p>
+                  <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                    <Button size="lg" className="h-12 px-10 text-sm font-semibold" asChild>
+                      <Link to="/login">Create Free Account</Link>
+                    </Button>
+                    <Button variant="outline" size="lg" className="h-12 px-10 text-sm font-semibold" asChild>
+                      <Link to="/tools/imei-check" className="inline-flex items-center gap-2">
+                        Try IMEI Checker <ArrowRight className="h-3.5 w-3.5" />
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </ScrollReveal>
           </div>
         </section>
 
@@ -327,39 +366,64 @@ export default function LandingPage() {
       </main>
 
       {/* ═══════════ FOOTER ═══════════ */}
-      <footer className="border-t border-border/30 bg-card/30 py-16">
-        <div className="mx-auto grid max-w-[1120px] gap-12 px-6 sm:grid-cols-3">
-          <div>
-            <span className="text-xl font-extrabold text-foreground">
-              KK<span className="gold-shimmer">Tech</span>
-            </span>
-            <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-              Controlled digital service infrastructure for professional resellers.
+      <footer className="border-t border-border/30 bg-card/30">
+        <div className="mx-auto max-w-[1120px] px-6 pt-16 pb-8">
+          <div className="grid gap-12 sm:grid-cols-4">
+            <div className="sm:col-span-2">
+              <span className="text-xl font-extrabold text-foreground">
+                KK<span className="gold-shimmer">Tech</span>
+              </span>
+              <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
+                Controlled digital service infrastructure for professional resellers. Fast processing, transparent pricing, reliable delivery.
+              </p>
+              <div className="mt-6 flex gap-3">
+                <a
+                  href="https://t.me/kktech_support"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary"
+                  aria-label="Telegram"
+                >
+                  <Send className="h-4 w-4" />
+                </a>
+                <a
+                  href="viber://chat?number=%2B959xxxxxxxxx"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary"
+                  aria-label="Viber"
+                >
+                  <Phone className="h-4 w-4" />
+                </a>
+              </div>
+            </div>
+            <div className="flex flex-col gap-3 text-sm">
+              <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                Quick Links
+              </span>
+              <a href="#services" className="text-muted-foreground transition-colors hover:text-primary">Services</a>
+              <a href="#faq" className="text-muted-foreground transition-colors hover:text-primary">FAQ</a>
+              <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-primary">Free IMEI Checker</Link>
+              <Link to="/blog" className="text-muted-foreground transition-colors hover:text-primary">Blog</Link>
+              <Link to="/login" className="text-muted-foreground transition-colors hover:text-primary">Reseller Login</Link>
+            </div>
+            <div className="flex flex-col gap-3 text-sm">
+              <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                Policies
+              </span>
+              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-primary">Terms & Conditions</Link>
+              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-primary">Privacy Policy</Link>
+              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-primary">Refund Policy</Link>
+            </div>
+          </div>
+          <div className="mt-12 flex flex-col items-center gap-3 border-t border-border/30 pt-8 sm:flex-row sm:justify-between">
+            <p className="text-xs text-muted-foreground/60">
+              © {new Date().getFullYear()} KKTech. All rights reserved.
+            </p>
+            <p className="text-xs text-muted-foreground/40">
+              Built for resellers, by resellers.
             </p>
           </div>
-          <div className="flex flex-col gap-3 text-sm">
-            <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">
-              Quick Links
-            </span>
-            <a href="#services" className="text-muted-foreground transition-colors hover:text-primary">Services</a>
-            <a href="#faq" className="text-muted-foreground transition-colors hover:text-primary">FAQ</a>
-            <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-primary">Free IMEI Checker</Link>
-            <Link to="/blog" className="text-muted-foreground transition-colors hover:text-primary">Blog</Link>
-            <Link to="/login" className="text-muted-foreground transition-colors hover:text-primary">Reseller Login</Link>
-          </div>
-          <div className="flex flex-col gap-3 text-sm">
-            <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">
-              Policies
-            </span>
-            <Link to="/terms" className="text-muted-foreground transition-colors hover:text-primary">Terms & Conditions</Link>
-            <Link to="/terms" className="text-muted-foreground transition-colors hover:text-primary">Privacy Policy</Link>
-            <Link to="/terms" className="text-muted-foreground transition-colors hover:text-primary">Refund Policy</Link>
-          </div>
-        </div>
-        <div className="mx-auto mt-12 max-w-[1120px] border-t border-border/30 px-6 pt-8">
-          <p className="text-center text-xs text-muted-foreground/60">
-            © {new Date().getFullYear()} KKTech. All rights reserved.
-          </p>
         </div>
       </footer>
 
