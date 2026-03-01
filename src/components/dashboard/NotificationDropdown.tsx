@@ -155,7 +155,7 @@ export default function NotificationDropdown() {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-[360px] p-0 bg-card border border-border shadow-[var(--shadow-elevated)] rounded-xl overflow-hidden z-50"
+        className="w-[calc(100vw-2rem)] sm:w-[360px] max-w-[360px] p-0 bg-card border border-border shadow-[var(--shadow-elevated)] rounded-xl overflow-hidden z-50"
       >
         {/* Header */}
         <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-secondary/30">
