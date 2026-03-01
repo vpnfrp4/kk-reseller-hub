@@ -896,11 +896,313 @@ function RateHistoryChart() {
   );
 }
 
+/* ─── API Providers Section ─── */
+function ApiProvidersSection() {
+  const queryClient = useQueryClient();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [saving, setSaving] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const [testing, setTesting] = useState<string | null>(null);
+  const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+
+  const emptyForm = { name: "", api_url: "", api_key: "", api_type: "generic", is_active: true };
+  const [newProvider, setNewProvider] = useState(emptyForm);
+  const [editData, setEditData] = useState<Record<string, any>>({});
+
+  const apiTypeOptions = [
+    { label: "Generic SMM", value: "generic" },
+    { label: "IMEI Service", value: "imei" },
+    { label: "Custom", value: "custom" },
+  ];
+
+  const { data: providers, isLoading } = useQuery({
+    queryKey: ["admin-api-providers"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("api_providers" as any)
+        .select("*")
+        .order("created_at", { ascending: false });
+      return (data || []) as any[];
+    },
+  });
+
+  const handleCreate = async () => {
+    if (!newProvider.name.trim()) { toast.error("Provider name is required"); return; }
+    if (!newProvider.api_url.trim()) { toast.error("API URL is required"); return; }
+    if (!newProvider.api_key.trim()) { toast.error("API Key is required"); return; }
+    setCreating(true);
+    try {
+      const { error } = await supabase.from("api_providers" as any).insert({
+        name: newProvider.name.trim(),
+        api_url: newProvider.api_url.trim(),
+        api_key: newProvider.api_key.trim(),
+        api_type: newProvider.api_type,
+        is_active: newProvider.is_active,
+      } as any);
+      if (error) throw error;
+      toast.success(`${newProvider.name} added`);
+      queryClient.invalidateQueries({ queryKey: ["admin-api-providers"] });
+      setCreateOpen(false);
+      setNewProvider(emptyForm);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleSave = async (id: string) => {
+    const edit = editData[id];
+    if (!edit) return;
+    if (!edit.name?.trim()) { toast.error("Name is required"); return; }
+    setSaving(id);
+    try {
+      const { error } = await supabase.from("api_providers" as any).update({
+        name: edit.name.trim(),
+        api_url: (edit.api_url || "").trim(),
+        api_key: (edit.api_key || "").trim(),
+        api_type: edit.api_type || "generic",
+        is_active: edit.is_active,
+      } as any).eq("id", id);
+      if (error) throw error;
+      toast.success(`${edit.name} updated`);
+      queryClient.invalidateQueries({ queryKey: ["admin-api-providers"] });
+      setEditOpen(null);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save");
+    } finally {
+      setSaving(null);
+    }
+  };
+
+  const handleDelete = async (id: string, name: string) => {
+    setDeleting(id);
+    try {
+      const { error } = await supabase.from("api_providers" as any).delete().eq("id", id);
+      if (error) throw error;
+      toast.success(`${name} deleted`);
+      queryClient.invalidateQueries({ queryKey: ["admin-api-providers"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to delete");
+    } finally {
+      setDeleting(null);
+    }
+  };
+
+  const handleToggle = async (id: string, isActive: boolean, name: string) => {
+    try {
+      const { error } = await supabase.from("api_providers" as any).update({ is_active: isActive } as any).eq("id", id);
+      if (error) throw error;
+      toast.success(`${name} ${isActive ? "activated" : "deactivated"}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-api-providers"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update");
+    }
+  };
+
+  const handleTest = async (id: string) => {
+    setTesting(id);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const res = await fetch(`${supabaseUrl}/functions/v1/test-api-provider`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token || anonKey}`,
+          apikey: anonKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ provider_id: id }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(data.message + (data.balance !== undefined ? ` | Balance: ${data.balance} ${data.currency || ""}` : ""));
+      } else {
+        toast.error(data.message || data.error || "Connection failed");
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Test failed");
+    } finally {
+      setTesting(null);
+    }
+  };
+
+  const ProviderForm = ({ data, onChange, showKey, onToggleKey }: {
+    data: any; onChange: (field: string, value: any) => void;
+    showKey: boolean; onToggleKey: () => void;
+  }) => (
+    <div className="space-y-4 py-2">
+      <div className="space-y-1.5">
+        <Label className="text-xs text-muted-foreground">Provider Name</Label>
+        <Input value={data.name} onChange={(e) => onChange("name", e.target.value)}
+          placeholder="e.g. SMMKings" className="h-9 text-sm" maxLength={100} />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs text-muted-foreground">API Type</Label>
+        <UiSelect value={data.api_type} onValueChange={(v) => onChange("api_type", v)}>
+          <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {apiTypeOptions.map((o) => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </UiSelect>
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs text-muted-foreground">API URL</Label>
+        <Input value={data.api_url} onChange={(e) => onChange("api_url", e.target.value)}
+          placeholder="https://provider.com/api/v2" className="h-9 text-sm font-mono" maxLength={500} />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs text-muted-foreground">API Key</Label>
+        <div className="relative">
+          <Input type={showKey ? "text" : "password"} value={data.api_key}
+            onChange={(e) => onChange("api_key", e.target.value)}
+            placeholder="Enter API key" className="h-9 text-sm font-mono pr-10" maxLength={500} />
+          <button type="button" onClick={onToggleKey}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+            {showKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (isLoading) return null;
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-start justify-between gap-4">
+        <div>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Globe className="w-4 h-4 text-primary" /> API Providers
+          </CardTitle>
+          <CardDescription>Manage external API provider connections for automated fulfillment.</CardDescription>
+        </div>
+        <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+          <DialogTrigger asChild>
+            <Button size="sm" className="h-8 gap-1.5 text-xs shrink-0">
+              <Plus className="w-3 h-3" /> Add Provider
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add API Provider</DialogTitle>
+              <DialogDescription>Connect a new external API provider for automated service fulfillment.</DialogDescription>
+            </DialogHeader>
+            <ProviderForm data={newProvider}
+              onChange={(f, v) => setNewProvider((p) => ({ ...p, [f]: v }))}
+              showKey={!!showKeys["new"]}
+              onToggleKey={() => setShowKeys((p) => ({ ...p, new: !p.new }))} />
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCreateOpen(false)}>Cancel</Button>
+              <Button onClick={handleCreate} disabled={creating} className="gap-1.5">
+                {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                Add Provider
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {(!providers || providers.length === 0) && (
+          <p className="text-sm text-muted-foreground text-center py-6">No API providers configured yet.</p>
+        )}
+        {(providers || []).map((p: any) => (
+          <div key={p.id} className="p-4 rounded-xl border border-border/40 bg-muted/5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <span className="text-sm font-semibold text-foreground">{p.name}</span>
+                <Badge variant="secondary" className="text-[10px] h-4 px-1.5">{p.api_type}</Badge>
+                <Badge variant={p.is_active ? "default" : "outline"} className="text-[10px] h-4 px-1.5">
+                  {p.is_active ? "Active" : "Inactive"}
+                </Badge>
+              </div>
+              <Switch checked={p.is_active} onCheckedChange={(v) => handleToggle(p.id, v, p.name)} />
+            </div>
+
+            <div className="text-xs text-muted-foreground font-mono truncate">{p.api_url || "No URL set"}</div>
+
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs"
+                onClick={() => handleTest(p.id)} disabled={testing === p.id}>
+                {testing === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+                Test Connection
+              </Button>
+
+              <Dialog open={editOpen === p.id} onOpenChange={(open) => {
+                setEditOpen(open ? p.id : null);
+                if (open) setEditData((prev) => ({ ...prev, [p.id]: { ...p } }));
+              }}>
+                <DialogTrigger asChild>
+                  <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs">
+                    <Save className="w-3 h-3" /> Edit
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Edit {p.name}</DialogTitle>
+                    <DialogDescription>Update provider connection details.</DialogDescription>
+                  </DialogHeader>
+                  {editData[p.id] && (
+                    <ProviderForm data={editData[p.id]}
+                      onChange={(f, v) => setEditData((prev) => ({ ...prev, [p.id]: { ...prev[p.id], [f]: v } }))}
+                      showKey={!!showKeys[p.id]}
+                      onToggleKey={() => setShowKeys((prev) => ({ ...prev, [p.id]: !prev[p.id] }))} />
+                  )}
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setEditOpen(null)}>Cancel</Button>
+                    <Button onClick={() => handleSave(p.id)} disabled={saving === p.id} className="gap-1.5">
+                      {saving === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                      Save Changes
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button size="sm" variant="outline"
+                    className="h-7 gap-1.5 text-xs text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30"
+                    disabled={deleting === p.id}>
+                    {deleting === p.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                    Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete {p.name}?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently remove this API provider and its credentials. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={() => handleDelete(p.id, p.name)}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+}
+
 /* ─── Main Page ─── */
 export default function AdminSettings() {
   return (
     <div className="max-w-2xl space-y-6">
       <ThemeSection />
+      <ApiProvidersSection />
       <ExchangeRateSection />
       <PaymentMethodsSection />
       <NotificationSection />

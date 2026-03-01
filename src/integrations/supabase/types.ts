@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_providers: {
+        Row: {
+          api_key: string
+          api_type: string
+          api_url: string
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+        }
+        Insert: {
+          api_key?: string
+          api_type?: string
+          api_url?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+        }
+        Update: {
+          api_key?: string
+          api_type?: string
+          api_url?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+        }
+        Relationships: []
+      }
       blog_posts: {
         Row: {
           author_id: string
