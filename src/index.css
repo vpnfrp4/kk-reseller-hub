@@ -114,55 +114,80 @@
     --wallet-hero-blob: hsl(43 65% 52% / 0.04);
   }
 
-  /* Light mode removed — this platform is exclusive dark-gold only */
+  /* ═══ Premium Light Mode — Fintech White-Gold ═══ */
   .light {
-    --background: 240 12% 4%;
-    --foreground: 40 10% 94%;
-    --card: 240 10% 7%;
-    --card-foreground: 40 10% 94%;
-    --popover: 240 10% 7%;
-    --popover-foreground: 40 10% 94%;
-    --primary: 43 65% 52%;
-    --primary-foreground: 240 12% 4%;
-    --primary-glow: 43 75% 58%;
-    --secondary: 240 8% 10%;
-    --secondary-foreground: 40 8% 80%;
-    --muted: 240 10% 7%;
-    --muted-foreground: 40 6% 50%;
-    --accent: 43 65% 52%;
-    --accent-foreground: 240 12% 4%;
+    /* Backgrounds — clean slate whites */
+    --background: 210 40% 98%;               /* #F8FAFC */
+    --foreground: 222 47% 11%;               /* #0F172A */
+
+    --card: 0 0% 100%;                       /* #FFFFFF */
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary — refined gold */
+    --primary: 43 72% 47%;                   /* #C9A227 */
+    --primary-foreground: 0 0% 100%;         /* white text on gold */
+    --primary-glow: 43 80% 55%;
+
+    --secondary: 210 40% 96%;               /* #F1F5F9 */
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;         /* #64748B */
+
+    --accent: 43 72% 47%;
+    --accent-foreground: 0 0% 100%;
+
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 8% 13%;
-    --input: 240 8% 13%;
-    --ring: 43 65% 52%;
-    --sidebar-background: 240 12% 3%;
-    --sidebar-foreground: 40 6% 50%;
-    --sidebar-primary: 43 65% 52%;
-    --sidebar-primary-foreground: 240 12% 4%;
-    --sidebar-accent: 240 10% 7%;
-    --sidebar-accent-foreground: 40 8% 80%;
-    --sidebar-border: 240 8% 10%;
-    --sidebar-ring: 43 65% 52%;
-    --success: 142 60% 45%;
+
+    --border: 214 32% 91%;                   /* #E2E8F0 */
+    --input: 214 32% 91%;
+    --ring: 43 72% 47%;
+
+    /* Sidebar — white with gold accents */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 16% 47%;
+    --sidebar-primary: 43 72% 47%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 43 90% 95%;            /* soft gold bg #FFF8E1 */
+    --sidebar-accent-foreground: 43 72% 37%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 43 72% 47%;
+
+    /* Semantic */
+    --success: 142 60% 40%;
     --success-foreground: 0 0% 100%;
-    --warning: 40 6% 40%;
-    --warning-foreground: 40 10% 94%;
-    --ice: 40 6% 40%;
-    --ice-foreground: 40 10% 94%;
-    --shadow-card: 0 1px 3px rgba(0,0,0,0.5), 0 4px 20px -4px rgba(0,0,0,0.4);
-    --shadow-elevated: 0 4px 30px -4px rgba(0,0,0,0.6), 0 1px 8px rgba(0,0,0,0.3);
-    --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.02);
-    --shadow-header: 0 1px 0 hsl(240 8% 10%), 0 2px 10px -2px rgba(0,0,0,0.4);
-    --glass-bg: hsla(240, 10%, 7%, 0.92);
-    --glass-border: rgba(212, 175, 55, 0.08);
+    --warning: 38 92% 50%;
+    --warning-foreground: 222 47% 11%;
+    --ice: 199 89% 48%;
+    --ice-foreground: 0 0% 100%;
+
+    /* Shadows — light & elegant */
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px -4px rgba(0,0,0,0.06);
+    --shadow-elevated: 0 4px 24px -4px rgba(0,0,0,0.08), 0 1px 6px rgba(0,0,0,0.04);
+    --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.8);
+    --shadow-header: 0 1px 0 hsl(214 32% 91%), 0 2px 8px -2px rgba(0,0,0,0.06);
     --shadow-luxury: var(--shadow-card);
-    --gradient-navy: linear-gradient(180deg, hsl(240 12% 4%), hsl(240 10% 7%));
-    --ambient-blob-1: hsl(240 12% 8% / 0.3);
-    --ambient-blob-2: hsl(43 65% 52% / 0.015);
-    --wallet-hero-from: 240 10% 7%;
-    --wallet-hero-to: 240 8% 10%;
-    --wallet-hero-blob: hsl(43 65% 52% / 0.04);
+    --shadow-elevated-compat: var(--shadow-elevated);
+
+    /* Glass */
+    --glass-bg: rgba(255, 255, 255, 0.92);
+    --glass-border: rgba(201, 162, 39, 0.12);
+
+    --gold-gradient: linear-gradient(135deg, #C9A227, #E8D06A, #B48A1E);
+    --gradient-navy: linear-gradient(180deg, hsl(210 40% 98%), hsl(0 0% 100%));
+
+    /* Ambient blobs — very subtle warm tones */
+    --ambient-blob-1: hsl(43 60% 90% / 0.15);
+    --ambient-blob-2: hsl(43 72% 47% / 0.03);
+
+    /* Wallet hero — white-gold gradient */
+    --wallet-hero-from: 0 0% 100%;
+    --wallet-hero-to: 210 40% 98%;
+    --wallet-hero-blob: hsl(43 72% 47% / 0.06);
   }
 
   .dark {
