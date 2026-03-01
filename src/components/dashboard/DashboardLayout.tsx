@@ -18,6 +18,7 @@ import {
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import NotificationSettings from "@/components/NotificationSettings";
+import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import { t } from "@/lib/i18n";
 import { useLang } from "@/contexts/LangContext";
 import { cn } from "@/lib/utils";
@@ -205,6 +206,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
 
             <ThemeToggle />
+            <NotificationDropdown />
             <NotificationSettings />
             <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary border border-border">
               <Wallet className="w-4 h-4 text-muted-foreground" />
