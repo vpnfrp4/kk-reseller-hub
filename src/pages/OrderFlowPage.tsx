@@ -231,13 +231,24 @@ export default function OrderFlowPage() {
   });
 
   // API per-1000 pricing calculation (mirrors server-side logic)
-  const apiUnitPrice = useMemo(() => {
-    if (!isApiProduct || !product?.api_rate || !usdRate) return unitPrice;
-    const margin = (product as any).margin_percent ||
-      (marginConfig?.category_margins?.[(product as any).category] as number) ||
-      marginConfig?.global_margin || 20;
-    return Math.ceil((product.api_rate / 1000) * usdRate * (1 + margin / 100));
-  }, [isApiProduct, product, usdRate, marginConfig, unitPrice]);
+  const apiMargin = useMemo(() => {
+    if (!isApiProduct || !product) return 20;
+    const svcMargin = (product as any).margin_percent;
+    if (svcMargin && svcMargin > 0) return svcMargin;
+    const catMargin = marginConfig?.category_margins?.[(product as any).category] as number;
+    if (catMargin && catMargin > 0) return catMargin;
+    return marginConfig?.global_margin || 20;
+  }, [isApiProduct, product, marginConfig]);
+
+  const apiPricing = useMemo(() => {
+    if (!isApiProduct || !product?.api_rate || !usdRate) return null;
+    const costPer1000 = Math.ceil(product.api_rate * usdRate);
+    const sellPer1000 = Math.ceil(costPer1000 * (1 + apiMargin / 100));
+    const perUnit = sellPer1000 / 1000;
+    return { costPer1000, sellPer1000, perUnit };
+  }, [isApiProduct, product, usdRate, apiMargin]);
+
+  const apiUnitPrice = apiPricing ? apiPricing.perUnit : unitPrice;
 
   const effectiveUnitPrice = isApiProduct ? apiUnitPrice : unitPrice;
   const apiTotalPrice = isApiProduct && apiQuantity > 0 ? apiUnitPrice * apiQuantity : 0;
@@ -493,12 +504,25 @@ export default function OrderFlowPage() {
         <div className="space-y-6 animate-fade-in">
           {/* API product info card */}
           {isApiProduct && (
-            <div
+             <div
               className="rounded-[var(--radius-card)] border border-border/40 p-5 space-y-3"
               style={{ background: "linear-gradient(145deg, #15151C 0%, #111116 100%)" }}
             >
-              <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">Service Info</p>
+              <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">Service Pricing</p>
               <div className="space-y-2">
+                {apiPricing && (
+                  <>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Cost / 1000</span>
+                      <span className="font-mono tabular-nums text-muted-foreground">{apiPricing.costPer1000.toLocaleString()} MMK</span>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-muted-foreground">Sell / 1000</span>
+                      <span className="font-mono tabular-nums text-foreground">{apiPricing.sellPer1000.toLocaleString()} MMK</span>
+                    </div>
+                    <div className="h-px bg-border/20" />
+                  </>
+                )}
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Unit Price</span>
                   <Money amount={effectiveUnitPrice} className="text-foreground" />
