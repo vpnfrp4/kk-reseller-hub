@@ -132,6 +132,8 @@ export default function OrderFlowPage() {
   const [topUpOpen, setTopUpOpen] = useState(false);
   const [topUpDefaultAmount, setTopUpDefaultAmount] = useState<number | undefined>();
   const [copied, setCopied] = useState(false);
+  const [lastOrderTime, setLastOrderTime] = useState(0);
+  const [lastOrderKey, setLastOrderKey] = useState("");
 
   // ── Data fetching ──
   const { data: product, isLoading } = useQuery({
@@ -398,9 +400,46 @@ export default function OrderFlowPage() {
     setStep(prev => Math.max(prev - 1, 0));
   };
 
+  // ── Sanitize link input ──
+  const sanitizeLink = (raw: string): string => {
+    const trimmed = raw.trim();
+    try {
+      const url = new URL(trimmed);
+      if (!["http:", "https:"].includes(url.protocol)) return "";
+      // Remove dangerous chars, keep only valid URL
+      return url.toString().slice(0, 2048);
+    } catch {
+      return "";
+    }
+  };
+
   // ── Purchase ──
   const handlePurchase = async () => {
-    if (!product) return;
+    if (!product || purchasing) return;
+
+    // 5-second cooldown for same service + link
+    const urlField = isApiProduct ? activeFields.find((f: any) => f.field_type === "url") : null;
+    const linkValue = urlField ? (customFieldValues[urlField.field_name] || "") : "";
+    const orderKey = `${product.id}:${linkValue}`;
+    const now = Date.now();
+    if (orderKey === lastOrderKey && now - lastOrderTime < 5000) {
+      const remaining = Math.ceil((5000 - (now - lastOrderTime)) / 1000);
+      toast.error(`Please wait ${remaining}s before reordering the same service`);
+      return;
+    }
+
+    // Validate quantity min/max for API products
+    if (isApiProduct && apiQuantityField) {
+      if (apiQuantity < apiMinQty) {
+        toast.error(`Minimum quantity is ${apiMinQty}`);
+        return;
+      }
+      if (apiQuantity > apiMaxQty) {
+        toast.error(`Maximum quantity is ${apiMaxQty}`);
+        return;
+      }
+    }
+
     const savings = totalSavingsCalc;
     setPurchasing(true);
     try {
@@ -414,9 +453,13 @@ export default function OrderFlowPage() {
 
       // For API products, extract link from URL fields and include service_id
       if (isApiProduct) {
-        const urlField = activeFields.find((f: any) => f.field_type === "url");
         if (urlField) {
-          purchaseBody.link = customFieldValues[urlField.field_name] || "";
+          const sanitized = sanitizeLink(customFieldValues[urlField.field_name] || "");
+          if (!sanitized && customFieldValues[urlField.field_name]?.trim()) {
+            toast.error("Invalid link URL");
+            return;
+          }
+          purchaseBody.link = sanitized;
         }
         purchaseBody.service_id = (product as any).api_service_id || "";
       }
@@ -429,6 +472,11 @@ export default function OrderFlowPage() {
         toast.error(mapErrorMessage(data.error as string));
         return;
       }
+
+      // Record cooldown
+      setLastOrderTime(Date.now());
+      setLastOrderKey(orderKey);
+
       setLastSavings(savings);
       setResult(data as PurchaseResult);
       setStep(activeSteps.length - 1); // Go to confirmation step
