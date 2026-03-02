@@ -221,6 +221,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </span>
               <span className="text-xs text-muted-foreground font-semibold">MMK</span>
             </div>
+            <div className="w-8 h-8 rounded-lg bg-secondary border border-border flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span>{profile?.name?.charAt(0)?.toUpperCase() || "R"}</span>
+              )}
+            </div>
           </div>
         </header>
 
