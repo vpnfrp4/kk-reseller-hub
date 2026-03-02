@@ -107,7 +107,7 @@ export default function ProductsPage() {
       </div>
 
       {/* ─── Service Selection ─── */}
-      <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
+      <div className="animate-fade-in relative z-[100]" style={{ animationDelay: "0.1s" }}>
         <div className="glass-card p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
