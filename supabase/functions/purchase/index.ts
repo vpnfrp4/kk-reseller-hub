@@ -6,6 +6,34 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+// ── In-memory rate limiter (per isolate) ──
+const rateLimitMap = new Map<string, number[]>();
+const RATE_LIMIT_WINDOW = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 10; // max 10 purchases per minute per user
+
+function isRateLimited(userId: string): boolean {
+  const now = Date.now();
+  const timestamps = rateLimitMap.get(userId) || [];
+  const recent = timestamps.filter((t) => now - t < RATE_LIMIT_WINDOW);
+  if (recent.length >= RATE_LIMIT_MAX) return true;
+  recent.push(now);
+  rateLimitMap.set(userId, recent);
+  return false;
+}
+
+// ── Link sanitization ──
+function sanitizeLink(raw: string | undefined): string {
+  if (!raw) return "";
+  const trimmed = raw.trim().slice(0, 2048);
+  try {
+    const url = new URL(trimmed);
+    if (!["http:", "https:"].includes(url.protocol)) return "";
+    return url.toString();
+  } catch {
+    return "";
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -36,6 +64,15 @@ Deno.serve(async (req) => {
     }
 
     const userId = claimsData.claims.sub;
+
+    // ── Rate limiting ──
+    if (isRateLimited(userId)) {
+      return new Response(JSON.stringify({ success: false, error: "Too many requests. Please wait a moment." }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { product_id, quantity, fulfillment_mode, custom_fields, imei_number, link, service_id } = await req.json();
 
     if (!product_id) {
@@ -47,15 +84,61 @@ Deno.serve(async (req) => {
 
     const qty = Math.max(1, Math.min(1000000, parseInt(quantity) || 1));
     const mode = fulfillment_mode || "instant";
+    const sanitizedLink = sanitizeLink(link);
 
     const serviceClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
+    // ── Validate quantity against product min/max for API products ──
+    if (service_id) {
+      const { data: productData } = await serviceClient
+        .from("products")
+        .select("api_min_quantity, api_max_quantity, product_type")
+        .eq("id", product_id)
+        .single();
+
+      if (productData?.product_type === "api") {
+        const minQty = productData.api_min_quantity || 1;
+        const maxQty = productData.api_max_quantity || 1000000;
+        if (qty < minQty) {
+          return new Response(JSON.stringify({ success: false, error: `Minimum quantity is ${minQty}` }), {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (qty > maxQty) {
+          return new Response(JSON.stringify({ success: false, error: `Maximum quantity is ${maxQty}` }), {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+    }
+
+    // ── Duplicate order prevention (5s window, same product + link) ──
+    if (service_id && sanitizedLink) {
+      const fiveSecondsAgo = new Date(Date.now() - 5000).toISOString();
+      const { data: recentOrders } = await serviceClient
+        .from("orders")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("product_id", product_id)
+        .gte("created_at", fiveSecondsAgo)
+        .limit(1);
+
+      if (recentOrders && recentOrders.length > 0) {
+        return new Response(JSON.stringify({ success: false, error: "Duplicate order detected. Please wait 5 seconds." }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
     // Merge API-specific fields into custom_fields
     const mergedCustomFields = { ...(custom_fields || {}) };
-    if (link) mergedCustomFields.__link = link;
+    if (sanitizedLink) mergedCustomFields.__link = sanitizedLink;
     if (service_id) mergedCustomFields.__service_id = service_id;
 
     // For API products with a service_id, fetch service-level margin to override product margin
@@ -119,7 +202,7 @@ Deno.serve(async (req) => {
             apiUrl.searchParams.set("action", "add");
             apiUrl.searchParams.set("service", service_id);
             apiUrl.searchParams.set("quantity", String(qty));
-            if (link) apiUrl.searchParams.set("link", link);
+            if (sanitizedLink) apiUrl.searchParams.set("link", sanitizedLink);
 
             const apiRes = await fetch(apiUrl.toString(), {
               method: "POST",
@@ -153,56 +236,40 @@ Deno.serve(async (req) => {
               console.error("API fulfillment failed:", errorMsg);
 
               // Refund balance
-              await serviceClient.rpc("process_api_refund", {
-                p_order_id: data.order_id,
-                p_user_id: userId,
-                p_amount: data.price,
-                p_reason: `API Error: ${errorMsg}`,
-              }).catch(async () => {
-                // Fallback: manual refund if RPC doesn't exist
+              const { data: profile } = await serviceClient
+                .from("profiles")
+                .select("balance, total_spent, total_orders")
+                .eq("user_id", userId)
+                .single();
+
+              if (profile) {
                 await serviceClient
                   .from("profiles")
-                  .update({ balance: serviceClient.rpc ? undefined : undefined })
-                  .eq("user_id", userId);
-
-                // Direct SQL refund
-                const { data: profile } = await serviceClient
-                  .from("profiles")
-                  .select("balance, total_spent, total_orders")
-                  .eq("user_id", userId)
-                  .single();
-
-                if (profile) {
-                  await serviceClient
-                    .from("profiles")
-                    .update({
-                      balance: profile.balance + data.price,
-                      total_spent: Math.max(0, profile.total_spent - data.price),
-                      total_orders: Math.max(0, profile.total_orders - 1),
-                    })
-                    .eq("user_id", userId);
-                }
-
-                // Update order to failed
-                await serviceClient
-                  .from("orders")
                   .update({
-                    status: "failed",
-                    admin_notes: `Auto-refunded. API Error: ${errorMsg}`,
+                    balance: profile.balance + data.price,
+                    total_spent: Math.max(0, profile.total_spent - data.price),
+                    total_orders: Math.max(0, profile.total_orders - 1),
                   })
-                  .eq("id", data.order_id);
+                  .eq("user_id", userId);
+              }
 
-                // Refund wallet transaction
-                await serviceClient
-                  .from("wallet_transactions")
-                  .insert({
-                    user_id: userId,
-                    type: "refund",
-                    amount: data.price,
-                    status: "approved",
-                    description: `Auto-refund: ${data.product_name} (API failure)`,
-                  });
-              });
+              await serviceClient
+                .from("orders")
+                .update({
+                  status: "failed",
+                  admin_notes: `Auto-refunded. API Error: ${errorMsg}`,
+                })
+                .eq("id", data.order_id);
+
+              await serviceClient
+                .from("wallet_transactions")
+                .insert({
+                  user_id: userId,
+                  type: "refund",
+                  amount: data.price,
+                  status: "approved",
+                  description: `Auto-refund: ${data.product_name} (API failure)`,
+                });
 
               return new Response(JSON.stringify({
                 ...data,
