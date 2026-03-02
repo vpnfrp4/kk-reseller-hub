@@ -14,19 +14,16 @@ import {
   Copy,
   CheckCircle2,
   Download,
-  Eye,
-  EyeOff,
   ArrowLeft,
   FileText,
   Clock,
   ShieldCheck,
   AlertTriangle,
   Loader2,
-  MessageSquare,
   Star,
-  Lock,
 } from "lucide-react";
 import CredentialCards from "@/components/orders/CredentialCards";
+import FulfillmentNotesCard from "@/components/orders/FulfillmentNotesCard";
 import { toast } from "sonner";
 
 /* ═══════════════════════════════════════════════════════
@@ -596,20 +593,8 @@ export default function OrderDetailPage() {
 
           {/* ═══ 5b. ADMIN NOTES (visible to user as fulfillment note) ═══ */}
           {order.admin_notes && (
-            <GlassSection className="border-l-2 border-l-muted-foreground/20">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
-                  <Lock className="w-4 h-4 text-muted-foreground" />
-                </div>
-                <div className="space-y-1.5 min-w-0">
-                  <h4 className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                    Fulfillment Notes
-                  </h4>
-                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap break-words">
-                    {order.admin_notes}
-                  </p>
-                </div>
-              </div>
+            <GlassSection>
+              <FulfillmentNotesCard notes={order.admin_notes} />
             </GlassSection>
           )}
 
