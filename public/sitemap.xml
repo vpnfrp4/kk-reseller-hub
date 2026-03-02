@@ -37,6 +37,12 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://kktech.shop/blog</loc>
+    <lastmod>2026-03-02</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://kktech.shop/terms</loc>
     <lastmod>2026-02-27</lastmod>
     <changefreq>yearly</changefreq>

@@ -120,18 +120,43 @@ function OrgWebsiteJsonLd() {
     name: "KKTech",
     url: SITE_URL,
     logo: `${SITE_URL}/pwa-512x512.png`,
-    description: "Professional digital service infrastructure for resellers. IMEI unlock, GSM tools, and digital accounts.",
+    description: "Myanmar's #1 digital unlock and GSM services platform. IMEI unlock, GSM tools, and digital subscriptions for resellers.",
+    contactPoint: {
+      "@type": "ContactPoint",
+      contactType: "customer support",
+      url: "https://t.me/kktech_support",
+    },
+    sameAs: ["https://t.me/kktech_support"],
   };
   const website = {
     "@context": "https://schema.org",
     "@type": "WebSite",
     name: "KKTech",
     url: SITE_URL,
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${SITE_URL}/dashboard/products?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
+  const siteNav = {
+    "@context": "https://schema.org",
+    "@type": "SiteNavigationElement",
+    name: ["Services", "IMEI Unlock", "FAQ", "IMEI Check", "Blog", "Login"],
+    url: [
+      `${SITE_URL}/#services`,
+      `${SITE_URL}/services/imei-unlock`,
+      `${SITE_URL}/#faq`,
+      `${SITE_URL}/tools/imei-check`,
+      `${SITE_URL}/blog`,
+      `${SITE_URL}/login`,
+    ],
   };
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(org) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(siteNav) }} />
     </>
   );
 }
