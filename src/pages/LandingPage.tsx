@@ -165,7 +165,7 @@ function OrgWebsiteJsonLd() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   LANDING PAGE — NEON GREEN & DARK GLASS
+   LANDING PAGE — NEON GREEN & DARK GLASS (theme-aware)
    ═══════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [contactOpen, setContactOpen] = useState(false);
@@ -178,13 +178,18 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  /* Theme-aware color tokens used inline */
+  const neon = "#39FF14";
+  const neonRgb = "57, 255, 20";
+  const accentClass = "text-[#39FF14] dark:text-[#39FF14] light-neon-accent";
+
   return (
     <>
       <FaqJsonLd />
       <OrgWebsiteJsonLd />
 
       {/* ─── NAV ─── */}
-      <header className="sticky top-0 z-50 border-b border-[rgba(57,255,20,0.08)] bg-[#060608]/90 backdrop-blur-xl">
+      <header className="sticky top-0 z-50 border-b border-border/40 dark:border-[rgba(57,255,20,0.08)] bg-background/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-4">
           <Link to="/" className="flex items-center gap-2.5">
             <img src={kkLogo} alt="KKTech" className="h-8 w-8 rounded-lg neon-logo-glow" />
@@ -193,9 +198,9 @@ export default function LandingPage() {
             </span>
           </Link>
           <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
-            <a href="#services" className="transition-colors hover:text-[#39FF14]">Services</a>
-            <a href="#faq" className="transition-colors hover:text-[#39FF14]">FAQ</a>
-            <Link to="/tools/imei-check" className="transition-colors hover:text-[#39FF14]">IMEI Check</Link>
+            <a href="#services" className="transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Services</a>
+            <a href="#faq" className="transition-colors hover:text-foreground dark:hover:text-[#39FF14]">FAQ</a>
+            <Link to="/tools/imei-check" className="transition-colors hover:text-foreground dark:hover:text-[#39FF14]">IMEI Check</Link>
           </nav>
           <div className="flex items-center gap-3">
             <Button
@@ -209,12 +214,13 @@ export default function LandingPage() {
               <span className="sr-only">{lang === "mm" ? "Switch to English" : "မြန်မာဘာသာ"}</span>
             </Button>
             <ThemeToggle />
-            <Button variant="ghost" size="sm" className="text-sm font-medium hover:text-[#39FF14]" asChild>
+            <Button variant="ghost" size="sm" className="text-sm font-medium hover:text-foreground dark:hover:text-[#39FF14]" asChild>
               <Link to="/login">Log In</Link>
             </Button>
             <Button
               size="sm"
-              className="text-sm px-5 font-semibold bg-[#39FF14] text-[#060608] hover:bg-[#39FF14]/90 neon-glow-btn"
+              className="text-sm px-5 font-semibold bg-[#39FF14] dark:bg-[#39FF14] text-[#060608] hover:bg-[#39FF14]/90 neon-glow-btn light:bg-[#15803d] light:text-white"
+              style={{}}
               asChild
             >
               <Link to="/login">Get Started</Link>
@@ -224,20 +230,28 @@ export default function LandingPage() {
       </header>
 
       <main>
-        {/* ═══════════ HERO — Neon Green & Dark Glass ═══════════ */}
-        <section className="relative overflow-hidden bg-[#060608]">
+        {/* ═══════════ HERO ═══════════ */}
+        <section className="relative overflow-hidden bg-[#060608] dark:bg-[#060608] landing-hero-bg">
           {/* Circuit grid background */}
           <div className="absolute inset-0 circuit-grid" />
 
           {/* Neon green radial glow */}
           <div
-            className="pointer-events-none absolute inset-0 will-change-transform"
+            className="pointer-events-none absolute inset-0 will-change-transform dark:block hidden"
             style={{
-              background: "radial-gradient(800px circle at 50% 35%, rgba(57, 255, 20, 0.07), transparent 60%)",
+              background: `radial-gradient(800px circle at 50% 35%, rgba(${neonRgb}, 0.07), transparent 60%)`,
               transform: `translateY(${scrollY * 0.3}px) scale(${1 + scrollY * 0.0002})`,
             }}
           />
-          {/* Secondary gold subtle accent */}
+          {/* Light mode subtle green glow */}
+          <div
+            className="pointer-events-none absolute inset-0 will-change-transform dark:hidden block"
+            style={{
+              background: "radial-gradient(800px circle at 50% 35%, rgba(21, 128, 61, 0.06), transparent 60%)",
+              transform: `translateY(${scrollY * 0.3}px) scale(${1 + scrollY * 0.0002})`,
+            }}
+          />
+          {/* Secondary accent */}
           <div
             className="pointer-events-none absolute inset-0 will-change-transform"
             style={{
@@ -246,16 +260,16 @@ export default function LandingPage() {
             }}
           />
 
-          {/* Animated circuit lines (matching splash) */}
-          <div className="absolute inset-0 overflow-hidden opacity-[0.04]">
-            <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#39FF14] to-transparent animate-[shimmerLine_3s_ease-in-out_infinite]" />
+          {/* Animated circuit lines */}
+          <div className="absolute inset-0 overflow-hidden opacity-[0.04] dark:opacity-[0.04]">
+            <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#39FF14] dark:via-[#39FF14] to-transparent animate-[shimmerLine_3s_ease-in-out_infinite]" />
             <div className="absolute top-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#39FF14]/50 to-transparent animate-[shimmerLine_4s_ease-in-out_infinite_0.5s]" />
             <div className="absolute top-2/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#39FF14]/50 to-transparent animate-[shimmerLine_3.5s_ease-in-out_infinite_1s]" />
           </div>
 
           <div className="relative mx-auto max-w-[1120px] px-6 pt-36 pb-32 md:pt-44 md:pb-40 text-center">
             <ScrollReveal>
-              <p className="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60">
+              <p className="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60 dark:text-[#39FF14]/60 light-neon-label">
                 Reseller-First Infrastructure
               </p>
               <h1 className="text-[2.5rem] font-extrabold leading-[1.08] tracking-tight text-foreground sm:text-[3.5rem] lg:text-[4rem]">
@@ -273,14 +287,13 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ WHY CHOOSE KKTECH ═══════════ */}
-        <section className="relative border-y border-[rgba(57,255,20,0.08)] bg-[#060608] py-[100px] max-sm:py-16">
-          {/* Subtle grid continues */}
+        <section className="relative border-y border-border/40 dark:border-[rgba(57,255,20,0.08)] landing-section-bg py-[100px] max-sm:py-16">
           <div className="absolute inset-0 circuit-grid opacity-50" />
 
           <div className="relative mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
               <div className="text-center">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60 dark:text-[#39FF14]/60 light-neon-label">
                   Why Us
                 </p>
                 <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -309,8 +322,8 @@ export default function LandingPage() {
               ].map((card, i) => (
                 <ScrollReveal key={card.title} delay={i * 100}>
                   <div className="group neon-card flex flex-col items-center gap-5 p-8 sm:p-10 text-center">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#39FF14]/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:bg-[#39FF14]/[0.15]">
-                      <card.icon className="h-6 w-6 text-[#39FF14]" />
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#39FF14]/[0.08] dark:bg-[#39FF14]/[0.08] light-neon-icon-bg transition-all duration-300 group-hover:scale-110 group-hover:bg-[#39FF14]/[0.15] dark:group-hover:bg-[#39FF14]/[0.15]">
+                      <card.icon className="h-6 w-6 text-[#39FF14] dark:text-[#39FF14] light-neon-icon" />
                     </div>
                     <div>
                       <h3 className="text-base font-semibold text-foreground">{card.title}</h3>
@@ -324,16 +337,16 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ TRUST STRIP ═══════════ */}
-        <section className="border-b border-[rgba(57,255,20,0.08)] bg-[#060608]">
+        <section className="border-b border-border/40 dark:border-[rgba(57,255,20,0.08)] landing-section-bg">
           <div className="mx-auto max-w-[1120px] px-6 py-8">
             <ScrollReveal>
               <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
                 <span className="font-semibold text-foreground">Fast Processing</span>
-                <span className="text-[#39FF14]/30">•</span>
+                <span className="text-[#39FF14]/30 dark:text-[#39FF14]/30 light-neon-dot">•</span>
                 <span className="font-semibold text-foreground">Verified Providers</span>
-                <span className="text-[#39FF14]/30">•</span>
+                <span className="text-[#39FF14]/30 dark:text-[#39FF14]/30 light-neon-dot">•</span>
                 <span className="font-semibold text-foreground">Transparent Pricing</span>
-                <span className="text-[#39FF14]/30">•</span>
+                <span className="text-[#39FF14]/30 dark:text-[#39FF14]/30 light-neon-dot">•</span>
                 <span className="font-semibold text-foreground">Reliable Delivery</span>
               </div>
             </ScrollReveal>
@@ -343,13 +356,13 @@ export default function LandingPage() {
         {/* ═══════════ PROVIDER LOGOS ═══════════ */}
         <ProviderLogosCarousel />
 
-        {/* ═══════════ SERVICES — Glassmorphism Blocks ═══════════ */}
-        <section id="services" className="relative bg-[#060608] py-[120px] max-sm:py-20">
+        {/* ═══════════ SERVICES ═══════════ */}
+        <section id="services" className="relative landing-section-bg py-[120px] max-sm:py-20">
           <div className="absolute inset-0 circuit-grid opacity-30" />
           <div className="relative mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
               <div className="text-center">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60 dark:text-[#39FF14]/60 light-neon-label">
                   Services
                 </p>
                 <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -368,8 +381,8 @@ export default function LandingPage() {
                     to={cat.link}
                     className="group neon-card flex flex-col gap-5 p-8 sm:p-10"
                   >
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#39FF14]/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:rotate-[-6deg] group-hover:bg-[#39FF14]/[0.15]">
-                      <cat.icon className="h-5 w-5 text-[#39FF14] transition-transform duration-300 group-hover:scale-110" />
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#39FF14]/[0.08] dark:bg-[#39FF14]/[0.08] light-neon-icon-bg transition-all duration-300 group-hover:scale-110 group-hover:rotate-[-6deg] group-hover:bg-[#39FF14]/[0.15] dark:group-hover:bg-[#39FF14]/[0.15]">
+                      <cat.icon className="h-5 w-5 text-[#39FF14] dark:text-[#39FF14] light-neon-icon transition-transform duration-300 group-hover:scale-110" />
                     </div>
                     <div>
                       <h3 className="text-base font-semibold text-foreground">{cat.title}</h3>
@@ -385,11 +398,11 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ FAQ ═══════════ */}
-        <section id="faq" className="relative border-t border-[rgba(57,255,20,0.08)] bg-[#060608] py-[120px] max-sm:py-20">
+        <section id="faq" className="relative border-t border-border/40 dark:border-[rgba(57,255,20,0.08)] landing-section-bg py-[120px] max-sm:py-20">
           <div className="absolute inset-0 circuit-grid opacity-20" />
           <div className="relative mx-auto max-w-[800px] px-6">
             <ScrollReveal>
-              <p className="mb-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60">
+              <p className="mb-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60 dark:text-[#39FF14]/60 light-neon-label">
                 Support
               </p>
               <h2 className="mb-4 text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -404,7 +417,7 @@ export default function LandingPage() {
                 <ScrollReveal key={i} delay={i * 50}>
                   <AccordionItem
                     value={`faq-${i}`}
-                    className="rounded-2xl border border-[rgba(57,255,20,0.1)] bg-[rgba(17,17,22,0.7)] backdrop-blur-sm px-6 transition-colors hover:border-[rgba(57,255,20,0.25)]"
+                    className="rounded-2xl border border-border/40 dark:border-[rgba(57,255,20,0.1)] bg-card/70 dark:bg-[rgba(17,17,22,0.7)] backdrop-blur-sm px-6 transition-colors hover:border-border dark:hover:border-[rgba(57,255,20,0.25)]"
                   >
                     <AccordionTrigger className="text-left text-sm font-semibold text-foreground hover:no-underline py-5">
                       {f.q}
@@ -420,14 +433,14 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ CTA BANNER ═══════════ */}
-        <section className="bg-[#060608] py-[100px] max-sm:py-16">
+        <section className="landing-section-bg py-[100px] max-sm:py-16">
           <div className="mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
-              <div className="relative overflow-hidden rounded-3xl border border-[rgba(57,255,20,0.15)] bg-[rgba(17,17,22,0.6)] backdrop-blur-xl px-8 py-16 text-center sm:px-16 sm:py-20">
-                {/* Neon glow */}
-                <div className="pointer-events-none absolute inset-0 rounded-3xl bg-[radial-gradient(600px_circle_at_50%_40%,rgba(57,255,20,0.06),transparent_60%)]" />
+              <div className="relative overflow-hidden rounded-3xl border border-border/40 dark:border-[rgba(57,255,20,0.15)] bg-card/60 dark:bg-[rgba(17,17,22,0.6)] backdrop-blur-xl px-8 py-16 text-center sm:px-16 sm:py-20">
+                {/* Glow */}
+                <div className="pointer-events-none absolute inset-0 rounded-3xl dark:bg-[radial-gradient(600px_circle_at_50%_40%,rgba(57,255,20,0.06),transparent_60%)] bg-[radial-gradient(600px_circle_at_50%_40%,rgba(21,128,61,0.04),transparent_60%)]" />
                 <div className="relative">
-                  <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60">
+                  <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60 dark:text-[#39FF14]/60 light-neon-label">
                     Start Today
                   </p>
                   <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
@@ -439,7 +452,7 @@ export default function LandingPage() {
                   <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                     <Button
                       size="lg"
-                      className="h-12 px-10 text-sm font-semibold bg-[#39FF14] text-[#060608] hover:bg-[#39FF14]/90 neon-glow-btn"
+                      className="h-12 px-10 text-sm font-semibold landing-cta-btn neon-glow-btn"
                       asChild
                     >
                       <Link to="/login">Create Free Account</Link>
@@ -447,7 +460,7 @@ export default function LandingPage() {
                     <Button
                       variant="outline"
                       size="lg"
-                      className="h-12 px-10 text-sm font-semibold border-[rgba(57,255,20,0.2)] text-[#39FF14] hover:bg-[#39FF14]/[0.06] hover:border-[rgba(57,255,20,0.4)]"
+                      className="h-12 px-10 text-sm font-semibold border-border/40 dark:border-[rgba(57,255,20,0.2)] landing-outline-btn"
                       asChild
                     >
                       <Link to="/tools/imei-check" className="inline-flex items-center gap-2">
@@ -473,7 +486,7 @@ export default function LandingPage() {
       </main>
 
       {/* ═══════════ FOOTER ═══════════ */}
-      <footer className="border-t border-[rgba(57,255,20,0.08)] bg-[#0a0a0e]">
+      <footer className="border-t border-border/40 dark:border-[rgba(57,255,20,0.08)] landing-footer-bg">
         <div className="mx-auto max-w-[1120px] px-6 pt-16 pb-8">
           <div className="grid gap-12 sm:grid-cols-4">
             <div className="sm:col-span-2">
@@ -491,7 +504,7 @@ export default function LandingPage() {
                   href="https://t.me/kkremote"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(57,255,20,0.15)] text-muted-foreground transition-all hover:border-[rgba(57,255,20,0.4)] hover:text-[#39FF14]"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/40 dark:border-[rgba(57,255,20,0.15)] text-muted-foreground transition-all hover:border-border dark:hover:border-[rgba(57,255,20,0.4)] hover:text-foreground dark:hover:text-[#39FF14]"
                   aria-label="Telegram"
                 >
                   <Send className="h-4 w-4" />
@@ -500,7 +513,7 @@ export default function LandingPage() {
                   href="viber://chat?number=%2B959787313137"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(57,255,20,0.15)] text-muted-foreground transition-all hover:border-[rgba(57,255,20,0.4)] hover:text-[#39FF14]"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/40 dark:border-[rgba(57,255,20,0.15)] text-muted-foreground transition-all hover:border-border dark:hover:border-[rgba(57,255,20,0.4)] hover:text-foreground dark:hover:text-[#39FF14]"
                   aria-label="Viber"
                 >
                   <Phone className="h-4 w-4" />
@@ -509,7 +522,7 @@ export default function LandingPage() {
                   href="https://t.me/KKTechDeals"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[rgba(57,255,20,0.15)] text-muted-foreground transition-all hover:border-[rgba(57,255,20,0.4)] hover:text-[#39FF14]"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/40 dark:border-[rgba(57,255,20,0.15)] text-muted-foreground transition-all hover:border-border dark:hover:border-[rgba(57,255,20,0.4)] hover:text-foreground dark:hover:text-[#39FF14]"
                   aria-label="Telegram Channel"
                 >
                   <MessageCircle className="h-4 w-4" />
@@ -520,22 +533,22 @@ export default function LandingPage() {
               <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">
                 Quick Links
               </span>
-              <a href="#services" className="text-muted-foreground transition-colors hover:text-[#39FF14]">Services</a>
-              <a href="#faq" className="text-muted-foreground transition-colors hover:text-[#39FF14]">FAQ</a>
-              <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-[#39FF14]">Free IMEI Checker</Link>
-              <Link to="/blog" className="text-muted-foreground transition-colors hover:text-[#39FF14]">Blog</Link>
-              <Link to="/login" className="text-muted-foreground transition-colors hover:text-[#39FF14]">Reseller Login</Link>
+              <a href="#services" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Services</a>
+              <a href="#faq" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">FAQ</a>
+              <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Free IMEI Checker</Link>
+              <Link to="/blog" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Blog</Link>
+              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Reseller Login</Link>
             </div>
             <div className="flex flex-col gap-3 text-sm">
               <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">
                 Policies
               </span>
-              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-[#39FF14]">Terms & Conditions</Link>
-              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-[#39FF14]">Privacy Policy</Link>
-              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-[#39FF14]">Refund Policy</Link>
+              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Terms & Conditions</Link>
+              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Privacy Policy</Link>
+              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Refund Policy</Link>
             </div>
           </div>
-          <div className="mt-12 flex flex-col items-center gap-3 border-t border-[rgba(57,255,20,0.06)] pt-8 sm:flex-row sm:justify-between">
+          <div className="mt-12 flex flex-col items-center gap-3 border-t border-border/20 dark:border-[rgba(57,255,20,0.06)] pt-8 sm:flex-row sm:justify-between">
             <p className="text-xs text-muted-foreground/60">
               © {new Date().getFullYear()} KKTech. All rights reserved.
             </p>
@@ -554,7 +567,7 @@ export default function LandingPage() {
               href="https://t.me/kkremote"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-full border border-[rgba(57,255,20,0.15)] bg-[#111116] px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-[rgba(57,255,20,0.06)]"
+              className="flex items-center gap-2 rounded-full border border-border/40 dark:border-[rgba(57,255,20,0.15)] bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-accent/5"
             >
               <Send className="h-4 w-4 text-[hsl(200_80%_50%)]" />
               Telegram
@@ -563,7 +576,7 @@ export default function LandingPage() {
               href="viber://chat?number=%2B959787313137"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-full border border-[rgba(57,255,20,0.15)] bg-[#111116] px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-[rgba(57,255,20,0.06)]"
+              className="flex items-center gap-2 rounded-full border border-border/40 dark:border-[rgba(57,255,20,0.15)] bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-accent/5"
             >
               <Phone className="h-4 w-4 text-[hsl(270_60%_55%)]" />
               Viber
@@ -572,7 +585,7 @@ export default function LandingPage() {
         )}
         <button
           onClick={() => setContactOpen(!contactOpen)}
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-[#39FF14] text-[#060608] shadow-lg neon-glow-btn transition-transform active:scale-95"
+          className="flex h-14 w-14 items-center justify-center rounded-full landing-cta-btn shadow-lg neon-glow-btn transition-transform active:scale-95"
           aria-label="Contact support"
         >
           {contactOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
