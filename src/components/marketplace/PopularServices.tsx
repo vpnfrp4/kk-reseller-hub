@@ -38,7 +38,7 @@ export default function PopularServices() {
       // Fetch product details
       const { data: products } = await supabase
         .from("products")
-        .select("id, name, wholesale_price, product_type, category, processing_time, delivery_time_config")
+        .select("id, name, slug, wholesale_price, product_type, category, processing_time, delivery_time_config")
         .in("id", productIds);
 
       if (!products) return [];
@@ -74,7 +74,7 @@ export default function PopularServices() {
           return (
             <Link
               key={item.id}
-              to={`/dashboard/products/${item.id}`}
+              to={`/dashboard/products/${item.slug || item.id}`}
               className="p-4 hover:bg-muted/20 transition-colors group"
             >
               <div className="flex items-start justify-between gap-2 mb-2">
