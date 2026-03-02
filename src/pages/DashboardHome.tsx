@@ -166,7 +166,7 @@ export default function DashboardHome() {
       {/* WALLET HERO */}
       <div
         ref={heroRef}
-        className="wallet-hero p-8 md:p-10 animate-fade-in relative"
+        className="wallet-hero p-8 md:p-12 animate-fade-in relative"
         style={{ transform: `translateY(${parallaxY * 0.3}px)`, transition: "transform 0.1s linear" }}
       >
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -181,14 +181,14 @@ export default function DashboardHome() {
             }
           >
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-2">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-3">
                 {l(t.dashboard.balance)}
               </p>
               <div className="flex items-baseline gap-3">
-                <p className="text-5xl lg:text-6xl font-extrabold font-mono tabular-nums text-foreground tracking-tighter leading-none gold-shimmer">
+                <p className="text-6xl lg:text-7xl font-extrabold font-mono tabular-nums text-foreground tracking-tighter leading-none gold-shimmer">
                   {displayBalance.toLocaleString()}
                 </p>
-                <span className="text-base font-semibold text-muted-foreground">MMK</span>
+                <span className="text-lg font-semibold text-muted-foreground">MMK</span>
               </div>
               <p className="text-sm text-muted-foreground mt-3">
                 {l(t.dashboard.approxPurchases)}{" "}
