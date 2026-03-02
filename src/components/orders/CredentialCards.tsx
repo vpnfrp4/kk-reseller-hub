@@ -346,7 +346,7 @@ export default function CredentialCards({
   const hasSensitive = accounts.some((a) => a.fields.some((f) => f.sensitive));
 
   return (
-    <div>
+    <div className="animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-[11px] uppercase tracking-[0.12em] font-semibold text-muted-foreground">
