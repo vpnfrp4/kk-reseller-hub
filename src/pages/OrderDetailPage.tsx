@@ -108,21 +108,14 @@ interface TimelineStepData {
 function StatusTimeline({ steps }: { steps: TimelineStepData[] }) {
   const l = useT();
   return (
-    <div className="flex items-start justify-between gap-2">
+    <div className="space-y-0">
       {steps.map((step, i) => {
         const isFailed = l(step.label).toLowerCase().includes("fail") || l(step.label).toLowerCase().includes("reject") || l(step.label).toLowerCase().includes("cancel");
+        const isLast = i === steps.length - 1;
         return (
-          <div key={i} className="flex-1 flex flex-col items-center text-center">
-            {/* Connector + Circle */}
-            <div className="flex items-center w-full mb-3">
-              {i > 0 && (
-                <div
-                  className={cn(
-                    "flex-1 h-px transition-all",
-                    step.isDone ? "bg-primary/40" : "bg-border",
-                  )}
-                />
-              )}
+          <div key={i} className="flex gap-4">
+            {/* Vertical line + circle */}
+            <div className="flex flex-col items-center">
               <div
                 className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 transition-all",
@@ -147,34 +140,37 @@ function StatusTimeline({ steps }: { steps: TimelineStepData[] }) {
                   <span className="text-xs font-bold">{i + 1}</span>
                 )}
               </div>
-              {i < steps.length - 1 && (
+              {!isLast && (
                 <div
                   className={cn(
-                    "flex-1 h-px transition-all",
-                    step.isDone ? "bg-primary/40" : "bg-border",
+                    "w-px flex-1 min-h-[32px] transition-all",
+                    step.isDone ? "bg-primary/30" : "bg-border",
                   )}
                 />
               )}
             </div>
-            <p
-              className={cn(
-                "text-xs font-medium",
-                step.isDone && !isFailed
-                  ? "text-primary"
-                  : step.isDone && isFailed
-                    ? "text-destructive"
-                    : step.isActive
-                      ? "text-primary"
-                      : "text-muted-foreground",
-              )}
-            >
-              {l(step.label)}
-            </p>
-            {step.timestamp && (
-              <p className="text-[10px] text-muted-foreground/60 mt-0.5">
-                {format(new Date(step.timestamp), "HH:mm")}
+            {/* Content */}
+            <div className={cn("pb-6", isLast && "pb-0")}>
+              <p
+                className={cn(
+                  "text-sm font-semibold leading-8",
+                  step.isDone && !isFailed
+                    ? "text-primary"
+                    : step.isDone && isFailed
+                      ? "text-destructive"
+                      : step.isActive
+                        ? "text-primary"
+                        : "text-muted-foreground",
+                )}
+              >
+                {l(step.label)}
               </p>
-            )}
+              {step.timestamp && (
+                <p className="text-[11px] text-muted-foreground/60 font-mono mt-0.5">
+                  {format(new Date(step.timestamp), "MMM d, yyyy 'at' HH:mm")}
+                </p>
+              )}
+            </div>
           </div>
         );
       })}

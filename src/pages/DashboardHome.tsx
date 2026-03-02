@@ -28,6 +28,7 @@ import CollapsibleSection from "@/components/shared/CollapsibleSection";
 import BalanceTrendChart from "@/components/dashboard/BalanceTrendChart";
 import SpendingDoughnut from "@/components/dashboard/SpendingDoughnut";
 import TransactionBarChart from "@/components/dashboard/TransactionBarChart";
+import QuickServiceHub from "@/components/dashboard/QuickServiceHub";
 import { cn } from "@/lib/utils";
 import { t, useT } from "@/lib/i18n";
 import { MmStatus } from "@/components/shared/MmLabel";
@@ -297,10 +298,15 @@ export default function DashboardHome() {
         </div>
       </div>
 
+      {/* QUICK SERVICES HUB */}
+      <div className="animate-fade-in" style={{ animationDelay: "0.06s" }}>
+        <QuickServiceHub />
+      </div>
+
       {/* QUICK ACTIONS */}
       <div
         className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-fade-in"
-        style={{ animationDelay: "0.08s" }}
+        style={{ animationDelay: "0.12s" }}
       >
         {quickActions.map((action, i) => (
           <button
@@ -310,7 +316,7 @@ export default function DashboardHome() {
               "glass-card p-6 flex flex-col items-center gap-3 text-center hover-lift group cursor-pointer",
               "opacity-0 animate-stagger-in"
             )}
-            style={{ animationDelay: `${0.1 + i * 0.05}s` }}
+            style={{ animationDelay: `${0.14 + i * 0.05}s` }}
           >
             <div
               className={cn(
