@@ -5,12 +5,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { User, Camera, Mail, Calendar, Loader2, Trash2 } from "lucide-react";
+import { User, Camera, Mail, Calendar, Loader2, Trash2, Send } from "lucide-react";
 import { t, useT } from "@/lib/i18n";
 
 export default function ProfileTab() {
   const { profile, refreshProfile, user } = useAuth();
   const [name, setName] = useState(profile?.name || "");
+  const [telegramChatId, setTelegramChatId] = useState((profile as any)?.telegram_chat_id || "");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -24,9 +25,12 @@ export default function ProfileTab() {
       return;
     }
     setSaving(true);
+    const updateData: any = { name: trimmed };
+    const tgId = telegramChatId.trim();
+    updateData.telegram_chat_id = tgId || null;
     const { error } = await supabase
       .from("profiles")
-      .update({ name: trimmed })
+      .update(updateData)
       .eq("user_id", profile?.user_id!);
     setSaving(false);
     if (error) { toast.error(error.message); return; }
@@ -241,6 +245,20 @@ export default function ProfileTab() {
                 placeholder="Enter your name"
                 className="bg-muted/20 border-border/20 h-10"
               />
+            </div>
+            <div className="sm:col-span-2 space-y-micro">
+              <Label className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold flex items-center gap-1.5">
+                <Send className="w-3 h-3" /> Telegram Chat ID
+              </Label>
+              <Input
+                value={telegramChatId}
+                onChange={(e) => setTelegramChatId(e.target.value)}
+                placeholder="e.g. 123456789"
+                className="bg-muted/20 border-border/20 h-10 font-mono text-sm"
+              />
+              <p className="text-[10px] text-muted-foreground/50">
+                Link your Telegram to receive order status updates. Send <span className="font-semibold">/start</span> to <span className="font-semibold">@KKRemoteBot</span> to get your Chat ID.
+              </p>
             </div>
           </div>
 

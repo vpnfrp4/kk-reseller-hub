@@ -158,6 +158,36 @@ Deno.serve(async (req) => {
           type: "order",
           link: "/orders",
         });
+
+        // Send Telegram notification if user has telegram_chat_id
+        try {
+          const { data: userProfile } = await serviceClient
+            .from("profiles")
+            .select("telegram_chat_id")
+            .eq("user_id", order.user_id)
+            .maybeSingle();
+
+          if (userProfile?.telegram_chat_id) {
+            const telegramUrl = `${supabaseUrl}/functions/v1/send-telegram`;
+            await fetch(telegramUrl, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${supabaseAnonKey}`,
+              },
+              body: JSON.stringify({
+                type: "status_update",
+                chat_id: userProfile.telegram_chat_id,
+                order_id: order.id,
+                product_name: order.product_name,
+                status,
+              }),
+            });
+          }
+        } catch (tgErr) {
+          // Telegram is best-effort, don't fail the request
+          console.error("Telegram notification failed:", tgErr);
+        }
       }
     }
 
