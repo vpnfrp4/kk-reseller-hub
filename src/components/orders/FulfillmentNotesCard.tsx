@@ -103,7 +103,7 @@ export default function FulfillmentNotesCard({ notes, completed }: FulfillmentNo
   if (lines.length === 0) return null;
 
   return (
-    <div>
+    <div className="animate-fade-in">
       {/* Header — identical to CredentialCards header */}
       <div className="flex items-center justify-between mb-5">
         <h3 className="text-[11px] uppercase tracking-[0.12em] font-semibold text-muted-foreground">
