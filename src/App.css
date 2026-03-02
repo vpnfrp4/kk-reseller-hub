@@ -1,9 +1,4 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-}
+/* App.css is no longer used — layout handled by index.css & components */
 
 .logo {
   height: 6em;
