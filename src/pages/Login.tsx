@@ -5,7 +5,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Shield, Eye, EyeOff, ArrowRight, RefreshCw, Check, X } from "lucide-react";
+import { Eye, EyeOff, ArrowRight, RefreshCw, Check, X } from "lucide-react";
+import kkLogo from "@/assets/kkremote-logo.png";
 import { t, useT } from "@/lib/i18n";
 import {
   validateUsername,
@@ -131,12 +132,7 @@ export default function Login() {
       <div className="w-full max-w-[420px] relative z-10">
         {/* Branding */}
         <div className="text-center mb-10 animate-fade-in">
-          <div
-            className="rounded-2xl mx-auto mb-5 flex items-center justify-center bg-secondary border border-border"
-            style={{ width: "64px", height: "64px" }}
-          >
-            <Shield className="w-7 h-7 text-primary" />
-          </div>
+          <img src={kkLogo} alt="KKTech" className="w-14 h-14 mx-auto mb-5 rounded-2xl" />
           <h1 className="text-2xl md:text-3xl font-bold text-foreground tracking-tight">
             KK<span className="text-primary">Tech</span>
           </h1>
