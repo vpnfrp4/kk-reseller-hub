@@ -128,6 +128,7 @@ function AppRoutes() {
       <Route path="/dashboard/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       <Route path="/dashboard/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
       <Route path="/dashboard/imei-orders" element={<ProtectedRoute><ImeiOrdersPage /></ProtectedRoute>} />
+      <Route path="/dashboard/*" element={<Navigate to="/dashboard" replace />} />
       <Route path="/admin" element={<AdminRoute><AdminOverview /></AdminRoute>} />
       <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
       <Route path="/admin/providers" element={<AdminRoute><AdminProviders /></AdminRoute>} />
@@ -139,6 +140,7 @@ function AppRoutes() {
         <Route path="/admin/blog" element={<AdminRoute><AdminBlog /></AdminRoute>} />
         <Route path="/admin/profit" element={<AdminRoute><AdminProfitDashboard /></AdminRoute>} />
         <Route path="/admin/monitoring" element={<AdminRoute><AdminMonitoring /></AdminRoute>} />
+        <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
         <Route path="*" element={<NotFound />} />
     </Routes>
   );
