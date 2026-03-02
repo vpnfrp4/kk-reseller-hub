@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { RefreshCw } from "lucide-react";
 import React from "react";
 
-const UPDATE_CHECK_INTERVAL = 60 * 60 * 1000; // 1 hour
+const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000; // 5 minutes
 
 export default function PwaUpdatePrompt() {
   const {
