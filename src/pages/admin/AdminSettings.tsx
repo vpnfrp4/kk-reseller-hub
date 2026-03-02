@@ -1088,7 +1088,13 @@ function ApiProvidersSection() {
       });
       const data = await res.json();
       if (data.success) {
-        toast.success(`${name}: ${data.message} — ${data.inserted} new, ${data.updated} updated${data.errors ? `, ${data.errors} errors` : ""}`);
+        const svc = data.services || {};
+        const prod = data.products || {};
+        toast.success(
+          `${name}: ${data.message}\nServices: ${svc.inserted ?? 0} new, ${svc.updated ?? 0} updated\nProducts: ${prod.created ?? 0} created, ${prod.updated ?? 0} updated${data.soft_disabled ? `\n${data.soft_disabled} removed services disabled` : ""}`,
+          { duration: 8000 }
+        );
+        // Fallback for old response format
       } else {
         toast.error(data.message || data.error || "Fetch failed");
       }
