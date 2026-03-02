@@ -74,6 +74,32 @@ export default function ProductsPage() {
     },
   });
 
+  // Fetch provider data separately (no FK between products and imei_providers)
+  const providerIds = useMemo(() => {
+    const ids = new Set<string>();
+    (products || []).forEach((p: any) => { if (p.provider_id) ids.add(p.provider_id); });
+    return Array.from(ids);
+  }, [products]);
+
+  const { data: providersData } = useQuery({
+    queryKey: ["product-providers", providerIds],
+    queryFn: async () => {
+      if (providerIds.length === 0) return [];
+      const { data } = await supabase
+        .from("imei_providers_public")
+        .select("id, name, avg_rating, success_rate, total_completed, is_verified, fulfillment_type")
+        .in("id", providerIds);
+      return data || [];
+    },
+    enabled: providerIds.length > 0,
+  });
+
+  const providerMap = useMemo(() => {
+    const map = new Map<string, any>();
+    (providersData || []).forEach((p: any) => map.set(p.id, p));
+    return map;
+  }, [providersData]);
+
   const { data: allTiers } = useQuery({
     queryKey: ["pricing-tiers"],
     queryFn: async () => {
@@ -101,19 +127,16 @@ export default function ProductsPage() {
   };
 
   const providers = useMemo(() => {
-    const map = new Map<string, string>();
-    (products || []).forEach((p: any) => {
-      if (p.imei_providers?.id && p.imei_providers?.name) {
-        map.set(p.imei_providers.id, p.imei_providers.name);
-      }
-    });
-    return Array.from(map, ([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
-  }, [products]);
+    return (providersData || [])
+      .filter((p: any) => p.name)
+      .map((p: any) => ({ id: p.id, name: p.name }))
+      .sort((a: any, b: any) => a.name.localeCompare(b.name));
+  }, [providersData]);
 
   const filtered = (products || [])
     .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
     .filter((p: any) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
-    .filter((p: any) => providerId === "all" || p.imei_providers?.id === providerId)
+    .filter((p: any) => providerId === "all" || p.provider_id === providerId)
     .sort((a: any, b: any) => {
       if (sortBy === "price-low") return a.wholesale_price - b.wholesale_price;
       if (sortBy === "price-high") return b.wholesale_price - a.wholesale_price;
@@ -322,7 +345,7 @@ export default function ProductsPage() {
                       pricingTiers={getTiersForProduct(product.id)}
                       lastRateUpdate={product.base_currency === "USD" ? lastRateUpdate : null}
                       usdRate={product.base_currency === "USD" ? usdRate : null}
-                      provider={(product as any).imei_providers || null}
+                      provider={product.provider_id ? providerMap.get(product.provider_id) || null : null}
                     />
                   ))}
                 </div>
