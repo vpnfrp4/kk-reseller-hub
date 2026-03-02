@@ -80,6 +80,29 @@ export default function AdminOrders() {
     },
   });
 
+  // Realtime: auto-refresh when any order changes
+  useEffect(() => {
+    const channel = supabase
+      .channel("admin-orders-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "orders" },
+        (payload) => {
+          if (payload.eventType === "UPDATE") {
+            const newStatus = (payload.new as any)?.status;
+            const oldStatus = (payload.old as any)?.status;
+            const productName = (payload.new as any)?.product_name || "Order";
+            if (newStatus && newStatus !== oldStatus) {
+              toast.info(`"${productName}" → ${newStatus.replace("_", " ")}`);
+            }
+          }
+          queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
+
   // Auto-open order detail from ?order= query param
   useEffect(() => {
     const orderId = searchParams.get("order");
