@@ -126,9 +126,9 @@ function OrgWebsiteJsonLd() {
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer support",
-      url: "https://t.me/kktech_support",
+      url: "https://t.me/kkremote",
     },
-    sameAs: ["https://t.me/kktech_support"],
+    sameAs: ["https://t.me/kkremote", "https://t.me/KKTechDeals"],
   };
   const website = {
     "@context": "https://schema.org",
@@ -448,7 +448,7 @@ export default function LandingPage() {
               </p>
               <div className="mt-6 flex gap-3">
                 <a
-                  href="https://t.me/kktech_support"
+                  href="https://t.me/kkremote"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary"
@@ -457,13 +457,22 @@ export default function LandingPage() {
                   <Send className="h-4 w-4" />
                 </a>
                 <a
-                  href="viber://chat?number=%2B959xxxxxxxxx"
+                  href="viber://chat?number=%2B959787313137"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary"
                   aria-label="Viber"
                 >
                   <Phone className="h-4 w-4" />
+                </a>
+                <a
+                  href="https://t.me/KKTechDeals"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary"
+                  aria-label="Telegram Channel"
+                >
+                  <MessageCircle className="h-4 w-4" />
                 </a>
               </div>
             </div>
@@ -502,7 +511,7 @@ export default function LandingPage() {
         {contactOpen && (
           <div className="mb-1 flex flex-col gap-2 animate-fade-in">
             <a
-              href="https://t.me/kktech_support"
+              href="https://t.me/kkremote"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-muted"
@@ -511,7 +520,7 @@ export default function LandingPage() {
               Telegram
             </a>
             <a
-              href="viber://chat?number=%2B959xxxxxxxxx"
+              href="viber://chat?number=%2B959787313137"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-muted"
