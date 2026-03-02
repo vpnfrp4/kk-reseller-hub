@@ -3,62 +3,16 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { t, useT } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, Loader2, ArrowUp } from "lucide-react";
-import { toast } from "sonner";
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import ProductFilters from "@/components/products/ProductFilters";
-import ProductCard from "@/components/products/ProductCard";
-import ProductCardSkeleton from "@/components/products/ProductCardSkeleton";
-import PurchaseConfirmModal from "@/components/products/PurchaseConfirmModal";
-import PurchaseSuccessModal from "@/components/products/PurchaseSuccessModal";
-import ImportantNoticeModal from "@/components/products/ImportantNoticeModal";
-import TopUpDialog from "@/components/wallet/TopUpDialog";
+import { useQuery } from "@tanstack/react-query";
+import { Package } from "lucide-react";
+import { useState, useMemo } from "react";
+import ServiceSelector from "@/components/products/ServiceSelector";
 import { cn } from "@/lib/utils";
-
-interface PurchaseResult {
-  order_id: string;
-  credentials: string;
-  product_name: string;
-  price: number;
-  quantity?: number;
-  unit_price?: number;
-}
-
-const PAGE_SIZE = 24;
 
 export default function ProductsPage() {
   const l = useT();
-  const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [purchasing, setPurchasing] = useState<string | null>(null);
-  const [result, setResult] = useState<PurchaseResult | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("All");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState<string>("name");
-  const [fulfillmentType, setFulfillmentType] = useState("all");
-  const [deliverySpeed, setDeliverySpeed] = useState("all");
-  const [providerId, setProviderId] = useState("all");
-  const [confirmProduct, setConfirmProduct] = useState<any | null>(null);
-  const [noticeProduct, setNoticeProduct] = useState<any | null>(null);
-  const [agreedTerms, setAgreedTerms] = useState(false);
-  const [lastSavings, setLastSavings] = useState(0);
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const [showScrollTop, setShowScrollTop] = useState(false);
-
-  // Smart top-up state
-  const [topUpOpen, setTopUpOpen] = useState(false);
-  const [topUpDefaultAmount, setTopUpDefaultAmount] = useState<number | undefined>();
-
-  useEffect(() => {
-    const handleScroll = () => setShowScrollTop(window.scrollY > 400);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
@@ -73,282 +27,136 @@ export default function ProductsPage() {
     },
   });
 
-  const providerIds = useMemo(() => {
-    const ids = new Set<string>();
-    (products || []).forEach((p: any) => { if (p.provider_id) ids.add(p.provider_id); });
-    return Array.from(ids);
+  // Derive categories with counts
+  const categories = useMemo(() => {
+    const cats = new Map<string, number>();
+    (products || []).forEach((p: any) => {
+      const cat = p.category || "Other";
+      cats.set(cat, (cats.get(cat) || 0) + 1);
+    });
+    return [
+      { name: "All", count: (products || []).length },
+      ...Array.from(cats.entries())
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([name, count]) => ({ name, count })),
+    ];
   }, [products]);
 
-  const { data: providersData } = useQuery({
-    queryKey: ["product-providers", providerIds],
-    queryFn: async () => {
-      if (providerIds.length === 0) return [];
-      const { data } = await supabase
-        .from("imei_providers_public")
-        .select("id, name, avg_rating, success_rate, total_completed, is_verified, fulfillment_type")
-        .in("id", providerIds);
-      return data || [];
-    },
-    enabled: providerIds.length > 0,
-  });
+  // Filter products by active category
+  const filteredProducts = useMemo(() => {
+    const all = products || [];
+    if (activeCategory === "All") return all;
+    return all.filter((p: any) => (p.category || "Other") === activeCategory);
+  }, [products, activeCategory]);
 
-  const providerMap = useMemo(() => {
-    const map = new Map<string, any>();
-    (providersData || []).forEach((p: any) => map.set(p.id, p));
-    return map;
-  }, [providersData]);
-
-  const { data: allTiers } = useQuery({
-    queryKey: ["pricing-tiers"],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("pricing_tiers")
-        .select("*")
-        .order("min_qty", { ascending: true });
-      return data || [];
-    },
-  });
-
-  const { data: usdRateSetting } = useQuery({
-    queryKey: ["usd-mmk-rate-updated"],
-    queryFn: async () => {
-      const { data } = await (supabase as any).from("system_settings").select("*").eq("key", "usd_mmk_rate").single();
-      return data;
-    },
-  });
-
-  const lastRateUpdate = usdRateSetting?.updated_at || null;
-  const usdRate = usdRateSetting?.value?.rate ? Number(usdRateSetting.value.rate) : null;
-
-  const getTiersForProduct = (productId: string) => {
-    return (allTiers || []).filter((t: any) => t.product_id === productId);
-  };
-
-  const providers = useMemo(() => {
-    return (providersData || [])
-      .filter((p: any) => p.name)
-      .map((p: any) => ({ id: p.id, name: p.name }))
-      .sort((a: any, b: any) => a.name.localeCompare(b.name));
-  }, [providersData]);
-
-  const filtered = (products || [])
-    .filter((p: any) => activeCategory === "All" || p.category === activeCategory)
-    .filter((p: any) => !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
-    .filter((p: any) => providerId === "all" || p.provider_id === providerId)
-    .sort((a: any, b: any) => {
-      if (sortBy === "price-low") return a.wholesale_price - b.wholesale_price;
-      if (sortBy === "price-high") return b.wholesale_price - a.wholesale_price;
-      return a.name.localeCompare(b.name);
-    });
-
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE);
-  }, [activeCategory, searchQuery, sortBy]);
-
-  const hasMore = visibleCount < filtered.length;
-  const visibleProducts = filtered.slice(0, visibleCount);
-
-  const loadMore = useCallback(() => {
-    setVisibleCount((prev) => Math.min(prev + PAGE_SIZE, filtered.length));
-  }, [filtered.length]);
-
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore) loadMore();
-      },
-      { rootMargin: "200px" }
-    );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasMore, loadMore]);
-
-  const mapErrorMessage = (msg: string): string => {
-    const lower = msg.toLowerCase();
-    if (lower.includes("out of stock") || lower.includes("no credentials available") || lower.includes("not enough stock")) {
-      return l(t.products.outOfStockToast);
+  // Navigate to order flow when a service is selected
+  const handleServiceSelect = (service: any) => {
+    const pt = service.product_type || "digital";
+    if (pt === "imei") {
+      navigate("/imei-marketplace");
+      return;
     }
-    if (lower.includes("insufficient balance")) {
-      return l(t.products.insufficientBalanceToast);
-    }
-    return msg;
-  };
-
-  const handleBuyClick = (product: any) => {
-    const pt = product.product_type || "digital";
-    if (pt === "imei") { navigate("/imei-marketplace"); return; }
-    if (pt === "manual" || pt === "api") { navigate(`/dashboard/products/${product.id}`); return; }
-    if (product.stock <= 0) { toast.error(l(t.products.outOfStockToast)); return; }
-    setNoticeProduct(product);
-  };
-
-  const handleNoticeConfirm = () => {
-    setConfirmProduct(noticeProduct);
-    setNoticeProduct(null);
-    setAgreedTerms(false);
-  };
-
-  const handleTopUp = (amount: number) => {
-    setTopUpDefaultAmount(amount);
-    setTopUpOpen(true);
-  };
-
-  const handleBuy = async (product: any, quantity: number = 1) => {
-    const tiers = getTiersForProduct(product.id);
-    const highestTierPrice = tiers.length > 0 ? Math.max(...tiers.map((t: any) => t.unit_price)) : product.wholesale_price;
-    const sortedTiers = [...tiers].sort((a: any, b: any) => b.min_qty - a.min_qty);
-    const activeTier = sortedTiers.find((t: any) => quantity >= t.min_qty && (t.max_qty === null || quantity <= t.max_qty));
-    const unitPrice = activeTier ? activeTier.unit_price : product.wholesale_price;
-    const savings = (highestTierPrice - unitPrice) * quantity;
-
-    setConfirmProduct(null);
-    setPurchasing(product.id);
-
-    try {
-      const { data, error } = await supabase.functions.invoke("purchase", {
-        body: { product_id: product.id, quantity },
-      });
-
-      if (error) throw new Error(error.message);
-      if (data && !data.success) {
-        toast.error(mapErrorMessage(data.error as string));
-        return;
-      }
-
-      setLastSavings(savings);
-      setResult(data as PurchaseResult);
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["orders"] });
-      queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
-      queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] });
-      queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
-      refreshProfile();
-    } catch (err: any) {
-      toast.error(mapErrorMessage(err.message || "Purchase failed. Please try again."));
-    } finally {
-      setPurchasing(null);
-    }
+    // Navigate directly to order flow page
+    navigate(`/dashboard/order/${service.slug || service.id}`);
   };
 
   return (
-    <>
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-3xl mx-auto">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
         { label: l(t.products.title) },
       ]} />
 
+      {/* ─── Header ─── */}
       <div className="animate-fade-in">
-        <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-1">{l(t.products.title)}</p>
-        <p className="text-[11px] text-muted-foreground/60">{l(t.products.subtitle)}</p>
+        <h1 className="text-xl font-bold text-foreground tracking-tight">{l(t.products.title)}</h1>
+        <p className="text-xs text-muted-foreground/60 mt-1">{l(t.products.subtitle)}</p>
       </div>
 
-      <ProductFilters
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
-        activeCategory={activeCategory}
-        onCategoryChange={setActiveCategory}
-        products={products || []}
-        fulfillmentType={fulfillmentType}
-        onFulfillmentTypeChange={setFulfillmentType}
-        deliverySpeed={deliverySpeed}
-        onDeliverySpeedChange={setDeliverySpeed}
-        providerId={providerId}
-        onProviderIdChange={setProviderId}
-        providers={providers}
-      />
+      {/* ─── Category Tabs ─── */}
+      <div className="animate-fade-in" style={{ animationDelay: "0.05s" }}>
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide p-1.5 rounded-2xl bg-secondary/20 border border-border/15">
+          {categories.map((cat) => {
+            if (cat.count === 0 && cat.name !== "All") return null;
+            const isActive = activeCategory === cat.name;
 
-      {/* Product grid — flat, no category grouping */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <ProductCardSkeleton key={i} index={i} />
+            return (
+              <button
+                key={cat.name}
+                onClick={() => setActiveCategory(cat.name)}
+                className={cn(
+                  "shrink-0 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 flex items-center gap-2",
+                  isActive
+                    ? "bg-success text-success-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/15"
+                )}
+              >
+                {cat.name === "All" ? l(t.products.all) : cat.name}
+                <span
+                  className={cn(
+                    "text-[10px] font-mono tabular-nums px-1.5 py-0.5 rounded-md",
+                    isActive ? "bg-success-foreground/20" : "bg-muted/20"
+                  )}
+                >
+                  {cat.count}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* ─── Service Selection ─── */}
+      <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        <div className="glass-card p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-[11px] uppercase tracking-[0.12em] font-bold text-muted-foreground/60">
+                Service Selection
+              </h2>
+              <p className="text-[10px] text-muted-foreground/40 mt-0.5">
+                {filteredProducts.length} services available
+              </p>
+            </div>
+            {activeCategory !== "All" && (
+              <span className="text-[10px] font-semibold text-success px-2.5 py-1 rounded-lg bg-success/10 border border-success/15">
+                {activeCategory}
+              </span>
+            )}
+          </div>
+
+          <ServiceSelector
+            services={filteredProducts}
+            isLoading={isLoading}
+            onSelect={handleServiceSelect}
+          />
+        </div>
+      </div>
+
+      {/* ─── Quick stats ─── */}
+      {!isLoading && (products || []).length > 0 && (
+        <div className="animate-fade-in grid grid-cols-3 gap-3" style={{ animationDelay: "0.15s" }}>
+          {[
+            { label: "Total Services", value: (products || []).length },
+            { label: "Categories", value: categories.length - 1 },
+            { label: "Auto Delivery", value: (products || []).filter((p: any) => p.product_type === "api" || p.product_type === "digital").length },
+          ].map((stat) => (
+            <div key={stat.label} className="rounded-xl bg-secondary/15 border border-border/10 p-4 text-center">
+              <p className="text-lg font-bold font-mono tabular-nums text-foreground">{stat.value}</p>
+              <p className="text-[9px] uppercase tracking-widest text-muted-foreground/40 mt-1 font-semibold">{stat.label}</p>
+            </div>
           ))}
         </div>
-      ) : filtered.length === 0 ? (
-        <div className="rounded-2xl border border-border/20 bg-card p-12 text-center">
+      )}
+
+      {/* ─── Empty state ─── */}
+      {!isLoading && (products || []).length === 0 && (
+        <div className="rounded-2xl border border-border/20 bg-card p-12 text-center animate-fade-in">
           <Package className="mx-auto mb-4 h-8 w-8 text-muted-foreground/20" />
           <p className="font-medium text-foreground text-sm">{l(t.products.noProducts)}</p>
           <p className="mt-1.5 text-xs text-muted-foreground/60">{l(t.products.adjustFilter)}</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {visibleProducts.map((product: any, i: number) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              index={i}
-              isPurchasing={purchasing === product.id}
-              onBuyClick={handleBuyClick}
-              pricingTiers={getTiersForProduct(product.id)}
-              lastRateUpdate={product.base_currency === "USD" ? lastRateUpdate : null}
-              usdRate={product.base_currency === "USD" ? usdRate : null}
-              provider={product.provider_id ? providerMap.get(product.provider_id) || null : null}
-            />
-          ))}
-        </div>
       )}
-
-      {!isLoading && hasMore && (
-        <div ref={sentinelRef} className="flex justify-center py-6">
-          <Loader2 className="w-5 h-5 text-muted-foreground/40 animate-spin" />
-        </div>
-      )}
-
-      {!isLoading && filtered.length > 0 && (
-        <p className="text-center text-xs text-muted-foreground/50 pb-2">
-          {l(t.products.showing)} {visibleProducts.length} / {filtered.length}
-        </p>
-      )}
-
-      <PurchaseConfirmModal
-        product={confirmProduct}
-        agreedTerms={agreedTerms}
-        onAgreedTermsChange={setAgreedTerms}
-        onConfirm={handleBuy}
-        onClose={() => setConfirmProduct(null)}
-        pricingTiers={confirmProduct ? getTiersForProduct(confirmProduct.id) : []}
-        userBalance={profile?.balance || 0}
-        onTopUp={handleTopUp}
-      />
-
-      <ImportantNoticeModal
-        open={!!noticeProduct}
-        onContinue={handleNoticeConfirm}
-        onCancel={() => setNoticeProduct(null)}
-      />
-
-      <PurchaseSuccessModal
-        result={result}
-        onClose={() => { setResult(null); setLastSavings(0); }}
-        totalSavings={lastSavings}
-      />
-
-      <TopUpDialog
-        userId={user?.id}
-        defaultAmount={topUpDefaultAmount}
-        open={topUpOpen}
-        onOpenChange={setTopUpOpen}
-        hideTrigger
-        onSubmitted={(txId) => navigate(`/dashboard/topup-status/${txId}`)}
-      />
     </div>
-
-    <button
-      onClick={scrollToTop}
-      className={cn(
-        "fixed bottom-6 right-6 z-50 p-3 rounded-full bg-primary text-primary-foreground transition-all duration-300",
-        showScrollTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
-      )}
-      style={{ boxShadow: "var(--shadow-elevated)" }}
-      aria-label="Scroll to top"
-    >
-      <ArrowUp className="w-5 h-5" />
-    </button>
-    </>
   );
 }
