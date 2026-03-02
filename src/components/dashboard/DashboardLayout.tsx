@@ -212,16 +212,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
 
-          <div className="flex items-center gap-1 sm:gap-3">
-            {/* Language toggle — hide on very small screens */}
+          <div className="flex items-center gap-3">
+            {/* Language toggle */}
             <button
               onClick={toggleLang}
-              className="hidden sm:flex items-center h-8 rounded-lg border border-border bg-secondary text-[11px] font-semibold uppercase tracking-wider overflow-hidden"
+              className="flex items-center h-8 rounded-lg border border-border bg-secondary text-[11px] font-bold uppercase tracking-wider overflow-hidden transition-all duration-200"
             >
-              <span className={`px-2.5 py-1.5 transition-colors ${lang === "en" ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>
+              <span className={cn("px-2.5 py-1.5 transition-all duration-300", lang === "en" ? "bg-[#39FF14]/15 text-[#39FF14] dark:bg-[#39FF14]/15 dark:text-[#39FF14] light:bg-[#15803d]/15 light:text-[#15803d]" : "text-muted-foreground")}>
                 EN
               </span>
-              <span className={`px-2.5 py-1.5 transition-colors ${lang === "mm" ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>
+              <span className={cn("px-2.5 py-1.5 transition-all duration-300", lang === "mm" ? "bg-[#39FF14]/15 text-[#39FF14] dark:bg-[#39FF14]/15 dark:text-[#39FF14] light:bg-[#15803d]/15 light:text-[#15803d]" : "text-muted-foreground")}>
                 MM
               </span>
             </button>
@@ -229,7 +229,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <CurrencyToggle />
 
             {/* Sound & Theme — hide on mobile to reduce clutter */}
-            <div className="hidden sm:flex items-center gap-1">
+            <div className="hidden sm:flex items-center gap-3">
               <SoundToggle />
               <ThemeToggle />
             </div>
