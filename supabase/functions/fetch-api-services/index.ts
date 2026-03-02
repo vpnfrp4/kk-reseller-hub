@@ -231,121 +231,44 @@ Deno.serve(async (req) => {
     }
 
     // ══════════════════════════════════════════════════════
-    // PHASE 3: Product sync — AFTER service sync
-    // For EACH service: if product exists → update, else → create
-    // Match by api_service_id (provider_service_id as string)
+    // PHASE 3: Update linked products' pricing (UPDATE only, no INSERT/DELETE)
+    // Only updates api_rate, min, max on EXISTING products that reference these services.
+    // Products are NEVER created or deleted by sync.
     // ══════════════════════════════════════════════════════
+    let prodUpdated = 0;
+    let prodErrors = 0;
 
-    // Fetch ALL existing api products that have an api_service_id set
-    // We match by api_service_id (string of provider_service_id), NOT by provider_id FK
+    // Fetch existing API products linked to this provider
     const existingProdList = await fetchAll(
-      supabase, "products", "id, api_service_id, provider_id",
-      { product_type: "api" },
-      ["api_service_id"],  // WHERE api_service_id IS NOT NULL
+      supabase, "products", "id, api_service_id, provider_id, category",
+      { product_type: "api", provider_id },
+      ["api_service_id"],
     );
 
-    // Build map: api_service_id string → product row
-    const prodByServiceId = new Map<string, { id: string; provider_id: string | null }>();
-    for (const p of existingProdList) {
-      if (p.api_service_id) {
-        prodByServiceId.set(String(p.api_service_id), { id: p.id, provider_id: p.provider_id });
+    for (const prod of existingProdList) {
+      const svcId = parseInt(prod.api_service_id);
+      if (isNaN(svcId)) continue;
+      const svcData = serviceDataMap.get(svcId);
+      if (!svcData) {
+        // Service was removed — do NOT delete product, just skip
+        continue;
       }
-    }
 
-    let prodCreated = 0, prodUpdated = 0, prodErrors = 0;
-    const prodInsertRows: any[] = [];
-    const prodUpdateRows: { id: string; data: any }[] = [];
-
-    // Check EVERY service from provider
-    for (const serviceId of seenServiceIds) {
-      const serviceIdStr = String(serviceId);
-      const svcData = serviceDataMap.get(serviceId);
-      if (!svcData) continue;
-
-      const mappedCategory = detectCategory(svcData.name, svcData.category);
-      const margin = categoryMargins[mappedCategory] ?? globalMargin;
+      // Update only pricing fields on the existing product
+      const margin = categoryMargins[prod.category] ?? globalMargin;
       const costPer1000 = Math.ceil(svcData.rate * exchangeRate);
       const sellPer1000 = Math.ceil(costPer1000 * (1 + margin / 100));
 
-      const existing = prodByServiceId.get(serviceIdStr);
+      const { error } = await supabase.from("products").update({
+        api_rate: svcData.rate,
+        api_min_quantity: svcData.min,
+        api_max_quantity: svcData.max,
+        base_price: costPer1000,
+        wholesale_price: sellPer1000,
+        retail_price: sellPer1000,
+      }).eq("id", prod.id);
 
-      if (existing) {
-        // Product EXISTS → update pricing, rate, min, max
-        prodUpdateRows.push({
-          id: existing.id,
-          data: {
-            api_rate: svcData.rate,
-            api_min_quantity: svcData.min,
-            api_max_quantity: svcData.max,
-            category: mappedCategory,
-            base_price: costPer1000,
-            base_currency: "USD",
-            margin_percent: margin,
-            wholesale_price: sellPer1000,
-            retail_price: sellPer1000,
-            provider_id,
-            api_provider: provider.name,
-          },
-        });
-      } else {
-        // Product does NOT exist → CREATE
-        prodInsertRows.push({
-          name: svcData.name,
-          description: `${svcData.category} — ${svcData.type}`,
-          category: mappedCategory,
-          product_type: "api",
-          type: "auto",
-          api_service_id: serviceIdStr,
-          api_provider: provider.name,
-          api_rate: svcData.rate,
-          api_min_quantity: svcData.min,
-          api_max_quantity: svcData.max,
-          api_refill: false,
-          provider_id,
-          base_price: costPer1000,
-          base_currency: "USD",
-          margin_percent: margin,
-          wholesale_price: sellPer1000,
-          retail_price: sellPer1000,
-          stock: 0,
-          sort_order: 0,
-          duration: "—",
-          icon: "🤖",
-          fulfillment_modes: ["api"],
-          processing_time: "⏳ 0–30 Minutes",
-        });
-      }
-    }
-
-    // Bulk insert new products in batches
-    if (prodInsertRows.length > 0) {
-      for (let i = 0; i < prodInsertRows.length; i += 200) {
-        const batch = prodInsertRows.slice(i, i + 200);
-        const { error, data: inserted } = await supabase.from("products").insert(batch).select("id");
-        if (error) {
-          prodErrors += batch.length;
-        } else {
-          prodCreated += inserted?.length ?? batch.length;
-        }
-      }
-    }
-
-    // Update existing products in batches
-    if (prodUpdateRows.length > 0) {
-      // Batch updates using Promise.all for speed
-      const updateBatches = [];
-      for (let i = 0; i < prodUpdateRows.length; i += 50) {
-        const batch = prodUpdateRows.slice(i, i + 50);
-        updateBatches.push(
-          Promise.all(
-            batch.map(async (row) => {
-              const { error } = await supabase.from("products").update(row.data).eq("id", row.id);
-              if (error) prodErrors++; else prodUpdated++;
-            }),
-          ),
-        );
-      }
-      for (const b of updateBatches) await b;
+      if (error) prodErrors++; else prodUpdated++;
     }
 
     // ── Log sync ──
@@ -358,18 +281,19 @@ Deno.serve(async (req) => {
       request_body: { provider_name: provider.name, total_services: services.length },
       response_body: {
         svc_inserted: svcInserted, svc_updated: svcUpdated, svc_errors: svcErrors,
-        prod_created: prodCreated, prod_updated: prodUpdated, prod_errors: prodErrors,
+        prod_updated: prodUpdated, prod_errors: prodErrors,
         soft_disabled: removedIds.length,
+        note: "Products are never created or deleted by sync",
       },
     });
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Full Auto Sync completed",
+        message: "Sync completed — services updated, products pricing refreshed (no products created/deleted)",
         total: services.length,
         services: { inserted: svcInserted, updated: svcUpdated, errors: svcErrors },
-        products: { created: prodCreated, updated: prodUpdated, errors: prodErrors },
+        products: { updated: prodUpdated, errors: prodErrors },
         soft_disabled: removedIds.length,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
