@@ -29,3 +29,6 @@ verify_jwt = false
 
 [functions.backfill-custom-fields]
 verify_jwt = false
+
+[functions.ai-product-build]
+verify_jwt = false

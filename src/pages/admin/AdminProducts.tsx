@@ -121,6 +121,7 @@ export default function AdminProducts() {
   const [optimizedMeta, setOptimizedMeta] = useState<{ shortTitle: string; seoSlug: string } | null>(null);
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
   const manualOverrides = useRef<Set<string>>(new Set());
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   // Unified form state
   const [form, setForm] = useState({
@@ -266,7 +267,7 @@ export default function AdminProducts() {
     toast.success("Title optimized");
   };
 
-  const handleAutoBuild = () => {
+  const handleAutoBuild = async () => {
     const raw = form.name.trim();
     if (!raw) { toast.error("Enter a service name first"); return; }
 
@@ -317,27 +318,57 @@ export default function AdminProducts() {
     setAutoFilledFields(filled);
     titleManuallyEdited.current = false;
 
-    // Auto-generate description after a tick so form state is updated
-    setTimeout(() => {
-      setForm((prev) => {
-        const merged = { ...prev, ...updates };
-        const desc = generateProductDescription({
-          name: merged.name || "Product",
-          category: merged.category,
-          productType: merged.product_type,
-          duration: merged.duration,
-          processingTime: merged.processing_time,
-        }, descMode);
-        if (!overrides.has("description")) {
+    // AI-powered description generation
+    if (!overrides.has("description")) {
+      setAiGenerating(true);
+      const merged = { ...form, ...updates };
+      try {
+        const { data, error } = await supabase.functions.invoke("ai-product-build", {
+          body: {
+            service_name: merged.name || raw,
+            mode: descMode,
+            category: merged.category,
+            product_type: merged.product_type,
+            duration: merged.duration,
+            processing_time: merged.processing_time,
+          },
+        });
+        if (!error && data?.description) {
+          setForm((prev) => ({ ...prev, ...updates, description: data.description }));
           filled.add("description");
-          setAutoFilledFields(new Set(filled));
           descManuallyEdited.current = false;
-          return { ...merged, description: desc };
+        } else {
+          // Fallback to template-based generation
+          const desc = generateProductDescription({
+            name: merged.name || "Product",
+            category: merged.category,
+            productType: merged.product_type,
+            duration: merged.duration,
+            processingTime: merged.processing_time,
+          }, descMode);
+          setForm((prev) => ({ ...prev, ...updates, description: desc }));
+          filled.add("description");
+          descManuallyEdited.current = false;
         }
-        return merged;
-      });
-    }, 0);
+      } catch {
+        // Fallback to template
+        const merged2 = { ...form, ...updates };
+        const desc = generateProductDescription({
+          name: merged2.name || "Product",
+          category: merged2.category,
+          productType: merged2.product_type,
+          duration: merged2.duration,
+          processingTime: merged2.processing_time,
+        }, descMode);
+        setForm((prev) => ({ ...prev, ...updates, description: desc }));
+        filled.add("description");
+        descManuallyEdited.current = false;
+      } finally {
+        setAiGenerating(false);
+      }
+    }
 
+    setAutoFilledFields(new Set(filled));
     // Clear highlight after 3 seconds
     setTimeout(() => setAutoFilledFields(new Set()), 3000);
 
@@ -891,44 +922,45 @@ export default function AdminProducts() {
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                 </div>
 
-                {/* ── Auto Build Button ── */}
-                <div className="flex gap-2">
-                  <Button type="button" onClick={handleAutoBuild} className="flex-1 h-9 gap-2 text-sm font-semibold">
-                    <Zap className="w-4 h-4" /> Auto Build
-                  </Button>
+                {/* ── Service Name + Auto-Build ── */}
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Label className="text-muted-foreground text-xs">Service Name</Label>
+                      {autoFilledFields.has("name") && <span className="text-[8px] font-bold text-primary bg-primary/10 rounded px-1 py-px animate-fade-in">AUTO</span>}
+                    </div>
+                    <Button type="button" variant="ghost" size="sm" className="h-5 text-[9px] gap-1 px-1.5 text-muted-foreground"
+                      onClick={() => handleOptimizeTitle(true)}>
+                      <Sparkles className="w-2.5 h-2.5" /> Optimize Title
+                    </Button>
+                  </div>
+                  <div className="flex gap-2">
+                    <Input value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); titleManuallyEdited.current = true; setOptimizedMeta(null); manualOverrides.current.add("name"); }} required
+                      placeholder="e.g. YouTube Premium 1 Month"
+                      className={`flex-1 bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("name") ? "ring-1 ring-primary/40" : ""}`} />
+                    <Button type="button" onClick={handleAutoBuild} disabled={aiGenerating || !form.name.trim()} className="h-9 gap-1.5 px-3 text-sm font-semibold shrink-0">
+                      {aiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                      {aiGenerating ? "Building…" : "Auto-Build"}
+                    </Button>
+                  </div>
                   {autoFilledFields.size > 0 && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 border border-primary/20 rounded-md px-2.5 animate-fade-in">
-                      <CheckCircle2 className="w-3 h-3" /> {autoFilledFields.size} fields filled
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary bg-primary/10 border border-primary/20 rounded-md px-2.5 py-0.5 animate-fade-in w-fit">
+                      <CheckCircle2 className="w-3 h-3" /> {autoFilledFields.size} fields auto-filled
                     </span>
+                  )}
+                  {optimizedMeta && (
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      <span className="inline-flex items-center gap-1 text-[9px] font-mono text-muted-foreground bg-muted/60 rounded px-1.5 py-0.5">
+                        Short: {optimizedMeta.shortTitle}
+                      </span>
+                      <span className="inline-flex items-center gap-1 text-[9px] font-mono text-muted-foreground bg-muted/60 rounded px-1.5 py-0.5">
+                        /{optimizedMeta.seoSlug}
+                      </span>
+                    </div>
                   )}
                 </div>
 
-                {/* ── Common Fields ── */}
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <Label className="text-muted-foreground text-xs">Name</Label>
-                        {autoFilledFields.has("name") && <span className="text-[8px] font-bold text-primary bg-primary/10 rounded px-1 py-px animate-fade-in">AUTO</span>}
-                      </div>
-                      <Button type="button" variant="ghost" size="sm" className="h-5 text-[9px] gap-1 px-1.5 text-muted-foreground"
-                        onClick={() => handleOptimizeTitle(true)}>
-                        <Sparkles className="w-2.5 h-2.5" /> Optimize
-                      </Button>
-                    </div>
-                    <Input value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); titleManuallyEdited.current = true; setOptimizedMeta(null); manualOverrides.current.add("name"); }} required
-                      className={`bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("name") ? "ring-1 ring-primary/40" : ""}`} />
-                    {optimizedMeta && (
-                      <div className="flex flex-wrap gap-2 mt-1">
-                        <span className="inline-flex items-center gap-1 text-[9px] font-mono text-muted-foreground bg-muted/60 rounded px-1.5 py-0.5">
-                          Short: {optimizedMeta.shortTitle}
-                        </span>
-                        <span className="inline-flex items-center gap-1 text-[9px] font-mono text-muted-foreground bg-muted/60 rounded px-1.5 py-0.5">
-                          /{optimizedMeta.seoSlug}
-                        </span>
-                      </div>
-                    )}
-                  </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5">
                       <Label className="text-muted-foreground text-xs">Icon (emoji)</Label>
@@ -937,8 +969,6 @@ export default function AdminProducts() {
                     <Input value={form.icon} onChange={(e) => { setForm({ ...form, icon: e.target.value }); manualOverrides.current.add("icon"); }}
                       className={`bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("icon") ? "ring-1 ring-primary/40" : ""}`} />
                   </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5">
                       <Label className="text-muted-foreground text-xs">Category</Label>
@@ -1033,8 +1063,18 @@ export default function AdminProducts() {
                       </button>
                     ))}
                   </div>
-                  <Textarea value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; manualOverrides.current.add("description"); }} placeholder="Enter service name and click Auto Build" className={`bg-muted/50 border-border resize-none text-xs font-mono transition-all duration-500 ${autoFilledFields.has("description") ? "ring-1 ring-primary/40" : ""}`} rows={descMode === "ultra-short" ? 6 : 10} maxLength={3000} />
-                  <p className="text-[10px] text-muted-foreground">{form.description.length}/3000 — {descMode === "ultra-short" ? "5-line compressed" : descMode === "standard" ? "7-section structured" : "SEO-optimized extended"}</p>
+                  <div className="relative">
+                    <Textarea value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; manualOverrides.current.add("description"); }} placeholder="Enter service name and click Auto-Build to generate with AI" className={`bg-muted/50 border-border resize-none text-xs font-mono transition-all duration-500 ${autoFilledFields.has("description") ? "ring-1 ring-primary/40" : ""} ${aiGenerating ? "opacity-50" : ""}`} rows={descMode === "ultra-short" ? 6 : 10} maxLength={3000} disabled={aiGenerating} />
+                    {aiGenerating && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md">
+                        <div className="flex items-center gap-2 text-xs font-medium text-primary">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          AI generating description…
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">{form.description.length}/3000 — {descMode === "ultra-short" ? "5-line compressed" : descMode === "standard" ? "7-section structured" : "SEO-optimized extended"} · {aiGenerating ? "AI powered" : "Template + AI"}</p>
                 </div>
 
                 {/* ── IMEI Auto-Configured Banner ── */}
