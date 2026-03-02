@@ -403,9 +403,62 @@ export default function AdminProducts() {
     }
   };
 
+  /** Detect which custom fields an API service needs based on name/type/category */
+  const detectRequiredFields = (service: any): CustomField[] => {
+    const name = (service.name || "").toLowerCase();
+    const cat = (service.category || "").toLowerCase();
+    const type = (service.type || "").toLowerCase();
+    const text = `${name} ${cat} ${type}`;
+    const fields: CustomField[] = [];
+    let order = 0;
+
+    // Link/URL detection — most SMM services need a link
+    const needsLink = /follow|like|view|share|react|retweet|repost|subscriber|watch|visit|traffic|comment|save|impression|reach|engagement|stream|play|pin|vote|poll|click/i.test(text)
+      || /default|custom comments/i.test(type);
+    if (needsLink) {
+      fields.push({
+        field_name: "Link", field_type: "text", required: true,
+        min_length: 5, max_length: 500, linked_mode: "api", sort_order: order++,
+        options: [], placeholder: "https://example.com/post/123", validation_rule: "url",
+      });
+    }
+
+    // Username detection
+    const needsUsername = /username|mention|dm|direct message|power|member|add.*group/i.test(text)
+      && !needsLink;
+    if (needsUsername) {
+      fields.push({
+        field_name: "Username", field_type: "text", required: true,
+        min_length: 1, max_length: 200, linked_mode: "api", sort_order: order++,
+        options: [], placeholder: "@username", validation_rule: "",
+      });
+    }
+
+    // Comments/text detection
+    const needsComments = /comment|review|testimonial|custom comment/i.test(text);
+    if (needsComments) {
+      fields.push({
+        field_name: "Comments", field_type: "textarea", required: true,
+        min_length: 1, max_length: 5000, linked_mode: "api", sort_order: order++,
+        options: [], placeholder: "Enter comments (one per line for multiple)", validation_rule: "",
+      });
+    }
+
+    // Quantity — always added for API services
+    const minQty = parseInt(service.min) || 1;
+    const maxQty = parseInt(service.max) || 10000;
+    fields.push({
+      field_name: "Quantity", field_type: "number", required: true,
+      min_length: minQty, max_length: maxQty,
+      linked_mode: "api", sort_order: order++, options: [],
+      placeholder: `Min ${minQty} — Max ${maxQty}`, validation_rule: "",
+    });
+
+    return fields;
+  };
+
   const handleSelectService = (service: any) => {
     const usdToMmk = usdRate || 2100;
-    // SMM panel rates are typically in USD
     const providerCostMmk = Math.round((service.rate || 0) * usdToMmk);
     
     setForm((prev) => ({
@@ -419,45 +472,21 @@ export default function AdminProducts() {
       api_max_quantity: String(parseInt(service.max) || 10000),
     }));
 
-    // Auto-generate default API custom fields (URL + Quantity)
-    const minQty = parseInt(service.min) || 1;
-    const maxQty = parseInt(service.max) || 10000;
-
-    const apiUrlField: CustomField = {
-      field_name: "URL",
-      field_type: "text",
-      required: true,
-      min_length: 5,
-      max_length: 500,
-      linked_mode: "api",
-      sort_order: 0,
-      options: [],
-      placeholder: "https://example.com/post/123",
-      validation_rule: "url",
-    };
-
-    const apiQtyField: CustomField = {
-      field_name: "Quantity",
-      field_type: "number",
-      required: true,
-      min_length: minQty,
-      max_length: maxQty,
-      linked_mode: "api",
-      sort_order: 1,
-      options: [],
-      placeholder: `Min ${minQty} — Max ${maxQty}`,
-      validation_rule: "",
-    };
+    // Auto-detect required fields from service name/type
+    const detectedFields = detectRequiredFields(service);
 
     // Replace existing api-linked fields, keep others
     setCustomFields((prev) => {
       const nonApi = prev.filter((f) => f.linked_mode !== "api");
-      return [...nonApi, apiUrlField, apiQtyField];
+      return [...nonApi, ...detectedFields];
     });
 
+    const fieldNames = detectedFields.map((f) => f.field_name).join(", ");
     setAutoFilledFields(new Set(["api_service_id", "provider_price", "processing_time", "custom_fields"]));
     setTimeout(() => setAutoFilledFields(new Set()), 3000);
-    toast.success(`Service #${service.service_id} selected — URL & Quantity fields auto-generated`);
+    toast.success(`Service #${service.service_id} selected`, {
+      description: `Auto-added fields: ${fieldNames}`,
+    });
   };
 
   const openEdit = (p: any) => {
