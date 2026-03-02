@@ -50,6 +50,7 @@ export default function ResellerDetailModal({ reseller, open, onOpenChange }: Re
   const [notifBody, setNotifBody] = useState("");
   const [sendingNotif, setSendingNotif] = useState(false);
   const [creditLimit, setCreditLimit] = useState("");
+  const [telegramChatId, setTelegramChatId] = useState("");
   const [updatingProfile, setUpdatingProfile] = useState(false);
 
   const { data: orders } = useQuery({
@@ -364,6 +365,40 @@ export default function ResellerDetailModal({ reseller, open, onOpenChange }: Re
                   Set
                 </Button>
               </div>
+            </div>
+
+            {/* Telegram Chat ID */}
+            <div className="bg-muted/20 rounded-lg border border-border p-3 space-y-2">
+              <p className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                <Send className="w-3.5 h-3.5 text-sky-400" /> Telegram Chat ID
+              </p>
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder={reseller.telegram_chat_id || "Not set"}
+                  value={telegramChatId}
+                  onChange={(e) => setTelegramChatId(e.target.value)}
+                  className="h-8 text-xs flex-1 bg-muted/30 font-mono"
+                />
+                <Button
+                  size="sm"
+                  className="h-8 text-xs"
+                  disabled={updatingProfile}
+                  onClick={async () => {
+                    const val = telegramChatId.trim() || null;
+                    const ok = await updateProfile({ telegram_chat_id: val } as any);
+                    if (ok) {
+                      toast.success(val ? "Telegram Chat ID saved" : "Telegram Chat ID cleared");
+                      setTelegramChatId("");
+                    }
+                  }}
+                >
+                  Set
+                </Button>
+              </div>
+              {reseller.telegram_chat_id && !telegramChatId && (
+                <p className="text-[10px] text-muted-foreground font-mono">Current: {reseller.telegram_chat_id}</p>
+              )}
             </div>
           </div>
 
