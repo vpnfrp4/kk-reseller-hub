@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { LangProvider } from "@/contexts/LangContext";
 import Login from "./pages/Login";
 import DashboardHome from "./pages/DashboardHome";
@@ -160,7 +161,9 @@ const App = () => {
           <PwaUpdatePrompt />
           <BrowserRouter>
             <AuthProvider>
-              <AppRoutes />
+              <CurrencyProvider>
+                <AppRoutes />
+              </CurrencyProvider>
             </AuthProvider>
           </BrowserRouter>
         </LangProvider>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, Lock, Bell, Key, Monitor } from "lucide-react";
+import { User, Lock, Bell, Key, Monitor, Settings2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Breadcrumb from "@/components/Breadcrumb";
 import { t, useT } from "@/lib/i18n";
@@ -9,10 +9,12 @@ import SecurityTab from "@/components/settings/SecurityTab";
 import NotificationsTab from "@/components/settings/NotificationsTab";
 import ApiKeysTab from "@/components/settings/ApiKeysTab";
 import SessionsTab from "@/components/settings/SessionsTab";
+import PreferencesTab from "@/components/settings/PreferencesTab";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const tabs = [
   { id: "profile", label: "Profile", icon: User },
+  { id: "preferences", label: "Preferences", icon: Settings2 },
   { id: "security", label: "Security", icon: Lock },
   { id: "notifications", label: "Notifications", icon: Bell },
   { id: "api-keys", label: "API Keys", icon: Key },
@@ -41,7 +43,6 @@ export default function SettingsPage() {
       </div>
 
       <div className="flex flex-col lg:flex-row gap-default animate-fade-in" style={{ animationDelay: "0.05s" }}>
-        {/* Tab Navigation — Sidebar on desktop, horizontal scroll on mobile */}
         {isMobile ? (
           <div className="flex gap-1 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
             {tabs.map((tab) => {
@@ -88,10 +89,10 @@ export default function SettingsPage() {
           </nav>
         )}
 
-        {/* Tab Content */}
         <div className="flex-1 min-w-0 max-w-2xl">
           <div key={activeTab} className="animate-fade-in">
             {activeTab === "profile" && <ProfileTab />}
+            {activeTab === "preferences" && <PreferencesTab />}
             {activeTab === "security" && <SecurityTab />}
             {activeTab === "notifications" && <NotificationsTab />}
             {activeTab === "api-keys" && <ApiKeysTab />}
