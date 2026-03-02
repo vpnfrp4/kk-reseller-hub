@@ -16,13 +16,12 @@ export interface Column<T> {
 interface ResponsiveTableProps<T> {
   columns: Column<T>[];
   data: T[];
-  /** Unique key extractor */
   keyExtractor: (row: T) => string;
-  /** Empty state message */
   emptyMessage?: string;
   className?: string;
-  /** Called when row is clicked */
   onRowClick?: (row: T) => void;
+  /** Optional per-row className */
+  rowClassName?: (row: T) => string;
 }
 
 export default function ResponsiveTable<T extends Record<string, any>>({
@@ -32,6 +31,7 @@ export default function ResponsiveTable<T extends Record<string, any>>({
   emptyMessage = "No data available",
   className,
   onRowClick,
+  rowClassName,
 }: ResponsiveTableProps<T>) {
   if (data.length === 0) {
     return (
@@ -63,8 +63,9 @@ export default function ResponsiveTable<T extends Record<string, any>>({
               <tr
                 key={keyExtractor(row)}
                 className={cn(
-                  "animate-row-in",
-                  onRowClick && "cursor-pointer"
+                  "animate-row-in transition-colors duration-700",
+                  onRowClick && "cursor-pointer",
+                  rowClassName?.(row),
                 )}
                 style={{ animationDelay: `${idx * 30}ms` }}
                 onClick={() => onRowClick?.(row)}
@@ -94,8 +95,9 @@ export default function ResponsiveTable<T extends Record<string, any>>({
           <div
             key={keyExtractor(row)}
             className={cn(
-              "glass-card p-default space-y-compact",
-              onRowClick && "cursor-pointer active:scale-[0.99]"
+              "glass-card p-default space-y-compact transition-colors duration-700",
+              onRowClick && "cursor-pointer active:scale-[0.99]",
+              rowClassName?.(row),
             )}
             onClick={() => onRowClick?.(row)}
           >
