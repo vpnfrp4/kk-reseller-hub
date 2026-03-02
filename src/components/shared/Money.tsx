@@ -30,7 +30,7 @@ export default function Money({
       )}
     >
       <span className={cn("font-bold", muted && "font-normal")}>
-        {amount.toLocaleString()}
+        {(amount ?? 0).toLocaleString()}
       </span>
       <span className={cn(
         "font-normal text-muted-foreground",
