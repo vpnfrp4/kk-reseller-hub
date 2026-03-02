@@ -14,9 +14,9 @@ export default function CurrencyToggle() {
         >
           <span
             className={cn(
-              "px-2 py-1.5 transition-all duration-300",
+              "px-2.5 py-1.5 transition-all duration-300",
               currency === "MMK"
-                ? "bg-emerald-500/15 text-emerald-400"
+                ? "bg-[#39FF14]/15 text-[#39FF14] dark:bg-[#39FF14]/15 dark:text-[#39FF14]"
                 : "text-muted-foreground"
             )}
           >
@@ -24,9 +24,9 @@ export default function CurrencyToggle() {
           </span>
           <span
             className={cn(
-              "px-2 py-1.5 transition-all duration-300",
+              "px-2.5 py-1.5 transition-all duration-300",
               currency === "USD"
-                ? "bg-primary/15 text-primary"
+                ? "bg-[#39FF14]/15 text-[#39FF14] dark:bg-[#39FF14]/15 dark:text-[#39FF14]"
                 : "text-muted-foreground"
             )}
           >
