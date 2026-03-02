@@ -1583,6 +1583,52 @@ function ApiProvidersSection() {
   );
 }
 
+/* ─── Telegram Test Section ─── */
+function TelegramSection() {
+  const [testing, setTesting] = useState(false);
+
+  const handleTest = async () => {
+    setTesting(true);
+    try {
+      console.log("[Telegram] Sending test message…");
+      const { data, error } = await supabase.functions.invoke("send-telegram", {
+        body: { type: "test" },
+      });
+      console.log("[Telegram] Response:", data, "Error:", error);
+      if (error) throw error;
+      if (data?.success) {
+        toast.success("Telegram bot connected! Check your chat.");
+      } else {
+        const errMsg = data?.error || "Unknown error";
+        console.error("[Telegram] API error:", errMsg);
+        toast.error(`Telegram failed: ${errMsg}`);
+      }
+    } catch (err: any) {
+      console.error("[Telegram] Exception:", err);
+      toast.error(err.message || "Failed to reach Telegram");
+    } finally {
+      setTesting(false);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Bell className="w-4 h-4 text-primary" /> Telegram Integration
+        </CardTitle>
+        <CardDescription>Verify your Telegram bot is connected and can send messages to the admin chat.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button onClick={handleTest} disabled={testing} variant="outline" className="gap-2">
+          {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+          {testing ? "Sending…" : "Test Telegram Connection"}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 /* ─── Main Page ─── */
 export default function AdminSettings() {
   return (
@@ -1591,6 +1637,7 @@ export default function AdminSettings() {
       <ApiProvidersSection />
       <ExchangeRateSection />
       <PaymentMethodsSection />
+      <TelegramSection />
       <NotificationSection />
       <PasswordSection />
     </div>
