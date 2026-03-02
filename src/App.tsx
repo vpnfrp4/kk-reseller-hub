@@ -46,6 +46,7 @@ import NotFound from "./pages/NotFound";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { useState, useCallback } from "react";
 import SplashScreen from "@/components/SplashScreen";
+import PwaUpdatePrompt from "@/components/PwaUpdatePrompt";
 
 const queryClient = new QueryClient();
 
@@ -154,6 +155,7 @@ const App = () => {
           {!splashDone && <SplashScreen onFinished={handleSplashFinished} />}
           <Toaster />
           <Sonner />
+          <PwaUpdatePrompt />
           <BrowserRouter>
             <AuthProvider>
               <AppRoutes />
