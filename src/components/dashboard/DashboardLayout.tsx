@@ -154,8 +154,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
 
           <div className="flex items-center gap-3 px-5 py-3">
-            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-xs font-bold text-foreground shrink-0">
-              {profile?.name?.charAt(0)?.toUpperCase() || "R"}
+            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                profile?.name?.charAt(0)?.toUpperCase() || "R"
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-foreground truncate leading-tight">{profile?.name || "Reseller"}</p>
