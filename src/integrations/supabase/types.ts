@@ -741,6 +741,7 @@ export type Database = {
           provider_id: string | null
           provider_price: number | null
           retail_price: number
+          slug: string | null
           sort_order: number
           stock: number
           type: string
@@ -779,6 +780,7 @@ export type Database = {
           provider_id?: string | null
           provider_price?: number | null
           retail_price: number
+          slug?: string | null
           sort_order?: number
           stock?: number
           type?: string
@@ -817,6 +819,7 @@ export type Database = {
           provider_id?: string | null
           provider_price?: number | null
           retail_price?: number
+          slug?: string | null
           sort_order?: number
           stock?: number
           type?: string

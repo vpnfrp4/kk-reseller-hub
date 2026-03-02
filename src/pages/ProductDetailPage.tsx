@@ -48,21 +48,37 @@ export default function ProductDetailPage() {
   ];
 
   // ── Data fetching ──
+  const isUUID = id ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) : false;
+
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*, imei_providers(id, name, avg_rating, success_rate, total_completed, total_reviews, is_verified, fulfillment_type)")
-        .eq("id", id!)
-        .single();
+      let query = supabase.from("products").select("*");
+      if (isUUID) {
+        query = query.eq("id", id!);
+      } else {
+        query = query.eq("slug", id!);
+      }
+      const { data, error } = await query.single();
       if (error) throw error;
       return data;
     },
     enabled: !!id,
   });
 
-  const provider = (product as any)?.imei_providers || null;
+  // Fetch provider separately (no FK between products and imei_providers)
+  const { data: provider } = useQuery({
+    queryKey: ["product-provider", (product as any)?.provider_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("imei_providers_public")
+        .select("id, name, avg_rating, success_rate, total_completed, total_reviews, is_verified, fulfillment_type")
+        .eq("id", (product as any).provider_id)
+        .single();
+      return data;
+    },
+    enabled: !!(product as any)?.provider_id,
+  });
 
   useEffect(() => {
     if (product?.name) {
