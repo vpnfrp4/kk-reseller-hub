@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  ShieldCheck,
+  // ShieldCheck removed — using logo image instead
   Package,
   KeyRound,
   Wallet,
@@ -28,6 +28,7 @@ import SoundToggle from "@/components/shared/SoundToggle";
 import { toast } from "sonner";
 import { notifyEvent } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
+import kkLogo from "@/assets/kkremote-logo.png";
 
 const navItems = [
   { label: "Overview", icon: LayoutDashboard, path: "/admin", accent: "text-sky-400" },
@@ -168,12 +169,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Logo */}
         <div className="px-5 py-5 border-b border-sidebar-border/50">
           <Link to="/admin" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 transition-colors duration-200 group-hover:bg-primary/15">
-              <ShieldCheck className="w-[18px] h-[18px] text-primary" />
-            </div>
+            <img
+              src={kkLogo}
+              alt="KKTech"
+              className="w-9 h-9 rounded-lg object-contain neon-logo-glow transition-transform duration-200 group-hover:scale-105"
+            />
             <div>
-              <span className="text-[15px] font-bold text-foreground tracking-tight">KKTech</span>
-              <span className="text-[10px] block text-primary font-bold uppercase tracking-[0.2em]">Command Center</span>
+              <span className="text-[15px] font-bold text-foreground tracking-tight">KK<span className="neon-text" style={{ fontSize: 'inherit', textShadow: '0 0 8px rgba(57,255,20,0.3)' }}>Tech</span></span>
+              <span className="text-[10px] block text-[#39FF14]/70 font-bold uppercase tracking-[0.2em]">Command Center</span>
             </div>
           </Link>
         </div>
