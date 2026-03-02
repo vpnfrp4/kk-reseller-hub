@@ -206,13 +206,7 @@ export default function LandingPage() {
             </ScrollReveal>
 
             <ScrollReveal delay={120}>
-              <p className="mx-auto mt-7 max-w-lg text-base text-muted-foreground/80 sm:text-lg leading-relaxed">
-                One platform. Professional execution. Reliable outcomes.
-              </p>
-            </ScrollReveal>
-
-            <ScrollReveal delay={240}>
-              <div className="mt-14 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+              <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                 <Button variant="premium" size="lg" className="h-13 min-w-[180px] px-10 text-sm" asChild>
                   <Link to="/login">Get Started</Link>
                 </Button>
