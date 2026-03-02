@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
       .not("external_order_id", "is", null);
 
     if (fetchErr) {
-      console.error("Failed to fetch orders:", fetchErr.message);
+      // Failed to fetch orders - logged via response
       return new Response(JSON.stringify({ error: fetchErr.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -73,13 +73,11 @@ Deno.serve(async (req) => {
       try {
         const product = productMap.get(order.product_id);
         if (!product?.provider_id) {
-          console.warn(`Order ${order.id}: no provider_id on product`);
           continue;
         }
 
         const provider = providerMap.get(product.provider_id);
         if (!provider?.api_url || !provider?.api_key) {
-          console.warn(`Order ${order.id}: provider missing api_url/api_key`);
           continue;
         }
 
@@ -103,7 +101,7 @@ Deno.serve(async (req) => {
         } catch (fetchError: any) {
           clearTimeout(timeout);
           const msg = fetchError.name === "AbortError" ? "Timeout (10s)" : fetchError.message;
-          console.error(`Order ${order.id}: provider fetch failed - ${msg}`);
+          // Provider fetch failed - logged to api_logs
 
           // Log failed API call
           await supabase.from("api_logs").insert({
@@ -241,7 +239,7 @@ Deno.serve(async (req) => {
           // Don't change status
         } else {
           // Unknown status, log and skip
-          console.warn(`Order ${order.id}: unknown provider status "${providerStatus}"`);
+          // Unknown provider status - stored in provider_response
           // Still store the response
         }
 
@@ -266,14 +264,14 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`Sync complete: ${synced} synced, ${errors} errors, ${orders.length} total`);
+    // Sync complete - results returned in response
 
     return new Response(
       JSON.stringify({ synced, errors, total: orders.length }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err: any) {
-    console.error("Sync job fatal error:", err.message);
+    // Sync job fatal error - returned in response
     return new Response(
       JSON.stringify({ error: err.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
