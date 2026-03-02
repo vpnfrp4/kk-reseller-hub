@@ -66,7 +66,7 @@ export default function ProductsPage() {
     queryFn: async () => {
       const { data } = await supabase
         .from("products")
-        .select("*, imei_providers(id, name, avg_rating, success_rate, total_completed, is_verified, fulfillment_type)")
+        .select("*")
         .eq("type", "auto")
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true });
