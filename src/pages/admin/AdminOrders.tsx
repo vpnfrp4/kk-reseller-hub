@@ -14,6 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { playNotificationSound } from "@/lib/notification-sound";
+import SoundToggle from "@/components/shared/SoundToggle";
 import OrderDetailModal from "@/components/admin/OrderDetailModal";
 import ConfirmModal from "@/components/shared/ConfirmModal";
 import { DataCard, Money } from "@/components/shared";
@@ -96,7 +98,7 @@ export default function AdminOrders() {
             const orderId = (payload.new as any)?.id;
             if (newStatus && newStatus !== oldStatus) {
               toast.info(`"${productName}" → ${newStatus.replace("_", " ")}`);
-              // Highlight the changed row
+              playNotificationSound();
               if (orderId) {
                 setHighlightedIds((prev) => new Set(prev).add(orderId));
                 setTimeout(() => {
@@ -269,8 +271,13 @@ export default function AdminOrders() {
   return (
     <div className="space-y-section">
       <div className="animate-fade-in">
-        <h1 className="text-h1 text-foreground">Order Management</h1>
-        <p className="text-caption text-muted-foreground">Search, filter, and manage all orders</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-h1 text-foreground">Order Management</h1>
+            <p className="text-caption text-muted-foreground">Search, filter, and manage all orders</p>
+          </div>
+          <SoundToggle />
+        </div>
       </div>
 
       {/* Filters */}

@@ -12,6 +12,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { playNotificationSound } from "@/lib/notification-sound";
+import SoundToggle from "@/components/shared/SoundToggle";
 import { useAuth } from "@/contexts/AuthContext";
 import { DataCard, Money, ResponsiveTable } from "@/components/shared";
 import type { Column } from "@/components/shared";
@@ -59,6 +61,7 @@ export default function OrdersPage() {
             const orderId = (payload.new as any)?.id;
             if (newStatus && newStatus !== oldStatus) {
               toast.info(`"${productName}" → ${newStatus.replace("_", " ")}`);
+              playNotificationSound();
               if (orderId) {
                 setHighlightedIds((prev) => new Set(prev).add(orderId));
                 setTimeout(() => {
@@ -291,10 +294,13 @@ export default function OrdersPage() {
             </p>
             <p className="text-[11px] text-muted-foreground">{l(t.orders.subtitle)}</p>
           </div>
-          <Button onClick={exportCSV} size="sm" className="gap-2 btn-glass">
-            <Download className="w-4 h-4 text-primary" />
-            <MmInline mm={t.orders.exportCsv.mm} en={t.orders.exportCsv.en} />
-          </Button>
+          <div className="flex items-center gap-2">
+            <SoundToggle />
+            <Button onClick={exportCSV} size="sm" className="gap-2 btn-glass">
+              <Download className="w-4 h-4 text-primary" />
+              <MmInline mm={t.orders.exportCsv.mm} en={t.orders.exportCsv.en} />
+            </Button>
+          </div>
         </div>
       </div>
 
