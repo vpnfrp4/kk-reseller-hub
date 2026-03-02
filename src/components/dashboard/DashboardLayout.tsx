@@ -21,7 +21,7 @@ import {
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import SoundToggle from "@/components/shared/SoundToggle";
-import NotificationSettings from "@/components/NotificationSettings";
+
 import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import { t } from "@/lib/i18n";
 import { useLang } from "@/contexts/LangContext";
@@ -208,7 +208,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={toggleLang}
               className="flex items-center h-8 rounded-lg border border-border bg-secondary text-xs font-semibold uppercase tracking-wider overflow-hidden"
@@ -224,16 +224,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <SoundToggle />
             <ThemeToggle />
             <NotificationDropdown />
-            <NotificationSettings />
-            <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary border border-border">
+            <div className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-secondary border border-border">
               <Wallet className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-bold font-mono text-foreground tabular-nums">
                 {(profile?.balance || 0).toLocaleString()}
               </span>
-              <span className="text-xs text-muted-foreground font-semibold">MMK</span>
+              <span className="text-xs text-muted-foreground font-semibold hidden sm:inline">MMK</span>
               <button
                 onClick={() => {
-                  // Dispatch custom event to open top-up dialog
                   window.dispatchEvent(new CustomEvent("open-topup-dialog"));
                 }}
                 className="ml-0.5 w-6 h-6 rounded-md bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
@@ -241,18 +239,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               >
                 <span className="text-primary text-sm font-bold leading-none">+</span>
               </button>
-            </div>
-            <div className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl bg-secondary border border-border">
-              <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <span>{profile?.name?.charAt(0)?.toUpperCase() || "R"}</span>
-                )}
-              </div>
-              <span className="text-sm font-semibold text-foreground hidden sm:inline truncate max-w-[100px]">
-                {profile?.name?.split(" ")[0] || "Reseller"}
-              </span>
             </div>
           </div>
         </header>
