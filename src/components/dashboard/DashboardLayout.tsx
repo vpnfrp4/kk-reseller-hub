@@ -21,7 +21,8 @@ import {
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import SoundToggle from "@/components/shared/SoundToggle";
-
+import CurrencyToggle from "@/components/shared/CurrencyToggle";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import { t } from "@/lib/i18n";
 import { useLang } from "@/contexts/LangContext";
@@ -221,25 +222,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </span>
             </button>
 
+            <CurrencyToggle />
             <SoundToggle />
             <ThemeToggle />
             <NotificationDropdown />
-            <div className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-secondary border border-border">
-              <Wallet className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm font-bold font-mono text-foreground tabular-nums">
-                {(profile?.balance || 0).toLocaleString()}
-              </span>
-              <span className="text-xs text-muted-foreground font-semibold hidden sm:inline">MMK</span>
-              <button
-                onClick={() => {
-                  window.dispatchEvent(new CustomEvent("open-topup-dialog"));
-                }}
-                className="ml-0.5 w-6 h-6 rounded-md bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
-                title="Quick Top-up"
-              >
-                <span className="text-primary text-sm font-bold leading-none">+</span>
-              </button>
-            </div>
+            <WalletChip profile={profile} />
           </div>
         </header>
 
@@ -269,6 +256,32 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           navigate(`/dashboard/wallet/topup-status?id=${id}`);
         }}
       />
+    </div>
+  );
+}
+
+function WalletChip({ profile }: { profile: any }) {
+  const { currency, convert } = useCurrency();
+  const balance = profile?.balance || 0;
+  const displayBalance = convert(balance);
+
+  return (
+    <div className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-secondary border border-border">
+      <Wallet className="w-4 h-4 text-muted-foreground" />
+      <span className="text-sm font-bold font-mono text-foreground tabular-nums">
+        {currency === "USD"
+          ? displayBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : displayBalance.toLocaleString()
+        }
+      </span>
+      <span className="text-xs text-muted-foreground font-semibold hidden sm:inline">{currency}</span>
+      <button
+        onClick={() => window.dispatchEvent(new CustomEvent("open-topup-dialog"))}
+        className="ml-0.5 w-6 h-6 rounded-md bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
+        title="Quick Top-up"
+      >
+        <span className="text-primary text-sm font-bold leading-none">+</span>
+      </button>
     </div>
   );
 }
