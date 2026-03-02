@@ -41,6 +41,7 @@ export default function OrdersPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
 
   // Realtime: auto-refresh orders list when any order changes
   useEffect(() => {
@@ -55,8 +56,19 @@ export default function OrdersPage() {
             const newStatus = (payload.new as any)?.status;
             const oldStatus = (payload.old as any)?.status;
             const productName = (payload.new as any)?.product_name || "Order";
+            const orderId = (payload.new as any)?.id;
             if (newStatus && newStatus !== oldStatus) {
               toast.info(`"${productName}" → ${newStatus.replace("_", " ")}`);
+              if (orderId) {
+                setHighlightedIds((prev) => new Set(prev).add(orderId));
+                setTimeout(() => {
+                  setHighlightedIds((prev) => {
+                    const next = new Set(prev);
+                    next.delete(orderId);
+                    return next;
+                  });
+                }, 3000);
+              }
             }
           }
           queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -383,6 +395,11 @@ export default function OrdersPage() {
           keyExtractor={(row) => row.id}
           emptyMessage={hasFilters ? l(t.orders.noMatch) : l(t.orders.noOrders)}
           onRowClick={(row) => navigate(`/dashboard/orders/${row.id}`)}
+          rowClassName={(row) =>
+            highlightedIds.has(row.id)
+              ? "bg-primary/15 ring-1 ring-inset ring-primary/30"
+              : ""
+          }
         />
         {paginationFooter && (
           <div className="border-t border-border/20 p-[var(--space-default)]">
