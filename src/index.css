@@ -658,6 +658,10 @@
     color: #39FF14;
     text-shadow: 0 0 10px rgba(57, 255, 20, 0.4), 0 0 40px rgba(57, 255, 20, 0.15);
   }
+  .light .neon-text {
+    color: #15803d;
+    text-shadow: none;
+  }
 
   .neon-glow-btn {
     box-shadow: 0 0 15px rgba(57, 255, 20, 0.25), 0 0 40px rgba(57, 255, 20, 0.08);
@@ -665,6 +669,13 @@
   }
   .neon-glow-btn:hover {
     box-shadow: 0 0 20px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.15);
+    transform: translateY(-1px);
+  }
+  .light .neon-glow-btn {
+    box-shadow: 0 2px 12px rgba(21, 128, 61, 0.2);
+  }
+  .light .neon-glow-btn:hover {
+    box-shadow: 0 4px 20px rgba(21, 128, 61, 0.3);
     transform: translateY(-1px);
   }
 
@@ -680,6 +691,16 @@
     box-shadow: 0 0 30px rgba(57, 255, 20, 0.08), 0 4px 20px rgba(0,0,0,0.4);
     transform: translateY(-4px);
   }
+  .light .neon-card {
+    background: rgba(255, 255, 255, 0.85);
+    border-color: rgba(21, 128, 61, 0.12);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .light .neon-card:hover {
+    border-color: rgba(21, 128, 61, 0.3);
+    box-shadow: 0 4px 24px rgba(21, 128, 61, 0.08), 0 2px 8px rgba(0,0,0,0.04);
+    transform: translateY(-4px);
+  }
 
   .circuit-grid {
     background-image:
@@ -687,9 +708,83 @@
       linear-gradient(90deg, rgba(57, 255, 20, 0.03) 1px, transparent 1px);
     background-size: 60px 60px;
   }
+  .light .circuit-grid {
+    background-image:
+      linear-gradient(rgba(21, 128, 61, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(21, 128, 61, 0.04) 1px, transparent 1px);
+  }
 
   .neon-logo-glow {
     filter: drop-shadow(0 0 12px rgba(57, 255, 20, 0.4)) drop-shadow(0 0 30px rgba(57, 255, 20, 0.15));
+  }
+  .light .neon-logo-glow {
+    filter: drop-shadow(0 0 6px rgba(21, 128, 61, 0.2));
+  }
+
+  /* ─── Landing page theme-aware helpers ─── */
+  .landing-hero-bg {
+    background: #060608;
+  }
+  .light .landing-hero-bg {
+    background: hsl(210 40% 98%);
+  }
+  .landing-section-bg {
+    background: #060608;
+  }
+  .light .landing-section-bg {
+    background: hsl(210 40% 98%);
+  }
+  .landing-footer-bg {
+    background: #0a0a0e;
+  }
+  .light .landing-footer-bg {
+    background: hsl(0 0% 100%);
+  }
+  .light-neon-label {
+    /* dark mode handled inline; light override */
+  }
+  .light .light-neon-label {
+    color: rgba(21, 128, 61, 0.7) !important;
+  }
+  .light-neon-icon-bg {
+    /* handled by dark variant inline */
+  }
+  .light .light-neon-icon-bg {
+    background: rgba(21, 128, 61, 0.08) !important;
+  }
+  .light .light-neon-icon {
+    color: #15803d !important;
+  }
+  .light .light-neon-dot {
+    color: rgba(21, 128, 61, 0.3) !important;
+  }
+  .landing-cta-btn {
+    background: #39FF14;
+    color: #060608;
+  }
+  .landing-cta-btn:hover {
+    background: rgba(57, 255, 20, 0.9);
+  }
+  .light .landing-cta-btn {
+    background: #15803d;
+    color: #ffffff;
+  }
+  .light .landing-cta-btn:hover {
+    background: #166534;
+  }
+  .landing-outline-btn {
+    color: #39FF14;
+  }
+  .landing-outline-btn:hover {
+    background: rgba(57, 255, 20, 0.06);
+  }
+  .light .landing-outline-btn {
+    color: #15803d !important;
+    border-color: rgba(21, 128, 61, 0.2) !important;
+  }
+  .light .landing-outline-btn:hover {
+    background: rgba(21, 128, 61, 0.06) !important;
+    border-color: rgba(21, 128, 61, 0.4) !important;
   }
 }
 
