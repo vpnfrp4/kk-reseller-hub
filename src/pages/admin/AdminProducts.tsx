@@ -21,7 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, Info, FileText, Sparkles, Zap, Loader2, Search, RefreshCw } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, FileText, Sparkles, Zap, Loader2, Search, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { generateProductDescription, type DescriptionMode } from "@/lib/description-templates";
 import { optimizeTitle, autoBuildProduct, type AutoBuildResult } from "@/lib/title-optimizer";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
@@ -107,6 +107,8 @@ export default function AdminProducts() {
   const [editing, setEditing] = useState<any>(null);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [typeFilter, setTypeFilter] = useState<string>("All");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkToggling, setBulkToggling] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState<"idle" | "compressing" | "uploading">("idle");
@@ -700,6 +702,47 @@ export default function AdminProducts() {
     if (typeFilter !== "All" && p.product_type !== typeFilter) return false;
     return true;
   });
+
+  
+  const selectedCount = selectedIds.size;
+  const allFilteredSelected = filteredProducts.length > 0 && filteredProducts.every((p: any) => selectedIds.has(p.id));
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredProducts.map((p: any) => p.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkToggleType = async (newType: "auto" | "manual") => {
+    if (selectedCount === 0) return;
+    setBulkToggling(true);
+    try {
+      const ids = Array.from(selectedIds);
+      const { error } = await supabase
+        .from("products")
+        .update({ type: newType } as any)
+        .in("id", ids);
+      if (error) throw error;
+      toast.success(`${ids.length} products ${newType === "auto" ? "enabled (visible)" : "disabled (hidden)"}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      setSelectedIds(new Set());
+    } catch (err: any) {
+      toast.error(err.message || "Bulk update failed");
+    } finally {
+      setBulkToggling(false);
+    }
+  };
 
   const typeBadge = (pt: string) => {
     const config: Record<string, { bg: string; text: string; label: string }> = {
@@ -1431,6 +1474,30 @@ export default function AdminProducts() {
         </Button>
       </div>
 
+      {/* ── Bulk Action Bar ── */}
+      {selectedCount > 0 && (
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-primary/5 border border-primary/20 animate-fade-in">
+          <span className="text-sm font-medium text-foreground">{selectedCount} selected</span>
+          <div className="h-4 w-px bg-border" />
+          <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs"
+            disabled={bulkToggling}
+            onClick={() => handleBulkToggleType("auto")}>
+            <Eye className="w-3.5 h-3.5" />
+            Enable (Visible)
+          </Button>
+          <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs"
+            disabled={bulkToggling}
+            onClick={() => handleBulkToggleType("manual")}>
+            <EyeOff className="w-3.5 h-3.5" />
+            Disable (Hidden)
+          </Button>
+          <Button size="sm" variant="ghost" className="h-7 text-xs ml-auto"
+            onClick={() => setSelectedIds(new Set())}>
+            Clear
+          </Button>
+        </div>
+      )}
+
       {/* ── Product Table ── */}
       <DataCard noPadding className="animate-fade-in">
         <div className="overflow-x-auto">
@@ -1438,10 +1505,16 @@ export default function AdminProducts() {
             <table className="premium-table">
               <thead>
                 <tr className="border-b border-border">
+                  <th className="w-8 p-4">
+                    <input type="checkbox" checked={allFilteredSelected && filteredProducts.length > 0}
+                      onChange={toggleSelectAll}
+                      className="w-3.5 h-3.5 rounded border-border accent-primary cursor-pointer" />
+                  </th>
                   <th className="w-10 p-4"></th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-4">Code</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-4">Product</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-4">Type</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Status</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-4">Category</th>
                   <th className="text-right text-xs font-medium text-muted-foreground p-4">Price</th>
                   <th className="text-center text-xs font-medium text-muted-foreground p-4">Stock</th>
@@ -1459,7 +1532,12 @@ export default function AdminProducts() {
                         <Draggable key={p.id} draggableId={p.id} index={index}>
                           {(provided, snapshot) => (
                             <tr ref={provided.innerRef} {...provided.draggableProps}
-                              className={`border-b border-border/50 transition-colors ${snapshot.isDragging ? "bg-muted/60 shadow-lg" : "hover:bg-muted/30"}`}>
+                              className={`border-b border-border/50 transition-colors ${snapshot.isDragging ? "bg-muted/60 shadow-lg" : "hover:bg-muted/30"} ${selectedIds.has(p.id) ? "bg-primary/5" : ""}`}>
+                              <td className="p-4">
+                                <input type="checkbox" checked={selectedIds.has(p.id)}
+                                  onChange={() => toggleSelect(p.id)}
+                                  className="w-3.5 h-3.5 rounded border-border accent-primary cursor-pointer" />
+                              </td>
                               <td className="p-4" {...provided.dragHandleProps}>
                                 <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
                               </td>
@@ -1488,6 +1566,17 @@ export default function AdminProducts() {
                                     <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">USD</span>
                                   )}
                                 </div>
+                              </td>
+                              <td className="p-4">
+                                {p.type === "auto" ? (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-success/10 text-success flex items-center gap-1 w-fit">
+                                    <Eye className="w-3 h-3" /> Visible
+                                  </span>
+                                ) : (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-muted text-muted-foreground flex items-center gap-1 w-fit">
+                                    <EyeOff className="w-3 h-3" /> Hidden
+                                  </span>
+                                )}
                               </td>
                               <td className="p-4 text-sm text-muted-foreground">{p.category}</td>
                               <td className="p-4 text-sm text-right">
