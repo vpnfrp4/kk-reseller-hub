@@ -278,7 +278,7 @@ Deno.serve(async (req) => {
             api_min_quantity: svcData.min,
             api_max_quantity: svcData.max,
             category: mappedCategory,
-            base_price: svcData.rate,
+            base_price: costPer1000,
             base_currency: "USD",
             margin_percent: margin,
             wholesale_price: sellPer1000,
@@ -302,7 +302,7 @@ Deno.serve(async (req) => {
           api_max_quantity: svcData.max,
           api_refill: false,
           provider_id,
-          base_price: svcData.rate,
+          base_price: costPer1000,
           base_currency: "USD",
           margin_percent: margin,
           wholesale_price: sellPer1000,
@@ -323,7 +323,6 @@ Deno.serve(async (req) => {
         const batch = prodInsertRows.slice(i, i + 200);
         const { error, data: inserted } = await supabase.from("products").insert(batch).select("id");
         if (error) {
-          console.error("Product insert error:", JSON.stringify(error));
           prodErrors += batch.length;
         } else {
           prodCreated += inserted?.length ?? batch.length;
