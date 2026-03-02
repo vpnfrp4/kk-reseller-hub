@@ -652,6 +652,45 @@
     animation: gold-shimmer 2s linear infinite;
     border-radius: var(--radius);
   }
+
+  /* ─── Neon Green Landing Theme ─── */
+  .neon-text {
+    color: #39FF14;
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.4), 0 0 40px rgba(57, 255, 20, 0.15);
+  }
+
+  .neon-glow-btn {
+    box-shadow: 0 0 15px rgba(57, 255, 20, 0.25), 0 0 40px rgba(57, 255, 20, 0.08);
+    transition: all 0.3s ease;
+  }
+  .neon-glow-btn:hover {
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.15);
+    transform: translateY(-1px);
+  }
+
+  .neon-card {
+    background: rgba(17, 17, 22, 0.7);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(57, 255, 20, 0.1);
+    border-radius: var(--radius-card);
+    transition: all 0.35s ease;
+  }
+  .neon-card:hover {
+    border-color: rgba(57, 255, 20, 0.3);
+    box-shadow: 0 0 30px rgba(57, 255, 20, 0.08), 0 4px 20px rgba(0,0,0,0.4);
+    transform: translateY(-4px);
+  }
+
+  .circuit-grid {
+    background-image:
+      linear-gradient(rgba(57, 255, 20, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(57, 255, 20, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .neon-logo-glow {
+    filter: drop-shadow(0 0 12px rgba(57, 255, 20, 0.4)) drop-shadow(0 0 30px rgba(57, 255, 20, 0.15));
+  }
 }
 
 @layer utilities {
