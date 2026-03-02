@@ -50,7 +50,15 @@ export default function OrdersPage() {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "orders", filter: `user_id=eq.${user.id}` },
-        () => {
+        (payload) => {
+          if (payload.eventType === "UPDATE") {
+            const newStatus = (payload.new as any)?.status;
+            const oldStatus = (payload.old as any)?.status;
+            const productName = (payload.new as any)?.product_name || "Order";
+            if (newStatus && newStatus !== oldStatus) {
+              toast.info(`"${productName}" → ${newStatus.replace("_", " ")}`);
+            }
+          }
           queryClient.invalidateQueries({ queryKey: ["orders"] });
           queryClient.invalidateQueries({ queryKey: ["orders-count"] });
         },

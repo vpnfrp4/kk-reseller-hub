@@ -226,7 +226,12 @@ export default function OrderDetailPage() {
       .on(
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
-        () => {
+        (payload) => {
+          const newStatus = (payload.new as any)?.status;
+          const oldStatus = (payload.old as any)?.status;
+          if (newStatus && newStatus !== oldStatus) {
+            toast.info(`Order status updated to "${newStatus.replace("_", " ")}"`);
+          }
           queryClient.invalidateQueries({ queryKey: ["order-detail", id] });
         },
       )
