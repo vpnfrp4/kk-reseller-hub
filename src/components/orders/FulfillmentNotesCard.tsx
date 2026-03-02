@@ -83,9 +83,10 @@ function NoteLineRow({
 
 interface FulfillmentNotesCardProps {
   notes: string;
+  completed?: boolean;
 }
 
-export default function FulfillmentNotesCard({ notes }: FulfillmentNotesCardProps) {
+export default function FulfillmentNotesCard({ notes, completed }: FulfillmentNotesCardProps) {
   const [revealed, setRevealed] = useState(false);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
@@ -122,12 +123,21 @@ export default function FulfillmentNotesCard({ notes }: FulfillmentNotesCardProp
       {/* Card — identical structure to AccountCard */}
       <div className="rounded-xl border border-border/30 bg-background/60 backdrop-blur-sm overflow-hidden transition-all hover:border-primary/20 hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.1)]">
         {/* Card header */}
-        <div className="flex items-center justify-between px-4 pt-3.5 pb-2">
+        <div className={cn(
+          "flex items-center justify-between px-4 pt-3.5 pb-2",
+          completed && "gold-shimmer-bg"
+        )}>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
+            <div className={cn(
+              "w-6 h-6 rounded-lg flex items-center justify-center",
+              completed ? "bg-primary/20" : "bg-primary/10"
+            )}>
               <ScrollText className="w-3 h-3 text-primary" />
             </div>
-            <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            <span className={cn(
+              "text-[11px] font-semibold uppercase tracking-wider",
+              completed ? "gold-shimmer" : "text-muted-foreground"
+            )}>
               Order Fulfilled
             </span>
           </div>
