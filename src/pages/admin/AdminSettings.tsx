@@ -1161,6 +1161,63 @@ function ApiProvidersSection() {
 
   const [creatingProductFor, setCreatingProductFor] = useState<string | null>(null);
 
+  /** Detect which custom fields an API service needs based on name/type/category */
+  function detectRequiredFields(service: any): Array<{
+    field_name: string; field_type: string; required: boolean;
+    min_length: number | null; max_length: number | null;
+    linked_mode: string; sort_order: number; options: string[];
+    placeholder: string; validation_rule: string;
+  }> {
+    const name = (service.name || "").toLowerCase();
+    const cat = (service.category || "").toLowerCase();
+    const type = (service.type || "").toLowerCase();
+    const text = `${name} ${cat} ${type}`;
+    const fields: ReturnType<typeof detectRequiredFields> = [];
+    let order = 0;
+
+    // Link/URL detection — most SMM services need a link
+    const needsLink = /follow|like|view|share|react|retweet|repost|subscriber|watch|visit|traffic|comment|save|impression|reach|engagement|stream|play|pin|vote|poll|click/i.test(text)
+      || /default|custom comments/i.test(type);
+    if (needsLink) {
+      fields.push({
+        field_name: "Link", field_type: "text", required: true,
+        min_length: 5, max_length: 500, linked_mode: "api", sort_order: order++,
+        options: [], placeholder: "https://example.com/post/123", validation_rule: "url",
+      });
+    }
+
+    // Username detection
+    const needsUsername = /username|mention|dm|direct message|power|member|add.*group/i.test(text)
+      && !needsLink;
+    if (needsUsername) {
+      fields.push({
+        field_name: "Username", field_type: "text", required: true,
+        min_length: 1, max_length: 200, linked_mode: "api", sort_order: order++,
+        options: [], placeholder: "@username", validation_rule: "",
+      });
+    }
+
+    // Comments/text detection
+    const needsComments = /comment|review|testimonial|custom comment/i.test(text);
+    if (needsComments) {
+      fields.push({
+        field_name: "Comments", field_type: "textarea", required: true,
+        min_length: 1, max_length: 5000, linked_mode: "api", sort_order: order++,
+        options: [], placeholder: "Enter comments (one per line for multiple)", validation_rule: "",
+      });
+    }
+
+    // Quantity — always added for API services
+    fields.push({
+      field_name: "Quantity", field_type: "number", required: true,
+      min_length: service.min || 1, max_length: service.max || 10000,
+      linked_mode: "api", sort_order: order++, options: [],
+      placeholder: `Min ${service.min || 1} — Max ${service.max || 10000}`, validation_rule: "",
+    });
+
+    return fields;
+  }
+
   const handleCreateProductFromService = async (service: any) => {
     setCreatingProductFor(service.id);
     try {
@@ -1175,7 +1232,7 @@ function ApiProvidersSection() {
       const costPer1000 = Math.ceil(service.rate * usdRate);
       const sellPer1000 = Math.ceil(costPer1000 * (1 + margin / 100));
 
-      const { error } = await supabase.from("products").insert({
+      const { data: newProduct, error } = await supabase.from("products").insert({
         name: service.name,
         product_type: "api",
         category: service.category || "Uncategorized API",
@@ -1195,9 +1252,33 @@ function ApiProvidersSection() {
         stock: 0,
         icon: "📦",
         fulfillment_modes: JSON.stringify(["api"]),
-      });
+      }).select("id").single();
       if (error) throw error;
-      toast.success(`Product created for "${service.name}"`);
+
+      // Auto-create custom fields based on service detection
+      const detectedFields = detectRequiredFields(service);
+      if (detectedFields.length > 0 && newProduct?.id) {
+        const fieldRows = detectedFields.map((f) => ({
+          product_id: newProduct.id,
+          field_name: f.field_name,
+          field_type: f.field_type,
+          required: f.required,
+          min_length: f.min_length,
+          max_length: f.max_length,
+          linked_mode: f.linked_mode,
+          sort_order: f.sort_order,
+          options: f.options,
+          placeholder: f.placeholder,
+          validation_rule: f.validation_rule,
+        }));
+        await supabase.from("product_custom_fields").insert(fieldRows);
+      }
+
+      const fieldNames = detectedFields.map((f) => f.field_name).join(", ");
+      toast.success(`Product created for "${service.name}"`, {
+        description: `Auto-added fields: ${fieldNames}`,
+        duration: 5000,
+      });
       refetchLinkedProducts();
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
     } catch (err: any) {
