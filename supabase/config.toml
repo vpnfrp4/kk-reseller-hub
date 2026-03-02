@@ -17,3 +17,9 @@ verify_jwt = false
 
 [functions.fetch-provider-services]
 verify_jwt = false
+
+[functions.sync-order-status]
+verify_jwt = false
+
+[functions.test-api-provider]
+verify_jwt = false
