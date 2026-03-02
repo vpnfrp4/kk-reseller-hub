@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
+import SoundToggle from "@/components/shared/SoundToggle";
 import { toast } from "sonner";
 import { notifyEvent } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
@@ -250,6 +251,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <SoundToggle />
             <ThemeToggle />
             <AdminNotificationBell />
             <span className="admin-badge text-[10px] uppercase tracking-[0.15em] px-3 py-1.5 rounded-lg font-mono font-semibold">
