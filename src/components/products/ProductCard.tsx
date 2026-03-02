@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useT, t } from "@/lib/i18n";
-import { Clock, Zap, ChevronRight, ShieldCheck } from "lucide-react";
+import { Clock, Zap, ShieldCheck } from "lucide-react";
 
 interface PricingTier {
   min_qty: number;
@@ -143,39 +143,26 @@ export default function ProductCard({
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              className={cn(
-                "h-9 px-5 text-[11px] font-bold rounded-xl",
-                "shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.3)]",
-                "hover:shadow-[0_4px_16px_-3px_hsl(var(--primary)/0.4)]",
-                "hover:scale-[1.02] active:scale-[0.98]",
-                "transition-all duration-200",
-              )}
-              onClick={() => onBuyClick(product)}
-              disabled={isOutOfStock || isPurchasing}
-            >
-              {isPurchasing ? (
-                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
-              ) : isOutOfStock ? (
-                l(t.products.outOfStock)
-              ) : (
-                "Order"
-              )}
-            </Button>
-            <Link
-              to={`/dashboard/products/${product.slug || product.id}`}
-              className={cn(
-                "h-9 w-9 inline-flex items-center justify-center rounded-xl",
-                "text-muted-foreground/50 border border-border/20",
-                "hover:bg-primary/5 hover:text-primary hover:border-primary/25",
-                "transition-all duration-200"
-              )}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
+          <Button
+            size="sm"
+            className={cn(
+              "h-9 px-6 text-[11px] font-bold rounded-xl",
+              "shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.3)]",
+              "hover:shadow-[0_4px_16px_-3px_hsl(var(--primary)/0.4)]",
+              "hover:scale-[1.02] active:scale-[0.98]",
+              "transition-all duration-200",
+            )}
+            onClick={() => onBuyClick(product)}
+            disabled={isOutOfStock || isPurchasing}
+          >
+            {isPurchasing ? (
+              <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+            ) : isOutOfStock ? (
+              l(t.products.outOfStock)
+            ) : (
+              "Buy Now"
+            )}
+          </Button>
         </div>
       </div>
     </div>

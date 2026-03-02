@@ -547,7 +547,7 @@
   .badge-available  { @apply text-success font-semibold; background: hsl(var(--success) / 0.12); }
   .badge-sold       { @apply text-destructive font-semibold; background: hsl(var(--destructive) / 0.12); }
   .badge-expiring   { @apply text-muted-foreground font-semibold; background: hsl(var(--muted-foreground) / 0.12); }
-  .badge-pending    { @apply text-muted-foreground font-semibold; background: hsl(var(--muted-foreground) / 0.12); }
+  .badge-pending    { @apply text-warning font-semibold; background: hsl(var(--warning) / 0.12); }
   .badge-delivered  { @apply text-success font-semibold; background: hsl(var(--success) / 0.12); }
   .badge-cancelled  { @apply text-destructive font-semibold; background: hsl(var(--destructive) / 0.12); }
 

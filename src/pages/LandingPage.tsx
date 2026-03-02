@@ -10,6 +10,9 @@ import {
   Send,
   Phone,
   X,
+  Zap,
+  ShieldCheck,
+  TrendingDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -199,9 +202,9 @@ export default function LandingPage() {
                 Reseller-First Infrastructure
               </p>
               <h1 className="text-[2.5rem] font-extrabold leading-[1.08] tracking-tight text-foreground sm:text-[3.5rem] lg:text-[4rem]">
-                Execution Layer for
+                Myanmar's Most Reliable Hub for
                 <br />
-                <span className="text-muted-foreground">Digital Unlock & GSM Services.</span>
+                <span className="text-muted-foreground">Digital Unlocks & GSM Services.</span>
               </h1>
             </ScrollReveal>
 
@@ -220,8 +223,56 @@ export default function LandingPage() {
           </div>
         </section>
 
+        {/* ═══════════ WHY CHOOSE KKTECH ═══════════ */}
+        <section className="border-y border-border/30 bg-background py-[100px] max-sm:py-16">
+          <div className="mx-auto max-w-[1120px] px-6">
+            <ScrollReveal>
+              <div className="text-center">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">
+                  Why Us
+                </p>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                  Why Choose KKTech?
+                </h2>
+              </div>
+            </ScrollReveal>
+
+            <div className="mt-14 grid gap-6 sm:grid-cols-3">
+              {[
+                {
+                  icon: Zap,
+                  title: "Fast & Automated",
+                  desc: "24/7 instant delivery for all digital services. No waiting, no delays.",
+                },
+                {
+                  icon: TrendingDown,
+                  title: "Best Market Rates",
+                  desc: "Competitive pricing for resellers and individuals. Maximize your margins.",
+                },
+                {
+                  icon: ShieldCheck,
+                  title: "Secure Payments",
+                  desc: "Reliable and transparent transaction system with fraud protection.",
+                },
+              ].map((card, i) => (
+                <ScrollReveal key={card.title} delay={i * 100}>
+                  <div className="group flex flex-col items-center gap-5 rounded-2xl border border-border/50 bg-card/50 p-8 sm:p-10 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-primary/40 hover:shadow-[0_0_40px_-4px_hsl(var(--primary)/0.25),0_0_16px_-2px_hsl(var(--primary)/0.1)]">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/8 transition-transform duration-300 group-hover:scale-110">
+                      <card.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-semibold text-foreground">{card.title}</h3>
+                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{card.desc}</p>
+                    </div>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ═══════════ TRUST STRIP ═══════════ */}
-        <section className="border-y border-border/30">
+        <section className="border-b border-border/30">
           <div className="mx-auto max-w-[1120px] px-6 py-8">
             <ScrollReveal>
               <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
