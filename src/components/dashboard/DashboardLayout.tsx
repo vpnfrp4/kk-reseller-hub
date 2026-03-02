@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import PageTransition from "@/components/dashboard/PageTransition";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import TopUpDialog from "@/components/wallet/TopUpDialog";
 import {
   LayoutDashboard,
   Wallet,
@@ -37,10 +38,18 @@ const navItems = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [quickTopUpOpen, setQuickTopUpOpen] = useState(false);
   const { user, profile, logout } = useAuth();
   const { lang, toggle: toggleLang } = useLang();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Listen for quick top-up event from header button
+  useEffect(() => {
+    const handler = () => setQuickTopUpOpen(true);
+    window.addEventListener("open-topup-dialog", handler);
+    return () => window.removeEventListener("open-topup-dialog", handler);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -214,12 +223,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <ThemeToggle />
             <NotificationDropdown />
             <NotificationSettings />
-            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary border border-border">
+            <div className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-secondary border border-border">
               <Wallet className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm font-bold font-mono text-foreground tabular-nums">
                 {(profile?.balance || 0).toLocaleString()}
               </span>
               <span className="text-xs text-muted-foreground font-semibold">MMK</span>
+              <button
+                onClick={() => {
+                  // Dispatch custom event to open top-up dialog
+                  window.dispatchEvent(new CustomEvent("open-topup-dialog"));
+                }}
+                className="ml-0.5 w-6 h-6 rounded-md bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
+                title="Quick Top-up"
+              >
+                <span className="text-primary text-sm font-bold leading-none">+</span>
+              </button>
             </div>
             <div className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl bg-secondary border border-border">
               <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
@@ -250,6 +269,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </Link>
         </footer>
       </div>
+
+      {/* Quick Top-up Dialog */}
+      <TopUpDialog
+        userId={profile?.user_id}
+        open={quickTopUpOpen}
+        onOpenChange={setQuickTopUpOpen}
+        hideTrigger
+        onSubmitted={(id) => {
+          setQuickTopUpOpen(false);
+          navigate(`/dashboard/wallet/topup-status?id=${id}`);
+        }}
+      />
     </div>
   );
 }
