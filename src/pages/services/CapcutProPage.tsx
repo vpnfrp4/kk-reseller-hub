@@ -57,7 +57,7 @@ export default function CapcutProServicePage() {
     const title = "CapCut Pro Accounts — Professional Reseller Distribution | KKTech";
     const desc = "CapCut Pro accounts for professional resellers. Instant delivery, verified credentials, transparent pricing. Canva Pro also available.";
     const url = "https://kktech.shop/services/capcut-pro";
-    const image = "https://kktech.shop/og-image.png";
+    const image = "https://kktech.shop/og-capcut-pro.png";
 
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {

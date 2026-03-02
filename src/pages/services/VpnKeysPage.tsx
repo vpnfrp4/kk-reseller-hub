@@ -58,7 +58,7 @@ export default function VpnKeysServicePage() {
     const title = "VPN Keys — Professional Reseller Distribution | KKTech";
     const desc = "VPN activation keys for professional resellers. ExpressVPN, LetsVPN, NordVPN, Surfshark. Instant delivery, transparent pricing, verified providers.";
     const url = "https://kktech.shop/services/vpn-keys";
-    const image = "https://kktech.shop/og-image.png";
+    const image = "https://kktech.shop/og-vpn-keys.png";
 
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
