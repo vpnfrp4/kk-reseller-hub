@@ -79,6 +79,9 @@ export default function ProductCard({
           <div className="min-w-0 flex-1">
             <Link to={`/dashboard/products/${product.slug || product.id}`}>
               <h3 className="text-sm font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">
+                {product.display_id && (
+                  <span className="font-mono font-bold text-primary/70 mr-1">#{product.display_id}</span>
+                )}
                 {product.name}
               </h3>
             </Link>

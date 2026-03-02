@@ -39,7 +39,14 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
   const filtered = useMemo(() => {
     if (!search.trim()) return services;
     const q = search.trim().toLowerCase();
-    return services.filter((s) => s.name.toLowerCase().includes(q));
+    return services.filter((s) => {
+      if (s.name.toLowerCase().includes(q)) return true;
+      // Search by display_id number
+      const did = (s as any).display_id;
+      if (did && String(did).includes(q)) return true;
+      if (did && `#${did}`.includes(q)) return true;
+      return false;
+    });
   }, [services, search]);
 
   // Group by category
@@ -153,7 +160,12 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
                       )}
                     >
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm text-foreground truncate leading-snug">{service.name}</p>
+                        <p className="text-sm text-foreground truncate leading-snug">
+                          {(service as any).display_id && (
+                            <span className="font-mono font-bold text-primary/70 mr-1.5">#{(service as any).display_id}</span>
+                          )}
+                          {service.name}
+                        </p>
                         <div className="flex items-center gap-2 mt-1">
                           <span className={cn(
                             "inline-flex items-center gap-1 text-[10px] font-semibold",
