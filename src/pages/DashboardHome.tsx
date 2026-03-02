@@ -25,6 +25,9 @@ import { PageContainer, Money } from "@/components/shared";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
 import MiniSparkline from "@/components/admin/MiniSparkline";
 import CollapsibleSection from "@/components/shared/CollapsibleSection";
+import BalanceTrendChart from "@/components/dashboard/BalanceTrendChart";
+import SpendingDoughnut from "@/components/dashboard/SpendingDoughnut";
+import TransactionBarChart from "@/components/dashboard/TransactionBarChart";
 import { cn } from "@/lib/utils";
 import { t, useT } from "@/lib/i18n";
 import { MmStatus } from "@/components/shared/MmLabel";
@@ -128,6 +131,69 @@ export default function DashboardHome() {
   const isLowBalance = balance < LOW_BALANCE_THRESHOLD;
   const avgOrder = walletHealth?.avgOrderValue || 3600;
   const approxPurchases = avgOrder > 0 ? Math.floor(balance / avgOrder) : 0;
+
+  // 7-day balance trend
+  const { data: balanceTrendData, isLoading: balanceTrendLoading } = useQuery({
+    queryKey: ["balance-trend-7d", balance],
+    queryFn: async () => {
+      const sevenDaysAgo = subDays(new Date(), 6).toISOString();
+      const [ordersRes, topupsRes] = await Promise.all([
+        supabase.from("orders").select("price, created_at").eq("user_id", user!.id).gte("created_at", sevenDaysAgo),
+        supabase.from("wallet_transactions").select("amount, created_at").eq("user_id", user!.id).eq("type", "topup").eq("status", "approved").gte("created_at", sevenDaysAgo),
+      ]);
+      const dayChanges: Record<string, number> = {};
+      for (let i = 6; i >= 0; i--) dayChanges[format(subDays(new Date(), i), "yyyy-MM-dd")] = 0;
+      (ordersRes.data || []).forEach((o: any) => { const key = format(new Date(o.created_at), "yyyy-MM-dd"); if (key in dayChanges) dayChanges[key] -= Number(o.price); });
+      (topupsRes.data || []).forEach((tx: any) => { const key = format(new Date(tx.created_at), "yyyy-MM-dd"); if (key in dayChanges) dayChanges[key] += Number(tx.amount); });
+      const days = Object.keys(dayChanges).sort();
+      const result: Array<{ day: string; balance: number }> = [];
+      let runningBalance = balance;
+      for (let i = days.length - 1; i >= 0; i--) {
+        result.unshift({ day: format(new Date(days[i]), "MMM dd"), balance: runningBalance });
+        runningBalance -= dayChanges[days[i]];
+      }
+      return result;
+    },
+    enabled: !!profile,
+  });
+
+  // Spending by category (doughnut)
+  const { data: spendingByCategory, isLoading: categoryLoading } = useQuery({
+    queryKey: ["spending-by-category"],
+    queryFn: async () => {
+      const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
+      const { data } = await supabase.from("orders").select("product_name, product_type, price").eq("user_id", user!.id).gte("created_at", thirtyDaysAgo);
+      const categories: Record<string, number> = {};
+      (data || []).forEach((o: any) => {
+        const cat = o.product_type === "imei" ? "IMEI Unlocks" : o.product_type === "smm" ? "GSM Services" : "Digital Subscriptions";
+        categories[cat] = (categories[cat] || 0) + Number(o.price);
+      });
+      const colors = ["#22c55e", "#D4AF37", "#3b82f6", "#f97316", "#a855f7"];
+      return Object.entries(categories).map(([name, value], i) => ({ name, value, color: colors[i % colors.length] }));
+    },
+  });
+
+  // Daily transaction volume (bar chart) - current month
+  const { data: dailyTxData, isLoading: dailyTxLoading } = useQuery({
+    queryKey: ["daily-tx-volume"],
+    queryFn: async () => {
+      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
+      const [ordersRes, topupsRes] = await Promise.all([
+        supabase.from("orders").select("price, created_at").eq("user_id", user!.id).gte("created_at", startOfMonth),
+        supabase.from("wallet_transactions").select("amount, created_at").eq("user_id", user!.id).eq("type", "topup").eq("status", "approved").gte("created_at", startOfMonth),
+      ]);
+      const dayMap: Record<string, { topups: number; purchases: number }> = {};
+      const today = new Date();
+      for (let i = 0; i < today.getDate(); i++) {
+        const d = new Date(today.getFullYear(), today.getMonth(), i + 1);
+        if (d > today) break;
+        dayMap[format(d, "yyyy-MM-dd")] = { topups: 0, purchases: 0 };
+      }
+      (ordersRes.data || []).forEach((o: any) => { const key = format(new Date(o.created_at), "yyyy-MM-dd"); if (key in dayMap) dayMap[key].purchases += Number(o.price); });
+      (topupsRes.data || []).forEach((tx: any) => { const key = format(new Date(tx.created_at), "yyyy-MM-dd"); if (key in dayMap) dayMap[key].topups += Number(tx.amount); });
+      return Object.entries(dayMap).map(([date, vals]) => ({ day: format(new Date(date), "dd"), ...vals }));
+    },
+  });
 
   // Parallax for wallet hero
   const heroRef = useRef<HTMLDivElement>(null);
@@ -269,6 +335,36 @@ export default function DashboardHome() {
         <HealthCard label={t.dashboard.spendingThisMonth} value={walletHealth?.spendingThisMonth || 0} icon={TrendingUp} isCurrency />
         <HealthCard label={t.dashboard.topups30d} value={walletHealth?.totalTopups || 0} icon={Wallet} isCurrency />
         <HealthCard label={t.dashboard.avgOrder} value={walletHealth?.avgOrderValue || 0} icon={ShoppingCart} isCurrency />
+      </div>
+
+      {/* CHARTS ROW: Balance Trend + Spending Breakdown */}
+      <div
+        className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in"
+        style={{ animationDelay: "0.18s" }}
+      >
+        <div className="glass-card p-6">
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">
+            Balance Trend — Last 7 Days
+          </p>
+          <BalanceTrendChart data={balanceTrendData} isLoading={balanceTrendLoading} />
+        </div>
+        <div className="glass-card p-6">
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">
+            Spending Breakdown — 30 Days
+          </p>
+          <SpendingDoughnut data={spendingByCategory} isLoading={categoryLoading} />
+        </div>
+      </div>
+
+      {/* TRANSACTION VOLUME BAR CHART */}
+      <div
+        className="glass-card p-6 animate-fade-in"
+        style={{ animationDelay: "0.22s" }}
+      >
+        <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">
+          Daily Volume — {format(new Date(), "MMMM yyyy")}
+        </p>
+        <TransactionBarChart data={dailyTxData} isLoading={dailyTxLoading} />
       </div>
 
       {/* LOW BALANCE */}
