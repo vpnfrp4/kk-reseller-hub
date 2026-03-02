@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Monitor, Smartphone, Globe, LogOut, ShieldCheck } from "lucide-react";
+import { Monitor, Smartphone, Globe, LogOut, ShieldCheck, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 interface SessionInfo {
@@ -123,6 +123,9 @@ export default function SessionsTab() {
         </div>
       </div>
 
+      {/* App Updates */}
+      <AppUpdateSection />
+
       {/* Security Tip */}
       <div className="glass-card p-card">
         <div className="flex gap-compact">
@@ -135,6 +138,53 @@ export default function SessionsTab() {
             </p>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function AppUpdateSection() {
+  const [checking, setChecking] = useState(false);
+
+  const handleCheck = useCallback(async () => {
+    setChecking(true);
+    try {
+      const registrations = await navigator.serviceWorker?.getRegistrations();
+      if (registrations?.length) {
+        await Promise.all(registrations.map((r) => r.update()));
+        toast.success("Update check complete. You're on the latest version!");
+      } else {
+        toast.info("No service worker registered. Updates are applied automatically on reload.");
+      }
+    } catch {
+      toast.error("Failed to check for updates.");
+    } finally {
+      setChecking(false);
+    }
+  }, []);
+
+  return (
+    <div className="glass-card p-card space-y-default">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-compact">
+          <div className="w-8 h-8 rounded-btn bg-primary/10 flex items-center justify-center">
+            <RefreshCw className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">App Updates</h3>
+            <p className="text-[11px] text-muted-foreground">Check for the latest version of KKREMOTER</p>
+          </div>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 text-xs gap-1.5 border-primary/20 text-primary hover:bg-primary/10"
+          onClick={handleCheck}
+          disabled={checking}
+        >
+          <RefreshCw className={`w-3 h-3 ${checking ? "animate-spin" : ""}`} />
+          {checking ? "Checking..." : "Check for Updates"}
+        </Button>
       </div>
     </div>
   );
