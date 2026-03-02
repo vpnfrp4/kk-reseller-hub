@@ -106,11 +106,13 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
       {/* ─── Dropdown ─── */}
       {open && (
         <div
+          style={{ zIndex: 9999, backgroundColor: 'hsl(var(--card))' }}
           className={cn(
-            "absolute z-[50] mt-2 w-full rounded-2xl border border-border/30",
-            "bg-background shadow-[0_8px_60px_-4px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.06)]",
+            "absolute mt-2 rounded-2xl border border-border/30",
+            "shadow-[0_8px_60px_-4px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.06)]",
             "overflow-hidden animate-fade-in",
-            "max-h-[60vh] sm:max-h-[420px] overflow-y-auto scrollbar-hide"
+            "max-h-[60vh] sm:max-h-[420px] overflow-y-auto scrollbar-hide",
+            "left-0 right-0 w-auto mx-0 sm:mx-0 sm:w-full"
           )}
         >
           {isLoading ? (
@@ -126,7 +128,7 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
             grouped.map(([category, items]) => (
               <div key={category}>
                 {/* Category header */}
-                <div className="sticky top-0 z-10 px-5 py-2.5 text-[10px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50 bg-background border-b border-border/10">
+                <div style={{ backgroundColor: 'hsl(var(--card))' }} className="sticky top-0 z-10 px-5 py-2.5 text-[10px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50 border-b border-border/10">
                   {category}
                   <span className="ml-2 text-muted-foreground/30 font-mono">{items.length}</span>
                 </div>
