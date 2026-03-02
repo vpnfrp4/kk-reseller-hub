@@ -78,7 +78,7 @@ export default function ProductCard({
         {/* Top: Name + Badge */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <Link to={`/dashboard/products/${product.id}`}>
+            <Link to={`/dashboard/products/${product.slug || product.id}`}>
               <h3 className="text-[13px] font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">
                 {product.name}
               </h3>
@@ -147,7 +147,7 @@ export default function ProductCard({
               )}
             </Button>
             <Link
-              to={`/dashboard/products/${product.id}`}
+              to={`/dashboard/products/${product.slug || product.id}`}
               className="h-8 w-8 inline-flex items-center justify-center rounded-[var(--radius-btn)] text-muted-foreground border border-border/30 hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all duration-200"
             >
               <ChevronRight className="w-3.5 h-3.5" />
