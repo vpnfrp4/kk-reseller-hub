@@ -348,6 +348,30 @@ export type Database = {
         }
         Relationships: []
       }
+      login_history: {
+        Row: {
+          created_at: string
+          id: string
+          ip_address: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           body: string
@@ -854,10 +878,15 @@ export type Database = {
           avatar_url: string | null
           balance: number
           created_at: string
+          credit_limit: number
           currency_preference: string
           email: string
           id: string
+          is_verified: boolean
+          last_active_at: string | null
           name: string
+          status: string
+          tier: string
           total_orders: number
           total_spent: number
           updated_at: string
@@ -867,10 +896,15 @@ export type Database = {
           avatar_url?: string | null
           balance?: number
           created_at?: string
+          credit_limit?: number
           currency_preference?: string
           email?: string
           id?: string
+          is_verified?: boolean
+          last_active_at?: string | null
           name?: string
+          status?: string
+          tier?: string
           total_orders?: number
           total_spent?: number
           updated_at?: string
@@ -880,10 +914,15 @@ export type Database = {
           avatar_url?: string | null
           balance?: number
           created_at?: string
+          credit_limit?: number
           currency_preference?: string
           email?: string
           id?: string
+          is_verified?: boolean
+          last_active_at?: string | null
           name?: string
+          status?: string
+          tier?: string
           total_orders?: number
           total_spent?: number
           updated_at?: string
@@ -936,6 +975,33 @@ export type Database = {
           id?: string
           rate?: number
           source?: string
+        }
+        Relationships: []
+      }
+      reseller_tiers: {
+        Row: {
+          color: string
+          created_at: string
+          discount_percent: number
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          discount_percent?: number
+          id?: string
+          name?: string
+          sort_order?: number
         }
         Relationships: []
       }

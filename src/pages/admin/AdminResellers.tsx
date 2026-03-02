@@ -4,18 +4,34 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, X } from "lucide-react";
+import { Search, X, ShieldCheck, Ban, Crown } from "lucide-react";
 import ResellerDetailModal from "@/components/admin/ResellerDetailModal";
 import { DataCard, Money, ResponsiveTable } from "@/components/shared";
 import type { Column } from "@/components/shared";
+import { Badge } from "@/components/ui/badge";
 
 type SortField = "name" | "balance" | "total_spent" | "total_orders" | "created_at";
+
+const tierColors: Record<string, string> = {
+  bronze: "bg-orange-500/15 text-orange-400 border-orange-500/20",
+  silver: "bg-gray-400/15 text-gray-300 border-gray-400/20",
+  gold: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20",
+  platinum: "bg-purple-400/15 text-purple-300 border-purple-400/20",
+};
+
+const statusStyles: Record<string, string> = {
+  active: "bg-success/10 text-success",
+  suspended: "bg-warning/10 text-warning",
+  blocked: "bg-destructive/10 text-destructive",
+};
 
 export default function AdminResellers() {
   const [selectedReseller, setSelectedReseller] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortField>("created_at");
   const [balanceFilter, setBalanceFilter] = useState<string>("all");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [tierFilter, setTierFilter] = useState<string>("all");
 
   const { data: resellers } = useQuery({
     queryKey: ["admin-resellers"],
@@ -31,7 +47,6 @@ export default function AdminResellers() {
   const filtered = useMemo(() => {
     let list = resellers || [];
 
-    // Search by name or email
     if (search.trim()) {
       const q = search.toLowerCase();
       list = list.filter(
@@ -41,12 +56,13 @@ export default function AdminResellers() {
       );
     }
 
-    // Balance filter
     if (balanceFilter === "zero") list = list.filter((r: any) => r.balance === 0);
     else if (balanceFilter === "low") list = list.filter((r: any) => r.balance > 0 && r.balance < 5000);
     else if (balanceFilter === "active") list = list.filter((r: any) => r.balance >= 5000);
 
-    // Sort
+    if (statusFilter !== "all") list = list.filter((r: any) => (r.status || "active") === statusFilter);
+    if (tierFilter !== "all") list = list.filter((r: any) => (r.tier || "bronze") === tierFilter);
+
     list = [...list].sort((a: any, b: any) => {
       switch (sortBy) {
         case "name": return (a.name || "").localeCompare(b.name || "");
@@ -59,9 +75,9 @@ export default function AdminResellers() {
     });
 
     return list;
-  }, [resellers, search, sortBy, balanceFilter]);
+  }, [resellers, search, sortBy, balanceFilter, statusFilter, tierFilter]);
 
-  const hasFilters = search || sortBy !== "created_at" || balanceFilter !== "all";
+  const hasFilters = search || sortBy !== "created_at" || balanceFilter !== "all" || statusFilter !== "all" || tierFilter !== "all";
 
   const columns: Column<any>[] = [
     {
@@ -69,10 +85,31 @@ export default function AdminResellers() {
       label: "Name",
       priority: true,
       render: (row) => (
-        <span className="cursor-pointer hover:text-primary transition-colors" onClick={() => setSelectedReseller(row)}>
-          {row.name || "—"}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="cursor-pointer hover:text-primary transition-colors" onClick={() => setSelectedReseller(row)}>
+            {row.name || "—"}
+          </span>
+          {row.is_verified && (
+            <ShieldCheck className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+          )}
+          {(row.status === "blocked" || row.status === "suspended") && (
+            <Ban className="w-3.5 h-3.5 text-destructive shrink-0" />
+          )}
+        </div>
       ),
+    },
+    {
+      key: "tier",
+      label: "Tier",
+      align: "center" as const,
+      render: (row) => {
+        const tier = row.tier || "bronze";
+        return (
+          <Badge variant="outline" className={`text-[10px] capitalize border ${tierColors[tier] || tierColors.bronze}`}>
+            {tier}
+          </Badge>
+        );
+      },
     },
     {
       key: "email",
@@ -83,7 +120,15 @@ export default function AdminResellers() {
       key: "balance",
       label: "Balance",
       align: "right" as const,
-      render: (row) => <Money amount={row.balance} />,
+      render: (row) => {
+        const debt = row.credit_limit > 0 && row.balance < 0 ? Math.abs(row.balance) : 0;
+        return (
+          <div>
+            <Money amount={row.balance} />
+            {debt > 0 && <span className="text-[10px] text-destructive block">Debt: {debt.toLocaleString()}</span>}
+          </div>
+        );
+      },
     },
     {
       key: "total_spent",
@@ -99,6 +144,20 @@ export default function AdminResellers() {
       render: (row) => <span className="font-mono tabular-nums">{row.total_orders}</span>,
     },
     {
+      key: "status",
+      label: "Status",
+      align: "center" as const,
+      hideOnMobile: true,
+      render: (row) => {
+        const s = row.status || "active";
+        return (
+          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium capitalize ${statusStyles[s] || statusStyles.active}`}>
+            {s}
+          </span>
+        );
+      },
+    },
+    {
       key: "created_at",
       label: "Joined",
       hideOnMobile: true,
@@ -106,7 +165,7 @@ export default function AdminResellers() {
     },
     {
       key: "actions",
-      label: "Actions",
+      label: "",
       align: "center" as const,
       hideOnMobile: true,
       render: (row) => (
@@ -122,14 +181,14 @@ export default function AdminResellers() {
       <div className="animate-fade-in">
         <h1 className="text-h1 text-foreground">Resellers</h1>
         <p className="text-caption text-muted-foreground">
-          View all registered resellers
+          Manage registered resellers
           {resellers?.length ? ` · ${filtered.length} of ${resellers.length}` : ""}
         </p>
       </div>
 
       {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 animate-fade-in">
-        <div className="relative flex-1">
+      <div className="flex flex-col sm:flex-row gap-3 animate-fade-in flex-wrap">
+        <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search by name or email…"
@@ -143,6 +202,29 @@ export default function AdminResellers() {
             </button>
           )}
         </div>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-32 h-9">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="suspended">Suspended</SelectItem>
+            <SelectItem value="blocked">Blocked</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={tierFilter} onValueChange={setTierFilter}>
+          <SelectTrigger className="w-full sm:w-32 h-9">
+            <SelectValue placeholder="Tier" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Tiers</SelectItem>
+            <SelectItem value="bronze">Bronze</SelectItem>
+            <SelectItem value="silver">Silver</SelectItem>
+            <SelectItem value="gold">Gold</SelectItem>
+            <SelectItem value="platinum">Platinum</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={balanceFilter} onValueChange={setBalanceFilter}>
           <SelectTrigger className="w-full sm:w-36 h-9">
             <SelectValue placeholder="Balance" />
@@ -167,7 +249,7 @@ export default function AdminResellers() {
           </SelectContent>
         </Select>
         {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-9 text-xs gap-1" onClick={() => { setSearch(""); setSortBy("created_at"); setBalanceFilter("all"); }}>
+          <Button variant="ghost" size="sm" className="h-9 text-xs gap-1" onClick={() => { setSearch(""); setSortBy("created_at"); setBalanceFilter("all"); setStatusFilter("all"); setTierFilter("all"); }}>
             <X className="w-3 h-3" /> Clear
           </Button>
         )}
