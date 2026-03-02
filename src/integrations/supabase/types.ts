@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_logs: {
+        Row: {
+          action: string
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          log_type: string
+          order_id: string | null
+          provider_id: string | null
+          request_body: Json | null
+          request_url: string | null
+          response_body: Json | null
+          response_status: number | null
+          service_id: string | null
+          success: boolean
+          user_id: string | null
+        }
+        Insert: {
+          action?: string
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          log_type?: string
+          order_id?: string | null
+          provider_id?: string | null
+          request_body?: Json | null
+          request_url?: string | null
+          response_body?: Json | null
+          response_status?: number | null
+          service_id?: string | null
+          success?: boolean
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          log_type?: string
+          order_id?: string | null
+          provider_id?: string | null
+          request_body?: Json | null
+          request_url?: string | null
+          response_body?: Json | null
+          response_status?: number | null
+          service_id?: string | null
+          success?: boolean
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "api_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "api_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "recent_completions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_providers: {
         Row: {
           api_key: string

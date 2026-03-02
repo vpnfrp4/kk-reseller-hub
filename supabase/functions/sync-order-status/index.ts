@@ -91,6 +91,7 @@ Deno.serve(async (req) => {
 
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 10000);
+        const startTime = Date.now();
 
         let apiRes: Response;
         try {
@@ -103,10 +104,24 @@ Deno.serve(async (req) => {
           clearTimeout(timeout);
           const msg = fetchError.name === "AbortError" ? "Timeout (10s)" : fetchError.message;
           console.error(`Order ${order.id}: provider fetch failed - ${msg}`);
+
+          // Log failed API call
+          await supabase.from("api_logs").insert({
+            order_id: order.id,
+            user_id: order.user_id,
+            provider_id: product.provider_id,
+            action: "status",
+            success: false,
+            error_message: msg,
+            duration_ms: Date.now() - startTime,
+            log_type: "status_check",
+          });
+
           errors++;
           continue;
         }
         clearTimeout(timeout);
+        const duration = Date.now() - startTime;
 
         const rawText = await apiRes.text();
         let apiBody: any;
@@ -118,6 +133,26 @@ Deno.serve(async (req) => {
 
         // Normalize provider status
         const providerStatus = (apiBody?.status || "").toLowerCase().trim();
+        const isFinal = ["completed", "partial", "canceled", "cancelled", "refunded", "failed", "error"].includes(providerStatus);
+
+        // Log status check
+        const logUrl = new URL(provider.api_url);
+        logUrl.searchParams.set("action", "status");
+        logUrl.searchParams.set("order", order.external_order_id);
+        await supabase.from("api_logs").insert({
+          order_id: order.id,
+          user_id: order.user_id,
+          provider_id: product.provider_id,
+          action: "status",
+          service_id: order.external_order_id,
+          request_url: logUrl.toString(),
+          response_status: apiRes.status,
+          response_body: apiBody,
+          success: !["failed", "error"].includes(providerStatus),
+          error_message: ["failed", "error"].includes(providerStatus) ? (apiBody?.error || providerStatus) : null,
+          duration_ms: duration,
+          log_type: "status_check",
+        });
 
         const updatePayload: Record<string, unknown> = {
           provider_response: apiBody,
@@ -177,6 +212,17 @@ Deno.serve(async (req) => {
               });
 
               updatePayload.admin_notes = `Auto-refunded ${order.price} MMK. Provider status: ${providerStatus}`;
+
+              // Log refund
+              await supabase.from("api_logs").insert({
+                order_id: order.id,
+                user_id: order.user_id,
+                provider_id: product.provider_id,
+                action: "refund",
+                success: true,
+                log_type: "refund",
+                response_body: { reason: providerStatus, amount: order.price },
+              });
             }
 
             // Notify user

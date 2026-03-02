@@ -41,6 +41,7 @@ import BlogListPage from "./pages/BlogListPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import AdminBlog from "./pages/admin/AdminBlog";
 import AdminProfitDashboard from "./pages/admin/AdminProfitDashboard";
+import AdminMonitoring from "./pages/admin/AdminMonitoring";
 import NotFound from "./pages/NotFound";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 
@@ -134,6 +135,7 @@ function AppRoutes() {
         <Route path="/admin/settings" element={<AdminRoute><AdminSettings /></AdminRoute>} />
         <Route path="/admin/blog" element={<AdminRoute><AdminBlog /></AdminRoute>} />
         <Route path="/admin/profit" element={<AdminRoute><AdminProfitDashboard /></AdminRoute>} />
+        <Route path="/admin/monitoring" element={<AdminRoute><AdminMonitoring /></AdminRoute>} />
         <Route path="*" element={<NotFound />} />
     </Routes>
   );
