@@ -387,7 +387,7 @@ export default function AdminProducts() {
     setApiServicesError(null);
     setApiServices([]);
     try {
-      const { data, error } = await supabase.functions.invoke("fetch-provider-services", {
+      const { data, error } = await supabase.functions.invoke("fetch-api-services", {
         body: { provider_id: providerId },
       });
       if (error) throw error;
