@@ -57,9 +57,10 @@ export default function ProductDetailPage() {
       if (isUUID) {
         query = query.eq("id", id!);
       } else {
-        query = query.eq("slug", id!);
+        // Case-insensitive slug lookup
+        query = query.ilike("slug", id!);
       }
-      const { data, error } = await query.single();
+      const { data, error } = await query.maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -101,53 +102,55 @@ export default function ProductDetailPage() {
     return () => observer.disconnect();
   }, [product]);
 
+  const productId = product?.id;
+
   const { data: pricingTiers = [] } = useQuery({
-    queryKey: ["pricing-tiers", id],
+    queryKey: ["pricing-tiers", productId],
     queryFn: async () => {
       const { data } = await supabase
         .from("pricing_tiers")
         .select("*")
-        .eq("product_id", id!)
+        .eq("product_id", productId!)
         .order("min_qty", { ascending: true });
       return data || [];
     },
-    enabled: !!id,
+    enabled: !!productId,
   });
 
   const { data: reviews = [] } = useQuery({
-    queryKey: ["order-reviews", id],
+    queryKey: ["order-reviews", productId],
     queryFn: async () => {
       const { data } = await supabase
         .from("order_reviews")
         .select("id, rating, comment, created_at, user_id")
         .in("order_id",
-          (await supabase.from("orders").select("id").eq("product_id", id!).in("status", ["completed", "delivered"])).data?.map((o: any) => o.id) || []
+          (await supabase.from("orders").select("id").eq("product_id", productId!).in("status", ["completed", "delivered"])).data?.map((o: any) => o.id) || []
         )
         .order("created_at", { ascending: false })
         .limit(10);
       return (data || []) as any[];
     },
-    enabled: !!id,
+    enabled: !!productId,
   });
 
   const { data: userCompletedOrder } = useQuery({
-    queryKey: ["user-completed-order", id, user?.id],
+    queryKey: ["user-completed-order", productId, user?.id],
     queryFn: async () => {
       const { data } = await supabase
         .from("orders")
         .select("id")
-        .eq("product_id", id!)
+        .eq("product_id", productId!)
         .eq("user_id", user!.id)
         .in("status", ["completed", "delivered"])
         .limit(1)
         .maybeSingle();
       return data;
     },
-    enabled: !!id && !!user,
+    enabled: !!productId && !!user,
   });
 
   const { data: existingReview } = useQuery({
-    queryKey: ["user-review-check", id, user?.id],
+    queryKey: ["user-review-check", productId, user?.id],
     queryFn: async () => {
       if (!userCompletedOrder) return null;
       const { data } = await supabase
