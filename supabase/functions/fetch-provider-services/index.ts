@@ -67,22 +67,38 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    const { data: provider, error: provError } = await adminClient
+    // Check both imei_providers and api_providers tables
+    let providerApiUrl: string | null = null;
+    let providerApiKey: string | null = null;
+    let providerName = "";
+
+    const { data: imeiProv } = await adminClient
       .from("imei_providers")
       .select("api_url, api_key, name")
       .eq("id", provider_id)
       .single();
 
-    if (provError || !provider) {
-      return new Response(JSON.stringify({ error: "Provider not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (imeiProv?.api_url && imeiProv?.api_key) {
+      providerApiUrl = imeiProv.api_url;
+      providerApiKey = imeiProv.api_key;
+      providerName = imeiProv.name;
+    } else {
+      const { data: apiProv } = await adminClient
+        .from("api_providers")
+        .select("api_url, api_key, name")
+        .eq("id", provider_id)
+        .single();
+
+      if (apiProv?.api_url && apiProv?.api_key) {
+        providerApiUrl = apiProv.api_url;
+        providerApiKey = apiProv.api_key;
+        providerName = apiProv.name;
+      }
     }
 
-    if (!provider.api_url || !provider.api_key) {
+    if (!providerApiUrl || !providerApiKey) {
       return new Response(
-        JSON.stringify({ error: "Provider API URL or API Key not configured" }),
+        JSON.stringify({ error: "Provider not found or API URL/Key not configured" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -91,8 +107,8 @@ Deno.serve(async (req) => {
     }
 
     // Call SMM Panel standard API to fetch services
-    const apiUrl = new URL(provider.api_url);
-    apiUrl.searchParams.set("key", provider.api_key);
+    const apiUrl = new URL(providerApiUrl);
+    apiUrl.searchParams.set("key", providerApiKey);
     apiUrl.searchParams.set("action", "services");
 
     const apiResponse = await fetch(apiUrl.toString(), {
@@ -135,7 +151,7 @@ Deno.serve(async (req) => {
       : [];
 
     return new Response(
-      JSON.stringify({ success: true, services: normalized, provider_name: provider.name }),
+      JSON.stringify({ success: true, services: normalized, provider_name: providerName }),
       {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
