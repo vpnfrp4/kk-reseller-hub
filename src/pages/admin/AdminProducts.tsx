@@ -21,6 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, FileText, Sparkles, Zap, Loader2, Search, RefreshCw, Eye, EyeOff } from "lucide-react";
 import { generateProductDescription, type DescriptionMode } from "@/lib/description-templates";
 import { optimizeTitle, autoBuildProduct, type AutoBuildResult } from "@/lib/title-optimizer";
@@ -122,26 +123,65 @@ export default function AdminProducts() {
   const [autoFilledFields, setAutoFilledFields] = useState<Set<string>>(new Set());
   const manualOverrides = useRef<Set<string>>(new Set());
   const [aiGenerating, setAiGenerating] = useState(false);
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  const initialFormRef = useRef<string>("");
 
-  // Unified form state
-  const [form, setForm] = useState({
+  const FORM_STORAGE_KEY = "admin-product-form-draft";
+
+  const defaultForm = {
     name: "", icon: "box", category: "General", description: "",
     retail_price: "", wholesale_price: "", duration: "", stock: "",
     image_url: "",
     product_type: "digital" as ProductType,
-    // IMEI fields
     brand_id: "", country_id: "", carrier_id: "",
     provider_id: "", provider_price: "0", margin_percent: "30",
     processing_time: "1-3 Days",
-    fulfillment_mode: "manual", // for IMEI: manual or api
-    // Currency
+    fulfillment_mode: "manual",
     base_currency: "MMK" as "MMK" | "USD",
     base_price: "",
-    // API service fields
     api_service_id: "",
     api_min_quantity: "1",
     api_max_quantity: "",
+  };
+
+  // Restore draft from localStorage on mount
+  const [form, setForm] = useState(() => {
+    try {
+      const saved = localStorage.getItem(FORM_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return { ...defaultForm, ...parsed };
+      }
+    } catch {}
+    return defaultForm;
   });
+
+  // Persist form draft to localStorage
+  useEffect(() => {
+    if (dialogOpen) {
+      localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(form));
+    }
+  }, [form, dialogOpen]);
+
+  const isFormDirty = useCallback(() => {
+    return JSON.stringify(form) !== initialFormRef.current;
+  }, [form]);
+
+  const handleDialogClose = useCallback(() => {
+    if (isFormDirty()) {
+      setConfirmCloseOpen(true);
+    } else {
+      setDialogOpen(false);
+      resetForm();
+    }
+  }, [isFormDirty]);
+
+  const confirmClose = useCallback(() => {
+    setConfirmCloseOpen(false);
+    setDialogOpen(false);
+    resetForm();
+    localStorage.removeItem(FORM_STORAGE_KEY);
+  }, []);
 
   // API service fetching state
   const [apiServices, setApiServices] = useState<any[]>([]);
@@ -231,18 +271,8 @@ export default function AdminProducts() {
   });
 
   const resetForm = () => {
-    setForm({
-      name: "", icon: "box", category: "General", description: "",
-      retail_price: "", wholesale_price: "", duration: "", stock: "",
-      image_url: "", product_type: "digital",
-      brand_id: "", country_id: "", carrier_id: "",
-      provider_id: "", provider_price: "0", margin_percent: "30",
-      processing_time: "1-3 Days", fulfillment_mode: "manual",
-      base_currency: "MMK", base_price: "",
-      api_service_id: "",
-      api_min_quantity: "1",
-      api_max_quantity: "",
-    });
+    const fresh = { ...defaultForm };
+    setForm(fresh);
     setEditing(null);
     setImagePreview(null);
     setCustomFields([]);
@@ -254,6 +284,8 @@ export default function AdminProducts() {
     setApiServices([]);
     setApiServiceSearch("");
     setApiServicesError(null);
+    localStorage.removeItem(FORM_STORAGE_KEY);
+    initialFormRef.current = JSON.stringify(fresh);
   };
 
   const handleOptimizeTitle = (force = false) => {
@@ -538,6 +570,23 @@ export default function AdminProducts() {
       api_min_quantity: (p.api_min_quantity || 1).toString(),
       api_max_quantity: (p.api_max_quantity || "").toString(),
     });
+    const editForm = {
+      name: p.name, icon: p.icon, category: p.category, description: p.description || "",
+      retail_price: p.retail_price.toString(), wholesale_price: p.wholesale_price.toString(),
+      duration: p.duration, stock: p.stock.toString(), image_url: p.image_url || "",
+      product_type: p.product_type || "digital",
+      brand_id: p.brand_id || "", country_id: p.country_id || "", carrier_id: p.carrier_id || "",
+      provider_id: p.provider_id || "", provider_price: (p.provider_price || 0).toString(),
+      margin_percent: (p.margin_percent || 30).toString(),
+      processing_time: p.processing_time || "1-3 Days",
+      fulfillment_mode: p.fulfillment_mode || "manual",
+      base_currency: p.base_currency || "MMK",
+      base_price: (p.base_price || 0).toString(),
+      api_service_id: p.api_service_id || "",
+      api_min_quantity: (p.api_min_quantity || 1).toString(),
+      api_max_quantity: (p.api_max_quantity || "").toString(),
+    };
+    initialFormRef.current = JSON.stringify(editForm);
     setImagePreview(p.image_url || null);
     descManuallyEdited.current = !!(p.description && p.description.trim());
     loadCustomFields(p.id);
@@ -722,6 +771,7 @@ export default function AdminProducts() {
     queryClient.invalidateQueries({ queryKey: ["products"] });
     setDialogOpen(false);
     resetForm();
+    localStorage.removeItem(FORM_STORAGE_KEY);
   };
 
   const handleDelete = async (id: string) => {
@@ -827,15 +877,20 @@ export default function AdminProducts() {
         <div className="flex gap-2">
           <BulkTierDialog />
           <BulkImageUpload products={(products || []).map((p: any) => ({ id: p.id, name: p.name, icon: p.icon, image_url: p.image_url }))} />
-          <Dialog open={dialogOpen} onOpenChange={(v) => { setDialogOpen(v); if (!v) resetForm(); }}>
+          <Dialog open={dialogOpen} onOpenChange={(v) => { if (!v) { handleDialogClose(); return; } setDialogOpen(v); initialFormRef.current = JSON.stringify(form); }}>
             <DialogTrigger asChild>
-              <Button className="btn-glow gap-2"><Plus className="w-4 h-4" />Add Product</Button>
+              <Button className="btn-glow gap-2" onClick={() => { resetForm(); initialFormRef.current = JSON.stringify(defaultForm); }}><Plus className="w-4 h-4" />Add Product</Button>
             </DialogTrigger>
-            <DialogContent className="bg-card border-border max-w-lg max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
+            <DialogContent
+              className="bg-card border-border max-w-lg max-h-[90vh] flex flex-col p-0"
+              onInteractOutside={(e) => e.preventDefault()}
+              onEscapeKeyDown={(e) => { e.preventDefault(); handleDialogClose(); }}
+            >
+              <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                 <DialogTitle className="text-foreground">{editing ? "Edit" : "New"} Product</DialogTitle>
               </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
+                <div className="flex-1 overflow-y-auto px-6 py-2 space-y-4">
 
                 {/* ── Product Type Selector ── */}
                 <div className="space-y-2">
@@ -1498,10 +1553,25 @@ export default function AdminProducts() {
                   </>
                 )}
 
-                <Button type="submit" className="w-full btn-glow">{editing ? "Update" : "Create"} Product</Button>
+                </div>
+                <div className="shrink-0 px-6 py-4 border-t border-border bg-card">
+                  <Button type="submit" className="w-full btn-glow">{editing ? "Update" : "Create"} Product</Button>
+                </div>
               </form>
             </DialogContent>
           </Dialog>
+
+          {/* Unsaved changes confirmation */}
+          <ConfirmModal
+            open={confirmCloseOpen}
+            onOpenChange={setConfirmCloseOpen}
+            title="Unsaved changes"
+            description="You have unsaved changes. Are you sure you want to leave? Your draft will be lost."
+            confirmLabel="Discard"
+            cancelLabel="Keep editing"
+            onConfirm={confirmClose}
+            destructive
+          />
         </div>
       </div>
 
