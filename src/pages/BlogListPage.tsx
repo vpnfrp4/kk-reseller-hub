@@ -20,7 +20,28 @@ interface BlogPost {
 
 export default function BlogListPage() {
   useEffect(() => {
-    document.title = "Blog – IMEI Unlock, GSM & Digital Services | KKTechDeals";
+    const title = "Blog – IMEI Unlock, GSM & Digital Services | KKTech";
+    const desc = "Tips, tutorials, and industry insights on IMEI unlocking, GSM services, and digital products in Myanmar.";
+    const url = `${SITE_URL}/blog`;
+    const image = `${SITE_URL}/og-image.png`;
+
+    document.title = title;
+    const setMeta = (attr: string, key: string, content: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.setAttribute("content", content);
+    };
+    setMeta("name", "description", desc);
+    setMeta("property", "og:title", title);
+    setMeta("property", "og:description", desc);
+    setMeta("property", "og:url", url);
+    setMeta("property", "og:image", image);
+    setMeta("property", "og:type", "website");
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:description", desc);
+    setMeta("name", "twitter:image", image);
+    setMeta("name", "twitter:card", "summary_large_image");
+
     return () => {
       document.title = "Myanmar Biggest Unlock Marketplace | IMEI, GSM & Digital Services – KKTechDeals";
     };
