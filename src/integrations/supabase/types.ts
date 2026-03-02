@@ -379,6 +379,7 @@ export type Database = {
           credential_id: string | null
           credentials: string
           custom_fields_data: Json | null
+          external_order_id: string | null
           fulfillment_mode: string
           id: string
           imei_number: string | null
@@ -389,6 +390,7 @@ export type Database = {
           product_type: string | null
           profit_amount: number | null
           provider_cost: number | null
+          provider_response: Json | null
           result: string | null
           status: string
           user_id: string
@@ -400,6 +402,7 @@ export type Database = {
           credential_id?: string | null
           credentials?: string
           custom_fields_data?: Json | null
+          external_order_id?: string | null
           fulfillment_mode?: string
           id?: string
           imei_number?: string | null
@@ -410,6 +413,7 @@ export type Database = {
           product_type?: string | null
           profit_amount?: number | null
           provider_cost?: number | null
+          provider_response?: Json | null
           result?: string | null
           status?: string
           user_id: string
@@ -421,6 +425,7 @@ export type Database = {
           credential_id?: string | null
           credentials?: string
           custom_fields_data?: Json | null
+          external_order_id?: string | null
           fulfillment_mode?: string
           id?: string
           imei_number?: string | null
@@ -431,6 +436,7 @@ export type Database = {
           product_type?: string | null
           profit_amount?: number | null
           provider_cost?: number | null
+          provider_response?: Json | null
           result?: string | null
           status?: string
           user_id?: string
