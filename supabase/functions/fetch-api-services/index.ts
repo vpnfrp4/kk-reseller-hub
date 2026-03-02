@@ -294,7 +294,7 @@ Deno.serve(async (req) => {
           description: `${svcData.category} — ${svcData.type}`,
           category: mappedCategory,
           product_type: "api",
-          type: "manual",
+          type: "auto",
           api_service_id: serviceIdStr,
           api_provider: provider.name,
           api_rate: svcData.rate,
