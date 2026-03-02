@@ -587,6 +587,7 @@ export default function OrderDetailPage() {
                 <CredentialCards
                   rawCredentials={deliveryContent}
                   isImei={isImei}
+                  completed={order.status === "completed"}
                 />
               </GlassSection>
             )}
