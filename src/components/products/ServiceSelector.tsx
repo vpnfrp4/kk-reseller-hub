@@ -64,7 +64,7 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
   };
 
   return (
-    <div ref={containerRef} className="relative w-full">
+    <div ref={containerRef} className="relative w-full max-w-full overflow-visible">
       {/* ─── Trigger / Search Input ─── */}
       <div
         className={cn(
@@ -107,10 +107,10 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
       {open && (
         <div
           className={cn(
-            "absolute z-[200] mt-2 w-full rounded-2xl border border-border/30",
+            "absolute z-[50] mt-2 w-full rounded-2xl border border-border/30",
             "bg-background shadow-[0_8px_60px_-4px_rgba(0,0,0,0.9),0_0_0_1px_rgba(255,255,255,0.06)]",
             "overflow-hidden animate-fade-in",
-            "max-h-[420px] overflow-y-auto scrollbar-hide"
+            "max-h-[60vh] sm:max-h-[420px] overflow-y-auto scrollbar-hide"
           )}
         >
           {isLoading ? (

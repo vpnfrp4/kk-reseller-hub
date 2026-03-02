@@ -61,7 +61,7 @@ export default function ProductsPage() {
   };
 
   return (
-    <div className="space-y-8 max-w-3xl mx-auto">
+    <div className="space-y-8 max-w-3xl mx-auto w-full max-w-[92vw] sm:max-w-3xl">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
         { label: l(t.products.title) },
@@ -107,8 +107,8 @@ export default function ProductsPage() {
       </div>
 
       {/* ─── Service Selection ─── */}
-      <div className="animate-fade-in relative z-[100]" style={{ animationDelay: "0.1s" }}>
-        <div className="glass-card p-6 space-y-4">
+      <div className="animate-fade-in relative z-[39]" style={{ animationDelay: "0.1s" }}>
+        <div className="glass-card p-4 sm:p-6 space-y-4 bg-background border-border/30">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-[11px] uppercase tracking-[0.12em] font-bold text-muted-foreground/60">
