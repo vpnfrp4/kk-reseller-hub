@@ -136,44 +136,63 @@ export default function OrderFlowPage() {
   const [lastOrderKey, setLastOrderKey] = useState("");
 
   // ── Data fetching ──
+  const isUUID = id ? /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id) : false;
+
   const { data: product, isLoading } = useQuery({
     queryKey: ["product", id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("products")
-        .select("*, imei_providers(id, name, avg_rating, success_rate, total_completed, total_reviews, is_verified, fulfillment_type)")
-        .eq("id", id!)
-        .single();
+      let query = supabase.from("products").select("*");
+      if (isUUID) {
+        query = query.eq("id", id!);
+      } else {
+        query = query.ilike("slug", id!);
+      }
+      const { data, error } = await query.maybeSingle();
       if (error) throw error;
       return data;
     },
     enabled: !!id,
   });
 
+  const productId = product?.id;
+
+  const { data: provider } = useQuery({
+    queryKey: ["product-provider", (product as any)?.provider_id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("imei_providers_public")
+        .select("id, name, avg_rating, success_rate, total_completed, total_reviews, is_verified, fulfillment_type")
+        .eq("id", (product as any).provider_id)
+        .single();
+      return data;
+    },
+    enabled: !!(product as any)?.provider_id,
+  });
+
   const { data: pricingTiers = [] } = useQuery({
-    queryKey: ["pricing-tiers", id],
+    queryKey: ["pricing-tiers", productId],
     queryFn: async () => {
       const { data } = await supabase
         .from("pricing_tiers")
         .select("*")
-        .eq("product_id", id!)
+        .eq("product_id", productId!)
         .order("min_qty", { ascending: true });
       return data || [];
     },
-    enabled: !!id,
+    enabled: !!productId,
   });
 
   const { data: customFields = [] } = useQuery({
-    queryKey: ["product-custom-fields", id],
+    queryKey: ["product-custom-fields", productId],
     queryFn: async () => {
       const { data } = await supabase
         .from("product_custom_fields" as any)
         .select("*")
-        .eq("product_id", id!)
+        .eq("product_id", productId!)
         .order("sort_order", { ascending: true });
       return (data || []) as any[];
     },
-    enabled: !!id,
+    enabled: !!productId,
   });
 
   // ── Derived values ──
