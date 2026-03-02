@@ -18,6 +18,7 @@ import {
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(() => localStorage.getItem("kktech_remember") === "true");
   const [name, setName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isSignup, setIsSignup] = useState(false);
@@ -105,6 +106,12 @@ export default function Login() {
       setLoading(false);
     } else {
       setLoading(true);
+      // Persist remember-me preference
+      if (rememberMe) {
+        localStorage.setItem("kktech_remember", "true");
+      } else {
+        localStorage.removeItem("kktech_remember");
+      }
       const { error } = await login(email, password);
       if (error) {
         setError(error);
@@ -331,6 +338,31 @@ export default function Login() {
                     )}
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* ───── Remember Me (login only) ───── */}
+            {!isSignup && !isForgot && (
+              <div className="opacity-0 animate-[slideUpFade_0.35s_ease-out_forwards]" style={{ animationDelay: "0.22s" }}>
+                <label
+                  htmlFor="remember-me"
+                  className="group flex items-center gap-2.5 cursor-pointer select-none py-1 -mt-1"
+                >
+                  <div className="relative flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      id="remember-me"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <div className="w-[18px] h-[18px] rounded-[5px] border border-border bg-secondary transition-all duration-200 peer-checked:bg-[#39FF14] peer-checked:border-[#39FF14] peer-focus-visible:ring-2 peer-focus-visible:ring-[#39FF14]/40 group-hover:border-muted-foreground/60" />
+                    <Check className="absolute w-3 h-3 text-[#060608] opacity-0 peer-checked:opacity-100 transition-opacity duration-150 pointer-events-none" />
+                  </div>
+                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                    Remember me
+                  </span>
+                </label>
               </div>
             )}
 
