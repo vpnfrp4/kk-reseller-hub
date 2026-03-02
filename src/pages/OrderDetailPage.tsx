@@ -594,7 +594,7 @@ export default function OrderDetailPage() {
           {/* ═══ 5b. ADMIN NOTES (visible to user as fulfillment note) ═══ */}
           {order.admin_notes && (
             <GlassSection>
-              <FulfillmentNotesCard notes={order.admin_notes} />
+              <FulfillmentNotesCard notes={order.admin_notes} completed={order.status === "completed"} />
             </GlassSection>
           )}
 
