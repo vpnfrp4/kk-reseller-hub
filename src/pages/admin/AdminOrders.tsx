@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { playNotificationSound } from "@/lib/notification-sound";
-import SoundToggle from "@/components/shared/SoundToggle";
+
 import OrderDetailModal from "@/components/admin/OrderDetailModal";
 import ConfirmModal from "@/components/shared/ConfirmModal";
 import { DataCard, Money } from "@/components/shared";
@@ -276,7 +276,6 @@ export default function AdminOrders() {
             <h1 className="text-h1 text-foreground">Order Management</h1>
             <p className="text-caption text-muted-foreground">Search, filter, and manage all orders</p>
           </div>
-          <SoundToggle />
         </div>
       </div>
 

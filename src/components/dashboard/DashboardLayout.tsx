@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
+import SoundToggle from "@/components/shared/SoundToggle";
 import NotificationSettings from "@/components/NotificationSettings";
 import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import { t } from "@/lib/i18n";
@@ -220,6 +221,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </span>
             </button>
 
+            <SoundToggle />
             <ThemeToggle />
             <NotificationDropdown />
             <NotificationSettings />
