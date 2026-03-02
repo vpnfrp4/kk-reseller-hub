@@ -897,16 +897,26 @@ function RateHistoryChart() {
 }
 
 /* ─── Service Margin Row ─── */
-function ServiceMarginRow({ service, saving, onSave }: {
+function ServiceMarginRow({ service, saving, onSave, existingProductId, onCreateProduct, creatingProduct }: {
   service: any; saving: boolean; onSave: (id: string, margin: number) => void;
+  existingProductId?: string | null; onCreateProduct: (service: any) => void; creatingProduct: boolean;
 }) {
   const [margin, setMargin] = useState<number>(service.margin_percent ?? 30);
   const changed = margin !== (service.margin_percent ?? 30);
+  const hasProduct = !!existingProductId;
 
   return (
     <div className="flex items-center gap-3 py-1.5 px-2 rounded-lg hover:bg-muted/10 group">
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium text-foreground truncate">{service.name}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-xs font-medium text-foreground truncate">{service.name}</p>
+          {!service.is_active && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-destructive/10 text-destructive font-medium shrink-0">Disabled</span>
+          )}
+          {hasProduct && (
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-primary/10 text-primary font-medium shrink-0">Product linked</span>
+          )}
+        </div>
         <p className="text-[10px] text-muted-foreground">
           ID: {service.provider_service_id} • Rate: ${service.rate}/1k • Min: {service.min} • Max: {service.max}
         </p>
@@ -926,6 +936,15 @@ function ServiceMarginRow({ service, saving, onSave }: {
             onClick={() => onSave(service.id, margin)} disabled={saving}>
             {saving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
           </Button>
+        )}
+        {!hasProduct ? (
+          <Button size="sm" variant="outline" className="h-6 px-2 text-[10px] text-primary border-primary/30 hover:bg-primary/10"
+            onClick={() => onCreateProduct(service)} disabled={creatingProduct || !service.is_active}>
+            {creatingProduct ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+            <span className="ml-0.5">Product</span>
+          </Button>
+        ) : (
+          <a href={`/admin/products`} className="text-[10px] text-primary hover:underline">View</a>
         )}
       </div>
     </div>
@@ -1089,12 +1108,12 @@ function ApiProvidersSection() {
       const data = await res.json();
       if (data.success) {
         const svc = data.services || {};
-        const prod = data.products || {};
         toast.success(
-          `${name}: ${data.message}\nServices: ${svc.inserted ?? 0} new, ${svc.updated ?? 0} updated\nProducts: ${prod.created ?? 0} created, ${prod.updated ?? 0} updated${data.soft_disabled ? `\n${data.soft_disabled} removed services disabled` : ""}`,
+          `${name}: ${data.message}\nServices: ${svc.inserted ?? 0} new, ${svc.updated ?? 0} updated${data.soft_disabled ? `\n${data.soft_disabled} removed services disabled` : ""}`,
           { duration: 8000 }
         );
-        // Fallback for old response format
+        queryClient.invalidateQueries({ queryKey: ["admin-api-services"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-api-service-counts"] });
       } else {
         toast.error(data.message || data.error || "Fetch failed");
       }
@@ -1119,6 +1138,74 @@ function ApiProvidersSection() {
     },
     enabled: !!servicesOpen,
   });
+
+  // Map service_id -> product_id for linked products
+  const { data: linkedProducts, refetch: refetchLinkedProducts } = useQuery({
+    queryKey: ["admin-linked-products", servicesOpen],
+    queryFn: async () => {
+      if (!servicesOpen) return {};
+      const { data } = await supabase
+        .from("products")
+        .select("id, api_service_id")
+        .eq("product_type", "api")
+        .eq("provider_id", servicesOpen)
+        .not("api_service_id", "is", null);
+      const map: Record<string, string> = {};
+      (data || []).forEach((p: any) => {
+        if (p.api_service_id) map[p.api_service_id] = p.id;
+      });
+      return map;
+    },
+    enabled: !!servicesOpen,
+  });
+
+  const [creatingProductFor, setCreatingProductFor] = useState<string | null>(null);
+
+  const handleCreateProductFromService = async (service: any) => {
+    setCreatingProductFor(service.id);
+    try {
+      // Fetch exchange rate
+      const { data: rateSetting } = await supabase
+        .from("system_settings")
+        .select("value")
+        .eq("key", "usd_mmk_rate")
+        .single();
+      const usdRate = rateSetting?.value ? (rateSetting.value as any).rate || 2100 : 2100;
+      const margin = service.margin_percent ?? 30;
+      const costPer1000 = Math.ceil(service.rate * usdRate);
+      const sellPer1000 = Math.ceil(costPer1000 * (1 + margin / 100));
+
+      const { error } = await supabase.from("products").insert({
+        name: service.name,
+        product_type: "api",
+        category: service.category || "Uncategorized API",
+        provider_id: servicesOpen,
+        api_service_id: String(service.provider_service_id),
+        api_rate: service.rate,
+        api_min_quantity: service.min,
+        api_max_quantity: service.max,
+        base_price: costPer1000,
+        wholesale_price: sellPer1000,
+        retail_price: sellPer1000,
+        margin_percent: margin,
+        base_currency: "USD",
+        description: "",
+        duration: "",
+        type: "auto",
+        stock: 0,
+        icon: "📦",
+        fulfillment_modes: JSON.stringify(["api"]),
+      });
+      if (error) throw error;
+      toast.success(`Product created for "${service.name}"`);
+      refetchLinkedProducts();
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create product");
+    } finally {
+      setCreatingProductFor(null);
+    }
+  };
 
   // Service counts per provider
   const { data: serviceCounts } = useQuery({
@@ -1292,7 +1379,15 @@ function ApiProvidersSection() {
                           <Fragment key={cat}>
                             <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest pt-3 pb-1 sticky top-0 bg-card z-10">{cat} ({items.length})</p>
                             {items.map((s: any) => (
-                              <ServiceMarginRow key={s.id} service={s} saving={savingMargin === s.id} onSave={handleSaveMargin} />
+                              <ServiceMarginRow
+                                key={s.id}
+                                service={s}
+                                saving={savingMargin === s.id}
+                                onSave={handleSaveMargin}
+                                existingProductId={linkedProducts?.[String(s.provider_service_id)] || null}
+                                onCreateProduct={handleCreateProductFromService}
+                                creatingProduct={creatingProductFor === s.id}
+                              />
                             ))}
                           </Fragment>
                         ));
