@@ -14,7 +14,7 @@ import {
   Settings2,
   LogOut,
   Menu,
-  ShieldCheck,
+  // ShieldCheck removed — using logo image instead
   ArrowLeftRight,
   Bell,
 } from "lucide-react";
@@ -27,6 +27,7 @@ import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import { t } from "@/lib/i18n";
 import { useLang } from "@/contexts/LangContext";
 import { cn } from "@/lib/utils";
+import kkLogo from "@/assets/kkremote-logo.png";
 
 /* ── Icon accent colors per nav item ── */
 const navItems = [
@@ -99,11 +100,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Logo */}
         <div className="px-5 py-5 border-b border-sidebar-border/50">
           <Link to="/dashboard" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 transition-all duration-200 group-hover:bg-primary/15 group-hover:shadow-[0_0_12px_rgba(212,175,55,0.15)]">
-              <ShieldCheck className="w-[18px] h-[18px] text-primary" />
-            </div>
+            <img
+              src={kkLogo}
+              alt="KKTech"
+              className="w-9 h-9 rounded-lg object-contain neon-logo-glow transition-transform duration-200 group-hover:scale-105"
+            />
             <div>
-              <span className="text-[15px] font-bold text-foreground tracking-tight">KK<span className="gold-shimmer">Tech</span></span>
+              <span className="text-[15px] font-bold text-foreground tracking-tight">KK<span className="neon-text" style={{ fontSize: 'inherit', textShadow: '0 0 8px rgba(57,255,20,0.3)' }}>Tech</span></span>
               <span className="text-[10px] block text-muted-foreground font-semibold uppercase tracking-[0.15em]">
                 {lang === "mm" ? t.nav.reseller.mm : t.nav.reseller.en}
               </span>
