@@ -5,22 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Lock, Shield, Eye, EyeOff } from "lucide-react";
+import { Lock, Shield, Eye, EyeOff, Check, X } from "lucide-react";
 import { t, useT } from "@/lib/i18n";
-
-function getPasswordStrength(pw: string): { score: number; label: string; color: string } {
-  let score = 0;
-  if (pw.length >= 6) score++;
-  if (pw.length >= 10) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-
-  if (score <= 1) return { score: 1, label: "Weak", color: "bg-destructive" };
-  if (score <= 2) return { score: 2, label: "Fair", color: "bg-warning" };
-  if (score <= 3) return { score: 3, label: "Good", color: "bg-primary" };
-  return { score: 4, label: "Strong", color: "bg-success" };
-}
+import { getPasswordStrength, validatePassword } from "@/lib/username-validation";
 
 export default function SecurityTab() {
   const { profile } = useAuth();
@@ -33,11 +20,12 @@ export default function SecurityTab() {
   const [showNew, setShowNew] = useState(false);
 
   const strength = useMemo(() => getPasswordStrength(newPassword), [newPassword]);
+  const passwordPolicyError = useMemo(() => validatePassword(newPassword), [newPassword]);
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newPassword.length < 6) {
-      toast.error(l(t.settings.pwMinLength));
+    if (passwordPolicyError) {
+      toast.error(passwordPolicyError);
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -119,24 +107,44 @@ export default function SecurityTab() {
             </div>
             {/* Strength indicator */}
             {newPassword.length > 0 && (
-              <div className="space-y-micro pt-micro">
+              <div className="space-y-2 pt-1">
                 <div className="flex gap-1">
-                  {[1, 2, 3, 4].map((i) => (
+                  {[1, 2, 3, 4, 5].map((i) => (
                     <div
                       key={i}
-                      className={`h-1 flex-1 rounded-full transition-all duration-300 ${
+                      className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
                         i <= strength.score ? strength.color : "bg-muted/30"
                       }`}
                     />
                   ))}
                 </div>
-                <p className={`text-[10px] font-medium ${
-                  strength.score <= 1 ? "text-destructive" :
-                  strength.score <= 2 ? "text-warning" :
-                  strength.score <= 3 ? "text-primary" : "text-success"
+                <p className={`text-[10px] font-semibold ${
+                  strength.score <= 2 ? "text-destructive" :
+                  strength.score <= 3 ? "text-warning" :
+                  strength.score <= 4 ? "text-primary" : "text-success"
                 }`}>
                   {strength.label}
                 </p>
+                <div className="space-y-1">
+                  {[
+                    { met: newPassword.length >= 8, label: "8+ characters" },
+                    { met: /[A-Z]/.test(newPassword), label: "Uppercase letter" },
+                    { met: /[a-z]/.test(newPassword), label: "Lowercase letter" },
+                    { met: /[0-9]/.test(newPassword), label: "Number" },
+                    { met: /[^A-Za-z0-9]/.test(newPassword), label: "Special character" },
+                  ].map((req) => (
+                    <div key={req.label} className="flex items-center gap-1.5">
+                      {req.met ? (
+                        <Check className="w-3 h-3 text-success shrink-0" />
+                      ) : (
+                        <X className="w-3 h-3 text-muted-foreground/40 shrink-0" />
+                      )}
+                      <span className={`text-[10px] font-medium ${req.met ? "text-success" : "text-muted-foreground/60"}`}>
+                        {req.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -148,7 +156,7 @@ export default function SecurityTab() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
-              minLength={6}
+              minLength={8}
               className="bg-muted/20 border-border/20 h-10"
             />
             {confirmPassword && newPassword !== confirmPassword && (
