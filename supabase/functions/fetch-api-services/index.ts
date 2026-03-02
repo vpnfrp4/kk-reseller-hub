@@ -245,12 +245,18 @@ Deno.serve(async (req) => {
       ["api_service_id"],
     );
 
+    let prodMarkedUnavailable = 0;
+
     for (const prod of existingProdList) {
       const svcId = parseInt(prod.api_service_id);
       if (isNaN(svcId)) continue;
       const svcData = serviceDataMap.get(svcId);
       if (!svcData) {
-        // Service was removed — do NOT delete product, just skip
+        // Service was removed — mark product as hidden (unavailable), never delete
+        const { error } = await supabase.from("products").update({
+          type: "manual", // hidden from catalog
+        }).eq("id", prod.id);
+        if (!error) prodMarkedUnavailable++;
         continue;
       }
 
@@ -281,7 +287,7 @@ Deno.serve(async (req) => {
       request_body: { provider_name: provider.name, total_services: services.length },
       response_body: {
         svc_inserted: svcInserted, svc_updated: svcUpdated, svc_errors: svcErrors,
-        prod_updated: prodUpdated, prod_errors: prodErrors,
+        prod_updated: prodUpdated, prod_errors: prodErrors, prod_marked_unavailable: prodMarkedUnavailable,
         soft_disabled: removedIds.length,
         note: "Products are never created or deleted by sync",
       },
@@ -293,7 +299,7 @@ Deno.serve(async (req) => {
         message: "Sync completed — services updated, products pricing refreshed (no products created/deleted)",
         total: services.length,
         services: { inserted: svcInserted, updated: svcUpdated, errors: svcErrors },
-        products: { updated: prodUpdated, errors: prodErrors },
+        products: { updated: prodUpdated, errors: prodErrors, marked_unavailable: prodMarkedUnavailable },
         soft_disabled: removedIds.length,
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
