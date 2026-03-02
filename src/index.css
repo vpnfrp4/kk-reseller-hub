@@ -645,7 +645,17 @@
   }
 }
 
-@keyframes logoPulse {
+@keyframes breathe {
   0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.04); opacity: 0.85; }
+  50% { transform: scale(1.05); opacity: 0.88; }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmerLine {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
 }
