@@ -13,9 +13,11 @@ import {
   Zap,
   ShieldCheck,
   TrendingDown,
+  Languages,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
+import { useLang } from "@/contexts/LangContext";
 import ProviderLogosCarousel from "@/components/landing/ProviderLogosCarousel";
 import {
   Accordion,
@@ -167,6 +169,7 @@ function OrgWebsiteJsonLd() {
 export default function LandingPage() {
   const [contactOpen, setContactOpen] = useState(false);
   const [scrollY, setScrollY] = useState(0);
+  const { lang, toggle: toggleLang } = useLang();
 
   useEffect(() => {
     const onScroll = () => setScrollY(window.scrollY);
@@ -191,6 +194,16 @@ export default function LandingPage() {
             <Link to="/tools/imei-check" className="transition-colors hover:text-foreground">IMEI Check</Link>
           </nav>
           <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleLang}
+              className="h-9 w-9 text-muted-foreground hover:text-foreground"
+              aria-label="Toggle language"
+            >
+              <Languages className="h-4 w-4" />
+              <span className="sr-only">{lang === "mm" ? "Switch to English" : "မြန်မာဘာသာ"}</span>
+            </Button>
             <ThemeToggle />
             <Button variant="ghost" size="sm" className="text-sm font-medium" asChild>
               <Link to="/login">Log In</Link>
