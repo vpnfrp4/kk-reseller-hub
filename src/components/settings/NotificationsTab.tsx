@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
   Bell, Volume2, Globe, Wallet, ShoppingBag,
-  AlertTriangle, ClipboardList,
+  AlertTriangle, ClipboardList, Smartphone, Loader2,
 } from "lucide-react";
 import {
   getNotificationPrefs,
@@ -14,11 +15,20 @@ import {
   playSound,
   type NotificationPrefs,
 } from "@/lib/notifications";
+import { usePushNotifications } from "@/hooks/use-push-notifications";
 import { t, useT } from "@/lib/i18n";
 
 export default function NotificationsTab() {
   const [notifPrefs, setNotifPrefsState] = useState<NotificationPrefs>(getNotificationPrefs);
   const l = useT();
+  const {
+    isSubscribed,
+    isSupported,
+    permission,
+    loading: pushLoading,
+    subscribe,
+    unsubscribe,
+  } = usePushNotifications();
 
   useEffect(() => {
     const handler = (e: Event) => setNotifPrefsState((e as CustomEvent).detail);
@@ -45,6 +55,22 @@ export default function NotificationsTab() {
       }
     }
     updateNotifPref("browserNotificationsEnabled", enabled);
+  };
+
+  const handlePushToggle = async () => {
+    if (isSubscribed) {
+      await unsubscribe();
+      toast.success("Push notifications disabled");
+    } else {
+      const ok = await subscribe();
+      if (ok) {
+        toast.success("Push notifications enabled! You'll receive alerts even when the app is closed.");
+      } else if (permission === "denied") {
+        toast.error("Notifications are blocked. Please enable them in your browser/device settings.");
+      } else {
+        toast.error("Failed to enable push notifications. Please try again.");
+      }
+    }
   };
 
   const ToggleRow = ({
@@ -81,6 +107,61 @@ export default function NotificationsTab() {
 
   return (
     <div className="space-y-default">
+      {/* Push Notifications */}
+      {isSupported && (
+        <div className="glass-card p-card space-y-default">
+          <div className="flex items-center gap-compact">
+            <div className="w-8 h-8 rounded-btn bg-success/10 flex items-center justify-center">
+              <Smartphone className="w-4 h-4 text-success" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Push Notifications</h3>
+              <p className="text-[11px] text-muted-foreground">
+                Receive alerts even when the app is closed or minimized
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-btn bg-muted/10 border border-border/20 p-compact">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-compact">
+                <Bell className={`w-4 h-4 ${isSubscribed ? "text-success" : "text-muted-foreground"} transition-colors`} />
+                <div>
+                  <p className="text-sm font-medium text-foreground">
+                    {isSubscribed ? "Push Enabled" : "Enable Push Notifications"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground">
+                    {isSubscribed
+                      ? "Order updates, top-ups & announcements will appear in your notification bar"
+                      : "Get notified about orders, wallet top-ups, and important updates"}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant={isSubscribed ? "outline" : "default"}
+                size="sm"
+                className={`h-8 text-xs gap-1.5 ${
+                  isSubscribed
+                    ? "border-destructive/30 text-destructive hover:bg-destructive/10"
+                    : "btn-glow"
+                }`}
+                onClick={handlePushToggle}
+                disabled={pushLoading}
+              >
+                {pushLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                {isSubscribed ? "Disable" : "Enable"}
+              </Button>
+            </div>
+          </div>
+
+          {permission === "denied" && (
+            <p className="text-[10px] text-destructive px-1">
+              Notifications are blocked by your browser. Go to your browser or device settings to allow notifications for this site.
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Delivery Methods */}
       <div className="glass-card p-card space-y-default">
         <div className="flex items-center gap-compact">

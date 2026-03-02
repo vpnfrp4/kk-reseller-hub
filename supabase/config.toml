@@ -32,3 +32,9 @@ verify_jwt = false
 
 [functions.ai-product-build]
 verify_jwt = false
+
+[functions.push-subscribe]
+verify_jwt = false
+
+[functions.send-push-notification]
+verify_jwt = false
