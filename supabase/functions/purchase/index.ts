@@ -255,7 +255,7 @@ Deno.serve(async (req) => {
             } else {
               // API failed: auto-refund
               const errorMsg = apiBody?.error || "Provider API returned no order ID";
-              console.error("API fulfillment failed:", errorMsg);
+              // API fulfillment failed — logged to api_logs
 
               // Refund balance
               const { data: profile } = await serviceClient
@@ -318,7 +318,7 @@ Deno.serve(async (req) => {
           }
         }
       } catch (apiErr) {
-        console.error("API fulfillment error:", apiErr);
+        // API fulfillment error — logged to api_logs
         // Auto-refund on any API error
         const { data: profile } = await serviceClient
           .from("profiles")

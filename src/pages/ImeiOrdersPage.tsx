@@ -24,9 +24,12 @@ import {
   Loader2,
   Copy,
   Check,
-  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
+
+const PAGE_SIZE = 20;
 
 const STATUS_CONFIG: Record<string, { label: string; class: string; icon: React.ElementType }> = {
   pending: { label: "Pending", class: "badge-pending", icon: Clock },
@@ -40,18 +43,45 @@ export default function ImeiOrdersPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+
+  const filterKey = [searchQuery, statusFilter];
+
+  // Count query
+  const { data: totalCount = 0 } = useQuery({
+    queryKey: ["imei-orders-count", user?.id, ...filterKey],
+    queryFn: async () => {
+      let q = supabase
+        .from("orders")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user!.id)
+        .eq("product_type", "imei");
+      if (statusFilter !== "all") q = q.eq("status", statusFilter);
+      if (searchQuery.trim()) q = q.or(`imei_number.ilike.%${searchQuery.trim()}%,product_name.ilike.%${searchQuery.trim()}%`);
+      const { count } = await q;
+      return count || 0;
+    },
+    enabled: !!user,
+  });
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   const { data: orders = [], isLoading } = useQuery({
-    queryKey: ["imei-orders", user?.id],
+    queryKey: ["imei-orders", user?.id, page, ...filterKey],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const from = page * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      let q = supabase
         .from("orders")
         .select("*")
         .eq("user_id", user!.id)
         .eq("product_type", "imei")
         .order("created_at", { ascending: false });
+      if (statusFilter !== "all") q = q.eq("status", statusFilter);
+      if (searchQuery.trim()) q = q.or(`imei_number.ilike.%${searchQuery.trim()}%,product_name.ilike.%${searchQuery.trim()}%`);
+      q = q.range(from, to);
+      const { data, error } = await q;
       if (error) throw error;
-      // Map to legacy shape for compatibility
       return (data || []).map((o: any) => ({
         ...o,
         imei_services: {
@@ -64,19 +94,6 @@ export default function ImeiOrdersPage() {
       }));
     },
     enabled: !!user,
-  });
-
-  const filtered = orders.filter((o: any) => {
-    if (statusFilter !== "all" && o.status !== statusFilter) return false;
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      return (
-        o.imei_number?.toLowerCase().includes(q) ||
-        o.imei_services?.service_name?.toLowerCase().includes(q) ||
-        o.id?.toLowerCase().includes(q)
-      );
-    }
-    return true;
   });
 
   const handleCopy = (text: string, id: string) => {
@@ -98,13 +115,13 @@ export default function ImeiOrdersPage() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by IMEI, service, or order ID..."
+            placeholder="Search by IMEI or service name..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => { setSearchQuery(e.target.value); setPage(0); }}
             className="pl-9"
           />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(0); }}>
           <SelectTrigger className="w-[160px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
@@ -127,9 +144,9 @@ export default function ImeiOrdersPage() {
         <div className="flex items-center justify-center py-20">
           <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
-      ) : filtered.length === 0 ? (
+      ) : orders.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
-          {orders.length === 0 ? (
+          {totalCount === 0 && !searchQuery && statusFilter === "all" ? (
             <>
               <Smartphone className="w-10 h-10 mx-auto mb-3 text-muted-foreground/50" />
               <p>No IMEI orders yet.</p>
@@ -143,7 +160,7 @@ export default function ImeiOrdersPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filtered.map((order: any) => {
+          {orders.map((order: any) => {
             const svc = order.imei_services;
             const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
             const StatusIcon = cfg.icon;
@@ -231,6 +248,31 @@ export default function ImeiOrdersPage() {
               </div>
             );
           })}
+
+          {/* Pagination */}
+          {totalCount > PAGE_SIZE && (
+            <div className="flex items-center justify-between pt-4">
+              <p className="text-xs text-muted-foreground">
+                {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
+              </p>
+              <div className="flex items-center gap-1">
+                <Button variant="ghost" size="icon" className="h-8 w-8" disabled={page === 0} onClick={() => setPage(p => p - 1)}>
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                  const pageNum = totalPages <= 5 ? i : Math.max(0, Math.min(page - 2, totalPages - 5)) + i;
+                  return (
+                    <Button key={pageNum} variant={pageNum === page ? "default" : "ghost"} size="icon" className="h-8 w-8 text-xs" onClick={() => setPage(pageNum)}>
+                      {pageNum + 1}
+                    </Button>
+                  );
+                })}
+                <Button variant="ghost" size="icon" className="h-8 w-8" disabled={page >= totalPages - 1} onClick={() => setPage(p => p + 1)}>
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </PageContainer>
