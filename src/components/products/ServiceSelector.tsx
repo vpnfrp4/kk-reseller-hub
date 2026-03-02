@@ -107,8 +107,9 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
       {open && (
         <div
           className={cn(
-            "absolute z-50 mt-2 w-full rounded-2xl border border-border/30 bg-card",
-            "shadow-[0_8px_40px_-8px_rgba(0,0,0,0.5)] overflow-hidden animate-fade-in",
+            "absolute z-[100] mt-2 w-full rounded-2xl border border-border/30",
+            "bg-[hsl(var(--card))] shadow-[0_8px_60px_-4px_rgba(0,0,0,0.8),0_0_0_1px_rgba(255,255,255,0.05)]",
+            "overflow-hidden animate-fade-in",
             "max-h-[420px] overflow-y-auto scrollbar-hide"
           )}
         >
