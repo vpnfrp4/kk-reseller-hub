@@ -750,6 +750,10 @@ export default function AdminProducts() {
     delete payload.product_code;
 
     if (editing) {
+      // Allow display_id override
+      if (editing.display_id && typeof editing.display_id === 'number') {
+        payload.display_id = editing.display_id;
+      }
       const { error } = await supabase.from("products").update(payload).eq("id", editing.id);
       if (error) { toast.error(error.message); return; }
       await saveCustomFields(editing.id);
@@ -888,9 +892,33 @@ export default function AdminProducts() {
             >
               <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
                 <DialogTitle className="text-foreground">{editing ? "Edit" : "New"} Product</DialogTitle>
+                {/* Display ID preview */}
+                {editing?.display_id && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    ID: <span className="font-mono font-bold text-primary">#{editing.display_id}</span>
+                  </p>
+                )}
+                {!editing && (
+                  <p className="text-[10px] text-muted-foreground/60 mt-1">A unique numeric ID will be auto-assigned</p>
+                )}
               </DialogHeader>
               <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
                 <div className="flex-1 overflow-y-auto px-6 py-2 space-y-4">
+
+                {/* ── Display ID Override (edit mode) ── */}
+                {editing && (
+                  <div className="space-y-1">
+                    <Label className="text-muted-foreground text-xs">Display ID (override)</Label>
+                    <Input
+                      type="number"
+                      value={editing.display_id || ""}
+                      onChange={(e) => setEditing({ ...editing, display_id: parseInt(e.target.value) || "" })}
+                      placeholder="Auto-generated"
+                      className="bg-muted/50 border-border font-mono w-32"
+                    />
+                    <p className="text-[9px] text-muted-foreground/50">Leave as-is or enter a supplier ID</p>
+                  </div>
+                )}
 
                 {/* ── Product Type Selector ── */}
                 <div className="space-y-2">
@@ -1650,7 +1678,7 @@ export default function AdminProducts() {
                       className="w-3.5 h-3.5 rounded border-border accent-primary cursor-pointer" />
                   </th>
                   <th className="w-10 p-4"></th>
-                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Code</th>
+                  <th className="text-left text-xs font-medium text-muted-foreground p-4">ID</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-4">Product</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-4">Type</th>
                   <th className="text-left text-xs font-medium text-muted-foreground p-4">Status</th>
@@ -1681,7 +1709,7 @@ export default function AdminProducts() {
                                 <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
                               </td>
                               <td className="p-4">
-                                <span className="text-[10px] font-mono text-muted-foreground">{p.product_code || '—'}</span>
+                                <span className="text-xs font-mono font-bold text-primary">#{p.display_id || '—'}</span>
                               </td>
                               <td className="p-4">
                                 <div className="flex items-center gap-3">

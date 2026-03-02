@@ -751,6 +751,7 @@ export type Database = {
           created_at: string
           delivery_time_config: Json
           description: string
+          display_id: number
           duration: string
           final_price: number | null
           fulfillment_modes: Json
@@ -790,6 +791,7 @@ export type Database = {
           created_at?: string
           delivery_time_config?: Json
           description?: string
+          display_id?: number
           duration: string
           final_price?: number | null
           fulfillment_modes?: Json
@@ -829,6 +831,7 @@ export type Database = {
           created_at?: string
           delivery_time_config?: Json
           description?: string
+          display_id?: number
           duration?: string
           final_price?: number | null
           fulfillment_modes?: Json

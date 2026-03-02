@@ -552,7 +552,10 @@ export default function OrderFlowPage() {
           </button>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-xs text-muted-foreground truncate">{product.name}</p>
+          <p className="text-xs text-muted-foreground truncate">
+            {(product as any).display_id && <span className="font-mono font-bold text-primary/70 mr-1">#{(product as any).display_id}</span>}
+            {product.name}
+          </p>
           <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground/50 font-medium">
             {currentStepKey === "confirm" ? "Order Complete" : "New Order"}
           </p>
