@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.fetch-api-services]
 verify_jwt = false
+
+[functions.backfill-custom-fields]
+verify_jwt = false
