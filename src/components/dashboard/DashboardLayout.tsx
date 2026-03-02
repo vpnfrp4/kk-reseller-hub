@@ -9,9 +9,9 @@ import TopUpDialog from "@/components/wallet/TopUpDialog";
 import {
   LayoutDashboard,
   Wallet,
-  ShoppingBag,
+  Layers,
   ClipboardList,
-  Settings,
+  Settings2,
   LogOut,
   Menu,
   ShieldCheck,
@@ -28,13 +28,14 @@ import { t } from "@/lib/i18n";
 import { useLang } from "@/contexts/LangContext";
 import { cn } from "@/lib/utils";
 
+/* ── Icon accent colors per nav item ── */
 const navItems = [
-  { mm: t.nav.dashboard.mm, en: t.nav.dashboard.en, icon: LayoutDashboard, path: "/dashboard" },
-  { mm: t.nav.wallet.mm, en: t.nav.wallet.en, icon: Wallet, path: "/dashboard/wallet" },
-  { mm: t.nav.products.mm, en: t.nav.products.en, icon: ShoppingBag, path: "/dashboard/products" },
-  { mm: t.nav.orders.mm, en: t.nav.orders.en, icon: ClipboardList, path: "/dashboard/orders" },
-  { mm: t.nav.notifications.mm, en: t.nav.notifications.en, icon: Bell, path: "/dashboard/notifications" },
-  { mm: t.nav.settings.mm, en: t.nav.settings.en, icon: Settings, path: "/dashboard/settings" },
+  { mm: t.nav.dashboard.mm, en: t.nav.dashboard.en, icon: LayoutDashboard, path: "/dashboard", accent: "text-sky-400" },
+  { mm: t.nav.wallet.mm, en: t.nav.wallet.en, icon: Wallet, path: "/dashboard/wallet", accent: "text-emerald-400" },
+  { mm: t.nav.products.mm, en: t.nav.products.en, icon: Layers, path: "/dashboard/products", accent: "text-violet-400" },
+  { mm: t.nav.orders.mm, en: t.nav.orders.en, icon: ClipboardList, path: "/dashboard/orders", accent: "text-amber-400" },
+  { mm: t.nav.notifications.mm, en: t.nav.notifications.en, icon: Bell, path: "/dashboard/notifications", accent: "text-primary" },
+  { mm: t.nav.settings.mm, en: t.nav.settings.en, icon: Settings2, path: "/dashboard/settings", accent: "text-muted-foreground" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -46,7 +47,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Listen for quick top-up event from header button
   useEffect(() => {
     const handler = () => setQuickTopUpOpen(true);
     window.addEventListener("open-topup-dialog", handler);
@@ -87,17 +87,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* Sidebar — premium fintech */}
+      {/* ═══ Sidebar — Glassmorphism Premium ═══ */}
       <aside
         className={cn(
           "fixed lg:static inset-y-0 left-0 z-50 w-[260px] flex flex-col",
-          "bg-sidebar border-r border-sidebar-border",
+          "bg-sidebar/80 backdrop-blur-xl border-r border-sidebar-border/50",
           "transition-transform duration-300 ease-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-sidebar-border">
+        <div className="px-5 py-5 border-b border-sidebar-border/50">
           <Link to="/dashboard" className="flex items-center gap-3 group">
             <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20 transition-all duration-200 group-hover:bg-primary/15 group-hover:shadow-[0_0_12px_rgba(212,175,55,0.15)]">
               <ShieldCheck className="w-[18px] h-[18px] text-primary" />
@@ -112,7 +112,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 pt-4 pb-2 flex flex-col gap-1">
+        <nav className="flex-1 px-3 pt-4 pb-2 flex flex-col gap-0.5">
           {navItems.map((item) => {
             const active = location.pathname === item.path;
             const isNotif = item.en === "Notifications";
@@ -122,27 +122,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "relative flex items-center gap-3 h-[44px] rounded-lg text-sm transition-all duration-200",
-                  "pl-5 pr-3",
+                  "group relative flex items-center gap-3 h-[44px] rounded-lg text-[13px] tracking-wide",
+                  "pl-5 pr-3 transition-all duration-200",
                   active
-                    ? "bg-secondary text-foreground font-semibold"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                    ? "bg-secondary/80 text-foreground font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/40 hover:scale-[1.02] active:scale-[0.98]"
                 )}
               >
-                {/* Active left accent bar */}
+                {/* Active glow bar */}
                 {active && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
                 )}
                 <item.icon
                   className={cn(
-                    "w-[18px] h-[18px] shrink-0 transition-colors duration-200",
-                    active ? "text-primary" : ""
+                    "w-[18px] h-[18px] shrink-0 transition-all duration-200",
+                    active ? item.accent : "group-hover:text-foreground"
                   )}
-                  strokeWidth={active ? 2 : 1.5}
+                  strokeWidth={1.5}
                 />
                 <span className="flex-1 truncate">{lang === "mm" ? item.mm : item.en}</span>
                 {isNotif && unreadCount > 0 && (
-                  <span className="ml-auto px-2 py-0.5 text-[10px] font-bold rounded-full bg-primary/15 text-primary min-w-[20px] text-center">
+                  <span className="ml-auto px-2 py-0.5 text-[10px] font-bold rounded-full bg-primary/15 text-primary min-w-[20px] text-center shadow-[0_0_6px_hsl(var(--primary)/0.3)]">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
@@ -152,12 +152,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </nav>
 
         {/* Footer */}
-        <div className="mt-auto border-t border-sidebar-border px-3 pt-3 pb-3 space-y-1">
+        <div className="mt-auto border-t border-sidebar-border/50 px-3 pt-3 pb-3 space-y-1">
           {isAdmin && (
             <Link
               to="/admin"
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-3 h-[44px] pl-5 pr-3 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all duration-200"
+              className="flex items-center gap-3 h-[44px] pl-5 pr-3 rounded-lg text-[13px] tracking-wide text-muted-foreground hover:text-foreground hover:bg-secondary/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             >
               <ArrowLeftRight className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
               <span>{lang === "mm" ? t.nav.adminPanel.mm : t.nav.adminPanel.en}</span>
@@ -180,10 +180,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[44px] pl-5 text-sm rounded-lg"
+            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[44px] pl-5 text-[13px] tracking-wide rounded-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
             onClick={handleLogout}
           >
-            <LogOut className="w-[18px] h-[18px] mr-3 shrink-0" strokeWidth={1.5} />
+            <LogOut className="w-[18px] h-[18px] mr-3 shrink-0 text-destructive/60" strokeWidth={1.5} />
             <span>{lang === "mm" ? t.nav.signOut.mm : t.nav.signOut.en}</span>
           </Button>
         </div>
@@ -191,7 +191,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 border-b border-border flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 bg-card">
+        <header className="h-14 border-b border-border flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 bg-card/80 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
