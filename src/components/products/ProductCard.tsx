@@ -66,39 +66,35 @@ export default function ProductCard({
   return (
     <div
       className={cn(
-        "group relative opacity-0 animate-stagger-in overflow-hidden flex flex-col",
-        "rounded-2xl bg-card/70 backdrop-blur-sm",
-        "border border-border/30",
+        "group relative opacity-0 animate-stagger-in flex flex-col",
+        "rounded-2xl bg-card border border-border/25",
         "transition-all duration-300 ease-out",
-        "hover:-translate-y-1",
-        "hover:border-primary/40 hover:shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.15)]",
+        "hover:border-primary/30 hover:shadow-[0_4px_24px_-6px_hsl(var(--primary)/0.12)]",
       )}
       style={{ animationDelay: `${index * 0.04}s` }}
     >
-      {/* Gold accent line at top */}
-      <div className="h-[2px] bg-gradient-to-r from-transparent via-primary/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-      <div className="p-5 flex flex-col flex-1 gap-3.5">
-        {/* ─── Name + Badge ─── */}
+      <div className="p-6 flex flex-col flex-1 gap-4">
+        {/* ─── Name + Type badge ─── */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <Link to={`/dashboard/products/${product.slug || product.id}`}>
-              <h3 className="text-[13px] font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">
+              <h3 className="text-sm font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">
                 {product.name}
               </h3>
             </Link>
             {product.duration && (
-              <p className="text-[10px] text-muted-foreground/70 mt-1">{product.duration}</p>
+              <p className="text-[10px] text-muted-foreground/60 mt-1.5 tracking-wide uppercase">
+                {product.duration}
+              </p>
             )}
           </div>
 
-          {/* Auto/Manual badge */}
           <span
             className={cn(
-              "shrink-0 inline-flex items-center gap-1 px-2 py-1 text-[9px] font-bold uppercase tracking-wider rounded-lg",
+              "shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-lg",
               isInstant
-                ? "bg-success/10 text-success border border-success/20"
-                : "bg-muted/20 text-muted-foreground border border-border/30"
+                ? "bg-primary/8 text-primary border border-primary/15"
+                : "bg-muted/15 text-muted-foreground border border-border/20"
             )}
           >
             {isInstant ? <Zap className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
@@ -106,49 +102,55 @@ export default function ProductCard({
           </span>
         </div>
 
-        {/* ─── Meta row ─── */}
-        <div className="flex items-center gap-3 text-[10px] text-muted-foreground/80">
-          <span className="inline-flex items-center gap-1 bg-muted/10 px-2 py-0.5 rounded-md border border-border/10">
+        {/* ─── Meta chips ─── */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/70">
             <Clock className="w-3 h-3" />
             {deliveryTime}
           </span>
           {successRate !== null && (
-            <span className="inline-flex items-center gap-1 bg-primary/5 px-2 py-0.5 rounded-md border border-primary/10 text-primary">
-              <ShieldCheck className="w-3 h-3" />
-              {successRate}%
-            </span>
+            <>
+              <span className="w-px h-3 bg-border/30" />
+              <span className="inline-flex items-center gap-1 text-[10px] text-primary/80">
+                <ShieldCheck className="w-3 h-3" />
+                {successRate}%
+              </span>
+            </>
           )}
           {provider?.is_verified && (
-            <span className="inline-flex items-center gap-1 bg-success/10 px-1.5 py-0.5 rounded-md text-success text-[9px] font-semibold border border-success/15">
-              ✓ Verified
-            </span>
+            <>
+              <span className="w-px h-3 bg-border/30" />
+              <span className="inline-flex items-center gap-1 text-[10px] text-success font-semibold">
+                ✓ Verified
+              </span>
+            </>
           )}
         </div>
 
         {/* ─── Price + Action ─── */}
-        <div className="mt-auto pt-3 border-t border-border/15 flex items-end justify-between gap-2">
+        <div className="mt-auto pt-4 border-t border-border/10 flex items-end justify-between gap-3">
           <div>
-            <p className="text-xl font-bold font-mono tabular-nums text-primary leading-none tracking-tight">
+            <p className="text-xl font-bold font-mono tabular-nums text-primary leading-none">
               {displayPrice.toLocaleString()}
-              <span className="text-[10px] font-medium text-muted-foreground/60 ml-1 tracking-normal">MMK</span>
+              <span className="text-[10px] font-medium text-muted-foreground/50 ml-1 tracking-normal font-sans">
+                MMK
+              </span>
             </p>
             {hasVolumeDiscount && lowestTier && (
-              <p className="text-[10px] text-primary/60 mt-1 font-medium">
+              <p className="text-[10px] text-primary/50 mt-1.5 font-medium">
                 {l(t.products.from)} {lowestTier.unit_price.toLocaleString()} ({lowestTier.min_qty}+)
               </p>
             )}
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-2">
             <Button
               size="sm"
               className={cn(
                 "h-9 px-5 text-[11px] font-bold rounded-xl",
-                "bg-gradient-to-r from-primary to-primary/80",
-                "hover:from-primary hover:to-primary/90",
-                "shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.4)]",
-                "hover:shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.5)]",
-                "hover:scale-[1.03] active:scale-[0.98]",
+                "shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.3)]",
+                "hover:shadow-[0_4px_16px_-3px_hsl(var(--primary)/0.4)]",
+                "hover:scale-[1.02] active:scale-[0.98]",
                 "transition-all duration-200",
               )}
               onClick={() => onBuyClick(product)}
@@ -166,8 +168,8 @@ export default function ProductCard({
               to={`/dashboard/products/${product.slug || product.id}`}
               className={cn(
                 "h-9 w-9 inline-flex items-center justify-center rounded-xl",
-                "text-muted-foreground border border-border/30",
-                "hover:bg-primary/10 hover:text-primary hover:border-primary/30",
+                "text-muted-foreground/50 border border-border/20",
+                "hover:bg-primary/5 hover:text-primary hover:border-primary/25",
                 "transition-all duration-200"
               )}
             >

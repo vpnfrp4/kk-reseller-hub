@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { t, useT } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Package, Loader2, ArrowUp, ChevronDown } from "lucide-react";
+import { Package, Loader2, ArrowUp } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import ProductFilters from "@/components/products/ProductFilters";
@@ -47,7 +47,6 @@ export default function ProductsPage() {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
 
   // Smart top-up state
   const [topUpOpen, setTopUpOpen] = useState(false);
@@ -74,7 +73,6 @@ export default function ProductsPage() {
     },
   });
 
-  // Fetch provider data separately (no FK between products and imei_providers)
   const providerIds = useMemo(() => {
     const ids = new Set<string>();
     (products || []).forEach((p: any) => { if (p.provider_id) ids.add(p.provider_id); });
@@ -167,25 +165,6 @@ export default function ProductsPage() {
     return () => observer.disconnect();
   }, [hasMore, loadMore]);
 
-  // Group visible products by category
-  const groupedProducts = useMemo(() => {
-    const groups = new Map<string, any[]>();
-    for (const p of visibleProducts) {
-      const cat = p.category || "Other";
-      if (!groups.has(cat)) groups.set(cat, []);
-      groups.get(cat)!.push(p);
-    }
-    return Array.from(groups, ([category, items]) => ({ category, items }));
-  }, [visibleProducts]);
-
-  const toggleCategory = (cat: string) => {
-    setCollapsedCategories((prev) => {
-      const next = new Set(prev);
-      next.has(cat) ? next.delete(cat) : next.add(cat);
-      return next;
-    });
-  };
-
   const mapErrorMessage = (msg: string): string => {
     const lower = msg.toLowerCase();
     if (lower.includes("out of stock") || lower.includes("no credentials available") || lower.includes("not enough stock")) {
@@ -253,20 +232,17 @@ export default function ProductsPage() {
     }
   };
 
-  // Running card index for stagger animation across groups
-  let globalIndex = 0;
-
   return (
     <>
-    <div className="space-y-[var(--space-default)]">
+    <div className="space-y-6">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
         { label: l(t.products.title) },
       ]} />
 
       <div className="animate-fade-in">
-        <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-[var(--space-micro)]">{l(t.products.title)}</p>
-        <p className="text-[11px] text-muted-foreground">{l(t.products.subtitle)}</p>
+        <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-1">{l(t.products.title)}</p>
+        <p className="text-[11px] text-muted-foreground/60">{l(t.products.subtitle)}</p>
       </div>
 
       <ProductFilters
@@ -286,83 +262,45 @@ export default function ProductsPage() {
         providers={providers}
       />
 
-      {/* Categorized product grid */}
+      {/* Product grid — flat, no category grouping */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <ProductCardSkeleton key={i} index={i} />
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="rounded-[var(--radius-card)] border border-border/40 bg-card p-[var(--space-page)] text-center">
-          <Package className="mx-auto mb-3 h-8 w-8 text-muted-foreground/30" />
+        <div className="rounded-2xl border border-border/20 bg-card p-12 text-center">
+          <Package className="mx-auto mb-4 h-8 w-8 text-muted-foreground/20" />
           <p className="font-medium text-foreground text-sm">{l(t.products.noProducts)}</p>
-          <p className="mt-1 text-xs text-muted-foreground">{l(t.products.adjustFilter)}</p>
+          <p className="mt-1.5 text-xs text-muted-foreground/60">{l(t.products.adjustFilter)}</p>
         </div>
       ) : (
-        <div className="space-y-4">
-          {groupedProducts.map(({ category, items }) => {
-            const isCollapsed = collapsedCategories.has(category);
-            const startIndex = globalIndex;
-            globalIndex += items.length;
-
-            return (
-              <div key={category} className="animate-fade-in">
-                {/* Category header — collapsible */}
-                <button
-                  onClick={() => toggleCategory(category)}
-                  className="w-full flex items-center gap-3 mb-3 group/cat"
-                >
-                  <span className="text-[11px] uppercase tracking-widest font-semibold text-foreground">
-                    {category}
-                  </span>
-                  <span className="text-[10px] font-mono text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
-                    {items.length}
-                  </span>
-                  <div className="flex-1 h-px bg-border/30" />
-                  <ChevronDown
-                    className={cn(
-                      "w-4 h-4 text-muted-foreground transition-transform duration-200",
-                      isCollapsed && "-rotate-90"
-                    )}
-                  />
-                </button>
-
-                {/* Grid — smooth collapse */}
-                <div
-                  className={cn(
-                    "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 transition-all duration-300 ease-out",
-                    isCollapsed ? "max-h-0 overflow-hidden opacity-0" : "max-h-[5000px] opacity-100"
-                  )}
-                >
-                  {items.map((product: any, i: number) => (
-                    <ProductCard
-                      key={product.id}
-                      product={product}
-                      index={startIndex + i}
-                      isPurchasing={purchasing === product.id}
-                      onBuyClick={handleBuyClick}
-                      pricingTiers={getTiersForProduct(product.id)}
-                      lastRateUpdate={product.base_currency === "USD" ? lastRateUpdate : null}
-                      usdRate={product.base_currency === "USD" ? usdRate : null}
-                      provider={product.provider_id ? providerMap.get(product.provider_id) || null : null}
-                    />
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {visibleProducts.map((product: any, i: number) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              index={i}
+              isPurchasing={purchasing === product.id}
+              onBuyClick={handleBuyClick}
+              pricingTiers={getTiersForProduct(product.id)}
+              lastRateUpdate={product.base_currency === "USD" ? lastRateUpdate : null}
+              usdRate={product.base_currency === "USD" ? usdRate : null}
+              provider={product.provider_id ? providerMap.get(product.provider_id) || null : null}
+            />
+          ))}
         </div>
       )}
 
       {!isLoading && hasMore && (
-        <div ref={sentinelRef} className="flex justify-center py-[var(--space-card)]">
-          <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
+        <div ref={sentinelRef} className="flex justify-center py-6">
+          <Loader2 className="w-5 h-5 text-muted-foreground/40 animate-spin" />
         </div>
       )}
 
       {!isLoading && filtered.length > 0 && (
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="text-center text-xs text-muted-foreground/50 pb-2">
           {l(t.products.showing)} {visibleProducts.length} / {filtered.length}
         </p>
       )}
@@ -402,9 +340,10 @@ export default function ProductsPage() {
 
     <button
       onClick={scrollToTop}
-      className={`fixed bottom-6 right-6 z-50 p-3 rounded-full bg-primary text-primary-foreground transition-all duration-300 ${
+      className={cn(
+        "fixed bottom-6 right-6 z-50 p-3 rounded-full bg-primary text-primary-foreground transition-all duration-300",
         showScrollTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
-      }`}
+      )}
       style={{ boxShadow: "var(--shadow-elevated)" }}
       aria-label="Scroll to top"
     >
