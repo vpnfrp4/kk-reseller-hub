@@ -964,6 +964,7 @@ function ApiProvidersSection() {
   const [servicesOpen, setServicesOpen] = useState<string | null>(null);
   const [savingMargin, setSavingMargin] = useState<string | null>(null);
   const [showKeys, setShowKeys] = useState<Record<string, boolean>>({});
+  const [backfilling, setBackfilling] = useState(false);
 
   const emptyForm = { name: "", api_url: "", api_key: "", api_type: "generic", is_active: true };
   const [newProvider, setNewProvider] = useState(emptyForm);
@@ -1536,6 +1537,47 @@ function ApiProvidersSection() {
             </div>
           </div>
         ))}
+
+        {/* Backfill custom fields for existing API products */}
+        <Separator className="my-4" />
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-medium text-foreground">Auto-Generate Custom Fields</p>
+            <p className="text-xs text-muted-foreground">
+              Scan API products with no custom fields and auto-detect Link, Quantity, Username, Comments fields.
+            </p>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5 text-xs shrink-0"
+            disabled={backfilling}
+            onClick={async () => {
+              setBackfilling(true);
+              try {
+                const { data, error } = await supabase.functions.invoke("backfill-custom-fields");
+                if (error) throw error;
+                if (data?.success) {
+                  toast.success(data.message, {
+                    description: data.generated > 0
+                      ? `${data.generated} products updated, ${data.skipped} skipped`
+                      : undefined,
+                    duration: 6000,
+                  });
+                } else {
+                  toast.error(data?.error || "Backfill failed");
+                }
+              } catch (err: any) {
+                toast.error(err.message || "Failed to run backfill");
+              } finally {
+                setBackfilling(false);
+              }
+            }}
+          >
+            {backfilling ? <Loader2 className="w-3 h-3 animate-spin" /> : <Zap className="w-3 h-3" />}
+            {backfilling ? "Scanning…" : "Run Backfill"}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
