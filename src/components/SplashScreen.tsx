@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import kkLogo from "@/assets/kkremote-logo.png";
 
 interface SplashScreenProps {
   onFinished: () => void;
@@ -11,7 +12,7 @@ export default function SplashScreen({ onFinished, minDuration = 1800 }: SplashS
   useEffect(() => {
     const timer = setTimeout(() => {
       setFadeOut(true);
-      setTimeout(onFinished, 500); // match fade-out duration
+      setTimeout(onFinished, 500);
     }, minDuration);
     return () => clearTimeout(timer);
   }, [minDuration, onFinished]);
@@ -22,29 +23,17 @@ export default function SplashScreen({ onFinished, minDuration = 1800 }: SplashS
         fadeOut ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
-      {/* Subtle radial glow */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_hsl(43_65%_52%/0.06)_0%,_transparent_70%)]" />
 
-      {/* Logo */}
       <div className="relative z-10 flex flex-col items-center gap-8">
         <div className="animate-[logoPulse_2s_ease-in-out_infinite] select-none">
-          <h1
-            className="text-5xl sm:text-6xl font-bold tracking-[0.15em]"
-            style={{
-              background: "linear-gradient(135deg, #D4AF37 0%, #F5D77A 50%, #D4AF37 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            KKTech
-          </h1>
-          <p className="mt-1 text-center text-xs tracking-[0.3em] uppercase text-[#D4AF37]/50 font-medium">
-            Reseller Hub
-          </p>
+          <img
+            src={kkLogo}
+            alt="KKRemoter Logo"
+            className="h-32 w-32 sm:h-40 sm:w-40 rounded-2xl object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.3)]"
+          />
         </div>
 
-        {/* Circular progress spinner */}
         <div className="relative h-10 w-10">
           <svg className="h-10 w-10 animate-spin" viewBox="0 0 40 40" fill="none">
             <circle cx="20" cy="20" r="17" stroke="hsl(43 65% 52% / 0.15)" strokeWidth="2.5" />
