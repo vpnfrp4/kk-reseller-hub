@@ -25,6 +25,31 @@ function detectCategory(name: string, rawCat: string): string {
   return "Uncategorized API";
 }
 
+/** Fetch all rows from a table, bypassing the 1000-row default limit */
+async function fetchAll(supabase: any, table: string, select: string, filters: Record<string, any>) {
+  const PAGE = 1000;
+  let all: any[] = [];
+  let from = 0;
+  while (true) {
+    let q = supabase.from(table).select(select).range(from, from + PAGE - 1);
+    for (const [k, v] of Object.entries(filters)) {
+      if (v === null) continue;
+      if (k.startsWith("not.")) {
+        q = q.not(k.slice(4), "is", null);
+      } else {
+        q = q.eq(k, v);
+      }
+    }
+    const { data, error } = await q;
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all = all.concat(data);
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
+  return all;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -127,33 +152,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    // ── Fetch existing api_services & products for this provider (bulk) ──
-    const [existingSvcRes, existingProdRes] = await Promise.all([
-      supabase.from("api_services").select("id, provider_service_id").eq("provider_id", provider_id),
-      supabase.from("products").select("id, api_service_id, provider_id")
-        .eq("provider_id", provider_id)
-        .eq("product_type", "api")
-        .not("api_service_id", "is", null),
-    ]);
-
+    // ── PHASE 1: Fetch existing api_services for soft-disable tracking ──
+    const existingSvcList = await fetchAll(supabase, "api_services", "id, provider_service_id", { provider_id });
     const existingSvcMap = new Map<number, string>();
-    for (const s of existingSvcRes.data || []) existingSvcMap.set(s.provider_service_id, s.id);
+    for (const s of existingSvcList) existingSvcMap.set(s.provider_service_id, s.id);
 
-    const existingProdMap = new Map<string, string>();
-    for (const p of existingProdRes.data || []) {
-      if (p.api_service_id) existingProdMap.set(p.api_service_id, p.id);
-    }
-
-    // Track which service IDs we see from provider (for soft-disable)
     const seenServiceIds = new Set<number>();
-
     let svcInserted = 0, svcUpdated = 0, svcErrors = 0;
-    let prodCreated = 0, prodUpdated = 0, prodErrors = 0;
 
-    // ── Prepare bulk upsert arrays ──
+    // ── PHASE 2: Bulk upsert api_services ──
     const svcUpsertRows: any[] = [];
-    const prodUpsertRows: any[] = [];
-    const prodUpdateRows: { id: string; data: any }[] = [];
+    // Build a map of service data keyed by provider_service_id for product creation
+    const serviceDataMap = new Map<number, { name: string; category: string; rate: number; min: number; max: number; type: string }>();
 
     for (const svc of services) {
       const serviceId = parseInt(svc.service);
@@ -166,9 +176,7 @@ Deno.serve(async (req) => {
       const svcMin = parseInt(svc.min) || 0;
       const svcMax = parseInt(svc.max) || 0;
       const svcType = String(svc.type || "").substring(0, 50);
-      const serviceIdStr = String(serviceId);
 
-      // ── api_services upsert ──
       svcUpsertRows.push({
         provider_id,
         provider_service_id: serviceId,
@@ -181,44 +189,101 @@ Deno.serve(async (req) => {
         is_active: true,
       });
 
-      // ── Auto product creation/update ──
-      const mappedCategory = detectCategory(svcName, svcCategory);
+      serviceDataMap.set(serviceId, { name: svcName, category: svcCategory, rate: svcRate, min: svcMin, max: svcMax, type: svcType });
+    }
+
+    // Execute service upsert in batches
+    if (svcUpsertRows.length > 0) {
+      for (let i = 0; i < svcUpsertRows.length; i += 500) {
+        const batch = svcUpsertRows.slice(i, i + 500);
+        const { error } = await supabase
+          .from("api_services")
+          .upsert(batch, { onConflict: "provider_id,provider_service_id" });
+        if (error) {
+          svcErrors += batch.length;
+        } else {
+          const batchExisting = batch.filter(r => existingSvcMap.has(r.provider_service_id)).length;
+          svcUpdated += batchExisting;
+          svcInserted += batch.length - batchExisting;
+        }
+      }
+    }
+
+    // ── Soft-disable services removed from provider ──
+    const allExistingIds = Array.from(existingSvcMap.keys());
+    const removedIds = allExistingIds.filter(id => !seenServiceIds.has(id));
+    if (removedIds.length > 0) {
+      await supabase
+        .from("api_services")
+        .update({ is_active: false })
+        .eq("provider_id", provider_id)
+        .in("provider_service_id", removedIds);
+    }
+
+    // ── PHASE 3: Product sync AFTER service sync ──
+    // Re-fetch ALL existing products for this provider (handles >1000 rows)
+    const existingProdList = await fetchAll(supabase, "products", "id, api_service_id", {
+      provider_id,
+      product_type: "api",
+      "not.api_service_id": null,
+    });
+
+    // Build set of api_service_id strings that already have products
+    const existingProdServiceIds = new Set<string>();
+    for (const p of existingProdList) {
+      if (p.api_service_id) existingProdServiceIds.add(String(p.api_service_id));
+    }
+
+    let prodCreated = 0, prodUpdated = 0, prodErrors = 0;
+    const prodInsertRows: any[] = [];
+    const prodUpdateRows: { id: string; data: any }[] = [];
+
+    // Check EVERY service seen from provider, not just "new" ones
+    for (const serviceId of seenServiceIds) {
+      const serviceIdStr = String(serviceId);
+      const svcData = serviceDataMap.get(serviceId);
+      if (!svcData) continue;
+
+      const mappedCategory = detectCategory(svcData.name, svcData.category);
       const margin = categoryMargins[mappedCategory] ?? globalMargin;
-      const costPer1000 = Math.ceil(svcRate * exchangeRate);
+      const costPer1000 = Math.ceil(svcData.rate * exchangeRate);
       const sellPer1000 = Math.ceil(costPer1000 * (1 + margin / 100));
 
-      if (existingProdMap.has(serviceIdStr)) {
-        // Update existing product
-        prodUpdateRows.push({
-          id: existingProdMap.get(serviceIdStr)!,
-          data: {
-            api_rate: svcRate,
-            api_min_quantity: svcMin,
-            api_max_quantity: svcMax,
-            category: mappedCategory,
-            base_price: svcRate,
-            base_currency: "USD",
-            margin_percent: margin,
-            wholesale_price: sellPer1000,
-            retail_price: sellPer1000,
-          },
-        });
+      if (existingProdServiceIds.has(serviceIdStr)) {
+        // Find the product id to update
+        const prod = existingProdList.find(p => String(p.api_service_id) === serviceIdStr);
+        if (prod) {
+          prodUpdateRows.push({
+            id: prod.id,
+            data: {
+              api_rate: svcData.rate,
+              api_min_quantity: svcData.min,
+              api_max_quantity: svcData.max,
+              category: mappedCategory,
+              base_price: svcData.rate,
+              base_currency: "USD",
+              margin_percent: margin,
+              wholesale_price: sellPer1000,
+              retail_price: sellPer1000,
+            },
+          });
+        }
       } else {
-        // Create new product
-        prodUpsertRows.push({
-          name: svcName,
-          description: `${svcCategory} — ${svcType}`,
+        // No product exists for this service → CREATE
+        prodInsertRows.push({
+          name: svcData.name,
+          description: `${svcData.category} — ${svcData.type}`,
           category: mappedCategory,
           product_type: "api",
-          type: "manual", // hidden from catalog until admin enables
+          type: "manual",
           api_service_id: serviceIdStr,
           api_provider: provider.name,
-          api_rate: svcRate,
-          api_min_quantity: svcMin,
-          api_max_quantity: svcMax,
+          api_rate: svcData.rate,
+          api_min_quantity: svcData.min,
+          api_max_quantity: svcData.max,
           api_refill: false,
           provider_id,
-          base_price: svcRate,
+          base_price: svcData.rate,
           base_currency: "USD",
           margin_percent: margin,
           wholesale_price: sellPer1000,
@@ -233,29 +298,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Bulk upsert api_services ──
-    if (svcUpsertRows.length > 0) {
-      // Process in batches of 500
-      for (let i = 0; i < svcUpsertRows.length; i += 500) {
-        const batch = svcUpsertRows.slice(i, i + 500);
-        const { error, count } = await supabase
-          .from("api_services")
-          .upsert(batch, { onConflict: "provider_id,provider_service_id", count: "exact" });
-        if (error) {
-          svcErrors += batch.length;
-        } else {
-          // Rough split: existing = updated, new = inserted
-          const batchExisting = batch.filter(r => existingSvcMap.has(r.provider_service_id)).length;
-          svcUpdated += batchExisting;
-          svcInserted += batch.length - batchExisting;
-        }
-      }
-    }
-
-    // ── Bulk insert new products ──
-    if (prodUpsertRows.length > 0) {
-      for (let i = 0; i < prodUpsertRows.length; i += 200) {
-        const batch = prodUpsertRows.slice(i, i + 200);
+    // Bulk insert new products
+    if (prodInsertRows.length > 0) {
+      for (let i = 0; i < prodInsertRows.length; i += 200) {
+        const batch = prodInsertRows.slice(i, i + 200);
         const { error, data: inserted } = await supabase.from("products").insert(batch).select("id");
         if (error) {
           prodErrors += batch.length;
@@ -265,21 +311,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Bulk update existing products ──
+    // Bulk update existing products
     for (const row of prodUpdateRows) {
       const { error } = await supabase.from("products").update(row.data).eq("id", row.id);
       if (error) prodErrors++; else prodUpdated++;
-    }
-
-    // ── Soft-disable services removed from provider ──
-    const allExistingIds = Array.from(existingSvcMap.keys());
-    const removedIds = allExistingIds.filter(id => !seenServiceIds.has(id));
-    if (removedIds.length > 0) {
-      await supabase
-        .from("api_services")
-        .update({ is_active: false })
-        .eq("provider_id", provider_id)
-        .in("provider_service_id", removedIds);
     }
 
     // ── Log sync ──
