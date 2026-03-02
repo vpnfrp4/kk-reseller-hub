@@ -22,6 +22,15 @@ export function LangProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, lang); } catch {}
+    // Update <html> lang attribute and content-language meta for SEO
+    document.documentElement.lang = lang === "mm" ? "my" : "en";
+    let meta = document.querySelector('meta[http-equiv="content-language"]');
+    if (!meta) {
+      meta = document.createElement("meta");
+      meta.setAttribute("http-equiv", "content-language");
+      document.head.appendChild(meta);
+    }
+    meta.setAttribute("content", lang === "mm" ? "my" : "en");
   }, [lang]);
 
   const toggle = useCallback(() => {
