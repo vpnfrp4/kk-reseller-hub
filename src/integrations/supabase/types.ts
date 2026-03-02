@@ -886,6 +886,7 @@ export type Database = {
           last_active_at: string | null
           name: string
           status: string
+          telegram_chat_id: string | null
           tier: string
           total_orders: number
           total_spent: number
@@ -904,6 +905,7 @@ export type Database = {
           last_active_at?: string | null
           name?: string
           status?: string
+          telegram_chat_id?: string | null
           tier?: string
           total_orders?: number
           total_spent?: number
@@ -922,6 +924,7 @@ export type Database = {
           last_active_at?: string | null
           name?: string
           status?: string
+          telegram_chat_id?: string | null
           tier?: string
           total_orders?: number
           total_spent?: number
