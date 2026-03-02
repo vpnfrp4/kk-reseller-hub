@@ -1,7 +1,7 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import Breadcrumb from "@/components/Breadcrumb";
 import { Button } from "@/components/ui/button";
@@ -213,9 +213,26 @@ export default function OrderDetailPage() {
   const l = useT();
   const { user } = useAuth();
 
+  const queryClient = useQueryClient();
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [credentialsRevealed, setCredentialsRevealed] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
+
+  // Realtime: auto-update when this order changes
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase
+      .channel(`order-detail-${id}`)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["order-detail", id] });
+        },
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [id, queryClient]);
 
   const { data: order, isLoading } = useQuery({
     queryKey: ["order-detail", id],
