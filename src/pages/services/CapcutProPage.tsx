@@ -54,9 +54,43 @@ const seoContent = (
 
 export default function CapcutProServicePage() {
   useEffect(() => {
-    document.title = "CapCut Pro Accounts — Professional Reseller Distribution | KKTech";
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", "CapCut Pro accounts for professional resellers. Instant delivery, verified credentials, transparent pricing. Canva Pro also available.");
+    const title = "CapCut Pro Accounts — Professional Reseller Distribution | KKTech";
+    const desc = "CapCut Pro accounts for professional resellers. Instant delivery, verified credentials, transparent pricing. Canva Pro also available.";
+    const url = "https://kktech.shop/services/capcut-pro";
+    const image = "https://kktech.shop/og-image.png";
+
+    document.title = title;
+    const setMeta = (attr: string, key: string, content: string) => {
+      let el = document.querySelector(`meta[${attr}="${key}"]`);
+      if (!el) { el = document.createElement("meta"); el.setAttribute(attr, key); document.head.appendChild(el); }
+      el.setAttribute("content", content);
+    };
+    setMeta("name", "description", desc);
+    setMeta("property", "og:title", title);
+    setMeta("property", "og:description", desc);
+    setMeta("property", "og:url", url);
+    setMeta("property", "og:image", image);
+    setMeta("property", "og:type", "website");
+    setMeta("name", "twitter:title", title);
+    setMeta("name", "twitter:description", desc);
+    setMeta("name", "twitter:image", image);
+    setMeta("name", "twitter:card", "summary_large_image");
+
+    const ld = document.createElement("script");
+    ld.type = "application/ld+json";
+    ld.id = "service-jsonld";
+    ld.textContent = JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Service",
+      name: "CapCut Pro Account Distribution",
+      description: desc,
+      provider: { "@type": "Organization", name: "KKTech", url: "https://kktech.shop" },
+      url,
+      areaServed: "Worldwide",
+      serviceType: "Digital Subscription Accounts",
+    });
+    document.head.appendChild(ld);
+    return () => { document.getElementById("service-jsonld")?.remove(); };
   }, []);
 
   return (
