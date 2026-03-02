@@ -126,7 +126,7 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
             grouped.map(([category, items]) => (
               <div key={category}>
                 {/* Category header */}
-                <div className="sticky top-0 z-10 px-5 py-2.5 text-[10px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50 bg-card/95 backdrop-blur-sm border-b border-border/10">
+                <div className="sticky top-0 z-10 px-5 py-2.5 text-[10px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50 bg-[hsl(var(--card))] border-b border-border/10">
                   {category}
                   <span className="ml-2 text-muted-foreground/30 font-mono">{items.length}</span>
                 </div>
