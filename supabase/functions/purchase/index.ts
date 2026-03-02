@@ -204,12 +204,34 @@ Deno.serve(async (req) => {
             apiUrl.searchParams.set("quantity", String(qty));
             if (sanitizedLink) apiUrl.searchParams.set("link", sanitizedLink);
 
+            const startTime = Date.now();
             const apiRes = await fetch(apiUrl.toString(), {
               method: "POST",
               headers: { "Accept": "application/json" },
             });
 
             const apiBody = await apiRes.json();
+            const duration = Date.now() - startTime;
+
+            // Log the API call
+            const logUrl = new URL(provider.api_url);
+            logUrl.searchParams.set("action", "add");
+            logUrl.searchParams.set("service", service_id);
+            await serviceClient.from("api_logs").insert({
+              order_id: data.order_id,
+              user_id: userId,
+              provider_id: product.provider_id,
+              action: "add",
+              service_id,
+              request_url: logUrl.toString(),
+              request_body: { service: service_id, quantity: qty, link: sanitizedLink },
+              response_status: apiRes.status,
+              response_body: apiBody,
+              success: !!apiBody?.order,
+              error_message: apiBody?.order ? null : (apiBody?.error || "No order ID returned"),
+              duration_ms: duration,
+              log_type: "api_call",
+            });
 
             if (apiBody?.order) {
               // Success: save external order ID and update status
@@ -270,6 +292,18 @@ Deno.serve(async (req) => {
                   status: "approved",
                   description: `Auto-refund: ${data.product_name} (API failure)`,
                 });
+
+              // Log refund
+              await serviceClient.from("api_logs").insert({
+                order_id: data.order_id,
+                user_id: userId,
+                provider_id: product.provider_id,
+                action: "refund",
+                service_id,
+                success: true,
+                log_type: "refund",
+                response_body: { reason: errorMsg, amount: data.price },
+              });
 
               return new Response(JSON.stringify({
                 ...data,

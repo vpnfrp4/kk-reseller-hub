@@ -19,6 +19,7 @@ import {
   Database,
   FileText,
   TrendingUp,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
@@ -37,6 +38,7 @@ const navItems = [
   { label: "Resellers", icon: Users, path: "/admin/resellers" },
   { label: "Settings", icon: Settings, path: "/admin/settings" },
   { label: "Profit", icon: TrendingUp, path: "/admin/profit" },
+  { label: "Monitoring", icon: Activity, path: "/admin/monitoring" },
   { label: "Blog", icon: FileText, path: "/admin/blog" },
 ];
 
