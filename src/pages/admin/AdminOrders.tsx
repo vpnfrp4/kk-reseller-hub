@@ -51,6 +51,7 @@ export default function AdminOrders() {
   const [bulkUpdating, setBulkUpdating] = useState(false);
   const [bulkConfirm, setBulkConfirm] = useState<string | null>(null);
   const [detailOrder, setDetailOrder] = useState<any>(null);
+  const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
 
   const { data: orders, isLoading } = useQuery({
     queryKey: ["admin-all-orders"],
@@ -92,8 +93,20 @@ export default function AdminOrders() {
             const newStatus = (payload.new as any)?.status;
             const oldStatus = (payload.old as any)?.status;
             const productName = (payload.new as any)?.product_name || "Order";
+            const orderId = (payload.new as any)?.id;
             if (newStatus && newStatus !== oldStatus) {
               toast.info(`"${productName}" → ${newStatus.replace("_", " ")}`);
+              // Highlight the changed row
+              if (orderId) {
+                setHighlightedIds((prev) => new Set(prev).add(orderId));
+                setTimeout(() => {
+                  setHighlightedIds((prev) => {
+                    const next = new Set(prev);
+                    next.delete(orderId);
+                    return next;
+                  });
+                }, 3000);
+              }
             }
           }
           queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
@@ -367,7 +380,16 @@ export default function AdminOrders() {
                 </tr>
               ) : (
                 paginatedOrders.map((o: any) => (
-                  <tr key={o.id} className={`${selectedIds.has(o.id) ? "bg-primary/5" : ""}`}>
+                  <tr
+                    key={o.id}
+                    className={`transition-colors duration-700 ${
+                      highlightedIds.has(o.id)
+                        ? "bg-primary/15 ring-1 ring-inset ring-primary/30"
+                        : selectedIds.has(o.id)
+                          ? "bg-primary/5"
+                          : ""
+                    }`}
+                  >
                     <td className="p-default w-10 pl-4">
                       <Checkbox
                         checked={selectedIds.has(o.id)}
