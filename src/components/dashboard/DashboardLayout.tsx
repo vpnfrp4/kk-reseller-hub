@@ -191,7 +191,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 border-b border-border flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 bg-card/80 backdrop-blur-xl">
+        <header className="h-14 border-b border-border/50 flex items-center justify-between px-3 lg:px-8 sticky top-0 z-30 bg-card/70 backdrop-blur-xl shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -209,10 +209,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1 sm:gap-3">
+            {/* Language toggle — hide on very small screens */}
             <button
               onClick={toggleLang}
-              className="flex items-center h-8 rounded-lg border border-border bg-secondary text-xs font-semibold uppercase tracking-wider overflow-hidden"
+              className="hidden sm:flex items-center h-8 rounded-lg border border-border bg-secondary text-[11px] font-semibold uppercase tracking-wider overflow-hidden"
             >
               <span className={`px-2.5 py-1.5 transition-colors ${lang === "en" ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>
                 EN
@@ -223,8 +224,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
 
             <CurrencyToggle />
-            <SoundToggle />
-            <ThemeToggle />
+
+            {/* Sound & Theme — hide on mobile to reduce clutter */}
+            <div className="hidden sm:flex items-center gap-1">
+              <SoundToggle />
+              <ThemeToggle />
+            </div>
+
             <NotificationDropdown />
             <WalletChip profile={profile} />
           </div>
