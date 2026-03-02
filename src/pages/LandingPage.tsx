@@ -208,18 +208,6 @@ export default function LandingPage() {
               </h1>
             </ScrollReveal>
 
-            <ScrollReveal delay={120}>
-              <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                <Button variant="premium" size="lg" className="h-13 min-w-[180px] px-10 text-sm" asChild>
-                  <Link to="/login">Get Started</Link>
-                </Button>
-                <Button variant="outline" size="lg" className="h-13 min-w-[180px] px-10 text-sm font-semibold border-border/60 hover:border-primary/40" asChild>
-                  <Link to="/login" className="inline-flex items-center gap-2">
-                    Browse Services <ArrowRight className="h-3.5 w-3.5" />
-                  </Link>
-                </Button>
-              </div>
-            </ScrollReveal>
           </div>
         </section>
 
