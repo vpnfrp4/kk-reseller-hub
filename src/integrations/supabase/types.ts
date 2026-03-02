@@ -844,20 +844,6 @@ export type Database = {
             referencedRelation: "imei_countries"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "products_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "imei_providers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "products_provider_id_fkey"
-            columns: ["provider_id"]
-            isOneToOne: false
-            referencedRelation: "imei_providers_public"
-            referencedColumns: ["id"]
-          },
         ]
       }
       profiles: {

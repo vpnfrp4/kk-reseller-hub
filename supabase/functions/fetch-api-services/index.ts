@@ -26,19 +26,23 @@ function detectCategory(name: string, rawCat: string): string {
 }
 
 /** Fetch all rows from a table, bypassing the 1000-row default limit */
-async function fetchAll(supabase: any, table: string, select: string, filters: Record<string, any>) {
+async function fetchAll(
+  supabase: any,
+  table: string,
+  select: string,
+  eqFilters: Record<string, any> = {},
+  notNullCols: string[] = [],
+) {
   const PAGE = 1000;
   let all: any[] = [];
   let from = 0;
   while (true) {
     let q = supabase.from(table).select(select).range(from, from + PAGE - 1);
-    for (const [k, v] of Object.entries(filters)) {
-      if (v === null) continue;
-      if (k.startsWith("not.")) {
-        q = q.not(k.slice(4), "is", null);
-      } else {
-        q = q.eq(k, v);
-      }
+    for (const [k, v] of Object.entries(eqFilters)) {
+      q = q.eq(k, v);
+    }
+    for (const col of notNullCols) {
+      q = q.not(col, "is", null);
     }
     const { data, error } = await q;
     if (error) throw error;
@@ -56,7 +60,7 @@ Deno.serve(async (req) => {
   try {
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
     // Auth check
@@ -99,7 +103,7 @@ Deno.serve(async (req) => {
     if (!provider.api_url || !provider.api_key) {
       return new Response(
         JSON.stringify({ success: false, message: "API URL or Key is empty" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -116,7 +120,7 @@ Deno.serve(async (req) => {
     if (!exchangeRate || exchangeRate <= 0) {
       return new Response(
         JSON.stringify({ success: false, message: "USD exchange rate not configured" }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
@@ -141,28 +145,34 @@ Deno.serve(async (req) => {
     try { services = JSON.parse(text); } catch {
       return new Response(
         JSON.stringify({ success: false, message: "Invalid JSON from provider", raw: text.substring(0, 500) }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
     if (!Array.isArray(services)) {
       return new Response(
         JSON.stringify({ success: false, message: "Expected array of services", raw: JSON.stringify(services).substring(0, 500) }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // ── PHASE 1: Fetch existing api_services for soft-disable tracking ──
-    const existingSvcList = await fetchAll(supabase, "api_services", "id, provider_service_id", { provider_id });
+    // ══════════════════════════════════════════════════════
+    // PHASE 1: Fetch existing api_services for soft-disable
+    // ══════════════════════════════════════════════════════
+    const existingSvcList = await fetchAll(
+      supabase, "api_services", "id, provider_service_id",
+      { provider_id },
+    );
     const existingSvcMap = new Map<number, string>();
     for (const s of existingSvcList) existingSvcMap.set(s.provider_service_id, s.id);
 
     const seenServiceIds = new Set<number>();
     let svcInserted = 0, svcUpdated = 0, svcErrors = 0;
 
-    // ── PHASE 2: Bulk upsert api_services ──
+    // ══════════════════════════════════════════════════════
+    // PHASE 2: Bulk upsert api_services
+    // ══════════════════════════════════════════════════════
     const svcUpsertRows: any[] = [];
-    // Build a map of service data keyed by provider_service_id for product creation
     const serviceDataMap = new Map<number, { name: string; category: string; rate: number; min: number; max: number; type: string }>();
 
     for (const svc of services) {
@@ -220,25 +230,33 @@ Deno.serve(async (req) => {
         .in("provider_service_id", removedIds);
     }
 
-    // ── PHASE 3: Product sync AFTER service sync ──
-    // Re-fetch ALL existing products for this provider (handles >1000 rows)
-    const existingProdList = await fetchAll(supabase, "products", "id, api_service_id", {
-      provider_id,
-      product_type: "api",
-      "not.api_service_id": null,
-    });
+    // ══════════════════════════════════════════════════════
+    // PHASE 3: Product sync — AFTER service sync
+    // For EACH service: if product exists → update, else → create
+    // Match by api_service_id (provider_service_id as string)
+    // ══════════════════════════════════════════════════════
 
-    // Build set of api_service_id strings that already have products
-    const existingProdServiceIds = new Set<string>();
+    // Fetch ALL existing api products that have an api_service_id set
+    // We match by api_service_id (string of provider_service_id), NOT by provider_id FK
+    const existingProdList = await fetchAll(
+      supabase, "products", "id, api_service_id, provider_id",
+      { product_type: "api" },
+      ["api_service_id"],  // WHERE api_service_id IS NOT NULL
+    );
+
+    // Build map: api_service_id string → product row
+    const prodByServiceId = new Map<string, { id: string; provider_id: string | null }>();
     for (const p of existingProdList) {
-      if (p.api_service_id) existingProdServiceIds.add(String(p.api_service_id));
+      if (p.api_service_id) {
+        prodByServiceId.set(String(p.api_service_id), { id: p.id, provider_id: p.provider_id });
+      }
     }
 
     let prodCreated = 0, prodUpdated = 0, prodErrors = 0;
     const prodInsertRows: any[] = [];
     const prodUpdateRows: { id: string; data: any }[] = [];
 
-    // Check EVERY service seen from provider, not just "new" ones
+    // Check EVERY service from provider
     for (const serviceId of seenServiceIds) {
       const serviceIdStr = String(serviceId);
       const svcData = serviceDataMap.get(serviceId);
@@ -249,27 +267,28 @@ Deno.serve(async (req) => {
       const costPer1000 = Math.ceil(svcData.rate * exchangeRate);
       const sellPer1000 = Math.ceil(costPer1000 * (1 + margin / 100));
 
-      if (existingProdServiceIds.has(serviceIdStr)) {
-        // Find the product id to update
-        const prod = existingProdList.find(p => String(p.api_service_id) === serviceIdStr);
-        if (prod) {
-          prodUpdateRows.push({
-            id: prod.id,
-            data: {
-              api_rate: svcData.rate,
-              api_min_quantity: svcData.min,
-              api_max_quantity: svcData.max,
-              category: mappedCategory,
-              base_price: svcData.rate,
-              base_currency: "USD",
-              margin_percent: margin,
-              wholesale_price: sellPer1000,
-              retail_price: sellPer1000,
-            },
-          });
-        }
+      const existing = prodByServiceId.get(serviceIdStr);
+
+      if (existing) {
+        // Product EXISTS → update pricing, rate, min, max
+        prodUpdateRows.push({
+          id: existing.id,
+          data: {
+            api_rate: svcData.rate,
+            api_min_quantity: svcData.min,
+            api_max_quantity: svcData.max,
+            category: mappedCategory,
+            base_price: svcData.rate,
+            base_currency: "USD",
+            margin_percent: margin,
+            wholesale_price: sellPer1000,
+            retail_price: sellPer1000,
+            provider_id,
+            api_provider: provider.name,
+          },
+        });
       } else {
-        // No product exists for this service → CREATE
+        // Product does NOT exist → CREATE
         prodInsertRows.push({
           name: svcData.name,
           description: `${svcData.category} — ${svcData.type}`,
@@ -298,12 +317,13 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Bulk insert new products
+    // Bulk insert new products in batches
     if (prodInsertRows.length > 0) {
       for (let i = 0; i < prodInsertRows.length; i += 200) {
         const batch = prodInsertRows.slice(i, i + 200);
         const { error, data: inserted } = await supabase.from("products").insert(batch).select("id");
         if (error) {
+          console.error("Product insert error:", JSON.stringify(error));
           prodErrors += batch.length;
         } else {
           prodCreated += inserted?.length ?? batch.length;
@@ -311,10 +331,22 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Bulk update existing products
-    for (const row of prodUpdateRows) {
-      const { error } = await supabase.from("products").update(row.data).eq("id", row.id);
-      if (error) prodErrors++; else prodUpdated++;
+    // Update existing products in batches
+    if (prodUpdateRows.length > 0) {
+      // Batch updates using Promise.all for speed
+      const updateBatches = [];
+      for (let i = 0; i < prodUpdateRows.length; i += 50) {
+        const batch = prodUpdateRows.slice(i, i + 50);
+        updateBatches.push(
+          Promise.all(
+            batch.map(async (row) => {
+              const { error } = await supabase.from("products").update(row.data).eq("id", row.id);
+              if (error) prodErrors++; else prodUpdated++;
+            }),
+          ),
+        );
+      }
+      for (const b of updateBatches) await b;
     }
 
     // ── Log sync ──
@@ -341,13 +373,13 @@ Deno.serve(async (req) => {
         products: { created: prodCreated, updated: prodUpdated, errors: prodErrors },
         soft_disabled: removedIds.length,
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err: any) {
     const message = err.name === "AbortError" ? "Connection timed out (30s)" : err.message;
     return new Response(
       JSON.stringify({ error: message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
