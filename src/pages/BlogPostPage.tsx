@@ -57,12 +57,18 @@ export default function BlogPostPage() {
     };
 
     const desc = post.meta_description || post.excerpt || post.title;
+    const postUrl = `${SITE_URL}/blog/${post.slug}`;
+    const postImage = post.cover_image_url || `${SITE_URL}/og-image.png`;
     setMeta("description", desc);
     setMeta("og:title", metaTitle);
     setMeta("og:description", desc);
     setMeta("og:type", "article");
-    setMeta("og:url", `${SITE_URL}/blog/${post.slug}`);
-    if (post.cover_image_url) setMeta("og:image", post.cover_image_url);
+    setMeta("og:url", postUrl);
+    setMeta("og:image", postImage);
+    setMeta("twitter:title", metaTitle);
+    setMeta("twitter:description", desc);
+    setMeta("twitter:image", postImage);
+    setMeta("twitter:card", "summary_large_image");
     if (post.meta_keywords) setMeta("keywords", post.meta_keywords);
 
     return () => {
