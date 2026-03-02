@@ -413,7 +413,7 @@ export default function OrderFlowPage() {
 
   const handleBack = () => {
     if (step === 0) {
-      navigate(`/dashboard/products/${id}`);
+      navigate("/dashboard/products");
       return;
     }
     setStep(prev => Math.max(prev - 1, 0));
