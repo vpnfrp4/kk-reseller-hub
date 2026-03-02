@@ -221,12 +221,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </span>
               <span className="text-xs text-muted-foreground font-semibold">MMK</span>
             </div>
-            <div className="w-8 h-8 rounded-lg bg-secondary border border-border flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <span>{profile?.name?.charAt(0)?.toUpperCase() || "R"}</span>
-              )}
+            <div className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl bg-secondary border border-border">
+              <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <span>{profile?.name?.charAt(0)?.toUpperCase() || "R"}</span>
+                )}
+              </div>
+              <span className="text-sm font-semibold text-foreground hidden sm:inline truncate max-w-[100px]">
+                {profile?.name?.split(" ")[0] || "Reseller"}
+              </span>
             </div>
           </div>
         </header>
