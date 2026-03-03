@@ -1104,9 +1104,9 @@ export default function AdminProducts() {
                     <Input value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); titleManuallyEdited.current = true; setOptimizedMeta(null); manualOverrides.current.add("name"); }} required
                       placeholder="e.g. YouTube Premium 1 Month"
                       className={`flex-1 bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("name") ? "ring-1 ring-primary/40" : ""}`} />
-                    <Button type="button" onClick={handleAutoBuild} disabled={aiGenerating || !form.name.trim()} className="h-9 gap-1.5 px-3 text-sm font-semibold shrink-0">
-                      {aiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                      {aiGenerating ? "Building…" : "Auto-Build"}
+                    <Button type="button" onClick={handleAutoBuild} disabled={aiGenerating || !form.name.trim()} className="h-9 gap-1.5 px-3 text-sm font-semibold shrink-0 btn-glow">
+                      {aiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                      {aiGenerating ? "AI Thinking…" : "AI Magic"}
                     </Button>
                   </div>
                   {autoFilledFields.size > 0 && (
