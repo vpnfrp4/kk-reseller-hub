@@ -68,7 +68,11 @@ export default function PlaceOrderPage() {
   const { data: products = [] } = useQuery({
     queryKey: ["products-for-order"],
     queryFn: async () => {
-      const { data } = await supabase.from("products").select("*").order("sort_order", { ascending: true });
+      const { data } = await supabase
+        .from("products")
+        .select("*")
+        .neq("type", "disabled")
+        .order("sort_order", { ascending: true });
       return (data || []).filter((p: any) => p.product_type !== "digital" || p.stock > 0);
     },
   });
@@ -268,7 +272,7 @@ export default function PlaceOrderPage() {
               </div>
 
               {/* Service List */}
-              <div className="max-h-[60vh] overflow-y-auto stool-scrollbar">
+              <div className="max-h-[70vh] overflow-y-auto stool-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {filteredProducts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/40">
                     <Search className="w-7 h-7 mb-2" />
