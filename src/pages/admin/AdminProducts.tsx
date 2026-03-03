@@ -108,6 +108,7 @@ export default function AdminProducts() {
   const [editing, setEditing] = useState<any>(null);
   const [activeCategory, setActiveCategory] = useState<string>("All");
   const [typeFilter, setTypeFilter] = useState<string>("All");
+  const [visibilityFilter, setVisibilityFilter] = useState<string>("All");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkToggling, setBulkToggling] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -853,6 +854,8 @@ export default function AdminProducts() {
   const filteredProducts = (products || []).filter((p: any) => {
     if (activeCategory !== "All" && p.category !== activeCategory) return false;
     if (typeFilter !== "All" && p.product_type !== typeFilter) return false;
+    if (visibilityFilter === "Active" && p.type === "disabled") return false;
+    if (visibilityFilter === "Disabled" && p.type !== "disabled") return false;
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       const matchName = p.name?.toLowerCase().includes(q);
@@ -1710,6 +1713,15 @@ export default function AdminProducts() {
             <button key={t} onClick={() => setTypeFilter(t)}
               className={`filter-pill ${typeFilter === t ? "filter-pill-active" : "filter-pill-inactive"}`}>
               {t === "All" ? "All Types" : PRODUCT_TYPES.find((pt) => pt.value === t)?.label || t}
+            </button>
+          ))}
+          <div className="h-4 w-px bg-border mx-1" />
+          {["All", "Active", "Disabled"].map((v) => (
+            <button key={v} onClick={() => setVisibilityFilter(v)}
+              className={`filter-pill ${visibilityFilter === v ? "filter-pill-active" : "filter-pill-inactive"} ${v === "Disabled" && visibilityFilter === v ? "!bg-destructive !text-destructive-foreground" : ""}`}>
+              {v === "Active" && <Eye className="w-3 h-3 mr-1 inline" />}
+              {v === "Disabled" && <EyeOff className="w-3 h-3 mr-1 inline" />}
+              {v}
             </button>
           ))}
           <div className="ml-auto flex gap-2">
