@@ -20,9 +20,9 @@ export default function ProductsPage() {
       const { data } = await supabase
         .from("products")
         .select("*")
-        .eq("type", "auto")
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true });
+      console.log("[ProductsPage] fetched products:", data?.length);
       return data || [];
     },
   });
