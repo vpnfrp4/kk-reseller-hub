@@ -25,11 +25,10 @@ import { useLang } from "@/contexts/LangContext";
 import { cn } from "@/lib/utils";
 import kkLogo from "@/assets/kkremote-logo.png";
 
-/* ── S-Tool Pro style nav items ── */
+/* ── Sidebar nav items ── */
 const navItems = [
   { label: "Home", icon: Home, path: "/dashboard" },
-  { label: "Place Order", icon: ShoppingCart, path: "/dashboard/place-order" },
-  { label: "Top Up", icon: Wallet, path: "/dashboard/wallet" },
+  { label: "Order", icon: ShoppingCart, path: "/dashboard/place-order" },
   { label: "Orders", icon: Receipt, path: "/dashboard/orders" },
   { label: "Account", icon: User, path: "/dashboard/settings" },
 ];
@@ -182,7 +181,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
             <div className="hidden lg:block">
               <h2 className="text-sm font-semibold text-foreground tracking-wide">
-                {navItems.find((i) => location.pathname.startsWith(i.path) && i.path !== "/dashboard")?.label
+                {location.pathname.startsWith("/dashboard/wallet") ? "Top Up"
+                  : navItems.find((i) => location.pathname.startsWith(i.path) && i.path !== "/dashboard")?.label
                   || (location.pathname === "/dashboard" ? "Home" : "Dashboard")}
               </h2>
             </div>
@@ -215,7 +215,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 overflow-auto">
+        <main className="flex-1 p-4 lg:p-8 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 3.5rem)', WebkitOverflowScrolling: 'touch' }}>
           <AnimatePresence mode="wait">
             <PageTransition key={location.pathname}>
               {children}
