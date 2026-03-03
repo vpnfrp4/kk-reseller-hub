@@ -1,0 +1,3 @@
+
+SELECT vault.create_secret('https://etickkjsiibsftjtbavy.supabase.co', 'SUPABASE_URL');
+SELECT vault.create_secret('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0aWNra2pzaWlic2Z0anRiYXZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjE4MTMsImV4cCI6MjA4NzQzNzgxM30.uyL7Mq9m3-iRn-K8jh8K7J5v2kzgjxIZr2X4-cZRsE0', 'SUPABASE_ANON_KEY');
