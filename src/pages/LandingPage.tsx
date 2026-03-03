@@ -180,9 +180,7 @@ export default function LandingPage() {
   }, []);
 
   /* Theme-aware color tokens used inline */
-  const neon = "#39FF14";
-  const neonRgb = "57, 255, 20";
-  const accentClass = "text-[#39FF14] dark:text-[#39FF14] light-neon-accent";
+  const goldRgb = "212, 175, 55";
 
   return (
     <>
@@ -231,57 +229,56 @@ export default function LandingPage() {
       </header>
 
       <main>
-        {/* ═══════════ HERO — TWO COLUMN ═══════════ */}
+        {/* ═══════════ HERO — PREMIUM APPLE SERVICES ═══════════ */}
         <section className="relative overflow-hidden landing-hero-bg">
-          {/* Circuit grid background */}
-          <div className="absolute inset-0 circuit-grid" />
+          {/* Subtle grid */}
+          <div className="absolute inset-0 circuit-grid opacity-40" />
 
-          {/* Neon green radial glow — shifted left for two-col */}
+          {/* Warm gold radial glow — behind left text */}
           <div
-            className="pointer-events-none absolute inset-0 will-change-transform dark:block hidden"
+            className="pointer-events-none absolute inset-0 will-change-transform"
             style={{
-              background: `radial-gradient(900px circle at 30% 40%, rgba(${neonRgb}, 0.08), transparent 55%)`,
-              transform: `translateY(${scrollY * 0.25}px)`,
+              background: `radial-gradient(800px circle at 25% 45%, rgba(212,175,55,0.06), transparent 55%)`,
+              transform: `translateY(${scrollY * 0.2}px)`,
             }}
           />
+          {/* Secondary glow — behind phone on right */}
           <div
-            className="pointer-events-none absolute inset-0 will-change-transform dark:hidden block"
+            className="pointer-events-none absolute inset-0 will-change-transform hidden md:block"
             style={{
-              background: "radial-gradient(900px circle at 30% 40%, rgba(21, 128, 61, 0.06), transparent 55%)",
-              transform: `translateY(${scrollY * 0.25}px)`,
+              background: `radial-gradient(600px circle at 75% 50%, rgba(212,175,55,0.04), transparent 50%)`,
+              transform: `translateY(${scrollY * 0.15}px)`,
             }}
           />
 
-          {/* Animated circuit lines */}
-          <div className="absolute inset-0 overflow-hidden opacity-[0.04]">
-            <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#39FF14] to-transparent animate-[shimmerLine_3s_ease-in-out_infinite]" />
-            <div className="absolute top-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#39FF14]/50 to-transparent animate-[shimmerLine_4s_ease-in-out_infinite_0.5s]" />
+          {/* Subtle horizontal shimmer lines */}
+          <div className="absolute inset-0 overflow-hidden opacity-[0.03]">
+            <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent animate-[shimmerLine_3s_ease-in-out_infinite]" />
+            <div className="absolute top-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent animate-[shimmerLine_4s_ease-in-out_infinite_0.5s]" />
           </div>
 
           <div className="relative mx-auto max-w-[1120px] px-6 pt-24 pb-20 md:pt-36 md:pb-32">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-8 items-center">
               {/* ─── LEFT: Text ─── */}
               <ScrollReveal className="text-center md:text-left">
-                <p className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60 dark:text-[#39FF14]/60 light-neon-label">
-                  Reseller-First Infrastructure
+                <p className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-primary/60">
+                  Trusted by Resellers & Technicians
                 </p>
-                <h1 className="text-[2rem] font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-[2.8rem] lg:text-[3.4rem]">
-                  Myanmar's Most Reliable Hub for{" "}
-                  <span className="neon-text">Digital Unlocks</span>
-                  {" "}
-                  <span className="text-muted-foreground">&</span>
-                  {" "}
-                  <span className="neon-text">GSM Services</span>
+                <h1 className="text-[2rem] font-extrabold leading-[1.08] tracking-tight text-foreground sm:text-[2.8rem] lg:text-[3.4rem]">
+                  Premium{" "}
+                  <span className="gold-shimmer">Apple Device</span>
+                  <br />
+                  Solutions
                 </h1>
                 <p className="mt-5 text-base sm:text-lg font-medium text-muted-foreground tracking-wide">
-                  Fast. Secure. Automated.
+                  Unlock&ensp;•&ensp;iCloud&ensp;•&ensp;IMEI&ensp;•&ensp;Repair Services
                 </p>
 
                 {/* CTA Buttons */}
                 <div className="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
                   <Button
                     size="lg"
-                    className="text-sm px-7 font-semibold bg-[#39FF14] dark:bg-[#39FF14] text-[#060608] hover:bg-[#39FF14]/90 neon-glow-btn"
+                    className="btn-glow text-sm px-7"
                     asChild
                   >
                     <Link to="/login">
@@ -291,7 +288,7 @@ export default function LandingPage() {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="text-sm px-7 font-semibold landing-outline-btn border-[#39FF14]/20 dark:border-[#39FF14]/20"
+                    className="btn-glass text-sm px-7"
                     asChild
                   >
                     <a href="#services">View Services</a>
