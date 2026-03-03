@@ -136,6 +136,7 @@ Deno.serve(async (req) => {
         message = buildTestMessage();
         break;
       case "custom":
+        targetChatId = payload.chat_id || adminChatId;
         message = payload.message || "No message provided";
         break;
       default:

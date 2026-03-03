@@ -367,6 +367,41 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ═══ TELEGRAM ADMIN NOTIFICATION ═══
+    try {
+      const { data: buyerProfile } = await serviceClient
+        .from("profiles")
+        .select("name, email")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      const { data: productInfo } = await serviceClient
+        .from("products")
+        .select("display_id")
+        .eq("id", product_id)
+        .maybeSingle();
+
+      const telegramUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-telegram`;
+      await fetch(telegramUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+        },
+        body: JSON.stringify({
+          type: "order",
+          order_id: data.order_id,
+          product_name: `#${productInfo?.display_id || ''} ${data.product_name}`,
+          price: data.price,
+          user_email: buyerProfile?.email,
+          user_name: buyerProfile?.name,
+          product_type: data.product_type,
+        }),
+      });
+    } catch (tgErr) {
+      console.error("Telegram admin notification failed:", tgErr);
+    }
+
     return new Response(JSON.stringify(data), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

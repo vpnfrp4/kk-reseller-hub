@@ -890,6 +890,7 @@ export type Database = {
           name: string
           status: string
           telegram_chat_id: string | null
+          telegram_link_token: string | null
           tier: string
           total_orders: number
           total_spent: number
@@ -909,6 +910,7 @@ export type Database = {
           name?: string
           status?: string
           telegram_chat_id?: string | null
+          telegram_link_token?: string | null
           tier?: string
           total_orders?: number
           total_spent?: number
@@ -928,6 +930,7 @@ export type Database = {
           name?: string
           status?: string
           telegram_chat_id?: string | null
+          telegram_link_token?: string | null
           tier?: string
           total_orders?: number
           total_spent?: number

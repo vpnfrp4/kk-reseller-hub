@@ -130,6 +130,44 @@ Deno.serve(async (req) => {
       type: action === "approve" ? "success" : "warning",
     });
 
+    // Send Telegram notification to user if they have telegram_chat_id
+    try {
+      const { data: userProfile } = await serviceClient
+        .from("profiles")
+        .select("telegram_chat_id, name, email")
+        .eq("user_id", tx.user_id)
+        .maybeSingle();
+
+      if (userProfile?.telegram_chat_id) {
+        const emoji = action === "approve" ? "✅" : "❌";
+        const tgMessage = [
+          `${emoji} <b>Top-Up ${action === "approve" ? "Approved" : "Rejected"}!</b>`,
+          "━━━━━━━━━━━━━━━━━━",
+          `💰 <b>Amount:</b> ${Number(tx.amount).toLocaleString()} MMK`,
+          `🏦 <b>Method:</b> ${tx.method || "N/A"}`,
+          `📊 <b>Status:</b> ${newStatus.toUpperCase()}`,
+          "━━━━━━━━━━━━━━━━━━",
+          `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">View Wallet</a>`,
+        ].join("\n");
+
+        const telegramUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-telegram`;
+        await fetch(telegramUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
+          },
+          body: JSON.stringify({
+            type: "custom",
+            chat_id: userProfile.telegram_chat_id,
+            message: tgMessage,
+          }),
+        });
+      }
+    } catch (tgErr) {
+      console.error("Telegram user notification failed:", tgErr);
+    }
+
     return new Response(
       JSON.stringify({ success: true, action, transaction_id }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
