@@ -409,8 +409,34 @@ export default function AdminProducts() {
     });
   };
 
-  const handleGenerateDescription = (force = false) => {
+  const handleGenerateDescription = async (force = false) => {
     if (!force && descManuallyEdited.current && form.description.trim()) return;
+    const serviceName = form.name.trim();
+    if (!serviceName) { toast.error("Enter a service name first"); return; }
+
+    // Always try AI first
+    setAiGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("ai-product-build", {
+        body: {
+          service_name: serviceName,
+          mode: descMode,
+          category: form.category,
+          product_type: form.product_type,
+          duration: form.duration,
+          processing_time: form.processing_time,
+        },
+      });
+      if (!error && data?.description) {
+        setForm((prev) => ({ ...prev, description: data.description }));
+        descManuallyEdited.current = false;
+        toast.success("AI description generated");
+        return;
+      }
+    } catch {}
+    finally { setAiGenerating(false); }
+
+    // Fallback to template
     const selectedBrand = brands.find((b) => b.id === form.brand_id);
     const selectedCarrier = allCarriers.find((c) => c.id === form.carrier_id);
     const selectedCountry = countries.find((c) => c.id === form.country_id);
@@ -1110,20 +1136,6 @@ export default function AdminProducts() {
                       <Label className="text-muted-foreground text-xs">Description</Label>
                       {autoFilledFields.has("description") && <span className="text-[8px] font-bold text-primary bg-primary/10 rounded px-1 py-px animate-fade-in">AUTO</span>}
                     </div>
-                    <div className="flex gap-1">
-                      {!form.description.trim() && (
-                        <Button type="button" variant="outline" size="sm" className="h-6 text-[10px] gap-1 px-2"
-                          onClick={() => handleGenerateDescription(true)}>
-                          <FileText className="w-3 h-3" /> Generate
-                        </Button>
-                      )}
-                      {form.description.trim() && (
-                        <Button type="button" variant="ghost" size="sm" className="h-6 text-[10px] gap-1 px-2 text-muted-foreground"
-                          onClick={() => handleGenerateDescription(true)}>
-                          <RotateCcw className="w-3 h-3" /> Regenerate
-                        </Button>
-                      )}
-                    </div>
                   </div>
                   {/* Mode Selector */}
                   <div className="flex gap-1 rounded-lg bg-muted/50 p-0.5 border border-border">
@@ -1147,7 +1159,17 @@ export default function AdminProducts() {
                     ))}
                   </div>
                   <div className="relative">
-                    <Textarea value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; manualOverrides.current.add("description"); }} placeholder="Enter service name and click Auto-Build to generate with AI" className={`bg-muted/50 border-border resize-none text-xs font-mono transition-all duration-500 ${autoFilledFields.has("description") ? "ring-1 ring-primary/40" : ""} ${aiGenerating ? "opacity-50" : ""}`} rows={descMode === "ultra-short" ? 6 : 10} maxLength={3000} disabled={aiGenerating} />
+                    <Textarea value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; manualOverrides.current.add("description"); }} placeholder="Enter service name and click Auto-Build or the ✨ button to generate with AI" className={`bg-muted/50 border-border resize-none text-xs font-mono transition-all duration-500 pr-10 ${autoFilledFields.has("description") ? "ring-1 ring-primary/40" : ""} ${aiGenerating ? "opacity-50" : ""}`} rows={descMode === "ultra-short" ? 6 : 10} maxLength={3000} disabled={aiGenerating} />
+                    {/* Floating AI Generate Button */}
+                    <button
+                      type="button"
+                      onClick={() => handleGenerateDescription(true)}
+                      disabled={aiGenerating || !form.name.trim()}
+                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                      title={form.description.trim() ? "Regenerate with AI" : "Generate with AI"}
+                    >
+                      {aiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                    </button>
                     {aiGenerating && (
                       <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md">
                         <div className="flex items-center gap-2 text-xs font-medium text-primary">
