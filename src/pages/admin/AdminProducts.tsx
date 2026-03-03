@@ -22,7 +22,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import ConfirmModal from "@/components/shared/ConfirmModal";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, FileText, Sparkles, Zap, Loader2, Search, RefreshCw, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, FileText, Sparkles, Zap, Loader2, Search, RefreshCw, Eye, EyeOff, Copy } from "lucide-react";
 import { generateProductDescription, type DescriptionMode } from "@/lib/description-templates";
 import { optimizeTitle, autoBuildProduct, type AutoBuildResult } from "@/lib/title-optimizer";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
@@ -1159,17 +1159,29 @@ export default function AdminProducts() {
                     ))}
                   </div>
                   <div className="relative">
-                    <Textarea value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; manualOverrides.current.add("description"); }} placeholder="Enter service name and click Auto-Build or the ✨ button to generate with AI" className={`bg-muted/50 border-border resize-none text-xs font-mono transition-all duration-500 pr-10 ${autoFilledFields.has("description") ? "ring-1 ring-primary/40" : ""} ${aiGenerating ? "opacity-50" : ""}`} rows={descMode === "ultra-short" ? 6 : 10} maxLength={3000} disabled={aiGenerating} />
-                    {/* Floating AI Generate Button */}
-                    <button
-                      type="button"
-                      onClick={() => handleGenerateDescription(true)}
-                      disabled={aiGenerating || !form.name.trim()}
-                      className="absolute top-2 right-2 p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                      title={form.description.trim() ? "Regenerate with AI" : "Generate with AI"}
-                    >
-                      {aiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-                    </button>
+                    <Textarea value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; manualOverrides.current.add("description"); }} placeholder="Enter service name and click Auto-Build or the ✨ button to generate with AI" className={`bg-muted/50 border-border resize-none text-xs font-mono transition-all duration-500 pr-16 ${autoFilledFields.has("description") ? "ring-1 ring-primary/40" : ""} ${aiGenerating ? "opacity-50" : ""}`} rows={descMode === "ultra-short" ? 6 : 10} maxLength={3000} disabled={aiGenerating} />
+                    {/* Floating action buttons */}
+                    <div className="absolute top-2 right-2 flex flex-col gap-1">
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateDescription(true)}
+                        disabled={aiGenerating || !form.name.trim()}
+                        className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                        title={form.description.trim() ? "Regenerate with AI" : "Generate with AI"}
+                      >
+                        {aiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                      </button>
+                      {form.description.trim() && (
+                        <button
+                          type="button"
+                          onClick={() => { navigator.clipboard.writeText(form.description); toast.success("Description copied"); }}
+                          className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border transition-all"
+                          title="Copy to clipboard"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                     {aiGenerating && (
                       <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md">
                         <div className="flex items-center gap-2 text-xs font-medium text-primary">
