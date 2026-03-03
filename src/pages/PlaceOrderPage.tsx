@@ -242,7 +242,7 @@ export default function PlaceOrderPage() {
           </div>
 
           {/* Service List — scrollable */}
-          <div className="flex-1 overflow-y-auto max-h-[60vh] lg:max-h-[65vh]">
+          <div className="flex-1 overflow-y-auto max-h-[60vh] lg:max-h-[65vh] stool-scrollbar">
             {filteredProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/40">
                 <Search className="w-7 h-7 mb-2" />
