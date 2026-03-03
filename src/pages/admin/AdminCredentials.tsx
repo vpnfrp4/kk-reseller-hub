@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -79,6 +79,106 @@ const CATEGORY_ICONS: Record<string, string> = {
   YouTube: "🎬", "Twitter/X": "🐦", Telegram: "✈️", Spotify: "🎧",
   Netflix: "🎬", VPN: "🔐", CapCut: "✂️", Canva: "🎨", Others: "📦",
 };
+
+/* ── Searchable service dropdown ──────────────────────────────── */
+function ServiceSearchDropdown({ products, value, onChange }: { products: any[]; value: string; onChange: (id: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const selectedProduct = products.find((p) => p.id === value);
+  const q = query.toLowerCase();
+  const filtered = products.filter((p) => {
+    if (!q) return true;
+    const did = p.display_id ? String(p.display_id) : "";
+    return p.name.toLowerCase().includes(q) || p.category?.toLowerCase().includes(q) || did.includes(q) || `#${did}`.includes(q);
+  });
+
+  // Group by category
+  const grouped = useMemo(() => {
+    const map: Record<string, any[]> = {};
+    filtered.forEach((p) => {
+      const cat = p.category || "General";
+      if (!map[cat]) map[cat] = [];
+      map[cat].push(p);
+    });
+    return Object.entries(map).sort(([a], [b]) => a.localeCompare(b));
+  }, [filtered]);
+
+  // Close on click outside
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <div
+        className={cn(
+          "flex items-center gap-2 w-full bg-muted/50 border rounded-lg px-3 py-2.5 text-sm cursor-pointer transition-colors",
+          open ? "border-primary/50 ring-1 ring-primary/20" : "border-border hover:border-border/80"
+        )}
+        onClick={() => { setOpen(true); setTimeout(() => inputRef.current?.focus(), 50); }}
+      >
+        {selectedProduct ? (
+          <span className="flex-1 text-foreground truncate">
+            <span className="font-mono text-primary/70 text-xs mr-1.5">#{selectedProduct.display_id}</span>
+            {selectedProduct.icon} {selectedProduct.name} — {selectedProduct.duration}
+          </span>
+        ) : (
+          <span className="flex-1 text-muted-foreground">Search & select a service...</span>
+        )}
+        <Search className="w-4 h-4 text-muted-foreground shrink-0" />
+      </div>
+
+      {open && (
+        <div className="absolute z-[9999] left-0 right-0 top-full mt-1 bg-card border border-border rounded-lg shadow-xl overflow-hidden animate-fade-in">
+          <div className="p-2 border-b border-border/50">
+            <Input
+              ref={inputRef}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Type to search by name, category, or #ID..."
+              className="h-8 bg-muted/30 border-border/50 text-sm"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-60 overflow-y-auto">
+            {grouped.length === 0 ? (
+              <div className="p-4 text-center text-xs text-muted-foreground">No services found</div>
+            ) : grouped.map(([cat, items]) => (
+              <div key={cat}>
+                <div className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider bg-muted/30 sticky top-0">
+                  {CATEGORY_ICONS[deriveCategory(items[0]?.name || "")] || "📦"} {cat}
+                </div>
+                {items.map((p: any) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className={cn(
+                      "w-full text-left px-3 py-2 text-sm flex items-center gap-2 transition-colors",
+                      value === p.id ? "bg-primary/10 text-primary" : "hover:bg-muted/50 text-foreground"
+                    )}
+                    onClick={() => { onChange(p.id); setOpen(false); setQuery(""); }}
+                  >
+                    <span className="font-mono text-[11px] text-primary/60">#{p.display_id}</span>
+                    <span className="truncate">{p.icon} {p.name}</span>
+                    <span className="ml-auto text-xs text-muted-foreground shrink-0">{p.duration}</span>
+                  </button>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ── main component ───────────────────────────────────────────── */
 
@@ -359,39 +459,61 @@ export default function AdminCredentials() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="btn-glow gap-2"><Plus className="w-4 h-4" />Add Credentials</Button>
+            <Button className="btn-glow gap-2 shadow-[0_0_20px_-4px_hsl(var(--primary)/0.3)]"><Plus className="w-4 h-4" />Add Credentials</Button>
           </DialogTrigger>
-          <DialogContent className="bg-card border-border max-w-lg">
-            <DialogHeader>
+          <DialogContent className="bg-card border-border max-w-lg max-h-[90vh] flex flex-col p-0" onInteractOutside={(e) => e.preventDefault()}>
+            <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
               <DialogTitle className="text-foreground">Bulk Add Credentials</DialogTitle>
+              <DialogDescription className="text-muted-foreground text-xs">Select a service and paste credentials below</DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleBulkAdd} className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-muted-foreground text-xs">Product</Label>
-                <select value={selectedProduct} onChange={(e) => setSelectedProduct(e.target.value)} required className="w-full bg-muted/50 border border-border rounded-lg px-3 py-2 text-sm text-foreground">
-                  <option value="">Select product...</option>
-                  {(products || []).map((p: any) => (
-                    <option key={p.id} value={p.id}>{p.icon} {p.name} - {p.duration}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-muted-foreground text-xs">Expiry Date (optional)</Label>
-                <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-muted/50 border-border text-sm" min={new Date().toISOString().slice(0, 10)} />
-                <p className="text-[10px] text-muted-foreground">Credentials expiring within {EXPIRY_WARNING_DAYS} days will be highlighted</p>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="text-muted-foreground text-xs">Credentials (one per line)</Label>
-                  <label className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline cursor-pointer">
-                    <Upload className="w-3.5 h-3.5" />Upload CSV
-                    <input type="file" accept=".csv,.txt" onChange={handleCSVUpload} className="hidden" />
-                  </label>
+            <form onSubmit={handleBulkAdd} className="flex flex-col flex-1 min-h-0">
+              <div className="flex-1 overflow-y-auto px-6 py-3 space-y-4">
+                {/* Searchable product selector */}
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Service</Label>
+                  <ServiceSearchDropdown
+                    products={products || []}
+                    value={selectedProduct}
+                    onChange={setSelectedProduct}
+                  />
+                  {/* Category preview */}
+                  {selectedProduct && (() => {
+                    const sel = (products || []).find((p: any) => p.id === selectedProduct);
+                    if (!sel) return null;
+                    const cat = deriveCategory(sel.name);
+                    return (
+                      <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/20 border border-border/30">
+                        <span className="text-base">{CATEGORY_ICONS[cat] || "📦"}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-foreground truncate">{sel.icon} {sel.name} — {sel.duration}</p>
+                          <p className="text-[10px] text-muted-foreground">Category: <span className="text-primary font-medium">{cat}</span> · #{sel.display_id}</p>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
-                <Textarea value={bulkCredentials} onChange={(e) => setBulkCredentials(e.target.value)} required rows={8} placeholder={"user1@vpn.com / Pass123\nuser2@vpn.com / Pass456\nLIC-XXXX-YYYY-ZZZZ"} className="bg-muted/50 border-border font-mono text-xs" />
-                <p className="text-[10px] text-muted-foreground">{bulkCredentials.trim() ? bulkCredentials.trim().split("\n").filter(Boolean).length : 0} credential(s) detected · Paste manually or upload a CSV/TXT file</p>
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Expiry Date (optional)</Label>
+                  <Input type="date" value={expiryDate} onChange={(e) => setExpiryDate(e.target.value)} className="bg-muted/50 border-border text-sm" min={new Date().toISOString().slice(0, 10)} />
+                  <p className="text-[10px] text-muted-foreground">Credentials expiring within {EXPIRY_WARNING_DAYS} days will be highlighted</p>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-muted-foreground text-xs font-semibold uppercase tracking-wider">Credentials (one per line)</Label>
+                    <label className="inline-flex items-center gap-1.5 text-xs text-primary hover:underline cursor-pointer">
+                      <Upload className="w-3.5 h-3.5" />Upload CSV
+                      <input type="file" accept=".csv,.txt" onChange={handleCSVUpload} className="hidden" />
+                    </label>
+                  </div>
+                  <Textarea value={bulkCredentials} onChange={(e) => setBulkCredentials(e.target.value)} required rows={8} placeholder={"user1@vpn.com:Pass123\nuser2@vpn.com:Pass456\nLIC-XXXX-YYYY-ZZZZ"} className="bg-muted/50 border-border font-mono text-xs" />
+                  <p className="text-[10px] text-muted-foreground">{bulkCredentials.trim() ? bulkCredentials.trim().split("\n").filter(Boolean).length : 0} credential(s) detected · Paste manually or upload a CSV/TXT file</p>
+                </div>
               </div>
-              <Button type="submit" className="w-full btn-glow">Add Credentials</Button>
+              <div className="shrink-0 px-6 py-4 border-t border-border/30 bg-card">
+                <Button type="submit" className="w-full btn-glow shadow-[0_0_20px_-4px_hsl(var(--primary)/0.3)]" disabled={!selectedProduct || !bulkCredentials.trim()}>
+                  Add {bulkCredentials.trim() ? bulkCredentials.trim().split("\n").filter(Boolean).length : 0} Credential(s)
+                </Button>
+              </div>
             </form>
           </DialogContent>
         </Dialog>
@@ -525,8 +647,8 @@ export default function AdminCredentials() {
                       />
                     </th>
                     <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider p-3">Service Name</th>
+                    <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider p-3 hidden sm:table-cell">Category</th>
                     <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider p-3">Credentials</th>
-                    <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider p-3 hidden md:table-cell">Region / Target</th>
                     <th className="text-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider p-3">Status</th>
                     <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider p-3 hidden lg:table-cell">Expiry</th>
                     <th className="text-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider p-3 w-20">Action</th>
@@ -578,13 +700,15 @@ export default function AdminCredentials() {
                             </div>
                           </div>
                         </td>
+                        <td className="p-3 hidden sm:table-cell">
+                          <Badge variant="outline" className="text-[10px] gap-1 font-normal">
+                            {CATEGORY_ICONS[category] || "📦"} {category}
+                          </Badge>
+                        </td>
                         <td className="p-3">
                           <code className="text-xs font-mono text-primary/80 bg-primary/5 px-2 py-0.5 rounded border border-primary/10 inline-block max-w-[240px] truncate">
                             {searchQuery ? highlightMatch(c.credentials, searchQuery) : c.credentials}
                           </code>
-                        </td>
-                        <td className="p-3 hidden md:table-cell">
-                          <span className="text-xs text-muted-foreground">{category}</span>
                         </td>
                         <td className="p-3 text-center">
                           <span className={cn(
@@ -593,7 +717,7 @@ export default function AdminCredentials() {
                               ? "bg-muted/80 text-muted-foreground"
                               : isExpired(c.expires_at)
                                 ? "bg-destructive/15 text-destructive"
-                                : "bg-emerald-500/15 text-emerald-500"
+                                : "bg-primary/15 text-primary"
                           )}>
                             {c.is_sold ? "Sold" : isExpired(c.expires_at) ? "Expired" : "Available"}
                           </span>
