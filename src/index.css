@@ -259,20 +259,7 @@
     background: hsl(var(--secondary));
   }
 
-  .stool-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(var(--border)) transparent;
-  }
-  .stool-scrollbar::-webkit-scrollbar {
-    width: 4px;
-  }
-  .stool-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .stool-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--border));
-    border-radius: 4px;
-  }
+  /* stool-scrollbar moved outside @layer — see bottom of file */
 
   /* ─── Typography Utilities ─── */
   .gold-text {
@@ -670,6 +657,10 @@ html, body {
 .stool-scrollbar {
   overflow-y: auto;
   pointer-events: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
 }
 .stool-scrollbar::-webkit-scrollbar {
   width: 5px;
@@ -683,9 +674,4 @@ html, body {
 }
 .stool-scrollbar::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.4);
-}
-/* Firefox */
-.stool-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: hsl(var(--border)) transparent;
 }
