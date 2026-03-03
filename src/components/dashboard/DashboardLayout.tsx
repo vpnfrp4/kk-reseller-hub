@@ -16,6 +16,8 @@ import {
   ArrowLeftRight,
   Settings2,
   Wallet,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CurrencyToggle from "@/components/shared/CurrencyToggle";
@@ -33,9 +35,19 @@ const navItems = [
   { label: "Account", icon: User, path: "/dashboard/settings" },
 ];
 
+const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true");
   const [isAdmin, setIsAdmin] = useState(false);
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(!prev));
+      return !prev;
+    });
+  };
   const { user, profile, logout } = useAuth();
   const { lang, toggle: toggleLang } = useLang();
   const location = useLocation();
@@ -71,33 +83,44 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ═══ Sidebar — S-Tool Pro Style ═══ */}
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 w-[240px] flex flex-col",
+          "fixed lg:static inset-y-0 left-0 z-50 flex flex-col",
           "bg-sidebar border-r border-sidebar-border",
-          "transition-transform duration-300 ease-out",
+          "transition-all duration-300 ease-out",
+          collapsed ? "lg:w-[68px]" : "lg:w-[240px]",
+          "w-[240px]",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Logo */}
-        <div className="px-5 py-5 border-b border-sidebar-border">
-          <Link to="/dashboard" className="flex items-center gap-3 group">
+        {/* Logo + Collapse toggle */}
+        <div className="px-3 py-4 border-b border-sidebar-border flex items-center justify-between">
+          <Link to="/dashboard" className="flex items-center gap-3 group min-w-0" onClick={() => setSidebarOpen(false)}>
             <img
               src={kkLogo}
               alt="KKTech"
-              className="w-8 h-8 rounded-lg object-contain transition-transform duration-200 group-hover:scale-105"
+              className="w-8 h-8 rounded-lg object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
             />
-            <div>
-              <span className="text-[15px] font-bold text-foreground tracking-tight">
-                KK<span className="text-primary">Tech</span>
-              </span>
-              <span className="text-[10px] block text-muted-foreground font-semibold uppercase tracking-[0.15em]">
-                Reseller Hub
-              </span>
-            </div>
+            {!collapsed && (
+              <div className="overflow-hidden">
+                <span className="text-[15px] font-bold text-foreground tracking-tight">
+                  KK<span className="text-primary">Tech</span>
+                </span>
+                <span className="text-[10px] block text-muted-foreground font-semibold uppercase tracking-[0.15em]">
+                  Reseller Hub
+                </span>
+              </div>
+            )}
           </Link>
+          <button
+            onClick={toggleCollapsed}
+            className="hidden lg:flex items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors shrink-0"
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {collapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
+          </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 pt-4 pb-2 flex flex-col gap-1">
+        <nav className="flex-1 px-2 pt-4 pb-2 flex flex-col gap-1">
           {navItems.map((item) => {
             const active = location.pathname === item.path ||
               (item.path === "/dashboard" && location.pathname === "/dashboard") ||
@@ -107,9 +130,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
+                title={collapsed ? item.label : undefined}
                 className={cn(
                   "group relative flex items-center gap-3 h-[42px] rounded-lg text-[13px]",
-                  "pl-4 pr-3 transition-all duration-200",
+                  "transition-all duration-200",
+                  collapsed ? "justify-center px-0" : "pl-4 pr-3",
                   active
                     ? "bg-primary/10 text-primary font-semibold"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
@@ -125,46 +150,68 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   )}
                   strokeWidth={1.5}
                 />
-                <span className="flex-1 truncate">{item.label}</span>
+                {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
               </Link>
             );
           })}
         </nav>
 
         {/* Footer */}
-        <div className="mt-auto border-t border-sidebar-border px-3 pt-3 pb-3 space-y-1">
+        <div className="mt-auto border-t border-sidebar-border px-2 pt-3 pb-3 space-y-1">
           {isAdmin && (
             <Link
               to="/admin"
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-3 h-[42px] pl-4 pr-3 rounded-lg text-[13px] text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all duration-200"
+              title={collapsed ? "Admin Panel" : undefined}
+              className={cn(
+                "flex items-center gap-3 h-[42px] rounded-lg text-[13px] text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all duration-200",
+                collapsed ? "justify-center px-0" : "pl-4 pr-3"
+              )}
             >
               <ArrowLeftRight className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
-              <span>Admin Panel</span>
+              {!collapsed && <span>Admin Panel</span>}
             </Link>
           )}
 
-          <div className="flex items-center gap-3 px-4 py-3">
-            <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
-              {profile?.avatar_url ? (
-                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                profile?.name?.charAt(0)?.toUpperCase() || "R"
-              )}
+          {!collapsed && (
+            <div className="flex items-center gap-3 px-4 py-3">
+              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  profile?.name?.charAt(0)?.toUpperCase() || "R"
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-foreground truncate leading-tight">{profile?.name || "Reseller"}</p>
+                <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{profile?.email}</p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-foreground truncate leading-tight">{profile?.name || "Reseller"}</p>
-              <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{profile?.email}</p>
+          )}
+
+          {collapsed && (
+            <div className="flex justify-center py-2">
+              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
+                {profile?.avatar_url ? (
+                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  profile?.name?.charAt(0)?.toUpperCase() || "R"
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[42px] pl-4 text-[13px] rounded-lg transition-all duration-200"
+            title={collapsed ? "Sign Out" : undefined}
+            className={cn(
+              "w-full text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[42px] text-[13px] rounded-lg transition-all duration-200",
+              collapsed ? "justify-center px-0" : "justify-start pl-4"
+            )}
             onClick={handleLogout}
           >
-            <LogOut className="w-[18px] h-[18px] mr-3 shrink-0 text-destructive/60" strokeWidth={1.5} />
-            <span>Sign Out</span>
+            <LogOut className={cn("w-[18px] h-[18px] shrink-0 text-destructive/60", !collapsed && "mr-3")} strokeWidth={1.5} />
+            {!collapsed && <span>Sign Out</span>}
           </Button>
         </div>
       </aside>
