@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { Separator } from "@/components/ui/separator";
 import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { DataCard, Money } from "@/components/shared";
+import StructuredDescription from "@/components/products/StructuredDescription";
 
 /* ─── types ─── */
 interface CustomField {
@@ -135,6 +136,7 @@ export default function AdminProducts() {
   const initialFormRef = useRef<string>("");
   const [bulkRefreshing, setBulkRefreshing] = useState(false);
   const [bulkRefreshProgress, setBulkRefreshProgress] = useState({ current: 0, total: 0 });
+  const [showDescPreview, setShowDescPreview] = useState(false);
 
   const FORM_STORAGE_KEY = "admin-product-form-draft";
 
@@ -1317,7 +1319,28 @@ export default function AdminProducts() {
                       </div>
                     )}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">{form.description.length}/3000 — {descMode === "ultra-short" ? "5-line compressed" : descMode === "standard" ? "7-section structured" : "SEO-optimized extended"} · {aiGenerating ? "AI powered" : "Template + AI"}</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] text-muted-foreground">{form.description.length}/3000 — {descMode === "ultra-short" ? "5-line compressed" : descMode === "standard" ? "7-section structured" : "SEO-optimized extended"} · {aiGenerating ? "AI powered" : "Template + AI"}</p>
+                    <button
+                      type="button"
+                      onClick={() => setShowDescPreview((v) => !v)}
+                      className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showDescPreview ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                      {showDescPreview ? "Hide Preview" : "Live Preview"}
+                    </button>
+                  </div>
+                  {/* ── Live Description Preview ── */}
+                  {showDescPreview && form.description.trim() && (
+                    <div className="rounded-lg border border-border bg-background/50 p-1 max-h-[300px] overflow-y-auto">
+                      <StructuredDescription description={form.description} />
+                    </div>
+                  )}
+                  {showDescPreview && !form.description.trim() && (
+                    <div className="rounded-lg border border-dashed border-border bg-muted/20 p-6 flex items-center justify-center">
+                      <p className="text-[11px] text-muted-foreground/50">Enter a description or click AI Magic to see a live preview</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* ── IMEI Auto-Configured Banner ── */}
