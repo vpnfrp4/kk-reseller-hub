@@ -7,36 +7,32 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
 import {
-  LayoutDashboard,
-  Wallet,
-  Layers,
-  ClipboardList,
-  Settings2,
+  Home,
+  ShoppingCart,
+  FileText,
+  Receipt,
+  User,
   LogOut,
   Menu,
-  // ShieldCheck removed — using logo image instead
   ArrowLeftRight,
-  Bell,
+  Settings2,
+  Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import ThemeToggle from "@/components/ThemeToggle";
-import SoundToggle from "@/components/shared/SoundToggle";
 import CurrencyToggle from "@/components/shared/CurrencyToggle";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import { t } from "@/lib/i18n";
 import { useLang } from "@/contexts/LangContext";
 import { cn } from "@/lib/utils";
 import kkLogo from "@/assets/kkremote-logo.png";
 
-/* ── Icon accent colors per nav item ── */
+/* ── S-Tool Pro style nav items ── */
 const navItems = [
-  { mm: t.nav.dashboard.mm, en: t.nav.dashboard.en, icon: LayoutDashboard, path: "/dashboard", accent: "text-sky-400" },
-  { mm: t.nav.wallet.mm, en: t.nav.wallet.en, icon: Wallet, path: "/dashboard/wallet", accent: "text-emerald-400" },
-  { mm: t.nav.products.mm, en: t.nav.products.en, icon: Layers, path: "/dashboard/products", accent: "text-violet-400" },
-  { mm: t.nav.orders.mm, en: t.nav.orders.en, icon: ClipboardList, path: "/dashboard/orders", accent: "text-amber-400" },
-  { mm: t.nav.notifications.mm, en: t.nav.notifications.en, icon: Bell, path: "/dashboard/notifications", accent: "text-primary" },
-  { mm: t.nav.settings.mm, en: t.nav.settings.en, icon: Settings2, path: "/dashboard/settings", accent: "text-muted-foreground" },
+  { label: "Home", icon: Home, path: "/dashboard" },
+  { label: "Place Order", icon: ShoppingCart, path: "/dashboard/place-order" },
+  { label: "Statement", icon: FileText, path: "/dashboard/wallet" },
+  { label: "Orders", icon: Receipt, path: "/dashboard/orders" },
+  { label: "Account", icon: User, path: "/dashboard/settings" },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -59,19 +55,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
   }, [user]);
 
-  const { data: unreadCount = 0 } = useQuery({
-    queryKey: ["notifications-unread-count"],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("notifications")
-        .select("*", { count: "exact", head: true })
-        .eq("is_read", false);
-      return count || 0;
-    },
-    enabled: !!user,
-    refetchInterval: 30000,
-  });
-
   const handleLogout = async () => {
     await logout();
     navigate("/login");
@@ -88,86 +71,83 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* ═══ Sidebar — Glassmorphism Premium ═══ */}
+      {/* ═══ Sidebar — S-Tool Pro Style ═══ */}
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 w-[260px] flex flex-col",
-          "bg-sidebar/80 backdrop-blur-xl border-r border-sidebar-border/50",
+          "fixed lg:static inset-y-0 left-0 z-50 w-[240px] flex flex-col",
+          "bg-sidebar border-r border-sidebar-border",
           "transition-transform duration-300 ease-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         {/* Logo */}
-        <div className="px-5 py-5 border-b border-sidebar-border/50">
+        <div className="px-5 py-5 border-b border-sidebar-border">
           <Link to="/dashboard" className="flex items-center gap-3 group">
             <img
               src={kkLogo}
               alt="KKTech"
-              className="w-9 h-9 rounded-lg object-contain neon-logo-glow transition-transform duration-200 group-hover:scale-105"
+              className="w-8 h-8 rounded-lg object-contain transition-transform duration-200 group-hover:scale-105"
             />
             <div>
-              <span className="text-[15px] font-bold text-foreground tracking-tight">KK<span className="neon-text" style={{ fontSize: 'inherit', textShadow: '0 0 8px rgba(57,255,20,0.3)' }}>Tech</span></span>
+              <span className="text-[15px] font-bold text-foreground tracking-tight">
+                KK<span className="text-primary">Tech</span>
+              </span>
               <span className="text-[10px] block text-muted-foreground font-semibold uppercase tracking-[0.15em]">
-                {lang === "mm" ? t.nav.reseller.mm : t.nav.reseller.en}
+                Reseller Hub
               </span>
             </div>
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-3 pt-4 pb-2 flex flex-col gap-0.5">
+        <nav className="flex-1 px-3 pt-4 pb-2 flex flex-col gap-1">
           {navItems.map((item) => {
-            const active = location.pathname === item.path;
-            const isNotif = item.en === "Notifications";
+            const active = location.pathname === item.path ||
+              (item.path === "/dashboard" && location.pathname === "/dashboard") ||
+              (item.path !== "/dashboard" && location.pathname.startsWith(item.path));
             return (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "group relative flex items-center gap-3 h-[44px] rounded-lg text-[13px] tracking-wide",
-                  "pl-5 pr-3 transition-all duration-200",
+                  "group relative flex items-center gap-3 h-[42px] rounded-lg text-[13px]",
+                  "pl-4 pr-3 transition-all duration-200",
                   active
-                    ? "bg-secondary/80 text-foreground font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/40 hover:scale-[1.02] active:scale-[0.98]"
+                    ? "bg-primary/10 text-primary font-semibold"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
                 )}
               >
-                {/* Active glow bar */}
                 {active && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
                 )}
                 <item.icon
                   className={cn(
-                    "w-[18px] h-[18px] shrink-0 transition-all duration-200",
-                    active ? item.accent : "group-hover:text-foreground"
+                    "w-[18px] h-[18px] shrink-0",
+                    active ? "text-primary" : "group-hover:text-foreground"
                   )}
                   strokeWidth={1.5}
                 />
-                <span className="flex-1 truncate">{lang === "mm" ? item.mm : item.en}</span>
-                {isNotif && unreadCount > 0 && (
-                  <span className="ml-auto px-2 py-0.5 text-[10px] font-bold rounded-full bg-primary/15 text-primary min-w-[20px] text-center shadow-[0_0_6px_hsl(var(--primary)/0.3)]">
-                    {unreadCount > 99 ? "99+" : unreadCount}
-                  </span>
-                )}
+                <span className="flex-1 truncate">{item.label}</span>
               </Link>
             );
           })}
         </nav>
 
         {/* Footer */}
-        <div className="mt-auto border-t border-sidebar-border/50 px-3 pt-3 pb-3 space-y-1">
+        <div className="mt-auto border-t border-sidebar-border px-3 pt-3 pb-3 space-y-1">
           {isAdmin && (
             <Link
               to="/admin"
               onClick={() => setSidebarOpen(false)}
-              className="flex items-center gap-3 h-[44px] pl-5 pr-3 rounded-lg text-[13px] tracking-wide text-muted-foreground hover:text-foreground hover:bg-secondary/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+              className="flex items-center gap-3 h-[42px] pl-4 pr-3 rounded-lg text-[13px] text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all duration-200"
             >
               <ArrowLeftRight className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
-              <span>{lang === "mm" ? t.nav.adminPanel.mm : t.nav.adminPanel.en}</span>
+              <span>Admin Panel</span>
             </Link>
           )}
 
-          <div className="flex items-center gap-3 px-5 py-3">
+          <div className="flex items-center gap-3 px-4 py-3">
             <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -183,18 +163,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[44px] pl-5 text-[13px] tracking-wide rounded-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
+            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[42px] pl-4 text-[13px] rounded-lg transition-all duration-200"
             onClick={handleLogout}
           >
             <LogOut className="w-[18px] h-[18px] mr-3 shrink-0 text-destructive/60" strokeWidth={1.5} />
-            <span>{lang === "mm" ? t.nav.signOut.mm : t.nav.signOut.en}</span>
+            <span>Sign Out</span>
           </Button>
         </div>
       </aside>
 
       {/* Main Area */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-14 border-b border-border/50 flex items-center justify-between px-3 lg:px-8 sticky top-0 z-30 bg-card/70 backdrop-blur-xl shadow-[0_1px_3px_0_rgba(0,0,0,0.1)]">
+        <header className="h-14 border-b border-border/50 flex items-center justify-between px-3 lg:px-8 sticky top-0 z-30 bg-card/80 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
@@ -203,11 +183,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Menu className="w-5 h-5" strokeWidth={1.5} />
             </button>
             <div className="hidden lg:block">
-              <h2 className="text-sm font-semibold text-secondary-foreground tracking-wide uppercase">
-                {lang === "mm"
-                  ? navItems.find((i) => i.path === location.pathname)?.mm
-                  : navItems.find((i) => i.path === location.pathname)?.en
-                  || "Dashboard"}
+              <h2 className="text-sm font-semibold text-foreground tracking-wide">
+                {navItems.find((i) => location.pathname.startsWith(i.path) && i.path !== "/dashboard")?.label
+                  || (location.pathname === "/dashboard" ? "Home" : "Dashboard")}
               </h2>
             </div>
           </div>
@@ -218,24 +196,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               onClick={toggleLang}
               className="flex items-center h-8 rounded-lg border border-border bg-secondary text-[11px] font-bold uppercase tracking-wider overflow-hidden transition-all duration-200"
             >
-              <span className={cn("px-2.5 py-1.5 transition-all duration-300", lang === "en" ? "bg-[#39FF14]/15 text-[#39FF14] dark:bg-[#39FF14]/15 dark:text-[#39FF14] light:bg-[#15803d]/15 light:text-[#15803d]" : "text-muted-foreground")}>
+              <span className={cn("px-2.5 py-1.5 transition-all duration-300", lang === "en" ? "bg-primary/15 text-primary" : "text-muted-foreground")}>
                 EN
               </span>
-              <span className={cn("px-2.5 py-1.5 transition-all duration-300", lang === "mm" ? "bg-[#39FF14]/15 text-[#39FF14] dark:bg-[#39FF14]/15 dark:text-[#39FF14] light:bg-[#15803d]/15 light:text-[#15803d]" : "text-muted-foreground")}>
+              <span className={cn("px-2.5 py-1.5 transition-all duration-300", lang === "mm" ? "bg-primary/15 text-primary" : "text-muted-foreground")}>
                 MM
               </span>
             </button>
 
             <CurrencyToggle />
 
-            {/* Sound & Theme — hide on mobile to reduce clutter */}
-            <div className="hidden sm:flex items-center gap-3">
-              <SoundToggle />
-              <ThemeToggle />
-            </div>
-
-            <NotificationDropdown />
             <WalletChip profile={profile} />
+
+            <button
+              onClick={() => navigate("/dashboard/settings")}
+              className="p-2 rounded-lg border border-border bg-secondary text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Settings2 className="w-4 h-4" />
+            </button>
           </div>
         </header>
 
@@ -249,7 +227,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         <footer className="border-t border-border px-4 lg:px-8 py-4 text-center">
           <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-            {lang === "mm" ? t.common.termsAndConditions.mm : t.common.termsAndConditions.en}
+            Terms & Conditions
           </Link>
         </footer>
       </div>

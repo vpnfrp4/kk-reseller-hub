@@ -5,8 +5,7 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════
-   KK ULTRA LUXURY DARK-GOLD DESIGN SYSTEM
-   Private Banking / Black Card Aesthetic
+   S-TOOL PRO INSPIRED — Deep Navy Design System
    ═══════════════════════════════════════════════════════ */
 
 @layer base {
@@ -34,210 +33,87 @@
     --transition-slow: 350ms ease;
 
     /* ═══════════════════════════════════════
-       COLOR TOKENS — Luxury Dark-Gold Palette
-       Matte Black #0B0B0F / Gold #D4AF37 / Rose #EF4444
+       COLOR TOKENS — Deep Navy + Blue Primary
+       Background #0B0E14 / Cards #161B22 / Blue #3B82F6 / Gold #FFC107
        ═══════════════════════════════════════ */
 
-    /* Backgrounds — deep matte black */
-    --background: 240 12% 4%;                /* #0B0B0F */
-    --foreground: 40 10% 94%;                /* warm white #F0EDE8 */
+    /* Backgrounds — deep navy */
+    --background: 220 29% 6%;                /* #0B0E14 */
+    --foreground: 210 40% 93%;               /* #E2E8F0 */
 
-    --card: 240 10% 7%;                      /* #111116 */
-    --card-foreground: 40 10% 94%;
+    --card: 215 22% 11%;                     /* #161B22 */
+    --card-foreground: 210 40% 93%;
 
-    --popover: 240 10% 7%;
-    --popover-foreground: 40 10% 94%;
+    --popover: 215 22% 11%;
+    --popover-foreground: 210 40% 93%;
 
-    /* Primary — refined gold */
-    --primary: 43 65% 52%;                   /* #D4AF37 */
-    --primary-foreground: 240 12% 4%;        /* black text on gold */
+    /* Primary — professional blue */
+    --primary: 217 91% 60%;                  /* #3B82F6 */
+    --primary-foreground: 0 0% 100%;         /* white text on blue */
 
-    --secondary: 240 8% 10%;                 /* #16161C */
-    --secondary-foreground: 40 8% 80%;
+    --secondary: 215 20% 14%;               /* #1C2333 */
+    --secondary-foreground: 210 30% 80%;
 
-    --muted: 240 10% 7%;
-    --muted-foreground: 40 6% 50%;           /* warm gray */
+    --muted: 215 22% 11%;
+    --muted-foreground: 215 15% 50%;         /* slate gray */
 
-    --accent: 43 65% 52%;
-    --accent-foreground: 240 12% 4%;
-
-    --destructive: 0 72% 51%;               /* #DC2626 muted rose */
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 240 8% 13%;                    /* subtle dark border */
-    --input: 240 8% 13%;
-    --ring: 43 65% 52%;
-
-    /* Sidebar */
-    --sidebar-background: 240 12% 3%;        /* deeper than bg */
-    --sidebar-foreground: 40 6% 50%;
-    --sidebar-primary: 43 65% 52%;
-    --sidebar-primary-foreground: 240 12% 4%;
-    --sidebar-accent: 240 10% 7%;
-    --sidebar-accent-foreground: 40 8% 80%;
-    --sidebar-border: 240 8% 10%;
-    --sidebar-ring: 43 65% 52%;
-
-    /* Semantic */
-    --success: 142 60% 45%;                 /* green for positive */
-    --success-foreground: 0 0% 100%;
-    --warning: 40 6% 40%;                   /* muted neutral */
-    --warning-foreground: 40 10% 94%;
-    --ice: 40 6% 40%;
-    --ice-foreground: 40 10% 94%;
-
-    /* Shadows — luxury depth */
-    --shadow-card: 0 1px 3px rgba(0,0,0,0.5), 0 4px 20px -4px rgba(0,0,0,0.4);
-    --shadow-elevated: 0 4px 30px -4px rgba(0,0,0,0.6), 0 1px 8px rgba(0,0,0,0.3);
-    --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.02);
-    --shadow-header: 0 1px 0 hsl(240 8% 10%), 0 2px 10px -2px rgba(0,0,0,0.4);
-
-    --shadow-luxury: var(--shadow-card);
-    --shadow-elevated-compat: var(--shadow-elevated);
-    --gradient-navy: linear-gradient(180deg, hsl(240 12% 4%), hsl(240 10% 7%));
-    --primary-glow: 43 75% 58%;
-
-    /* Glass */
-    --glass-bg: hsla(240, 10%, 7%, 0.92);
-    --glass-border: rgba(212, 175, 55, 0.08);
-
-    /* Gold gradient */
-    --gold-gradient: linear-gradient(135deg, #D4AF37, #F6E27A, #C9A227);
-
-    /* Ambient blobs — very subtle gold */
-    --ambient-blob-1: hsl(240 12% 8% / 0.3);
-    --ambient-blob-2: hsl(43 65% 52% / 0.015);
-
-    /* Wallet hero */
-    --wallet-hero-from: 240 10% 7%;
-    --wallet-hero-to: 240 8% 10%;
-    --wallet-hero-blob: hsl(43 65% 52% / 0.04);
-  }
-
-  /* ═══ Premium Light Mode — Fintech White-Gold ═══ */
-  .light {
-    /* Backgrounds — clean slate whites */
-    --background: 210 40% 98%;               /* #F8FAFC */
-    --foreground: 222 47% 11%;               /* #0F172A */
-
-    --card: 0 0% 100%;                       /* #FFFFFF */
-    --card-foreground: 222 47% 11%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    /* Primary — refined gold */
-    --primary: 43 72% 47%;                   /* #C9A227 */
-    --primary-foreground: 0 0% 100%;         /* white text on gold */
-    --primary-glow: 43 80% 55%;
-
-    --secondary: 210 40% 96%;               /* #F1F5F9 */
-    --secondary-foreground: 222 47% 11%;
-
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;         /* #64748B */
-
-    --accent: 43 72% 47%;
+    --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 72% 51%;               /* #DC2626 */
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;                   /* #E2E8F0 */
-    --input: 214 32% 91%;
-    --ring: 43 72% 47%;
+    --border: 215 18% 16%;                   /* subtle navy border */
+    --input: 215 18% 16%;
+    --ring: 217 91% 60%;
 
-    /* Sidebar — white with gold accents */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 215 16% 47%;
-    --sidebar-primary: 43 72% 47%;
+    /* Sidebar */
+    --sidebar-background: 220 30% 5%;        /* deeper than bg */
+    --sidebar-foreground: 215 15% 50%;
+    --sidebar-primary: 217 91% 60%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 43 90% 95%;            /* soft gold bg #FFF8E1 */
-    --sidebar-accent-foreground: 43 72% 37%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 43 72% 47%;
+    --sidebar-accent: 215 22% 11%;
+    --sidebar-accent-foreground: 210 30% 80%;
+    --sidebar-border: 215 18% 12%;
+    --sidebar-ring: 217 91% 60%;
 
     /* Semantic */
-    --success: 142 60% 40%;
+    --success: 142 60% 45%;                  /* green */
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 222 47% 11%;
-    --ice: 199 89% 48%;
+    --warning: 38 92% 50%;                   /* amber */
+    --warning-foreground: 0 0% 100%;
+    --ice: 199 89% 48%;                      /* sky blue */
     --ice-foreground: 0 0% 100%;
 
-    /* Shadows — light & elegant */
-    --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 16px -4px rgba(0,0,0,0.06);
-    --shadow-elevated: 0 4px 24px -4px rgba(0,0,0,0.08), 0 1px 6px rgba(0,0,0,0.04);
-    --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.8);
-    --shadow-header: 0 1px 0 hsl(214 32% 91%), 0 2px 8px -2px rgba(0,0,0,0.06);
+    /* Gold — for balance display */
+    --gold: 45 100% 51%;                     /* #FFC107 */
+
+    /* Shadows */
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.4), 0 4px 20px -4px rgba(0,0,0,0.3);
+    --shadow-elevated: 0 4px 30px -4px rgba(0,0,0,0.5), 0 1px 8px rgba(0,0,0,0.25);
+    --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.03);
+    --shadow-header: 0 1px 0 hsl(215 18% 12%), 0 2px 10px -2px rgba(0,0,0,0.3);
+
     --shadow-luxury: var(--shadow-card);
     --shadow-elevated-compat: var(--shadow-elevated);
+    --gradient-navy: linear-gradient(180deg, hsl(220 29% 6%), hsl(215 22% 11%));
+    --primary-glow: 217 91% 68%;
 
     /* Glass */
-    --glass-bg: rgba(255, 255, 255, 0.92);
-    --glass-border: rgba(201, 162, 39, 0.12);
+    --glass-bg: hsla(215, 22%, 11%, 0.92);
+    --glass-border: rgba(59, 130, 246, 0.08);
 
-    --gold-gradient: linear-gradient(135deg, #C9A227, #E8D06A, #B48A1E);
-    --gradient-navy: linear-gradient(180deg, hsl(210 40% 98%), hsl(0 0% 100%));
+    /* Gold gradient (for balance) */
+    --gold-gradient: linear-gradient(135deg, #FFC107, #FFD54F, #FFA000);
 
-    /* Ambient blobs — very subtle warm tones */
-    --ambient-blob-1: hsl(43 60% 90% / 0.15);
-    --ambient-blob-2: hsl(43 72% 47% / 0.03);
+    /* Ambient blobs — very subtle blue */
+    --ambient-blob-1: hsl(217 91% 60% / 0.02);
+    --ambient-blob-2: hsl(220 29% 8% / 0.3);
 
-    /* Wallet hero — white-gold gradient */
-    --wallet-hero-from: 0 0% 100%;
-    --wallet-hero-to: 210 40% 98%;
-    --wallet-hero-blob: hsl(43 72% 47% / 0.06);
-  }
-
-  .dark {
-    --background: 240 12% 4%;
-    --foreground: 40 10% 94%;
-    --card: 240 10% 7%;
-    --card-foreground: 40 10% 94%;
-    --popover: 240 10% 7%;
-    --popover-foreground: 40 10% 94%;
-    --primary: 43 65% 52%;
-    --primary-foreground: 240 12% 4%;
-    --primary-glow: 43 75% 58%;
-    --secondary: 240 8% 10%;
-    --secondary-foreground: 40 8% 80%;
-    --muted: 240 10% 7%;
-    --muted-foreground: 40 6% 50%;
-    --accent: 43 65% 52%;
-    --accent-foreground: 240 12% 4%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 240 8% 13%;
-    --input: 240 8% 13%;
-    --ring: 43 65% 52%;
-    --sidebar-background: 240 12% 3%;
-    --sidebar-foreground: 40 6% 50%;
-    --sidebar-primary: 43 65% 52%;
-    --sidebar-primary-foreground: 240 12% 4%;
-    --sidebar-accent: 240 10% 7%;
-    --sidebar-accent-foreground: 40 8% 80%;
-    --sidebar-border: 240 8% 10%;
-    --sidebar-ring: 43 65% 52%;
-    --success: 142 60% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 40 6% 40%;
-    --warning-foreground: 40 10% 94%;
-    --ice: 40 6% 40%;
-    --ice-foreground: 40 10% 94%;
-    --shadow-card: 0 1px 3px rgba(0,0,0,0.5), 0 4px 20px -4px rgba(0,0,0,0.4);
-    --shadow-elevated: 0 4px 30px -4px rgba(0,0,0,0.6), 0 1px 8px rgba(0,0,0,0.3);
-    --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.02);
-    --shadow-header: 0 1px 0 hsl(240 8% 10%), 0 2px 10px -2px rgba(0,0,0,0.4);
-    --glass-bg: hsla(240, 10%, 7%, 0.92);
-    --glass-border: rgba(212, 175, 55, 0.08);
-    --shadow-luxury: var(--shadow-card);
-    --gradient-navy: linear-gradient(180deg, hsl(240 12% 4%), hsl(240 10% 7%));
-    --ambient-blob-1: hsl(240 12% 8% / 0.3);
-    --ambient-blob-2: hsl(43 65% 52% / 0.015);
-    --wallet-hero-from: 240 10% 7%;
-    --wallet-hero-to: 240 8% 10%;
-    --wallet-hero-blob: hsl(43 65% 52% / 0.04);
+    /* Wallet hero */
+    --wallet-hero-from: 215 22% 11%;
+    --wallet-hero-to: 215 20% 14%;
+    --wallet-hero-blob: hsl(217 91% 60% / 0.04);
   }
 }
 
@@ -247,11 +123,7 @@
   }
 
   html {
-    background: hsl(240 12% 4%);
-  }
-  .light html,
-  html.light {
-    background: hsl(210 40% 98%);
+    background: hsl(220 29% 6%);
   }
 
   body {
@@ -259,16 +131,14 @@
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Safe area insets for notch/home bar */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
-    /* Prevent overscroll color flash */
     overscroll-behavior-y: none;
   }
 
-  /* Typography Scale — luxury hierarchy with wider tracking */
+  /* Typography Scale */
   h1 { @apply text-2xl md:text-3xl font-bold leading-tight; letter-spacing: -0.01em; }
   h2 { @apply text-lg font-semibold leading-snug; letter-spacing: 0.01em; }
   h3 { @apply text-base font-semibold leading-snug; letter-spacing: 0.01em; }
@@ -277,7 +147,7 @@
     font-family: 'JetBrains Mono', monospace;
   }
 
-  /* Subtle ambient background — gold tinted */
+  /* Subtle ambient background */
   body::before {
     content: '';
     position: fixed;
@@ -321,7 +191,6 @@
     to { transform: rotateY(360deg) rotateX(180deg); }
   }
 
-  /* Gold shimmer animation */
   @keyframes gold-shimmer {
     0% { background-position: -200% center; }
     100% { background-position: 200% center; }
@@ -334,11 +203,11 @@
 }
 
 /* ═══════════════════════════════════════════════════════
-   COMPONENT SYSTEM — Ultra Luxury Dark-Gold
+   COMPONENT SYSTEM — S-Tool Pro Navy
    ═══════════════════════════════════════════════════════ */
 
 @layer components {
-  /* ─── Solid Cards (luxury dark surfaces) ─── */
+  /* ─── Solid Cards (navy surfaces) ─── */
   .glass-card {
     position: relative;
     background: hsl(var(--card));
@@ -348,21 +217,8 @@
     transition: border-color var(--transition-base);
   }
 
-  .glass-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    opacity: 0.03;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23g)' opacity='1'/%3E%3C/svg%3E");
-    background-size: 200px 200px;
-    mix-blend-mode: overlay;
-    z-index: 1;
-  }
-
   .glass-card:hover {
-    border-color: hsl(var(--primary) / 0.15);
+    border-color: hsl(var(--primary) / 0.2);
   }
 
   .stat-card {
@@ -377,7 +233,7 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.4), transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.3), transparent);
   }
 
   .card-elevated {
@@ -387,7 +243,7 @@
 
   /* ─── Typography Utilities ─── */
   .gold-text {
-    color: hsl(var(--primary));
+    color: hsl(var(--gold));
     font-weight: 600;
   }
 
@@ -396,7 +252,7 @@
   }
 
   .gold-shimmer {
-    background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary-glow)), hsl(var(--primary)));
+    background: linear-gradient(90deg, hsl(var(--gold)), #FFD54F, hsl(var(--gold)));
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -406,7 +262,7 @@
   }
 
   .gold-shimmer-bg {
-    background: hsl(var(--primary) / 0.06);
+    background: hsl(var(--gold) / 0.06);
   }
 
   .financial-number {
@@ -422,12 +278,12 @@
   }
 
   .btn-glow {
-    background: linear-gradient(135deg, hsl(43 65% 52%), hsl(43 80% 60%), hsl(43 60% 47%));
-    color: hsl(240 12% 4%);
+    background: linear-gradient(135deg, hsl(217 91% 55%), hsl(217 91% 65%), hsl(217 91% 50%));
+    color: #fff;
     font-weight: 700;
     border-radius: var(--radius-btn);
     transition: all var(--transition-base);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 0 0 0 rgba(212,175,55,0);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2), 0 0 20px rgba(59, 130, 246, 0.15);
     letter-spacing: 0.02em;
     position: relative;
     overflow: hidden;
@@ -440,14 +296,14 @@
     left: -100%;
     width: 60%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
     animation: btn-shimmer-sweep 3s ease-in-out infinite;
     pointer-events: none;
   }
 
   .btn-glow:hover {
-    filter: brightness(1.08);
-    box-shadow: 0 2px 12px rgba(212, 175, 55, 0.25), 0 0 20px rgba(212, 175, 55, 0.08);
+    filter: brightness(1.1);
+    box-shadow: 0 2px 12px rgba(59, 130, 246, 0.35), 0 0 30px rgba(59, 130, 246, 0.1);
     transform: translateY(-1px);
   }
 
@@ -518,19 +374,16 @@
     transition: opacity 0.4s ease-out, transform 0.5s ease-out;
   }
 
-  /* ─── Wallet Hero — Black Glass Card with Gold Border Glow + Grain ─── */
+  /* ─── Wallet Hero — Navy Glass Card with Blue Border ─── */
   .wallet-hero {
-    background:
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E"),
-      linear-gradient(135deg, hsl(var(--wallet-hero-from)), hsl(var(--wallet-hero-to)));
+    background: linear-gradient(135deg, hsl(var(--wallet-hero-from)), hsl(var(--wallet-hero-to)));
     border: 1px solid hsl(var(--primary) / 0.12);
     border-radius: var(--radius-modal);
     position: relative;
     overflow: hidden;
-    box-shadow: var(--shadow-card), 0 0 40px rgba(212, 175, 55, 0.03);
+    box-shadow: var(--shadow-card);
   }
 
-  /* Gold radial blob — top right */
   .wallet-hero::before {
     content: '';
     position: absolute;
@@ -539,12 +392,11 @@
     width: 280px;
     height: 280px;
     border-radius: 50%;
-    background: radial-gradient(circle, hsl(43 65% 52% / 0.06), transparent 70%);
+    background: radial-gradient(circle, hsl(217 91% 60% / 0.06), transparent 70%);
     pointer-events: none;
     animation: gold-pulse 6s ease-in-out infinite;
   }
 
-  /* Gold radial blob — bottom left */
   .wallet-hero::after {
     content: '';
     position: absolute;
@@ -640,12 +492,12 @@
     @apply text-destructive;
   }
 
-  /* ─── Gold Glow Shadow ─── */
+  /* ─── Blue Glow Shadow ─── */
   .shadow-glow {
-    box-shadow: 0 0 20px rgba(212, 175, 55, 0.12);
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.15);
   }
 
-  /* ─── Loading Skeleton — dark + gold shimmer ─── */
+  /* ─── Loading Skeleton ─── */
   .skeleton-gold {
     background: linear-gradient(90deg, hsl(var(--secondary)), hsl(var(--primary) / 0.05), hsl(var(--secondary)));
     background-size: 200% 100%;
@@ -658,10 +510,6 @@
     color: #39FF14;
     text-shadow: 0 0 10px rgba(57, 255, 20, 0.4), 0 0 40px rgba(57, 255, 20, 0.15);
   }
-  .light .neon-text {
-    color: #15803d;
-    text-shadow: none;
-  }
 
   .neon-glow-btn {
     box-shadow: 0 0 15px rgba(57, 255, 20, 0.25), 0 0 40px rgba(57, 255, 20, 0.08);
@@ -669,13 +517,6 @@
   }
   .neon-glow-btn:hover {
     box-shadow: 0 0 20px rgba(57, 255, 20, 0.4), 0 0 60px rgba(57, 255, 20, 0.15);
-    transform: translateY(-1px);
-  }
-  .light .neon-glow-btn {
-    box-shadow: 0 2px 12px rgba(21, 128, 61, 0.2);
-  }
-  .light .neon-glow-btn:hover {
-    box-shadow: 0 4px 20px rgba(21, 128, 61, 0.3);
     transform: translateY(-1px);
   }
 
@@ -691,16 +532,6 @@
     box-shadow: 0 0 30px rgba(57, 255, 20, 0.08), 0 4px 20px rgba(0,0,0,0.4);
     transform: translateY(-4px);
   }
-  .light .neon-card {
-    background: rgba(255, 255, 255, 0.85);
-    border-color: rgba(21, 128, 61, 0.12);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-  }
-  .light .neon-card:hover {
-    border-color: rgba(21, 128, 61, 0.3);
-    box-shadow: 0 4px 24px rgba(21, 128, 61, 0.08), 0 2px 8px rgba(0,0,0,0.04);
-    transform: translateY(-4px);
-  }
 
   .circuit-grid {
     background-image:
@@ -708,55 +539,20 @@
       linear-gradient(90deg, rgba(57, 255, 20, 0.03) 1px, transparent 1px);
     background-size: 60px 60px;
   }
-  .light .circuit-grid {
-    background-image:
-      linear-gradient(rgba(21, 128, 61, 0.04) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(21, 128, 61, 0.04) 1px, transparent 1px);
-  }
 
   .neon-logo-glow {
     filter: drop-shadow(0 0 12px rgba(57, 255, 20, 0.4)) drop-shadow(0 0 30px rgba(57, 255, 20, 0.15));
-  }
-  .light .neon-logo-glow {
-    filter: drop-shadow(0 0 6px rgba(21, 128, 61, 0.2));
   }
 
   /* ─── Landing page theme-aware helpers ─── */
   .landing-hero-bg {
     background: #060608;
   }
-  .light .landing-hero-bg {
-    background: hsl(210 40% 98%);
-  }
   .landing-section-bg {
     background: #060608;
   }
-  .light .landing-section-bg {
-    background: hsl(210 40% 98%);
-  }
   .landing-footer-bg {
     background: #0a0a0e;
-  }
-  .light .landing-footer-bg {
-    background: hsl(0 0% 100%);
-  }
-  .light-neon-label {
-    /* dark mode handled inline; light override */
-  }
-  .light .light-neon-label {
-    color: rgba(21, 128, 61, 0.7) !important;
-  }
-  .light-neon-icon-bg {
-    /* handled by dark variant inline */
-  }
-  .light .light-neon-icon-bg {
-    background: rgba(21, 128, 61, 0.08) !important;
-  }
-  .light .light-neon-icon {
-    color: #15803d !important;
-  }
-  .light .light-neon-dot {
-    color: rgba(21, 128, 61, 0.3) !important;
   }
   .landing-cta-btn {
     background: #39FF14;
@@ -765,27 +561,31 @@
   .landing-cta-btn:hover {
     background: rgba(57, 255, 20, 0.9);
   }
-  .light .landing-cta-btn {
-    background: #15803d;
-    color: #ffffff;
-  }
-  .light .landing-cta-btn:hover {
-    background: #166534;
-  }
   .landing-outline-btn {
     color: #39FF14;
   }
   .landing-outline-btn:hover {
     background: rgba(57, 255, 20, 0.06);
   }
-  .light .landing-outline-btn {
-    color: #15803d !important;
-    border-color: rgba(21, 128, 61, 0.2) !important;
+
+  /* ─── S-Tool Pro Balance Card ─── */
+  .balance-card {
+    background: linear-gradient(135deg, hsl(215 22% 13%), hsl(215 20% 16%));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-card);
+    padding: var(--space-card);
   }
-  .light .landing-outline-btn:hover {
-    background: rgba(21, 128, 61, 0.06) !important;
-    border-color: rgba(21, 128, 61, 0.4) !important;
+
+  /* ─── Order Success Modal ─── */
+  .success-modal-overlay {
+    background: rgba(11, 14, 20, 0.8);
+    backdrop-filter: blur(8px);
   }
+
+  /* ─── Service Label Colors ─── */
+  .label-active { color: hsl(var(--primary)); background: hsl(var(--primary) / 0.12); }
+  .label-instant { color: hsl(var(--success)); background: hsl(var(--success) / 0.12); }
+  .label-manual { color: hsl(var(--warning)); background: hsl(var(--warning) / 0.12); }
 }
 
 @layer utilities {

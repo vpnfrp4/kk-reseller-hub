@@ -85,6 +85,9 @@ export default {
           DEFAULT: "hsl(var(--ice))",
           foreground: "hsl(var(--ice-foreground))",
         },
+        gold: {
+          DEFAULT: "hsl(var(--gold, 45 100% 51%))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
