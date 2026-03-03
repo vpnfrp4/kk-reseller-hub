@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
-import TopUpDialog from "@/components/wallet/TopUpDialog";
+
 import { cn } from "@/lib/utils";
 import { Money, QuantitySelector } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
@@ -129,8 +129,6 @@ export default function OrderFlowPage() {
   const [purchasing, setPurchasing] = useState(false);
   const [result, setResult] = useState<PurchaseResult | null>(null);
   const [lastSavings, setLastSavings] = useState(0);
-  const [topUpOpen, setTopUpOpen] = useState(false);
-  const [topUpDefaultAmount, setTopUpDefaultAmount] = useState<number | undefined>();
   const [copied, setCopied] = useState(false);
   const [lastOrderTime, setLastOrderTime] = useState(0);
   const [lastOrderKey, setLastOrderKey] = useState("");
@@ -976,10 +974,7 @@ export default function OrderFlowPage() {
               <Button
                 type="button"
                 className="w-full h-10 rounded-[var(--radius-btn)] btn-glow text-sm gap-2"
-                onClick={() => {
-                  setTopUpDefaultAmount(suggestedTopUp);
-                  setTopUpOpen(true);
-                }}
+                onClick={() => navigate("/dashboard/wallet")}
               >
                 <Wallet className="w-4 h-4" />
                 Top Up {suggestedTopUp.toLocaleString()} MMK
@@ -1157,15 +1152,6 @@ export default function OrderFlowPage() {
         </div>
       )}
 
-      {/* Top-up dialog */}
-      <TopUpDialog
-        userId={user?.id}
-        defaultAmount={topUpDefaultAmount}
-        open={topUpOpen}
-        onOpenChange={setTopUpOpen}
-        hideTrigger
-        onSubmitted={(txId) => navigate(`/dashboard/topup-status/${txId}`)}
-      />
     </div>
   );
 }

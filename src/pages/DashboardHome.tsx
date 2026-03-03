@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { PageContainer, Money } from "@/components/shared";
-import TopUpDialog from "@/components/wallet/TopUpDialog";
+
 import { cn } from "@/lib/utils";
 import { t, useT } from "@/lib/i18n";
 import { MmStatus } from "@/components/shared/MmLabel";
@@ -29,7 +29,7 @@ export default function DashboardHome() {
   const queryClient = useQueryClient();
   const initialized = useRef(false);
   const navigate = useNavigate();
-  const [topUpOpen, setTopUpOpen] = useState(false);
+  
   const [searchQuery, setSearchQuery] = useState("");
   const l = useT();
 
@@ -109,7 +109,7 @@ export default function DashboardHome() {
               <p className="text-[11px] text-muted-foreground/50 mt-1">MMK</p>
             </div>
             <button
-              onClick={() => setTopUpOpen(true)}
+              onClick={() => navigate("/dashboard/wallet")}
               className="flex items-center gap-2 px-5 py-2.5 rounded-[var(--radius-btn)] font-semibold text-sm transition-all"
               style={{
                 background: "linear-gradient(135deg, #FFC107, #FFD54F)",
@@ -203,16 +203,6 @@ export default function DashboardHome() {
         )}
       </div>
 
-      <TopUpDialog
-        userId={profile?.user_id}
-        open={topUpOpen}
-        onOpenChange={setTopUpOpen}
-        hideTrigger
-        onSubmitted={(id) => {
-          setTopUpOpen(false);
-          navigate(`/dashboard/wallet/topup-status?id=${id}`);
-        }}
-      />
     </PageContainer>
   );
 }
