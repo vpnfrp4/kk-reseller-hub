@@ -22,7 +22,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import ConfirmModal from "@/components/shared/ConfirmModal";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, FileText, Sparkles, Zap, Loader2, Search, RefreshCw, Eye, EyeOff, Copy, ClipboardPaste } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, FileText, Sparkles, Zap, Loader2, Search, RefreshCw, Eye, EyeOff, Copy, ClipboardPaste, TrendingUp, Percent, AlertTriangle } from "lucide-react";
 import { generateProductDescription, type DescriptionMode } from "@/lib/description-templates";
 import { optimizeTitle, autoBuildProduct, type AutoBuildResult } from "@/lib/title-optimizer";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
@@ -62,7 +62,7 @@ const PRODUCT_TYPES = [
 
 type ProductType = typeof PRODUCT_TYPES[number]["value"];
 
-const CATEGORIES = ["All", "VPN", "Editing Tools", "AI Accounts", "IMEI Unlock"] as const;
+const STATIC_CATEGORIES = ["VPN", "Editing Tools", "AI Accounts", "IMEI Unlock"];
 
 function calcFinalPrice(providerPrice: number, margin: number): number {
   if (providerPrice <= 0) return 0;
@@ -110,6 +110,11 @@ export default function AdminProducts() {
   const [typeFilter, setTypeFilter] = useState<string>("All");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkToggling, setBulkToggling] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
+  const [bulkPricePercent, setBulkPricePercent] = useState("10");
+  const [bulkPriceDirection, setBulkPriceDirection] = useState<"increase" | "decrease">("increase");
+  const [bulkPriceCategory, setBulkPriceCategory] = useState("All");
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadStage, setUploadStage] = useState<"idle" | "compressing" | "uploading">("idle");
@@ -837,9 +842,25 @@ export default function AdminProducts() {
   const showStockField = isDigital;
   const showDirectPricing = isDigital || isManual;
 
+  // Dynamic categories from actual product data
+  const dynamicCategories = useMemo(() => {
+    const cats = new Set<string>();
+    (products || []).forEach((p: any) => { if (p.category) cats.add(p.category); });
+    STATIC_CATEGORIES.forEach((c) => cats.add(c));
+    return ["All", ...Array.from(cats).sort()];
+  }, [products]);
+
   const filteredProducts = (products || []).filter((p: any) => {
     if (activeCategory !== "All" && p.category !== activeCategory) return false;
     if (typeFilter !== "All" && p.product_type !== typeFilter) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const matchName = p.name?.toLowerCase().includes(q);
+      const matchId = String(p.display_id).includes(q);
+      const matchCategory = p.category?.toLowerCase().includes(q);
+      const matchCode = p.product_code?.toLowerCase().includes(q);
+      if (!matchName && !matchId && !matchCategory && !matchCode) return false;
+    }
     return true;
   });
 
@@ -924,7 +945,7 @@ export default function AdminProducts() {
         <div>
           <h1 className="text-h1 text-foreground">Products</h1>
           <p className="text-caption text-muted-foreground">
-            Manage all products · {(products || []).length} total
+            Manage all products · {(products || []).length} total · {filteredProducts.length} shown
           </p>
         </div>
         <div className="flex gap-2">
@@ -1668,43 +1689,140 @@ export default function AdminProducts() {
         </div>
       </div>
 
-      {/* ── Filters ── */}
-      <div className="flex gap-2 animate-fade-in items-center flex-wrap">
-        {CATEGORIES.map((cat) => (
-          <button key={cat} onClick={() => setActiveCategory(cat)}
-            className={`filter-pill ${activeCategory === cat ? "filter-pill-active" : "filter-pill-inactive"}`}>{cat}</button>
-        ))}
-        <div className="h-4 w-px bg-border mx-1" />
-        {["All", ...PRODUCT_TYPES.map((pt) => pt.value)].map((t) => (
-          <button key={t} onClick={() => setTypeFilter(t)}
-            className={`filter-pill ${typeFilter === t ? "filter-pill-active" : "filter-pill-inactive"}`}>
-            {t === "All" ? "All Types" : PRODUCT_TYPES.find((pt) => pt.value === t)?.label || t}
-          </button>
-        ))}
-        <Button variant="outline" size="sm" className="ml-auto gap-1.5 text-xs"
-          onClick={async () => {
-            if (!products || !confirm("Reset product order to alphabetical?")) return;
-            const previousOrder = products.map((p: any) => ({ id: p.id, sort_order: p.sort_order }));
-            const sorted = [...products].sort((a: any, b: any) => a.name.localeCompare(b.name));
-            const updated = sorted.map((p: any, i: number) => ({ ...p, sort_order: i }));
-            queryClient.setQueryData(["admin-products"], updated);
-            for (const p of updated) { await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id); }
-            queryClient.invalidateQueries({ queryKey: ["products"] });
-            const DURATION = 10000;
-            toast.custom((id) => (
-              <UndoToast id={id} duration={DURATION} message={`Order reset — ${updated.length} products reordered`}
-                onUndo={async () => {
-                  toast.dismiss(id);
-                  for (const p of previousOrder) { await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id); }
-                  queryClient.invalidateQueries({ queryKey: ["admin-products"] });
-                  queryClient.invalidateQueries({ queryKey: ["products"] });
-                  toast.success("Order restored");
-                }} />
-            ), { duration: DURATION });
-          }}>
-          <RotateCcw className="w-3.5 h-3.5" /> Reset Order
-        </Button>
+      {/* ── Search + Filters ── */}
+      <div className="space-y-3 animate-fade-in">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search by name, ID, category, or code..."
+            className="pl-10 bg-muted/30 border-border h-10"
+          />
+        </div>
+        <div className="flex gap-2 items-center flex-wrap">
+          {dynamicCategories.map((cat) => (
+            <button key={cat} onClick={() => setActiveCategory(cat)}
+              className={`filter-pill ${activeCategory === cat ? "filter-pill-active" : "filter-pill-inactive"}`}>{cat}</button>
+          ))}
+          <div className="h-4 w-px bg-border mx-1" />
+          {["All", ...PRODUCT_TYPES.map((pt) => pt.value)].map((t) => (
+            <button key={t} onClick={() => setTypeFilter(t)}
+              className={`filter-pill ${typeFilter === t ? "filter-pill-active" : "filter-pill-inactive"}`}>
+              {t === "All" ? "All Types" : PRODUCT_TYPES.find((pt) => pt.value === t)?.label || t}
+            </button>
+          ))}
+          <div className="ml-auto flex gap-2">
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs"
+              onClick={() => setBulkPriceOpen(true)}>
+              <Percent className="w-3.5 h-3.5" /> Adjust Prices
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1.5 text-xs"
+              onClick={async () => {
+                if (!products || !confirm("Reset product order to alphabetical?")) return;
+                const previousOrder = products.map((p: any) => ({ id: p.id, sort_order: p.sort_order }));
+                const sorted = [...products].sort((a: any, b: any) => a.name.localeCompare(b.name));
+                const updated = sorted.map((p: any, i: number) => ({ ...p, sort_order: i }));
+                queryClient.setQueryData(["admin-products"], updated);
+                for (const p of updated) { await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id); }
+                queryClient.invalidateQueries({ queryKey: ["products"] });
+                const DURATION = 10000;
+                toast.custom((id) => (
+                  <UndoToast id={id} duration={DURATION} message={`Order reset — ${updated.length} products reordered`}
+                    onUndo={async () => {
+                      toast.dismiss(id);
+                      for (const p of previousOrder) { await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id); }
+                      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+                      queryClient.invalidateQueries({ queryKey: ["products"] });
+                      toast.success("Order restored");
+                    }} />
+                ), { duration: DURATION });
+              }}>
+              <RotateCcw className="w-3.5 h-3.5" /> Reset Order
+            </Button>
+          </div>
+        </div>
       </div>
+
+      {/* ── Bulk Price Adjustment Dialog ── */}
+      <Dialog open={bulkPriceOpen} onOpenChange={setBulkPriceOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <TrendingUp className="w-5 h-5 text-primary" /> Bulk Price Adjustment
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="space-y-1">
+              <Label className="text-muted-foreground text-xs">Category</Label>
+              <Select value={bulkPriceCategory} onValueChange={setBulkPriceCategory}>
+                <SelectTrigger className="bg-muted/50 border-border"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {dynamicCategories.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label className="text-muted-foreground text-xs">Direction</Label>
+                <Select value={bulkPriceDirection} onValueChange={(v: any) => setBulkPriceDirection(v)}>
+                  <SelectTrigger className="bg-muted/50 border-border"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="increase">📈 Increase</SelectItem>
+                    <SelectItem value="decrease">📉 Decrease</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-1">
+                <Label className="text-muted-foreground text-xs">Percentage %</Label>
+                <Input type="number" value={bulkPricePercent} onChange={(e) => setBulkPricePercent(e.target.value)}
+                  className="bg-muted/50 border-border font-mono" min="1" max="100" />
+              </div>
+            </div>
+            {(() => {
+              const targetProducts = (products || []).filter((p: any) =>
+                bulkPriceCategory === "All" || p.category === bulkPriceCategory
+              );
+              return (
+                <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+                  <p className="text-xs text-muted-foreground">
+                    This will <span className="font-semibold text-foreground">{bulkPriceDirection}</span> prices by <span className="font-mono font-bold text-primary">{bulkPricePercent}%</span> for <span className="font-bold text-foreground">{targetProducts.length}</span> products
+                  </p>
+                </div>
+              );
+            })()}
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setBulkPriceOpen(false)}>Cancel</Button>
+              <Button className="flex-1 btn-glow" onClick={async () => {
+                const pct = parseFloat(bulkPricePercent);
+                if (isNaN(pct) || pct <= 0 || pct > 100) { toast.error("Enter a valid percentage (1-100)"); return; }
+                const targetProducts = (products || []).filter((p: any) =>
+                  bulkPriceCategory === "All" || p.category === bulkPriceCategory
+                );
+                if (targetProducts.length === 0) { toast.error("No products found for this category"); return; }
+                const multiplier = bulkPriceDirection === "increase" ? (1 + pct / 100) : (1 - pct / 100);
+                let updated = 0;
+                for (const p of targetProducts) {
+                  const newWholesale = Math.round((p.wholesale_price || 0) * multiplier);
+                  const newRetail = Math.round((p.retail_price || 0) * multiplier);
+                  const { error } = await supabase.from("products")
+                    .update({ wholesale_price: newWholesale, retail_price: newRetail } as any)
+                    .eq("id", p.id);
+                  if (!error) updated++;
+                }
+                toast.success(`Updated ${updated} products`);
+                queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+                queryClient.invalidateQueries({ queryKey: ["products"] });
+                setBulkPriceOpen(false);
+              }}>
+                Apply {bulkPriceDirection === "increase" ? "📈" : "📉"} {bulkPricePercent}%
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Bulk Action Bar ── */}
       {selectedCount > 0 && (
@@ -1715,13 +1833,34 @@ export default function AdminProducts() {
             disabled={bulkToggling}
             onClick={() => handleBulkToggleType("auto")}>
             <Eye className="w-3.5 h-3.5" />
-            Enable (Visible)
+            Enable
           </Button>
           <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs"
             disabled={bulkToggling}
             onClick={() => handleBulkToggleType("manual")}>
             <EyeOff className="w-3.5 h-3.5" />
-            Disable (Hidden)
+            Disable
+          </Button>
+          <Button size="sm" variant="destructive" className="h-7 gap-1.5 text-xs"
+            onClick={async () => {
+              if (!confirm(`Delete ${selectedCount} products? This cannot be undone.`)) return;
+              const ids = Array.from(selectedIds);
+              const CHUNK = 50;
+              for (let i = 0; i < ids.length; i += CHUNK) {
+                const chunk = ids.slice(i, i + CHUNK);
+                // Unlink orders first
+                await supabase.from("orders").update({ product_id: null } as any).in("product_id", chunk);
+                await supabase.from("product_custom_fields").delete().in("product_id", chunk);
+                await supabase.from("pricing_tiers").delete().in("product_id", chunk);
+                await supabase.from("products").delete().in("id", chunk);
+              }
+              toast.success(`${ids.length} products deleted`);
+              queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+              queryClient.invalidateQueries({ queryKey: ["products"] });
+              setSelectedIds(new Set());
+            }}>
+            <Trash2 className="w-3.5 h-3.5" />
+            Delete
           </Button>
           <Button size="sm" variant="ghost" className="h-7 text-xs ml-auto"
             onClick={() => setSelectedIds(new Set())}>
@@ -1737,21 +1876,22 @@ export default function AdminProducts() {
             <table className="premium-table">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="w-8 p-4">
+                  <th className="w-8 p-3">
                     <input type="checkbox" checked={allFilteredSelected && filteredProducts.length > 0}
                       onChange={toggleSelectAll}
                       className="w-3.5 h-3.5 rounded border-border accent-primary cursor-pointer" />
                   </th>
-                  <th className="w-10 p-4"></th>
-                  <th className="text-left text-xs font-medium text-muted-foreground p-4">ID</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Product</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Type</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Status</th>
-                  <th className="text-left text-xs font-medium text-muted-foreground p-4">Category</th>
-                  <th className="text-right text-xs font-medium text-muted-foreground p-4">Price</th>
-                  <th className="text-center text-xs font-medium text-muted-foreground p-4">Stock</th>
-                  <th className="text-center text-xs font-medium text-muted-foreground p-4">Credentials</th>
-                  <th className="text-center text-xs font-medium text-muted-foreground p-4">Actions</th>
+                  <th className="w-8 p-3"></th>
+                  <th className="text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wider p-3">ID</th>
+                  <th className="text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wider p-3">Product</th>
+                  <th className="text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wider p-3">Category</th>
+                  <th className="text-left text-[10px] font-semibold text-muted-foreground uppercase tracking-wider p-3">Type</th>
+                  <th className="text-center text-[10px] font-semibold text-muted-foreground uppercase tracking-wider p-3">Status</th>
+                  <th className="text-right text-[10px] font-semibold text-muted-foreground uppercase tracking-wider p-3">Cost</th>
+                  <th className="text-right text-[10px] font-semibold text-muted-foreground uppercase tracking-wider p-3">Sell</th>
+                  <th className="text-right text-[10px] font-semibold text-muted-foreground uppercase tracking-wider p-3">Profit</th>
+                  <th className="text-center text-[10px] font-semibold text-muted-foreground uppercase tracking-wider p-3">Stock</th>
+                  <th className="text-center text-[10px] font-semibold text-muted-foreground uppercase tracking-wider p-3">Actions</th>
                 </tr>
               </thead>
               <Droppable droppableId="products">
@@ -1760,94 +1900,113 @@ export default function AdminProducts() {
                     {filteredProducts.map((p: any, index: number) => {
                       const cc = credentialCounts?.[p.id];
                       const pt = p.product_type || "digital";
+                      const costPrice = p.provider_price || p.base_price || 0;
+                      const sellPrice = p.wholesale_price || 0;
+                      const profit = sellPrice - costPrice;
+                      const isOutOfStock = pt === "digital" && p.stock <= 0;
+                      const isActive = p.type === "auto";
+
+                      // Status badge logic
+                      const statusBadge = isOutOfStock
+                        ? <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-muted text-muted-foreground flex items-center gap-1 w-fit">
+                            <AlertTriangle className="w-3 h-3" /> No Stock
+                          </span>
+                        : isActive
+                        ? <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-success/10 text-success flex items-center gap-1 w-fit">
+                            <Eye className="w-3 h-3" /> Active
+                          </span>
+                        : <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-destructive/10 text-destructive flex items-center gap-1 w-fit">
+                            <EyeOff className="w-3 h-3" /> Disabled
+                          </span>;
+
                       return (
                         <Draggable key={p.id} draggableId={p.id} index={index}>
                           {(provided, snapshot) => (
                             <tr ref={provided.innerRef} {...provided.draggableProps}
-                              className={`border-b border-border/50 transition-colors ${snapshot.isDragging ? "bg-muted/60 shadow-lg" : "hover:bg-muted/30"} ${selectedIds.has(p.id) ? "bg-primary/5" : ""}`}>
-                              <td className="p-4">
+                              className={`border-b border-border/50 transition-all duration-150 ${snapshot.isDragging ? "bg-muted/60 shadow-lg" : "hover:bg-muted/20"} ${selectedIds.has(p.id) ? "bg-primary/5" : ""}`}>
+                              <td className="p-3">
                                 <input type="checkbox" checked={selectedIds.has(p.id)}
                                   onChange={() => toggleSelect(p.id)}
                                   className="w-3.5 h-3.5 rounded border-border accent-primary cursor-pointer" />
                               </td>
-                              <td className="p-4" {...provided.dragHandleProps}>
-                                <GripVertical className="w-4 h-4 text-muted-foreground cursor-grab" />
+                              <td className="p-3" {...provided.dragHandleProps}>
+                                <GripVertical className="w-3.5 h-3.5 text-muted-foreground/40 cursor-grab hover:text-muted-foreground transition-colors" />
                               </td>
-                              <td className="p-4">
-                                <span className="text-xs font-mono font-bold text-primary">#{p.display_id || '—'}</span>
+                              <td className="p-3">
+                                <span className="text-[11px] font-mono font-bold text-primary">#{p.display_id || '—'}</span>
                               </td>
-                              <td className="p-4">
-                                <div className="flex items-center gap-3">
+                              <td className="p-3">
+                                <div className="flex items-center gap-2.5">
                                   {p.image_url ? (
-                                    <img src={p.image_url} alt={p.name} className="w-9 h-9 rounded-lg object-cover border border-border/50" />
+                                    <img src={p.image_url} alt={p.name} className="w-8 h-8 rounded-lg object-cover border border-border/50" />
                                   ) : (
-                                    <span className="text-lg">{p.icon}</span>
+                                    <span className="text-base">{p.icon}</span>
                                   )}
-                                  <div>
-                                    <span className="text-sm font-medium text-foreground">{p.name}</span>
-                                    {pt === "imei" && p.brand && (
-                                      <p className="text-[10px] text-muted-foreground">{p.brand} · {p.country || "All"}</p>
-                                    )}
+                                  <div className="min-w-0">
+                                    <span className="text-[13px] font-medium text-foreground block truncate max-w-[200px]">{p.name}</span>
+                                    {p.duration && <p className="text-[10px] text-muted-foreground/60">{p.duration}</p>}
                                   </div>
                                 </div>
                               </td>
-                              <td className="p-4">
+                              <td className="p-3">
+                                <span className="text-[11px] text-muted-foreground">{p.category}</span>
+                              </td>
+                              <td className="p-3">
                                 <div className="flex items-center gap-1.5">
                                   {typeBadge(pt)}
                                   {p.base_currency === "USD" && (
-                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">USD</span>
+                                    <span className="text-[9px] px-1.5 py-0.5 rounded-full font-semibold bg-success/10 text-success">$</span>
                                   )}
                                 </div>
                               </td>
-                              <td className="p-4">
+                              <td className="p-3 text-center">
                                 <button
                                   onClick={() => handleSingleToggleType(p.id, p.type)}
-                                  className="cursor-pointer"
-                                  title={p.type === "auto" ? "Click to hide" : "Click to show"}
+                                  className="cursor-pointer mx-auto block"
+                                  title={isActive ? "Click to disable" : "Click to enable"}
                                 >
-                                  {p.type === "auto" ? (
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-success/10 text-success flex items-center gap-1 w-fit hover:bg-success/20 transition-colors">
-                                      <Eye className="w-3 h-3" /> Visible
-                                    </span>
-                                  ) : (
-                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-muted text-muted-foreground flex items-center gap-1 w-fit hover:bg-muted/80 transition-colors">
-                                      <EyeOff className="w-3 h-3" /> Hidden
-                                    </span>
-                                  )}
+                                  {statusBadge}
                                 </button>
                               </td>
-                              <td className="p-4 text-sm text-muted-foreground">{p.category}</td>
-                              <td className="p-4 text-sm text-right">
-                                <div>
-                                  <Money amount={p.wholesale_price} />
-                                  {p.base_currency === "USD" && p.base_price > 0 && (
-                                    <div className="text-[10px] text-muted-foreground">${p.base_price}</div>
-                                  )}
-                                </div>
+                              <td className="p-3 text-right">
+                                <span className="text-[11px] font-mono text-muted-foreground">
+                                  {costPrice > 0 ? <Money amount={costPrice} /> : '—'}
+                                </span>
                               </td>
-                              <td className="p-4 text-sm font-mono text-center text-foreground">
-                                {pt === "digital" ? p.stock : <span className="text-xs text-muted-foreground italic">—</span>}
+                              <td className="p-3 text-right">
+                                <span className="text-[11px] font-mono font-semibold text-foreground">
+                                  <Money amount={sellPrice} />
+                                </span>
                               </td>
-                              <td className="p-4 text-center">
-                                {pt === "digital" ? (
-                                  <span className={`text-xs font-mono px-2 py-1 rounded-full ${cc && cc.available > 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"}`}>
-                                    {cc ? `${cc.available}/${cc.total}` : "0/0"}
+                              <td className="p-3 text-right">
+                                {costPrice > 0 ? (
+                                  <span className={`text-[11px] font-mono font-semibold ${profit > 0 ? "text-success" : profit < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+                                    {profit > 0 ? "+" : ""}<Money amount={profit} />
                                   </span>
-                                ) : <span className="text-xs text-muted-foreground italic">—</span>}
+                                ) : <span className="text-[11px] text-muted-foreground">—</span>}
                               </td>
-                              <td className="p-4">
-                                <div className="flex items-center justify-center gap-2">
+                              <td className="p-3 text-center">
+                                {pt === "digital" ? (
+                                  <span className={`text-[11px] font-mono px-2 py-0.5 rounded-full ${
+                                    p.stock > 0 ? "bg-success/10 text-success" : "bg-destructive/10 text-destructive"
+                                  }`}>
+                                    {cc ? `${cc.available}/${cc.total}` : p.stock}
+                                  </span>
+                                ) : <span className="text-[11px] text-muted-foreground">—</span>}
+                              </td>
+                              <td className="p-3">
+                                <div className="flex items-center justify-center gap-1">
                                   {pt === "digital" && (
-                                    <Link to={`/admin/credentials?product=${p.id}`} className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="View credentials">
-                                      <KeyRound className="w-4 h-4" />
+                                    <Link to={`/admin/credentials?product=${p.id}`} className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="Credentials">
+                                      <KeyRound className="w-3.5 h-3.5" />
                                     </Link>
                                   )}
                                   <PricingTiersDialog productId={p.id} productName={`${p.name} ${p.duration || ""}`} />
                                   <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-                                    <Pencil className="w-4 h-4" />
+                                    <Pencil className="w-3.5 h-3.5" />
                                   </button>
                                   <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
-                                    <Trash2 className="w-4 h-4" />
+                                    <Trash2 className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
                               </td>
