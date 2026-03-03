@@ -868,19 +868,42 @@ export default function AdminProducts() {
     setBulkToggling(true);
     try {
       const ids = Array.from(selectedIds);
-      const { error } = await supabase
-        .from("products")
-        .update({ type: newType } as any)
-        .in("id", ids);
-      if (error) throw error;
+      // Batch in chunks of 50 to avoid PostgREST URL length limits (400 Bad Request)
+      const CHUNK = 50;
+      for (let i = 0; i < ids.length; i += CHUNK) {
+        const chunk = ids.slice(i, i + CHUNK);
+        const { error } = await supabase
+          .from("products")
+          .update({ type: newType })
+          .in("id", chunk);
+        if (error) throw new Error(error.message || error.details || "Database update failed");
+      }
       toast.success(`${ids.length} products ${newType === "auto" ? "enabled (visible)" : "disabled (hidden)"}`);
       queryClient.invalidateQueries({ queryKey: ["admin-products"] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
       setSelectedIds(new Set());
     } catch (err: any) {
-      toast.error(err.message || "Bulk update failed");
+      console.error("Bulk toggle error:", err);
+      toast.error(`Failed to update products: ${err.message || "Unknown error. Please try fewer products at once."}`);
     } finally {
       setBulkToggling(false);
+    }
+  };
+
+  const handleSingleToggleType = async (productId: string, currentType: string) => {
+    const newType = currentType === "auto" ? "manual" : "auto";
+    try {
+      const { error } = await supabase
+        .from("products")
+        .update({ type: newType })
+        .eq("id", productId);
+      if (error) throw new Error(error.message || error.details || "Database update failed");
+      toast.success(`Product ${newType === "auto" ? "enabled (visible)" : "disabled (hidden)"}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+    } catch (err: any) {
+      console.error("Toggle error:", err);
+      toast.error(`Failed to toggle product: ${err.message || "Unknown error"}`);
     }
   };
 
@@ -1777,15 +1800,21 @@ export default function AdminProducts() {
                                 </div>
                               </td>
                               <td className="p-4">
-                                {p.type === "auto" ? (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-success/10 text-success flex items-center gap-1 w-fit">
-                                    <Eye className="w-3 h-3" /> Visible
-                                  </span>
-                                ) : (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-muted text-muted-foreground flex items-center gap-1 w-fit">
-                                    <EyeOff className="w-3 h-3" /> Hidden
-                                  </span>
-                                )}
+                                <button
+                                  onClick={() => handleSingleToggleType(p.id, p.type)}
+                                  className="cursor-pointer"
+                                  title={p.type === "auto" ? "Click to hide" : "Click to show"}
+                                >
+                                  {p.type === "auto" ? (
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-success/10 text-success flex items-center gap-1 w-fit hover:bg-success/20 transition-colors">
+                                      <Eye className="w-3 h-3" /> Visible
+                                    </span>
+                                  ) : (
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-semibold bg-muted text-muted-foreground flex items-center gap-1 w-fit hover:bg-muted/80 transition-colors">
+                                      <EyeOff className="w-3 h-3" /> Hidden
+                                    </span>
+                                  )}
+                                </button>
                               </td>
                               <td className="p-4 text-sm text-muted-foreground">{p.category}</td>
                               <td className="p-4 text-sm text-right">
