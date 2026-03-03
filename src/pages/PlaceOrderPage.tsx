@@ -18,6 +18,7 @@ import {
   Download,
   ShieldAlert,
   Sparkles,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -39,7 +40,6 @@ export default function PlaceOrderPage() {
   const { user, profile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const detailRef = useRef<HTMLDivElement>(null);
 
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
@@ -65,14 +65,10 @@ export default function PlaceOrderPage() {
     return () => { supabase.removeChannel(channel); };
   }, [queryClient]);
 
-  // Data
   const { data: products = [] } = useQuery({
     queryKey: ["products-for-order"],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("products")
-        .select("*")
-        .order("sort_order", { ascending: true });
+      const { data } = await supabase.from("products").select("*").order("sort_order", { ascending: true });
       return (data || []).filter((p: any) => p.product_type !== "digital" || p.stock > 0);
     },
   });
@@ -82,11 +78,7 @@ export default function PlaceOrderPage() {
   const { data: customFields = [] } = useQuery({
     queryKey: ["product-custom-fields-order", selectedProductId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from("product_custom_fields" as any)
-        .select("*")
-        .eq("product_id", selectedProductId)
-        .order("sort_order", { ascending: true });
+      const { data } = await supabase.from("product_custom_fields" as any).select("*").eq("product_id", selectedProductId).order("sort_order", { ascending: true });
       return (data || []) as any[];
     },
     enabled: !!selectedProductId,
@@ -115,13 +107,21 @@ export default function PlaceOrderPage() {
     : "instant";
   const activeFields = customFields.filter((f: any) => f.linked_mode === defaultMode);
 
+  const categories = useMemo(() => {
+    const cats = new Map<string, number>();
+    products.forEach((p: any) => cats.set(p.category || "Other", (cats.get(p.category || "Other") || 0) + 1));
+    return [{ name: "All", count: products.length }, ...Array.from(cats.entries()).sort((a, b) => a[0].localeCompare(b[0])).map(([name, count]) => ({ name, count }))];
+  }, [products]);
+
+  const [activeCategory, setActiveCategory] = useState("All");
+
   const filteredProducts = useMemo(() => {
-    if (!searchQuery.trim()) return products;
-    const q = searchQuery.trim().toLowerCase();
-    return products.filter((p: any) =>
-      p.name.toLowerCase().includes(q) || String(p.display_id).includes(q)
-    );
-  }, [products, searchQuery]);
+    return products.filter((p: any) => {
+      const matchCat = activeCategory === "All" || p.category === activeCategory;
+      const matchSearch = !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) || String(p.display_id).includes(searchQuery.trim());
+      return matchCat && matchSearch;
+    });
+  }, [products, searchQuery, activeCategory]);
 
   const unitPrice = useMemo(() => {
     if (!selectedProduct) return 0;
@@ -140,8 +140,7 @@ export default function PlaceOrderPage() {
   const hasInsufficientBalance = totalPrice > balance;
 
   const deliveryTimeConfig: Record<string, string> = selectedProduct?.delivery_time_config && typeof selectedProduct.delivery_time_config === "object"
-    ? selectedProduct.delivery_time_config as Record<string, string>
-    : {};
+    ? selectedProduct.delivery_time_config as Record<string, string> : {};
   const deliveryTime = deliveryTimeConfig[defaultMode] || selectedProduct?.processing_time || "Instant";
   const isInstant = defaultMode === "instant" || deliveryTime.toLowerCase().includes("instant");
 
@@ -149,18 +148,18 @@ export default function PlaceOrderPage() {
     setSelectedProductId(id);
     setCustomFieldValues({});
     setResult(null);
-    if (window.innerWidth < 1024 && detailRef.current) {
-      setTimeout(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
-    }
+  };
+
+  const handleBack = () => {
+    setSelectedProductId("");
+    setCustomFieldValues({});
+    setResult(null);
   };
 
   const handlePurchase = async () => {
     if (!selectedProduct || purchasing) return;
     for (const field of activeFields) {
-      if (field.required && !customFieldValues[field.field_name]?.trim()) {
-        toast.error(`${field.field_name} is required`);
-        return;
-      }
+      if (field.required && !customFieldValues[field.field_name]?.trim()) { toast.error(`${field.field_name} is required`); return; }
     }
     if (hasInsufficientBalance) { toast.error("Insufficient balance"); return; }
     setPurchasing(true);
@@ -200,7 +199,7 @@ export default function PlaceOrderPage() {
   const credentialsList = result?.credentials?.split("\n").filter(Boolean) || [];
 
   return (
-    <PageContainer>
+    <PageContainer maxWidth="max-w-4xl">
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">
         <div className="w-9 h-9 rounded-[var(--radius-btn)] bg-primary/10 flex items-center justify-center">
@@ -212,258 +211,259 @@ export default function PlaceOrderPage() {
         </div>
       </div>
 
-      {/* Two-Column Layout — 50/50 on desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-
-        {/* ═══ LEFT CARD: Available Services ═══ */}
-        <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden flex flex-col" style={{ boxShadow: "var(--shadow-card)" }}>
-          {/* Card Header */}
-          <div className="px-4 py-3 border-b border-border flex items-center justify-between">
-            <h2 className="text-sm font-bold text-foreground">Available Services</h2>
-            <span className="text-[10px] font-mono text-muted-foreground">{filteredProducts.length} services</span>
-          </div>
-
-          {/* Search */}
-          <div className="px-4 py-3 border-b border-border">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 pointer-events-none" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name or #ID..."
-                className="pl-9 h-9 bg-secondary/50 border-border text-sm rounded-[var(--radius-input)]"
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded text-muted-foreground/50 hover:text-foreground">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Service List — scrollable */}
-          <div className="flex-1 overflow-y-auto max-h-[60vh] lg:max-h-[65vh] stool-scrollbar">
-            {filteredProducts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/40">
-                <Search className="w-7 h-7 mb-2" />
-                <p className="text-xs font-medium">No services found</p>
+      <AnimatePresence mode="wait">
+        {/* ═══════════════════════════════════════════
+            MODE 1: SELECTION — no service chosen yet
+            ═══════════════════════════════════════════ */}
+        {!selectedProduct ? (
+          <motion.div
+            key="selection"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+              {/* Card Header */}
+              <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
+                <h2 className="text-sm font-bold text-foreground">Select a Service</h2>
+                <span className="text-[10px] font-mono text-muted-foreground">{filteredProducts.length} available</span>
               </div>
-            ) : (
-              filteredProducts.map((p: any) => {
-                const isSelected = p.id === selectedProductId;
-                return (
+
+              {/* Search */}
+              <div className="px-5 py-3 border-b border-border">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 pointer-events-none" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search by name or #ID..."
+                    className="pl-9 h-9 bg-secondary/50 border-border text-sm rounded-[var(--radius-input)]"
+                  />
+                  {searchQuery && (
+                    <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded text-muted-foreground/50 hover:text-foreground">
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Category Pills */}
+              <div className="px-5 py-2.5 border-b border-border flex gap-1.5 overflow-x-auto stool-scrollbar">
+                {categories.map((cat) => (
                   <button
-                    key={p.id}
-                    onClick={() => handleSelectProduct(p.id)}
+                    key={cat.name}
+                    onClick={() => setActiveCategory(cat.name)}
                     className={cn(
-                      "w-full text-left px-4 py-3 flex items-center justify-between border-b border-border/50 transition-all duration-150",
-                      isSelected
-                        ? "bg-primary/8 border-l-[3px] border-l-primary"
-                        : "hover:bg-secondary/50 border-l-[3px] border-l-transparent"
+                      "shrink-0 px-3 py-1.5 text-[10px] font-bold rounded-[var(--radius-btn)] border transition-all duration-200",
+                      activeCategory === cat.name
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-secondary/30 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
                     )}
                   >
-                    <span className={cn(
-                      "text-[13px] truncate leading-snug",
-                      isSelected ? "text-foreground font-semibold" : "text-secondary-foreground"
-                    )}>
-                      <span className="font-mono text-primary/70 font-bold mr-1.5">#{p.display_id}</span>
-                      {p.name}
-                    </span>
-                    <span className="font-mono text-xs font-bold text-foreground/70 tabular-nums shrink-0 ml-3">
-                      <Money amount={p.wholesale_price} compact />
-                    </span>
+                    {cat.name}
+                    <span className="ml-1 opacity-60 font-mono">{cat.count}</span>
                   </button>
-                );
-              })
-            )}
-          </div>
-        </div>
+                ))}
+              </div>
 
-        {/* ═══ RIGHT CARD: Service Description ═══ */}
-        <div ref={detailRef}>
-          <AnimatePresence mode="wait">
-            {!selectedProduct ? (
-              /* Empty State */
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="rounded-[var(--radius-card)] border border-border bg-card flex flex-col items-center justify-center min-h-[400px] lg:min-h-[500px] text-center p-8"
-                style={{ boxShadow: "var(--shadow-card)" }}
-              >
-                <div className="w-16 h-16 rounded-2xl bg-primary/5 border border-border flex items-center justify-center mb-5">
-                  <Sparkles className="w-8 h-8 text-primary/30" />
+              {/* Service List */}
+              <div className="max-h-[60vh] overflow-y-auto stool-scrollbar">
+                {filteredProducts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/40">
+                    <Search className="w-7 h-7 mb-2" />
+                    <p className="text-xs font-medium">No services found</p>
+                  </div>
+                ) : (
+                  filteredProducts.map((p: any) => (
+                    <button
+                      key={p.id}
+                      onClick={() => handleSelectProduct(p.id)}
+                      className="w-full text-left px-5 py-3 flex items-center justify-between border-b border-border/50 hover:bg-secondary/40 transition-colors duration-150"
+                    >
+                      <span className="text-[13px] text-secondary-foreground truncate leading-snug">
+                        <span className="font-mono text-primary/70 font-bold mr-1.5">#{p.display_id}</span>
+                        {p.name}
+                      </span>
+                      <span className="font-mono text-xs font-bold text-foreground/70 tabular-nums shrink-0 ml-3">
+                        <Money amount={p.wholesale_price} compact />
+                      </span>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          /* ═══════════════════════════════════════════
+             MODE 2: DETAILS — service selected
+             ═══════════════════════════════════════════ */
+          <motion.div
+            key={`detail-${selectedProduct.id}`}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="space-y-4"
+          >
+            {/* Change Service button */}
+            <button
+              onClick={handleBack}
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-150"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="font-medium">Change Service</span>
+            </button>
+
+            {/* Service Detail Card — full width, main focus */}
+            <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
+              {/* Header */}
+              <div className="px-5 py-4 border-b border-border">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="text-lg font-bold text-foreground leading-tight">{selectedProduct.name}</h2>
+                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                      <span className="font-mono text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-md font-bold">
+                        #{selectedProduct.display_id}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground font-medium">{selectedProduct.category}</span>
+                    </div>
+                  </div>
+                  <span className="text-2xl font-extrabold font-mono tabular-nums text-foreground shrink-0">
+                    <Money amount={totalPrice} />
+                  </span>
                 </div>
-                <h3 className="text-base font-bold text-foreground/70 mb-2">Service Description</h3>
-                <p className="text-sm text-muted-foreground/50 max-w-[280px]">
-                  Select a service from the left to see full details.
-                </p>
-              </motion.div>
-            ) : (
-              <motion.div
-                key={selectedProduct.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.2, ease: "easeOut" }}
-                className="space-y-4"
-              >
-                {/* Detail Card */}
-                <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-                  {/* Title & Badges */}
-                  <div className="px-5 py-4 border-b border-border">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <h2 className="text-base font-bold text-foreground leading-tight">{selectedProduct.name}</h2>
-                        <span className="font-mono text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-md font-bold mt-1.5 inline-block">
-                          #{selectedProduct.display_id}
-                        </span>
+
+                {/* Badges */}
+                <div className="flex items-center gap-2 mt-3 flex-wrap">
+                  <span className={cn(
+                    "inline-flex items-center gap-1 text-[10px] font-bold rounded-[var(--radius-btn)] px-2.5 py-1 border",
+                    isInstant ? "bg-success/10 text-success border-success/20" : "bg-warning/10 text-warning border-warning/20"
+                  )}>
+                    {isInstant ? <Zap className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                    {isInstant ? "Auto Instant" : "Manual"}
+                  </span>
+                  {selectedProduct.product_type === "digital" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-[var(--radius-btn)] px-2.5 py-1 bg-primary/10 text-primary border border-primary/20">
+                      <Zap className="w-3 h-3" /> AUTO-INSTANT
+                    </span>
+                  )}
+                  {deliveryTime && deliveryTime !== "Instant" && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-[var(--radius-btn)] px-2.5 py-1 bg-ice/10 text-ice border border-ice/20">
+                      <Clock className="w-3 h-3" /> {deliveryTime}
+                    </span>
+                  )}
+                  {selectedProduct.description?.toLowerCase().includes("no refund") && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-[var(--radius-btn)] px-2.5 py-1 bg-destructive/10 text-destructive border border-destructive/20">
+                      <ShieldAlert className="w-3 h-3" /> NO REFUND
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Description */}
+              <div className="px-5 py-4 border-b border-border stool-scrollbar max-h-[40vh] overflow-y-auto">
+                <ServiceDescription product={selectedProduct} />
+              </div>
+
+              {/* ─── Order Form (inside the same card) ─── */}
+              <div className="px-5 py-5 space-y-4">
+                <h3 className="text-[11px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50">
+                  Order Details
+                </h3>
+
+                {/* Custom Fields */}
+                {activeFields.length > 0 && (
+                  <div className="space-y-3">
+                    {activeFields.map((field: any) => (
+                      <div key={field.id} className="space-y-1.5">
+                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                          {field.field_name}
+                          {field.required && <span className="text-destructive ml-0.5">*</span>}
+                        </label>
+                        {field.field_type === "select" && Array.isArray(field.options) && field.options.length > 0 ? (
+                          <select
+                            value={customFieldValues[field.field_name] || ""}
+                            onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
+                            className="w-full h-10 rounded-[var(--radius-input)] bg-secondary/50 border border-border px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40"
+                          >
+                            <option value="">{field.placeholder || `Select ${field.field_name}`}</option>
+                            {(field.options as string[]).map((opt: string) => (
+                              <option key={opt} value={opt}>{opt}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <Input
+                            type={field.field_type === "number" || field.field_type === "quantity" ? "number" : field.field_type === "url" ? "url" : "text"}
+                            value={customFieldValues[field.field_name] || ""}
+                            onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
+                            placeholder={field.placeholder || `Enter ${field.field_name}`}
+                            className="bg-secondary/50 border-border font-mono text-sm rounded-[var(--radius-input)]"
+                            min={field.min_length || undefined}
+                            max={field.max_length || undefined}
+                          />
+                        )}
+                        {(field.field_type === "quantity" || field.field_type === "number") && (field.min_length || field.max_length) && (
+                          <p className="text-[10px] text-muted-foreground/50">
+                            {field.min_length ? `Min: ${field.min_length.toLocaleString()}` : ""}
+                            {field.min_length && field.max_length ? " · " : ""}
+                            {field.max_length ? `Max: ${field.max_length.toLocaleString()}` : ""}
+                          </p>
+                        )}
                       </div>
-                      <span className="text-xl font-extrabold font-mono tabular-nums text-foreground shrink-0">
-                        <Money amount={totalPrice} />
-                      </span>
-                    </div>
-
-                    {/* Status Badges */}
-                    <div className="flex items-center gap-2 mt-3 flex-wrap">
-                      {/* Delivery badge */}
-                      <span className={cn(
-                        "inline-flex items-center gap-1 text-[10px] font-bold rounded-[var(--radius-btn)] px-2.5 py-1 border",
-                        isInstant
-                          ? "bg-success/10 text-success border-success/20"
-                          : "bg-warning/10 text-warning border-warning/20"
-                      )}>
-                        {isInstant ? <Zap className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                        {isInstant ? "Auto Instant" : deliveryTime}
-                      </span>
-                      {!isInstant && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-[var(--radius-btn)] px-2.5 py-1 bg-warning/10 text-warning border border-warning/20">
-                          <Clock className="w-3 h-3" /> Manual
-                        </span>
-                      )}
-                      {selectedProduct.product_type === "digital" && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-[var(--radius-btn)] px-2.5 py-1 bg-primary/10 text-primary border border-primary/20">
-                          <Zap className="w-3 h-3" /> AUTO-INSTANT
-                        </span>
-                      )}
-                      {/* Working time badge if present */}
-                      {!isInstant && deliveryTime && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-[var(--radius-btn)] px-2.5 py-1 bg-ice/10 text-ice border border-ice/20">
-                          <Clock className="w-3 h-3" /> {deliveryTime}
-                        </span>
-                      )}
-                    </div>
+                    ))}
                   </div>
+                )}
 
-                  {/* Description Body */}
-                  <div className="px-5 py-4 max-h-[300px] overflow-y-auto">
-                    <ServiceDescription product={selectedProduct} />
+                {/* Price Summary */}
+                <div className="rounded-[var(--radius-btn)] bg-secondary/30 border border-border p-3.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Total Price</span>
+                    <span className="text-lg font-extrabold font-mono tabular-nums text-foreground">
+                      <Money amount={totalPrice} />
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">Your Balance</span>
+                    <span className={cn("text-xs font-bold font-mono tabular-nums", hasInsufficientBalance ? "text-destructive" : "text-success")}>
+                      <Money amount={balance} />
+                    </span>
                   </div>
                 </div>
 
-                {/* Order Form Card */}
-                <div className="rounded-[var(--radius-card)] border border-border bg-card p-5 space-y-4" style={{ boxShadow: "var(--shadow-card)" }}>
-                  <h3 className="text-[11px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50">
-                    Order Details
-                  </h3>
-
-                  {/* Custom Fields */}
-                  {activeFields.length > 0 && (
-                    <div className="space-y-3">
-                      {activeFields.map((field: any) => (
-                        <div key={field.id} className="space-y-1.5">
-                          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                            {field.field_name}
-                            {field.required && <span className="text-destructive ml-0.5">*</span>}
-                          </label>
-                          {field.field_type === "select" && Array.isArray(field.options) && field.options.length > 0 ? (
-                            <select
-                              value={customFieldValues[field.field_name] || ""}
-                              onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
-                              className="w-full h-10 rounded-[var(--radius-input)] bg-secondary/50 border border-border px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40"
-                            >
-                              <option value="">{field.placeholder || `Select ${field.field_name}`}</option>
-                              {(field.options as string[]).map((opt: string) => (
-                                <option key={opt} value={opt}>{opt}</option>
-                              ))}
-                            </select>
-                          ) : (
-                            <Input
-                              type={field.field_type === "number" || field.field_type === "quantity" ? "number" : field.field_type === "url" ? "url" : "text"}
-                              value={customFieldValues[field.field_name] || ""}
-                              onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
-                              placeholder={field.placeholder || `Enter ${field.field_name}`}
-                              className="bg-secondary/50 border-border font-mono text-sm rounded-[var(--radius-input)]"
-                              min={field.min_length || undefined}
-                              max={field.max_length || undefined}
-                            />
-                          )}
-                          {(field.field_type === "quantity" || field.field_type === "number") && (field.min_length || field.max_length) && (
-                            <p className="text-[10px] text-muted-foreground/50">
-                              {field.min_length ? `Min: ${field.min_length.toLocaleString()}` : ""}
-                              {field.min_length && field.max_length ? " · " : ""}
-                              {field.max_length ? `Max: ${field.max_length.toLocaleString()}` : ""}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Price Summary */}
-                  <div className="rounded-[var(--radius-btn)] bg-secondary/30 border border-border p-3.5 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">Total Price</span>
-                      <span className="text-lg font-extrabold font-mono tabular-nums text-foreground">
-                        <Money amount={totalPrice} />
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">Your Balance</span>
-                      <span className={cn("text-xs font-bold font-mono tabular-nums", hasInsufficientBalance ? "text-destructive" : "text-success")}>
-                        <Money amount={balance} />
-                      </span>
-                    </div>
+                {hasInsufficientBalance && (
+                  <div className="flex items-center gap-2 text-xs bg-destructive/8 text-destructive px-3 py-2.5 rounded-[var(--radius-btn)] border border-destructive/15">
+                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                    <span>Need <Money amount={totalPrice - balance} className="inline font-bold" /> more.</span>
+                    <button onClick={() => setTopUpOpen(true)} className="text-primary font-semibold hover:underline ml-auto shrink-0">Top Up</button>
                   </div>
+                )}
 
-                  {/* Insufficient balance */}
-                  {hasInsufficientBalance && (
-                    <div className="flex items-center gap-2 text-xs bg-destructive/8 text-destructive px-3 py-2.5 rounded-[var(--radius-btn)] border border-destructive/15">
-                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                      <span>Need <Money amount={totalPrice - balance} className="inline font-bold" /> more.</span>
-                      <button onClick={() => setTopUpOpen(true)} className="text-primary font-semibold hover:underline ml-auto shrink-0">Top Up</button>
-                    </div>
+                <Button
+                  onClick={handlePurchase}
+                  disabled={!selectedProduct || purchasing || hasInsufficientBalance}
+                  className={cn(
+                    "w-full h-12 font-bold text-sm gap-2 rounded-[var(--radius-btn)]",
+                    "bg-primary hover:bg-primary/90 text-primary-foreground",
+                    "shadow-[0_0_20px_hsl(var(--primary)/0.25)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)]",
+                    "transition-all duration-300",
+                    hasInsufficientBalance && "opacity-40 shadow-none"
                   )}
-
-                  {/* Place Order */}
-                  <Button
-                    onClick={handlePurchase}
-                    disabled={!selectedProduct || purchasing || hasInsufficientBalance}
-                    className={cn(
-                      "w-full h-12 font-bold text-sm gap-2 rounded-[var(--radius-btn)]",
-                      "bg-primary hover:bg-primary/90 text-primary-foreground",
-                      "shadow-[0_0_20px_hsl(var(--primary)/0.25)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)]",
-                      "transition-all duration-300",
-                      hasInsufficientBalance && "opacity-40 shadow-none"
-                    )}
-                  >
-                    {purchasing ? (
-                      <><div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" /> Processing...</>
-                    ) : (
-                      <><CheckCircle2 className="w-4 h-4" /> Place Order</>
-                    )}
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
+                >
+                  {purchasing ? (
+                    <><div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" /> Processing...</>
+                  ) : (
+                    <><CheckCircle2 className="w-4 h-4" /> Place Order</>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Success Modal */}
       {result && <SuccessModal result={result} credentialsList={credentialsList} onCopy={copyCredentials} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
-
       <TopUpDialog userId={user?.id} open={topUpOpen} onOpenChange={setTopUpOpen} hideTrigger onSubmitted={(txId) => navigate(`/dashboard/topup-status/${txId}`)} />
     </PageContainer>
   );
@@ -473,7 +473,6 @@ export default function PlaceOrderPage() {
 function ServiceDescription({ product }: { product: any }) {
   const description = product.description || "";
   const allLines = description.split("\n").filter((l: string) => l.trim());
-
   const urlRegex = /https?:\/\/[^\s)>\]]+/gi;
   const downloadLines: string[] = [];
   const features: string[] = [];
@@ -506,7 +505,6 @@ function ServiceDescription({ product }: { product: any }) {
           })}
         </div>
       )}
-
       {features.length > 0 && (
         <div className="space-y-1.5">
           {features.map((feat, i) => (
@@ -517,32 +515,26 @@ function ServiceDescription({ product }: { product: any }) {
           ))}
         </div>
       )}
-
-      {/* Important notice — light red/orange box */}
       {warnings.length > 0 && (
         <div className="rounded-[var(--radius-btn)] border border-destructive/20 bg-destructive/5 p-3 space-y-1">
           <div className="flex items-center gap-1.5 text-destructive font-bold text-[10px] uppercase tracking-wider">
-            <ShieldAlert className="w-3.5 h-3.5" />
-            Important Notice
+            <ShieldAlert className="w-3.5 h-3.5" /> Important Notice
           </div>
           {warnings.map((warn, i) => (
             <p key={i} className="text-xs text-destructive/80 font-medium">{warn}</p>
           ))}
         </div>
       )}
-
       {downloadLines.length > 0 && (
         <div className="space-y-1.5">
           {downloadLines.map((url, i) => (
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 w-full py-2.5 rounded-[var(--radius-btn)] bg-primary/8 border border-primary/15 text-primary font-semibold text-xs hover:bg-primary/15 transition-all duration-200">
-              <Download className="w-3.5 h-3.5" />
-              Download Tool{downloadLines.length > 1 ? ` ${i + 1}` : ""}
+              <Download className="w-3.5 h-3.5" /> Download Tool{downloadLines.length > 1 ? ` ${i + 1}` : ""}
             </a>
           ))}
         </div>
       )}
-
       {!description && <p className="text-sm text-muted-foreground/50 italic">No description available.</p>}
     </div>
   );
@@ -579,9 +571,7 @@ function SuccessModal({ result, credentialsList, onCopy, onClose, onNewOrder, na
             {credentialsList.map((cred, i) => (
               <div key={i} className="flex items-center gap-2">
                 <code className="flex-1 text-xs font-mono text-primary bg-primary/5 border border-primary/10 px-3 py-2 rounded-lg break-all">{cred}</code>
-                <button onClick={() => onCopy(cred)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-                  <Copy className="w-3.5 h-3.5 text-muted-foreground" />
-                </button>
+                <button onClick={() => onCopy(cred)} className="p-1.5 rounded-lg hover:bg-muted transition-colors"><Copy className="w-3.5 h-3.5 text-muted-foreground" /></button>
               </div>
             ))}
           </div>
