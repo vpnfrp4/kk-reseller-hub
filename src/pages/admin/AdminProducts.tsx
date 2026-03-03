@@ -884,7 +884,7 @@ export default function AdminProducts() {
     });
   };
 
-  const handleBulkToggleType = async (newType: "auto" | "manual") => {
+  const handleBulkToggleType = async (newType: "auto" | "disabled") => {
     if (selectedCount === 0) return;
     setBulkToggling(true);
     try {
@@ -912,7 +912,7 @@ export default function AdminProducts() {
   };
 
   const handleSingleToggleType = async (productId: string, currentType: string) => {
-    const newType = currentType === "auto" ? "manual" : "auto";
+    const newType = currentType === "disabled" ? "auto" : "disabled";
     try {
       const { error } = await supabase
         .from("products")
@@ -1837,7 +1837,7 @@ export default function AdminProducts() {
           </Button>
           <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs"
             disabled={bulkToggling}
-            onClick={() => handleBulkToggleType("manual")}>
+            onClick={() => handleBulkToggleType("disabled")}>
             <EyeOff className="w-3.5 h-3.5" />
             Disable
           </Button>
@@ -1904,7 +1904,7 @@ export default function AdminProducts() {
                       const sellPrice = p.wholesale_price || 0;
                       const profit = sellPrice - costPrice;
                       const isOutOfStock = pt === "digital" && p.stock <= 0;
-                      const isActive = p.type === "auto";
+                      const isActive = p.type !== "disabled";
 
                       // Status badge logic
                       const statusBadge = isOutOfStock
