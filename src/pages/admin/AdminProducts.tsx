@@ -133,6 +133,8 @@ export default function AdminProducts() {
   const [aiGenerating, setAiGenerating] = useState(false);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const initialFormRef = useRef<string>("");
+  const [bulkRefreshing, setBulkRefreshing] = useState(false);
+  const [bulkRefreshProgress, setBulkRefreshProgress] = useState({ current: 0, total: 0 });
 
   const FORM_STORAGE_KEY = "admin-product-form-draft";
 
@@ -940,6 +942,55 @@ export default function AdminProducts() {
     }
   };
 
+  /** Strip all emojis from a string */
+  const stripEmojis = (text: string): string => {
+    return text
+      .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FEFF}\u{1F000}-\u{1FFFF}\u{200D}\u{20E3}\u{FE0F}\u{E0020}-\u{E007F}]/gu, "")
+      .replace(/[✅⚠️🚀⭐🔥💡📦🔒🛡️⚡🌐📱💻🎬🔑📋✨⏱️📝💼🔍]/g, "")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  };
+
+  /** Bulk clean emojis from all product descriptions */
+  const handleBulkRefreshDescriptions = async () => {
+    if (!products || products.length === 0) return;
+    const dirty = products.filter((p: any) => {
+      const desc = p.description || "";
+      return desc !== stripEmojis(desc);
+    });
+    if (dirty.length === 0) {
+      toast.success("All descriptions are already clean — no emojis found");
+      return;
+    }
+    if (!confirm(`This will clean emojis from ${dirty.length} product description(s). Continue?`)) return;
+
+    setBulkRefreshing(true);
+    setBulkRefreshProgress({ current: 0, total: dirty.length });
+    let cleaned = 0;
+    let failed = 0;
+
+    const CHUNK = 10;
+    for (let i = 0; i < dirty.length; i += CHUNK) {
+      const chunk = dirty.slice(i, i + CHUNK);
+      const promises = chunk.map(async (p: any) => {
+        const cleanDesc = stripEmojis(p.description || "");
+        const cleanName = stripEmojis(p.name || "");
+        const { error } = await supabase
+          .from("products")
+          .update({ description: cleanDesc, name: cleanName })
+          .eq("id", p.id);
+        if (error) { failed++; } else { cleaned++; }
+      });
+      await Promise.all(promises);
+      setBulkRefreshProgress({ current: Math.min(i + CHUNK, dirty.length), total: dirty.length });
+    }
+
+    setBulkRefreshing(false);
+    queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+    queryClient.invalidateQueries({ queryKey: ["products"] });
+    toast.success(`Cleaned ${cleaned} descriptions${failed > 0 ? `, ${failed} failed` : ""}`);
+  };
+
   const typeBadge = (pt: string) => {
     const config: Record<string, { bg: string; text: string; label: string }> = {
       digital: { bg: "bg-primary/10", text: "text-primary", label: "Digital" },
@@ -961,7 +1012,17 @@ export default function AdminProducts() {
             {totalPages > 1 && ` · Page ${currentPage}/${totalPages}`}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={bulkRefreshing}
+            onClick={handleBulkRefreshDescriptions}
+            className="gap-1.5 text-xs"
+          >
+            {bulkRefreshing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+            {bulkRefreshing ? `Cleaning ${bulkRefreshProgress.current}/${bulkRefreshProgress.total}…` : "Clean All Emojis"}
+          </Button>
           <BulkTierDialog />
           <BulkImageUpload products={(products || []).map((p: any) => ({ id: p.id, name: p.name, icon: p.icon, image_url: p.image_url }))} />
           <Dialog open={dialogOpen} onOpenChange={(v) => { if (!v) { handleDialogClose(); return; } setDialogOpen(v); initialFormRef.current = JSON.stringify(form); }}>
