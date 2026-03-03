@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,6 +19,8 @@ import {
   Download,
   ShieldAlert,
   Package,
+  ChevronRight,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,7 @@ import { Money } from "@/components/shared";
 import { PageContainer } from "@/components/shared";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
 import Confetti from "@/components/Confetti";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PurchaseResult {
   order_id: string;
@@ -36,12 +39,13 @@ interface PurchaseResult {
 }
 
 /* ════════════════════════════════════════════════════════════
-   PLACE ORDER PAGE — S-Tool Pro Layout
+   PLACE ORDER PAGE — Selection-Based Detail View
    ════════════════════════════════════════════════════════════ */
 export default function PlaceOrderPage() {
   const { user, profile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const detailRef = useRef<HTMLDivElement>(null);
 
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
@@ -80,7 +84,6 @@ export default function PlaceOrderPage() {
         .from("products")
         .select("*")
         .order("sort_order", { ascending: true });
-      // Filter: hide digital products with 0 stock, keep all others
       return (data || []).filter((p: any) =>
         p.product_type !== "digital" || p.stock > 0
       );
@@ -133,14 +136,18 @@ export default function PlaceOrderPage() {
     : "instant";
   const activeFields = customFields.filter((f: any) => f.linked_mode === defaultMode);
 
-  // Categories
   const categories = useMemo(() => {
-    const cats = new Set<string>();
-    products.forEach((p: any) => cats.add(p.category || "Other"));
-    return ["All", ...Array.from(cats).sort()];
+    const cats = new Map<string, number>();
+    products.forEach((p: any) => {
+      const cat = p.category || "Other";
+      cats.set(cat, (cats.get(cat) || 0) + 1);
+    });
+    return [
+      { name: "All", count: products.length },
+      ...Array.from(cats.entries()).sort((a, b) => a[0].localeCompare(b[0])).map(([name, count]) => ({ name, count })),
+    ];
   }, [products]);
 
-  // Filtered products
   const filteredProducts = useMemo(() => {
     return products.filter((p: any) => {
       const matchesCategory = activeCategory === "All" || p.category === activeCategory;
@@ -151,7 +158,6 @@ export default function PlaceOrderPage() {
     });
   }, [products, activeCategory, searchQuery]);
 
-  // Price calculation
   const unitPrice = useMemo(() => {
     if (!selectedProduct) return 0;
     if (isApiProduct && selectedProduct.api_rate && usdRate) {
@@ -174,7 +180,20 @@ export default function PlaceOrderPage() {
   const deliveryTime = deliveryTimeConfig[defaultMode] || selectedProduct?.processing_time || "Instant";
   const isInstant = defaultMode === "instant" || deliveryTime.toLowerCase().includes("instant");
 
-  // ── Handlers ──
+  // ── Select handler with mobile scroll ──
+  const handleSelectProduct = (id: string) => {
+    setSelectedProductId(id);
+    setCustomFieldValues({});
+    setResult(null);
+    // On mobile, scroll to detail panel
+    if (window.innerWidth < 1024 && detailRef.current) {
+      setTimeout(() => {
+        detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  };
+
+  // ── Purchase ──
   const handlePurchase = async () => {
     if (!selectedProduct || purchasing) return;
     for (const field of activeFields) {
@@ -240,226 +259,291 @@ export default function PlaceOrderPage() {
       </div>
 
       {/* Two-Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 animate-fade-in" style={{ animationDelay: "0.05s" }}>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-5 animate-fade-in" style={{ animationDelay: "0.05s" }}>
 
-        {/* ═══ LEFT: Available Services (3/5) ═══ */}
-        <div className="lg:col-span-3 stool-card flex flex-col">
-          <div className="stool-card-header">
-            <Package className="w-4 h-4 text-primary" />
-            <span className="font-semibold text-foreground text-sm">Available Services</span>
-            <span className="ml-auto text-xs text-muted-foreground">{filteredProducts.length} services</span>
+        {/* ═══ LEFT: Compact Service List (2/5) ═══ */}
+        <div className="lg:col-span-2 flex flex-col gap-3">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 pointer-events-none" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by name or #ID..."
+              className="pl-9 h-10 bg-card/60 backdrop-blur-md border-border/30 text-sm rounded-xl focus:border-primary/50 focus:ring-primary/20"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded text-muted-foreground/50 hover:text-foreground">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
 
-          <div className="p-4 space-y-3 flex flex-col flex-1 min-h-0">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search by name or ID..."
-                className="pl-9 h-10 bg-secondary/60 border-border text-sm"
-              />
+          {/* Category Pills */}
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-0.5">
+            {categories.map((cat) => (
+              <button
+                key={cat.name}
+                onClick={() => setActiveCategory(cat.name)}
+                className={cn(
+                  "shrink-0 px-3 py-1.5 text-[10px] font-bold rounded-lg border transition-all duration-200",
+                  activeCategory === cat.name
+                    ? "bg-primary text-primary-foreground border-primary shadow-[0_0_12px_hsl(var(--primary)/0.25)]"
+                    : "bg-card/40 backdrop-blur-sm text-muted-foreground border-border/20 hover:border-primary/30 hover:text-foreground"
+                )}
+              >
+                {cat.name}
+                <span className="ml-1 opacity-60 font-mono">{cat.count}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Service List — Glassmorphism Card */}
+          <div className="rounded-2xl border border-border/20 bg-card/40 backdrop-blur-xl overflow-hidden shadow-[0_4px_40px_-8px_rgba(0,0,0,0.4)]">
+            <div className="px-4 py-2.5 border-b border-border/15 flex items-center justify-between">
+              <span className="text-[10px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50">
+                Available Services
+              </span>
+              <span className="text-[10px] font-mono text-muted-foreground/40">{filteredProducts.length}</span>
             </div>
 
-            {/* Category Filters */}
-            <div className="flex gap-1.5 flex-wrap">
-              {categories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={cn(
-                    "px-3 py-1.5 text-[11px] font-semibold rounded-full border transition-all duration-200",
-                    activeCategory === cat
-                      ? "bg-primary text-primary-foreground border-primary shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
-                      : "bg-secondary/50 text-muted-foreground border-border hover:border-primary/40 hover:text-foreground"
-                  )}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
-
-            {/* Scrollable Service List */}
-            <div className="flex-1 min-h-0 overflow-y-auto stool-scrollbar space-y-1 max-h-[420px] pr-1">
+            <div className="max-h-[55vh] lg:max-h-[65vh] overflow-y-auto scrollbar-hide">
               {filteredProducts.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                  <Search className="w-8 h-8 mb-2 opacity-40" />
-                  <p className="text-sm">No services found</p>
+                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/40">
+                  <Search className="w-7 h-7 mb-2" />
+                  <p className="text-xs font-medium">No services found</p>
                 </div>
               ) : (
                 filteredProducts.map((p: any) => {
                   const isSelected = p.id === selectedProductId;
-                  const isAuto = Array.isArray(p.fulfillment_modes) && (p.fulfillment_modes as any[]).includes("instant");
                   return (
                     <button
                       key={p.id}
-                      onClick={() => {
-                        setSelectedProductId(p.id);
-                        setCustomFieldValues({});
-                        setResult(null);
-                      }}
+                      onClick={() => handleSelectProduct(p.id)}
                       className={cn(
-                        "w-full text-left px-3 py-2.5 rounded-[var(--radius-btn)] border transition-all duration-200 group",
+                        "w-full text-left px-4 py-3 flex items-center gap-3 border-b border-border/8 transition-all duration-200 group",
                         isSelected
-                          ? "bg-primary/10 border-primary/40 shadow-[0_0_15px_hsl(var(--primary)/0.1)]"
-                          : "bg-secondary/30 border-transparent hover:bg-secondary/60 hover:border-border"
+                          ? "bg-primary/8 border-l-2 border-l-primary"
+                          : "hover:bg-card/80 border-l-2 border-l-transparent"
                       )}
                     >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <span className="font-mono text-[11px] text-primary font-bold shrink-0">#{p.display_id}</span>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono text-[10px] text-primary/70 font-bold">#{p.display_id}</span>
                           <span className={cn(
-                            "text-sm truncate",
+                            "text-[13px] truncate leading-tight",
                             isSelected ? "text-foreground font-semibold" : "text-secondary-foreground"
                           )}>
                             {p.name}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <span className={cn(
-                            "inline-flex items-center gap-0.5 text-[9px] font-bold rounded-full px-1.5 py-0.5",
-                            isAuto ? "bg-success/15 text-success" : "bg-warning/15 text-warning"
-                          )}>
-                            {isAuto ? <Zap className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
-                            {isAuto ? "Instant" : "Manual"}
-                          </span>
-                          <span className="font-mono text-xs font-bold text-foreground tabular-nums">
-                            <Money amount={p.wholesale_price} />
-                          </span>
-                        </div>
                       </div>
+                      <span className="font-mono text-xs font-bold text-foreground/80 tabular-nums shrink-0">
+                        <Money amount={p.wholesale_price} />
+                      </span>
+                      <ChevronRight className={cn(
+                        "w-3.5 h-3.5 shrink-0 transition-all duration-200",
+                        isSelected ? "text-primary" : "text-muted-foreground/20 group-hover:text-muted-foreground/50"
+                      )} />
                     </button>
                   );
                 })
               )}
             </div>
-
-            {/* Custom Fields (shown when product selected) */}
-            {selectedProduct && activeFields.length > 0 && (
-              <div className="border-t border-border/40 pt-3 space-y-3">
-                {activeFields.map((field: any) => (
-                  <div key={field.id} className="space-y-1.5">
-                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      {field.field_name}
-                      {field.required && <span className="text-destructive ml-0.5">*</span>}
-                    </label>
-                    {field.field_type === "select" && Array.isArray(field.options) && field.options.length > 0 ? (
-                      <select
-                        value={customFieldValues[field.field_name] || ""}
-                        onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
-                        className="w-full h-10 rounded-[var(--radius-input)] bg-secondary/60 border border-border px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                      >
-                        <option value="">{field.placeholder || `Select ${field.field_name}`}</option>
-                        {(field.options as string[]).map((opt: string) => (
-                          <option key={opt} value={opt}>{opt}</option>
-                        ))}
-                      </select>
-                    ) : (
-                      <Input
-                        type={field.field_type === "number" || field.field_type === "quantity" ? "number" : field.field_type === "url" ? "url" : "text"}
-                        value={customFieldValues[field.field_name] || ""}
-                        onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
-                        placeholder={field.placeholder || `Enter ${field.field_name}`}
-                        className="bg-secondary/60 border-border font-mono text-sm"
-                        min={field.min_length || undefined}
-                        max={field.max_length || undefined}
-                      />
-                    )}
-                    {(field.field_type === "quantity" || field.field_type === "number") && (field.min_length || field.max_length) && (
-                      <p className="text-[10px] text-muted-foreground">
-                        {field.min_length ? `Min: ${field.min_length.toLocaleString()}` : ""}
-                        {field.min_length && field.max_length ? " · " : ""}
-                        {field.max_length ? `Max: ${field.max_length.toLocaleString()}` : ""}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Price Summary + Insufficient balance */}
-            {selectedProduct && (
-              <div className="border-t border-border/40 pt-3 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Total Price</span>
-                  <span className="text-lg font-extrabold font-mono tabular-nums text-foreground">
-                    <Money amount={totalPrice} />
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-muted-foreground">Delivery</span>
-                  <span className={cn(
-                    "text-xs font-semibold px-2.5 py-1 rounded-full",
-                    isInstant ? "bg-success/15 text-success" : "bg-warning/15 text-warning"
-                  )}>
-                    {isInstant && <Zap className="w-3 h-3 inline mr-1" />}
-                    {deliveryTime}
-                  </span>
-                </div>
-
-                {hasInsufficientBalance && (
-                  <div className="flex items-center gap-2 text-xs bg-destructive/10 text-destructive px-3 py-2.5 rounded-[var(--radius-btn)] border border-destructive/20">
-                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                    <span>Need <Money amount={totalPrice - balance} className="inline font-bold" /> more.</span>
-                    <button
-                      onClick={() => setTopUpOpen(true)}
-                      className="text-primary font-semibold hover:underline ml-auto shrink-0"
-                    >
-                      Top Up
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Place Order Button */}
-            <Button
-              onClick={handlePurchase}
-              disabled={!selectedProduct || purchasing || hasInsufficientBalance}
-              className={cn(
-                "w-full h-12 font-bold text-sm gap-2 rounded-[var(--radius-btn)]",
-                "bg-primary hover:bg-primary/90 text-primary-foreground",
-                "shadow-[0_0_20px_hsl(var(--primary)/0.25)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)]",
-                "transition-all duration-300",
-                (!selectedProduct || hasInsufficientBalance) && "opacity-40 shadow-none"
-              )}
-            >
-              {purchasing ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  Place Order
-                </>
-              )}
-            </Button>
           </div>
         </div>
 
-        {/* ═══ RIGHT: Service Description (2/5) ═══ */}
-        <div className="lg:col-span-2 stool-card flex flex-col">
-          <div className="stool-card-header">
-            <Info className="w-4 h-4 text-primary" />
-            <span className="font-semibold text-foreground text-sm">Service Description</span>
-          </div>
-
-          <div className="p-4 flex-1 overflow-y-auto stool-scrollbar">
+        {/* ═══ RIGHT: Detail Panel (3/5) ═══ */}
+        <div ref={detailRef} className="lg:col-span-3">
+          <AnimatePresence mode="wait">
             {!selectedProduct ? (
-              <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-muted-foreground">
-                <div className="w-16 h-16 rounded-full bg-primary/5 border border-border flex items-center justify-center mb-4">
-                  <Info className="w-7 h-7 text-primary/50" />
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="rounded-2xl border border-border/20 bg-card/30 backdrop-blur-xl p-8 lg:p-12 shadow-[0_4px_40px_-8px_rgba(0,0,0,0.3)]"
+              >
+                <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+                  <div className="w-20 h-20 rounded-2xl bg-primary/5 border border-border/20 flex items-center justify-center mb-5">
+                    <Sparkles className="w-9 h-9 text-primary/30" />
+                  </div>
+                  <h3 className="text-lg font-bold text-foreground/80 mb-2">Select a Service</h3>
+                  <p className="text-sm text-muted-foreground/50 max-w-[280px]">
+                    Choose a service from the list to view its details, pricing, and place your order.
+                  </p>
                 </div>
-                <p className="text-sm font-medium">Please select a service to view details.</p>
-                <p className="text-xs text-muted-foreground/60 mt-1">Choose from the list on the left</p>
-              </div>
+              </motion.div>
             ) : (
-              <ServiceDescription product={selectedProduct} />
+              <motion.div
+                key={selectedProduct.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: "easeOut" }}
+                className="space-y-4"
+              >
+                {/* Service Detail Card */}
+                <div className="rounded-2xl border border-border/20 bg-card/40 backdrop-blur-xl overflow-hidden shadow-[0_4px_40px_-8px_rgba(0,0,0,0.4)]">
+                  {/* Header */}
+                  <div className="px-5 py-4 border-b border-border/15">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <h2 className="text-base font-bold text-foreground leading-tight">{selectedProduct.name}</h2>
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          <span className="font-mono text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-md font-bold">
+                            #{selectedProduct.display_id}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground/60 font-medium">{selectedProduct.category}</span>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="text-xl font-extrabold font-mono tabular-nums text-foreground">
+                          <Money amount={totalPrice} />
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Badges */}
+                    <div className="flex items-center gap-2 mt-3 flex-wrap">
+                      <span className={cn(
+                        "inline-flex items-center gap-1 text-[10px] font-bold rounded-lg px-2.5 py-1 border",
+                        isInstant
+                          ? "bg-success/10 text-success border-success/20"
+                          : "bg-warning/10 text-warning border-warning/20"
+                      )}>
+                        {isInstant ? <Zap className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+                        {deliveryTime}
+                      </span>
+                      {selectedProduct.product_type === "digital" && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-lg px-2.5 py-1 bg-primary/10 text-primary border border-primary/20">
+                          <Zap className="w-3 h-3" /> AUTO-INSTANT
+                        </span>
+                      )}
+                      {selectedProduct.description?.toLowerCase().includes("no refund") && (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-lg px-2.5 py-1 bg-destructive/10 text-destructive border border-destructive/20">
+                          <ShieldAlert className="w-3 h-3" /> NO REFUND
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Description Body */}
+                  <div className="px-5 py-4 max-h-[280px] overflow-y-auto scrollbar-hide">
+                    <ServiceDescription product={selectedProduct} />
+                  </div>
+                </div>
+
+                {/* Order Form Card */}
+                <div className="rounded-2xl border border-border/20 bg-card/40 backdrop-blur-xl p-5 shadow-[0_4px_40px_-8px_rgba(0,0,0,0.3)] space-y-4">
+                  <h3 className="text-[11px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50">
+                    Order Details
+                  </h3>
+
+                  {/* Custom Fields */}
+                  {activeFields.length > 0 && (
+                    <div className="space-y-3">
+                      {activeFields.map((field: any) => (
+                        <div key={field.id} className="space-y-1.5">
+                          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                            {field.field_name}
+                            {field.required && <span className="text-destructive ml-0.5">*</span>}
+                          </label>
+                          {field.field_type === "select" && Array.isArray(field.options) && field.options.length > 0 ? (
+                            <select
+                              value={customFieldValues[field.field_name] || ""}
+                              onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
+                              className="w-full h-10 rounded-xl bg-card/60 backdrop-blur-sm border border-border/30 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40"
+                            >
+                              <option value="">{field.placeholder || `Select ${field.field_name}`}</option>
+                              {(field.options as string[]).map((opt: string) => (
+                                <option key={opt} value={opt}>{opt}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <Input
+                              type={field.field_type === "number" || field.field_type === "quantity" ? "number" : field.field_type === "url" ? "url" : "text"}
+                              value={customFieldValues[field.field_name] || ""}
+                              onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
+                              placeholder={field.placeholder || `Enter ${field.field_name}`}
+                              className="bg-card/60 backdrop-blur-sm border-border/30 font-mono text-sm rounded-xl focus:border-primary/40 focus:ring-primary/20"
+                              min={field.min_length || undefined}
+                              max={field.max_length || undefined}
+                            />
+                          )}
+                          {(field.field_type === "quantity" || field.field_type === "number") && (field.min_length || field.max_length) && (
+                            <p className="text-[10px] text-muted-foreground/50">
+                              {field.min_length ? `Min: ${field.min_length.toLocaleString()}` : ""}
+                              {field.min_length && field.max_length ? " · " : ""}
+                              {field.max_length ? `Max: ${field.max_length.toLocaleString()}` : ""}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Price Summary */}
+                  <div className="rounded-xl bg-card/50 border border-border/15 p-3.5 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Total Price</span>
+                      <span className="text-lg font-extrabold font-mono tabular-nums text-foreground">
+                        <Money amount={totalPrice} />
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-muted-foreground">Your Balance</span>
+                      <span className={cn(
+                        "text-xs font-bold font-mono tabular-nums",
+                        hasInsufficientBalance ? "text-destructive" : "text-success"
+                      )}>
+                        <Money amount={balance} />
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Insufficient balance warning */}
+                  {hasInsufficientBalance && (
+                    <div className="flex items-center gap-2 text-xs bg-destructive/8 text-destructive px-3 py-2.5 rounded-xl border border-destructive/15">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                      <span>Need <Money amount={totalPrice - balance} className="inline font-bold" /> more.</span>
+                      <button
+                        onClick={() => setTopUpOpen(true)}
+                        className="text-primary font-semibold hover:underline ml-auto shrink-0"
+                      >
+                        Top Up
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Place Order Button */}
+                  <Button
+                    onClick={handlePurchase}
+                    disabled={!selectedProduct || purchasing || hasInsufficientBalance}
+                    className={cn(
+                      "w-full h-12 font-bold text-sm gap-2 rounded-xl",
+                      "bg-primary hover:bg-primary/90 text-primary-foreground",
+                      "shadow-[0_0_20px_hsl(var(--primary)/0.25)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)]",
+                      "transition-all duration-300",
+                      hasInsufficientBalance && "opacity-40 shadow-none"
+                    )}
+                  >
+                    {purchasing ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        Place Order
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </motion.div>
             )}
-          </div>
+          </AnimatePresence>
         </div>
       </div>
 
@@ -478,7 +562,7 @@ export default function PlaceOrderPage() {
 }
 
 /* ════════════════════════════════════════════════════════════
-   SERVICE DESCRIPTION — S-Tool Pro Style
+   SERVICE DESCRIPTION — Clean formatted view
    ════════════════════════════════════════════════════════════ */
 function ServiceDescription({ product }: { product: any }) {
   const description = product.description || "";
@@ -512,74 +596,56 @@ function ServiceDescription({ product }: { product: any }) {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Product Name Header */}
-      <div className="pb-3 border-b border-border/30">
-        <h3 className="text-base font-bold text-foreground">{product.name}</h3>
-        <div className="flex items-center gap-2 mt-1.5">
-          <span className="font-mono text-[11px] text-primary bg-primary/10 px-2 py-0.5 rounded-full font-semibold">
-            #{product.display_id}
-          </span>
-          <span className="text-xs text-muted-foreground">{product.category}</span>
-        </div>
-      </div>
-
-      {/* Regular description text */}
+    <div className="space-y-3">
+      {/* Regular text */}
       {regularLines.length > 0 && (
         <div className="space-y-1.5">
           {regularLines.map((line, i) => {
             if (line.startsWith("**") && line.endsWith("**")) {
               return <p key={i} className="text-sm font-bold text-foreground">{line.replace(/\*\*/g, "")}</p>;
             }
-            return <p key={i} className="text-sm text-muted-foreground leading-relaxed">{line}</p>;
+            return <p key={i} className="text-[13px] text-muted-foreground leading-relaxed">{line}</p>;
           })}
         </div>
       )}
 
-      {/* Features List — Green Checkmarks */}
+      {/* Features — Green checkmarks */}
       {features.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-[11px] uppercase tracking-widest font-bold text-success/80">Features</p>
-          <div className="space-y-1.5">
-            {features.map((feat, i) => (
-              <div key={i} className="flex items-start gap-2.5">
-                <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
-                <span className="text-sm text-foreground">{feat}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Warnings — Orange/Red Box */}
-      {warnings.length > 0 && (
-        <div className="rounded-[var(--radius-btn)] border border-warning/30 bg-warning/5 p-3 space-y-1.5">
-          <div className="flex items-center gap-2 text-warning font-bold text-xs uppercase tracking-wider">
-            <ShieldAlert className="w-4 h-4" />
-            Important Notice
-          </div>
-          {warnings.map((warn, i) => (
-            <p key={i} className="text-xs text-warning/90 font-medium">{warn}</p>
+        <div className="space-y-1.5">
+          {features.map((feat, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
+              <span className="text-[13px] text-foreground/90">{feat}</span>
+            </div>
           ))}
         </div>
       )}
 
-      {/* Download Tool Button */}
+      {/* Warnings */}
+      {warnings.length > 0 && (
+        <div className="rounded-xl border border-warning/20 bg-warning/5 p-3 space-y-1">
+          <div className="flex items-center gap-1.5 text-warning font-bold text-[10px] uppercase tracking-wider">
+            <ShieldAlert className="w-3.5 h-3.5" />
+            Important
+          </div>
+          {warnings.map((warn, i) => (
+            <p key={i} className="text-xs text-warning/80 font-medium">{warn}</p>
+          ))}
+        </div>
+      )}
+
+      {/* Download links */}
       {downloadLines.length > 0 && (
-        <div className="pt-2 space-y-2">
+        <div className="space-y-1.5">
           {downloadLines.map((url, i) => (
             <a
               key={i}
               href={url}
               target="_blank"
               rel="noopener noreferrer"
-              className={cn(
-                "flex items-center justify-center gap-2 w-full py-3 rounded-[var(--radius-btn)]",
-                "bg-primary/10 border border-primary/20 text-primary font-semibold text-sm",
-                "hover:bg-primary/20 hover:border-primary/30 transition-all duration-200"
-              )}
+              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl bg-primary/8 border border-primary/15 text-primary font-semibold text-xs hover:bg-primary/15 transition-all duration-200"
             >
-              <Download className="w-4 h-4" />
+              <Download className="w-3.5 h-3.5" />
               Download Tool{downloadLines.length > 1 ? ` ${i + 1}` : ""}
             </a>
           ))}
@@ -587,7 +653,7 @@ function ServiceDescription({ product }: { product: any }) {
       )}
 
       {!description && (
-        <p className="text-sm text-muted-foreground italic">No description available for this service.</p>
+        <p className="text-sm text-muted-foreground/50 italic">No description available.</p>
       )}
     </div>
   );
@@ -606,7 +672,7 @@ function SuccessModal({ result, credentialsList, onCopy, onClose, onNewOrder, na
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-fade-in">
-      <div className="stool-card max-w-md w-full mx-4 p-8 space-y-6 relative">
+      <div className="rounded-2xl border border-border/20 bg-card/80 backdrop-blur-xl max-w-md w-full mx-4 p-8 space-y-6 relative shadow-[0_8px_60px_-4px_rgba(0,0,0,0.6)]">
         <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
           <X className="w-5 h-5" />
         </button>
@@ -618,7 +684,7 @@ function SuccessModal({ result, credentialsList, onCopy, onClose, onNewOrder, na
           <h2 className="text-lg font-bold text-foreground">Order Successful!</h2>
           <p className="text-sm text-muted-foreground">Your order has been placed successfully</p>
         </div>
-        <div className="space-y-2 bg-secondary/30 rounded-[var(--radius-card)] p-4">
+        <div className="space-y-2 bg-secondary/30 rounded-xl p-4">
           <DetailRow label="Product" value={result.product_name} />
           <DetailRow label="Amount" value={<Money amount={result.price} />} />
           <DetailRow label="Order ID" value={result.order_id.slice(0, 8).toUpperCase()} mono />
