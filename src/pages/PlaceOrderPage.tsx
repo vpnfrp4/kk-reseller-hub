@@ -24,7 +24,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Money } from "@/components/shared";
 import { PageContainer } from "@/components/shared";
-import TopUpDialog from "@/components/wallet/TopUpDialog";
+
 import Confetti from "@/components/Confetti";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -45,7 +45,7 @@ export default function PlaceOrderPage() {
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
   const [purchasing, setPurchasing] = useState(false);
   const [result, setResult] = useState<PurchaseResult | null>(null);
-  const [topUpOpen, setTopUpOpen] = useState(false);
+  
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -439,7 +439,7 @@ export default function PlaceOrderPage() {
                   <div className="flex items-center gap-2 text-xs bg-destructive/8 text-destructive px-3 py-2.5 rounded-[var(--radius-btn)] border border-destructive/15">
                     <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
                     <span>Need <Money amount={totalPrice - balance} className="inline font-bold" /> more.</span>
-                    <button onClick={() => setTopUpOpen(true)} className="text-primary font-semibold hover:underline ml-auto shrink-0">Top Up</button>
+                    <button onClick={() => navigate("/dashboard/wallet")} className="text-primary font-semibold hover:underline ml-auto shrink-0">Top Up</button>
                   </div>
                 )}
 
@@ -468,7 +468,7 @@ export default function PlaceOrderPage() {
 
       {/* Success Modal */}
       {result && <SuccessModal result={result} credentialsList={credentialsList} onCopy={copyCredentials} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
-      <TopUpDialog userId={user?.id} open={topUpOpen} onOpenChange={setTopUpOpen} hideTrigger onSubmitted={(txId) => navigate(`/dashboard/topup-status/${txId}`)} />
+      
     </PageContainer>
   );
 }
