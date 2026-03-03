@@ -56,8 +56,17 @@ export default function PlaceOrderPage() {
   useEffect(() => {
     const channel = supabase
       .channel("order-products-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, (payload) => {
         queryClient.invalidateQueries({ queryKey: ["products-for-order"] });
+        const event = payload.eventType;
+        const name = (payload.new as any)?.name || (payload.old as any)?.name || "A product";
+        if (event === "INSERT") {
+          toast.info(`New service added: ${name}`, { icon: "🆕" });
+        } else if (event === "UPDATE") {
+          toast.info(`Service updated: ${name}`, { icon: "🔄" });
+        } else if (event === "DELETE") {
+          toast.info(`Service removed`, { icon: "🗑️" });
+        }
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
