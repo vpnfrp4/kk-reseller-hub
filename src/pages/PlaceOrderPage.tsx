@@ -71,7 +71,6 @@ export default function PlaceOrderPage() {
         .from("products")
         .select("*")
         .order("sort_order", { ascending: true });
-      console.log("[PlaceOrderPage] fetched products:", data?.length);
       // Filter: hide digital products with 0 stock, keep all others
       return (data || []).filter((p: any) =>
         p.product_type !== "digital" || p.stock > 0
