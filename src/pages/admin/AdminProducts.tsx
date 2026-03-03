@@ -22,7 +22,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import ConfirmModal from "@/components/shared/ConfirmModal";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, FileText, Sparkles, Zap, Loader2, Search, RefreshCw, Eye, EyeOff, Copy } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, FileText, Sparkles, Zap, Loader2, Search, RefreshCw, Eye, EyeOff, Copy, ClipboardPaste } from "lucide-react";
 import { generateProductDescription, type DescriptionMode } from "@/lib/description-templates";
 import { optimizeTitle, autoBuildProduct, type AutoBuildResult } from "@/lib/title-optimizer";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
@@ -1181,6 +1181,14 @@ export default function AdminProducts() {
                           <Copy className="w-4 h-4" />
                         </button>
                       )}
+                      <button
+                        type="button"
+                        onClick={async () => { try { const text = await navigator.clipboard.readText(); if (text) { setForm((prev) => ({ ...prev, description: prev.description ? prev.description + "\n" + text : text })); descManuallyEdited.current = true; toast.success("Pasted from clipboard"); } else { toast.error("Clipboard is empty"); } } catch { toast.error("Clipboard access denied"); } }}
+                        className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border transition-all"
+                        title="Paste from clipboard"
+                      >
+                        <ClipboardPaste className="w-4 h-4" />
+                      </button>
                     </div>
                     {aiGenerating && (
                       <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md">
