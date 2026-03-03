@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Search, ChevronDown, Zap, Clock, X, Timer } from "lucide-react";
+import { Search, ChevronDown, Zap, Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ServiceItem {
@@ -146,18 +146,6 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
                   const isAuto = service.product_type === "api" || isDigital;
                   const isOutOfStock = isDigital && service.stock === 0;
 
-                  // Derive processing time estimate
-                  const dtConfig = (service as any).delivery_time_config;
-                  const defaultMode = Array.isArray((service as any).fulfillment_modes)
-                    ? String((service as any).fulfillment_modes[0])
-                    : "instant";
-                  let processingTime = (service as any).processing_time || (isAuto ? "Instant" : "1–24 Hours");
-                  if (dtConfig && typeof dtConfig === "object" && dtConfig[defaultMode]) {
-                    processingTime = dtConfig[defaultMode];
-                  }
-                  // Strip emoji prefixes for cleaner display
-                  const cleanTime = processingTime.replace(/^[⚡⏳🕐]\s*/, "");
-
                   return (
                     <button
                       key={service.id}
@@ -178,7 +166,7 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
                           )}
                           {service.name}
                         </p>
-                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                        <div className="flex items-center gap-2 mt-1">
                           <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-primary/15 text-primary">
                             Service Active
                           </span>
@@ -190,10 +178,6 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
                           )}>
                             {isAuto ? <Zap className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
                             {isAuto ? "Instant" : "Manual"}
-                          </span>
-                          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-muted/40 text-muted-foreground">
-                            <Timer className="w-2.5 h-2.5" />
-                            {cleanTime}
                           </span>
                           {isOutOfStock && (
                             <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-destructive/15 text-destructive">Out of Stock</span>
