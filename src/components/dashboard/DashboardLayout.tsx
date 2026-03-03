@@ -9,7 +9,6 @@ import TopUpDialog from "@/components/wallet/TopUpDialog";
 import {
   Home,
   ShoppingCart,
-  FileText,
   Receipt,
   User,
   LogOut,
@@ -30,7 +29,7 @@ import kkLogo from "@/assets/kkremote-logo.png";
 const navItems = [
   { label: "Home", icon: Home, path: "/dashboard" },
   { label: "Place Order", icon: ShoppingCart, path: "/dashboard/place-order" },
-  { label: "Statement", icon: FileText, path: "/dashboard/wallet" },
+  { label: "Top Up", icon: Wallet, path: "/dashboard/wallet" },
   { label: "Orders", icon: Receipt, path: "/dashboard/orders" },
   { label: "Account", icon: User, path: "/dashboard/settings" },
 ];

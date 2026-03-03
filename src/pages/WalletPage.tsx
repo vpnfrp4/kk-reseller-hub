@@ -27,6 +27,7 @@ import {
   Send,
   FileCheck,
   CircleDollarSign,
+  History,
 } from "lucide-react";
 import { downloadReceipt } from "@/lib/receipt";
 import { Button } from "@/components/ui/button";
@@ -43,7 +44,6 @@ import { motion, AnimatePresence } from "framer-motion";
 const PRESET_AMOUNTS = [10000, 30000, 50000, 100000];
 const MIN_AMOUNT = 5000;
 
-// Payment method logos/icons mapping
 const METHOD_ICONS: Record<string, string> = {
   kpay: "💳",
   wavemoney: "📱",
@@ -58,6 +58,8 @@ const METHOD_ICONS: Record<string, string> = {
   mpu: "🔒",
 };
 
+type TabType = "topup" | "history";
+
 export default function WalletPage() {
   const { user, profile } = useAuth();
   const navigate = useNavigate();
@@ -65,6 +67,7 @@ export default function WalletPage() {
   const [balanceFlash, setBalanceFlash] = useState(false);
   const prevBalanceRef = useRef<number | null>(null);
   const l = useT();
+  const [activeTab, setActiveTab] = useState<TabType>("topup");
 
   // Top-up form state
   const [topupAmount, setTopupAmount] = useState("");
@@ -105,7 +108,6 @@ export default function WalletPage() {
     },
   });
 
-  // Set default selected method
   useEffect(() => {
     if (paymentMethods && paymentMethods.length > 0 && !selectedMethod) {
       setSelectedMethod(paymentMethods[0].method_id);
@@ -227,7 +229,6 @@ export default function WalletPage() {
     if (!verifyTxId.trim() || !user?.id) return;
     setVerifying(true);
     try {
-      // Search for a pending transaction matching the entered ID in the description
       const { data: matchedTx } = await supabase
         .from("wallet_transactions")
         .select("*")
@@ -240,7 +241,6 @@ export default function WalletPage() {
       if (matchedTx && matchedTx.length > 0) {
         toast({ title: "✅ Transaction Found", description: `Your top-up of ${matchedTx[0].amount.toLocaleString()} MMK is pending admin approval.` });
       } else {
-        // Also check by searching the order code in the ID field
         const { data: matchById } = await supabase
           .from("wallet_transactions")
           .select("*")
@@ -299,11 +299,17 @@ export default function WalletPage() {
     )},
   ];
 
+  /* ═══ TAB DEFINITIONS ═══ */
+  const tabs: { id: TabType; label: string; icon: typeof Wallet }[] = [
+    { id: "topup", label: "Top Up", icon: Wallet },
+    { id: "history", label: "Transaction History", icon: History },
+  ];
+
   return (
     <div className="space-y-[var(--space-section)]">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
-        { label: l(t.nav.wallet) },
+        { label: "Top Up" },
       ]} />
 
       {/* Page Header */}
@@ -313,9 +319,9 @@ export default function WalletPage() {
             <div className="w-10 h-10 rounded-[var(--radius-card)] bg-primary/10 flex items-center justify-center">
               <Wallet className="w-5 h-5 text-primary" />
             </div>
-            <MmLabel mm={t.wallet.title.mm} en={t.wallet.title.en} />
+            Top Up Wallet
           </h1>
-          <p className="text-sm text-muted-foreground mt-0.5 ml-[52px]">{l(t.wallet.subtitle)}</p>
+          <p className="text-sm text-muted-foreground mt-0.5 ml-[52px]">Add funds to your wallet via mobile payment or crypto</p>
         </div>
       </div>
 
@@ -352,286 +358,329 @@ export default function WalletPage() {
         </div>
       </div>
 
-      {/* ═══════════════ PAYMENT GATEWAY SECTION ═══════════════ */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-[var(--space-card)] animate-fade-in" style={{ animationDelay: "0.1s" }}>
-        
-        {/* LEFT: Payment Methods + Details (3 cols) */}
-        <div className="lg:col-span-3 space-y-[var(--space-card)]">
-          
-          {/* How to Pay Steps */}
-          <div className="glass-card p-[var(--space-card)]">
-            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-              <CircleDollarSign className="w-4 h-4 text-primary" />
-              How to Top Up
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {[
-                { step: 1, icon: Smartphone, title: "Choose Method", desc: "Select your preferred payment method below" },
-                { step: 2, icon: Send, title: "Transfer Exact Amount", desc: "Send the exact amount to the official account" },
-                { step: 3, icon: FileCheck, title: "Upload & Submit", desc: "Upload proof or verify with Transaction ID" },
-              ].map((s) => (
-                <div key={s.step} className="flex gap-3 items-start">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
-                    style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))", border: "1px solid hsl(var(--primary) / 0.2)" }}>
-                    <s.icon className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-semibold text-foreground">Step {s.step}: {s.title}</p>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{s.desc}</p>
+      {/* ═══ TABS: Top Up | Transaction History ═══ */}
+      <div className="flex items-center gap-1 p-1 rounded-[var(--radius-card)] bg-muted/30 border border-border/40 w-fit animate-fade-in" style={{ animationDelay: "0.08s" }}>
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={cn(
+              "relative flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200",
+              activeTab === tab.id
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+            )}
+          >
+            <tab.icon className="w-4 h-4" />
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* ═══ TAB CONTENT ═══ */}
+      <AnimatePresence mode="wait">
+        {activeTab === "topup" ? (
+          <motion.div
+            key="topup"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+            className="space-y-[var(--space-card)]"
+          >
+            {/* ═══════════════ PAYMENT GATEWAY SECTION ═══════════════ */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-[var(--space-card)]">
+              
+              {/* LEFT: Payment Methods + Details (3 cols) */}
+              <div className="lg:col-span-3 space-y-[var(--space-card)]">
+                
+                {/* How to Pay Steps */}
+                <div className="glass-card p-[var(--space-card)]">
+                  <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <CircleDollarSign className="w-4 h-4 text-primary" />
+                    How to Top Up
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {[
+                      { step: 1, icon: Smartphone, title: "Choose Method", desc: "Select your preferred payment method below" },
+                      { step: 2, icon: Send, title: "Transfer Exact Amount", desc: "Send the exact amount to the official account" },
+                      { step: 3, icon: FileCheck, title: "Upload & Submit", desc: "Upload proof or verify with Transaction ID" },
+                    ].map((s) => (
+                      <div key={s.step} className="flex gap-3 items-start">
+                        <div className="w-9 h-9 rounded-full flex items-center justify-center shrink-0"
+                          style={{ background: "linear-gradient(135deg, hsl(var(--primary) / 0.15), hsl(var(--primary) / 0.05))", border: "1px solid hsl(var(--primary) / 0.2)" }}>
+                          <s.icon className="w-4 h-4 text-primary" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-foreground">Step {s.step}: {s.title}</p>
+                          <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{s.desc}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* Payment Methods Grid */}
-          <div className="glass-card p-[var(--space-card)]">
-            <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
-              <CreditCard className="w-4 h-4 text-primary" />
-              {l(t.topup.paymentMethods)}
-            </h3>
+                {/* Payment Methods Grid */}
+                <div className="glass-card p-[var(--space-card)]">
+                  <h3 className="text-sm font-semibold text-foreground mb-4 flex items-center gap-2">
+                    <CreditCard className="w-4 h-4 text-primary" />
+                    {l(t.topup.paymentMethods)}
+                  </h3>
 
-            {/* Method Grid */}
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 mb-5">
-              {(paymentMethods || []).map((m: any) => {
-                const isActive = selectedMethod === m.method_id;
-                return (
-                  <motion.button
-                    key={m.method_id}
-                    type="button"
-                    onClick={() => setSelectedMethod(m.method_id)}
-                    whileTap={{ scale: 0.95 }}
-                    className={cn(
-                      "relative flex flex-col items-center gap-2 p-3 rounded-[var(--radius-card)] border transition-all duration-200",
-                      isActive
-                        ? "border-primary/50 bg-primary/[0.06] shadow-[0_0_20px_hsl(var(--primary)/0.1)]"
-                        : "border-border/40 bg-secondary/30 hover:border-muted-foreground/20 hover:bg-secondary/50"
-                    )}
-                  >
-                    <span className="text-2xl">{METHOD_ICONS[m.method_id] || "💳"}</span>
-                    <span className={cn("text-[11px] font-semibold uppercase tracking-wider", isActive ? "text-primary" : "text-muted-foreground")}>
-                      {m.provider}
-                    </span>
-                    {isActive && (
-                      <motion.div layoutId="method-indicator" className="absolute -bottom-px left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary" />
-                    )}
-                  </motion.button>
-                );
-              })}
-            </div>
-
-            {/* Selected Method Details */}
-            <AnimatePresence mode="wait">
-              {activeMethod && (
-                <motion.div
-                  key={selectedMethod}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
-                  transition={{ duration: 0.2 }}
-                  className="rounded-[var(--radius-card)] border border-primary/20 bg-primary/[0.03] p-5"
-                >
-                  <div className="flex items-center gap-2 mb-4">
-                    <BadgeCheck className="w-4 h-4 text-primary" />
-                    <span className="text-xs font-bold uppercase tracking-wider text-primary">{activeMethod.provider} — Official Account</span>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 mb-5">
+                    {(paymentMethods || []).map((m: any) => {
+                      const isActive = selectedMethod === m.method_id;
+                      return (
+                        <motion.button
+                          key={m.method_id}
+                          type="button"
+                          onClick={() => setSelectedMethod(m.method_id)}
+                          whileTap={{ scale: 0.95 }}
+                          className={cn(
+                            "relative flex flex-col items-center gap-2 p-3 rounded-[var(--radius-card)] border transition-all duration-200",
+                            isActive
+                              ? "border-primary/50 bg-primary/[0.06] shadow-[0_0_20px_hsl(var(--primary)/0.1)]"
+                              : "border-border/40 bg-secondary/30 hover:border-muted-foreground/20 hover:bg-secondary/50"
+                          )}
+                        >
+                          <span className="text-2xl">{METHOD_ICONS[m.method_id] || "💳"}</span>
+                          <span className={cn("text-[11px] font-semibold uppercase tracking-wider", isActive ? "text-primary" : "text-muted-foreground")}>
+                            {m.provider}
+                          </span>
+                          {isActive && (
+                            <motion.div layoutId="method-indicator" className="absolute -bottom-px left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-primary" />
+                          )}
+                        </motion.button>
+                      );
+                    })}
                   </div>
 
-                  {isBinance ? (
-                    <div className="space-y-4">
-                      <div>
-                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Binance UID</span>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="font-mono text-xl font-bold text-foreground tracking-wide">{activeMethod.binance_uid}</span>
-                          <CopyButton text={activeMethod.binance_uid} label="Binance UID" />
+                  {/* Selected Method Details */}
+                  <AnimatePresence mode="wait">
+                    {activeMethod && (
+                      <motion.div
+                        key={selectedMethod}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.2 }}
+                        className="rounded-[var(--radius-card)] border border-primary/20 bg-primary/[0.03] p-5"
+                      >
+                        <div className="flex items-center gap-2 mb-4">
+                          <BadgeCheck className="w-4 h-4 text-primary" />
+                          <span className="text-xs font-bold uppercase tracking-wider text-primary">{activeMethod.provider} — Official Account</span>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-6">
-                        <div>
-                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Network</span>
-                          <p className="text-sm font-semibold text-foreground mt-0.5">{activeMethod.network}</p>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Currency</span>
-                          <p className="text-sm font-semibold text-foreground mt-0.5">{activeMethod.accepted_currency}</p>
-                        </div>
-                      </div>
+
+                        {isBinance ? (
+                          <div className="space-y-4">
+                            <div>
+                              <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Binance UID</span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="font-mono text-xl font-bold text-foreground tracking-wide">{activeMethod.binance_uid}</span>
+                                <CopyButton text={activeMethod.binance_uid} label="Binance UID" />
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-6">
+                              <div>
+                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Network</span>
+                                <p className="text-sm font-semibold text-foreground mt-0.5">{activeMethod.network}</p>
+                              </div>
+                              <div>
+                                <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Currency</span>
+                                <p className="text-sm font-semibold text-foreground mt-0.5">{activeMethod.accepted_currency}</p>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="space-y-4">
+                            <div>
+                              <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Account Name</span>
+                              <p className="text-sm font-semibold text-foreground mt-0.5">{activeMethod.name}</p>
+                            </div>
+                            <div>
+                              <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Phone Number</span>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="font-mono text-xl font-bold text-foreground tracking-wide">{activeMethod.phone}</span>
+                                <CopyButton text={activeMethod.phone} label={activeMethod.provider} />
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        <p className="text-[10px] text-muted-foreground/40 flex items-center gap-1.5 pt-3 mt-4 border-t border-border/15">
+                          <Shield className="w-3 h-3" />
+                          Transfer only to official verified accounts. Use Order ID as note/reference.
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              </div>
+
+              {/* RIGHT: Top-Up Form (2 cols) */}
+              <div className="lg:col-span-2 space-y-[var(--space-card)]">
+                
+                {/* Submit Top-Up Form */}
+                <form onSubmit={handleSubmitTopup} className="glass-card p-[var(--space-card)] space-y-5">
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <ArrowUpRight className="w-4 h-4 text-primary" />
+                    Submit Top-Up Request
+                  </h3>
+
+                  {/* Amount */}
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Amount (MMK)</Label>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        placeholder="Enter amount..."
+                        value={topupAmount}
+                        onChange={(e) => setTopupAmount(e.target.value)}
+                        className="bg-muted/20 border-border/50 font-mono text-lg h-12 rounded-[var(--radius-input)] focus:border-primary/50 pr-14"
+                        required min={MIN_AMOUNT}
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">MMK</span>
                     </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div>
-                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Account Name</span>
-                        <p className="text-sm font-semibold text-foreground mt-0.5">{activeMethod.name}</p>
-                      </div>
-                      <div>
-                        <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-medium">Phone Number</span>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="font-mono text-xl font-bold text-foreground tracking-wide">{activeMethod.phone}</span>
-                          <CopyButton text={activeMethod.phone} label={activeMethod.provider} />
-                        </div>
-                      </div>
+                    {isAmountTooLow && (
+                      <p className="text-xs text-warning flex items-center gap-1.5"><AlertTriangle className="w-3 h-3" /> Min: {MIN_AMOUNT.toLocaleString()} MMK</p>
+                    )}
+                    <div className="flex gap-2 flex-wrap">
+                      {PRESET_AMOUNTS.map((amt) => (
+                        <button key={amt} type="button" onClick={() => setTopupAmount(amt.toString())}
+                          className={cn("px-3 py-1.5 rounded-[var(--radius-btn)] text-xs font-semibold transition-all duration-200",
+                            topupAmount === amt.toString() ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted")}>
+                          {amt.toLocaleString()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Binance TxID */}
+                  {isBinance && (
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Transaction ID (TxID)</Label>
+                      <Input type="text" placeholder="Enter Binance TxID" value={binanceTxId}
+                        onChange={(e) => setBinanceTxId(e.target.value)}
+                        className="bg-muted/20 border-border/50 font-mono text-sm h-11 rounded-[var(--radius-input)]" required />
                     </div>
                   )}
 
-                  <p className="text-[10px] text-muted-foreground/40 flex items-center gap-1.5 pt-3 mt-4 border-t border-border/15">
-                    <Shield className="w-3 h-3" />
-                    Transfer only to official verified accounts. Use Order ID as note/reference.
-                  </p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-
-        {/* RIGHT: Top-Up Form (2 cols) */}
-        <div className="lg:col-span-2 space-y-[var(--space-card)]">
-          
-          {/* Submit Top-Up Form */}
-          <form onSubmit={handleSubmitTopup} className="glass-card p-[var(--space-card)] space-y-5">
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <ArrowUpRight className="w-4 h-4 text-primary" />
-              Submit Top-Up Request
-            </h3>
-
-            {/* Amount */}
-            <div className="space-y-2">
-              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Amount (MMK)</Label>
-              <div className="relative">
-                <Input
-                  type="number"
-                  placeholder="Enter amount..."
-                  value={topupAmount}
-                  onChange={(e) => setTopupAmount(e.target.value)}
-                  className="bg-muted/20 border-border/50 font-mono text-lg h-12 rounded-[var(--radius-input)] focus:border-primary/50 pr-14"
-                  required min={MIN_AMOUNT}
-                />
-                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">MMK</span>
-              </div>
-              {isAmountTooLow && (
-                <p className="text-xs text-warning flex items-center gap-1.5"><AlertTriangle className="w-3 h-3" /> Min: {MIN_AMOUNT.toLocaleString()} MMK</p>
-              )}
-              <div className="flex gap-2 flex-wrap">
-                {PRESET_AMOUNTS.map((amt) => (
-                  <button key={amt} type="button" onClick={() => setTopupAmount(amt.toString())}
-                    className={cn("px-3 py-1.5 rounded-[var(--radius-btn)] text-xs font-semibold transition-all duration-200",
-                      topupAmount === amt.toString() ? "bg-primary text-primary-foreground" : "bg-muted/50 text-muted-foreground hover:bg-muted")}>
-                    {amt.toLocaleString()}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Binance TxID */}
-            {isBinance && (
-              <div className="space-y-2">
-                <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Transaction ID (TxID)</Label>
-                <Input type="text" placeholder="Enter Binance TxID" value={binanceTxId}
-                  onChange={(e) => setBinanceTxId(e.target.value)}
-                  className="bg-muted/20 border-border/50 font-mono text-sm h-11 rounded-[var(--radius-input)]" required />
-              </div>
-            )}
-
-            {/* Upload */}
-            <div className="space-y-2">
-              <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Payment Proof</Label>
-              {screenshotPreview ? (
-                <div className="relative rounded-[var(--radius-card)] border border-border/30 bg-muted/10 overflow-hidden group">
-                  <img src={screenshotPreview} alt="Payment" className="w-full max-h-32 object-contain bg-background/50" />
-                  <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button type="button" onClick={handleRemoveFile} className="p-2 rounded-lg bg-destructive/90 text-destructive-foreground"><X className="w-4 h-4" /></button>
+                  {/* Upload */}
+                  <div className="space-y-2">
+                    <Label className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Payment Proof</Label>
+                    {screenshotPreview ? (
+                      <div className="relative rounded-[var(--radius-card)] border border-border/30 bg-muted/10 overflow-hidden group">
+                        <img src={screenshotPreview} alt="Payment" className="w-full max-h-32 object-contain bg-background/50" />
+                        <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <button type="button" onClick={handleRemoveFile} className="p-2 rounded-lg bg-destructive/90 text-destructive-foreground"><X className="w-4 h-4" /></button>
+                        </div>
+                        <div className="px-3 py-2 border-t border-border/20 flex items-center justify-between">
+                          <span className="text-[10px] text-muted-foreground truncate max-w-[160px]">{screenshot?.name}</span>
+                          <span className="text-[10px] text-success font-medium">Ready</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <label
+                        className={cn("flex flex-col items-center gap-2 p-6 border-2 border-dashed rounded-[var(--radius-card)] cursor-pointer transition-all",
+                          isDragging ? "border-primary bg-primary/5" : "border-border/40 bg-muted/10 hover:border-primary/30")}
+                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                        onDragLeave={() => setIsDragging(false)}
+                        onDrop={handleDrop}
+                      >
+                        <Upload className={cn("w-5 h-5", isDragging ? "text-primary" : "text-muted-foreground")} />
+                        <span className="text-xs text-muted-foreground">{isDragging ? "Drop here" : "Drag & drop or click"}</span>
+                        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0] || null)} />
+                      </label>
+                    )}
                   </div>
-                  <div className="px-3 py-2 border-t border-border/20 flex items-center justify-between">
-                    <span className="text-[10px] text-muted-foreground truncate max-w-[160px]">{screenshot?.name}</span>
-                    <span className="text-[10px] text-success font-medium">Ready</span>
+
+                  {/* Safety */}
+                  <div className="rounded-[var(--radius-card)] border border-border/40 bg-muted/10 p-3 space-y-1.5">
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" /> Verified official accounts only
+                    </div>
+                    <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+                      <Shield className="w-3.5 h-3.5 text-success shrink-0" /> Manual verification for security
+                    </div>
+                  </div>
+
+                  {/* Submit */}
+                  <Button type="submit"
+                    className="w-full h-12 text-sm font-bold rounded-[var(--radius-btn)] btn-glow"
+                    disabled={!topupAmount || !screenshot || parsedAmount < MIN_AMOUNT || !activeMethod || submissionState === "uploading" || (isBinance && !binanceTxId.trim())}
+                  >
+                    {submissionState === "uploading" ? (
+                      <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</span>
+                    ) : (
+                      l(t.topup.submit)
+                    )}
+                  </Button>
+                </form>
+
+                {/* Auto-Verify Section */}
+                <div className="glass-card p-[var(--space-card)] space-y-4"
+                  style={{ border: "1px solid hsl(var(--gold) / 0.15)", boxShadow: "0 0 30px hsl(var(--gold) / 0.03)" }}>
+                  <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                    <Search className="w-4 h-4" style={{ color: "hsl(var(--gold))" }} />
+                    <span>Auto-Verify by Transaction ID</span>
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Forgot to add a reference note during your transfer? Paste your Transaction ID here to check your payment status.
+                  </p>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      placeholder="Enter Transaction ID..."
+                      value={verifyTxId}
+                      onChange={(e) => setVerifyTxId(e.target.value)}
+                      className="bg-muted/20 border-border/50 font-mono text-sm h-11 rounded-[var(--radius-input)] flex-1"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleVerifyPayment}
+                      disabled={!verifyTxId.trim() || verifying}
+                      className="h-11 px-5 rounded-[var(--radius-btn)] font-semibold shrink-0"
+                      style={{ background: "linear-gradient(135deg, hsl(var(--gold)), hsl(38 92% 40%))", color: "#000" }}
+                    >
+                      {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}
+                    </Button>
                   </div>
                 </div>
-              ) : (
-                <label
-                  className={cn("flex flex-col items-center gap-2 p-6 border-2 border-dashed rounded-[var(--radius-card)] cursor-pointer transition-all",
-                    isDragging ? "border-primary bg-primary/5" : "border-border/40 bg-muted/10 hover:border-primary/30")}
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={handleDrop}
-                >
-                  <Upload className={cn("w-5 h-5", isDragging ? "text-primary" : "text-muted-foreground")} />
-                  <span className="text-xs text-muted-foreground">{isDragging ? "Drop here" : "Drag & drop or click"}</span>
-                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFileSelect(e.target.files?.[0] || null)} />
-                </label>
-              )}
-            </div>
-
-            {/* Safety */}
-            <div className="rounded-[var(--radius-card)] border border-border/40 bg-muted/10 p-3 space-y-1.5">
-              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" /> Verified official accounts only
-              </div>
-              <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
-                <Shield className="w-3.5 h-3.5 text-success shrink-0" /> Manual verification for security
               </div>
             </div>
 
-            {/* Submit */}
-            <Button type="submit"
-              className="w-full h-12 text-sm font-bold rounded-[var(--radius-btn)] btn-glow"
-              disabled={!topupAmount || !screenshot || parsedAmount < MIN_AMOUNT || !activeMethod || submissionState === "uploading" || (isBinance && !binanceTxId.trim())}
-            >
-              {submissionState === "uploading" ? (
-                <span className="flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Submitting...</span>
-              ) : (
-                l(t.topup.submit)
-              )}
-            </Button>
-          </form>
-
-          {/* Auto-Verify Section */}
-          <div className="glass-card p-[var(--space-card)] space-y-4"
-            style={{ border: "1px solid hsl(var(--gold) / 0.15)", boxShadow: "0 0 30px hsl(var(--gold) / 0.03)" }}>
-            <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-              <Search className="w-4 h-4" style={{ color: "hsl(var(--gold))" }} />
-              <span>Auto-Verify by Transaction ID</span>
-            </h3>
-            <p className="text-[11px] text-muted-foreground leading-relaxed">
-              Forgot to add a reference note during your transfer? Paste your Transaction ID here to check your payment status.
-            </p>
-            <div className="flex gap-2">
-              <Input
-                type="text"
-                placeholder="Enter Transaction ID..."
-                value={verifyTxId}
-                onChange={(e) => setVerifyTxId(e.target.value)}
-                className="bg-muted/20 border-border/50 font-mono text-sm h-11 rounded-[var(--radius-input)] flex-1"
-              />
-              <Button
-                type="button"
-                onClick={handleVerifyPayment}
-                disabled={!verifyTxId.trim() || verifying}
-                className="h-11 px-5 rounded-[var(--radius-btn)] font-semibold shrink-0"
-                style={{ background: "linear-gradient(135deg, hsl(var(--gold)), hsl(38 92% 40%))", color: "#000" }}
-              >
-                {verifying ? <Loader2 className="w-4 h-4 animate-spin" /> : "Verify"}
-              </Button>
+            {/* Pending Topups */}
+            {pendingTopups.length > 0 && (
+              <div className="glass-card overflow-hidden" style={{ border: "1px solid hsl(var(--warning) / 0.15)" }}>
+                <div className="p-[var(--space-card)] border-b border-border/30 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-warning" />
+                  <h3 className="text-sm font-semibold text-foreground">Pending Top-Ups ({pendingTopups.length})</h3>
+                </div>
+                <ResponsiveTable columns={pendingColumns} data={pendingTopups} keyExtractor={(row) => row.id} emptyMessage="No pending top-ups" />
+              </div>
+            )}
+          </motion.div>
+        ) : (
+          <motion.div
+            key="history"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.2 }}
+          >
+            {/* Transaction History */}
+            <div className="glass-card overflow-hidden">
+              <div className="p-[var(--space-card)] border-b border-border/30">
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                  <History className="w-4 h-4 text-primary" />
+                  {l(t.wallet.txHistory)}
+                </h3>
+              </div>
+              <ResponsiveTable columns={txColumns} data={transactions || []} keyExtractor={(row) => row.id} emptyMessage={l(t.wallet.noTx)} />
             </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Pending Topups */}
-      {pendingTopups.length > 0 && (
-        <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.15s", border: "1px solid hsl(var(--warning) / 0.15)" }}>
-          <div className="p-[var(--space-card)] border-b border-border/30 flex items-center gap-2">
-            <Clock className="w-4 h-4 text-warning" />
-            <h3 className="text-sm font-semibold text-foreground">Pending Top-Ups ({pendingTopups.length})</h3>
-          </div>
-          <ResponsiveTable columns={pendingColumns} data={pendingTopups} keyExtractor={(row) => row.id} emptyMessage="No pending top-ups" />
-        </div>
-      )}
-
-      {/* Transaction History */}
-      <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.2s" }}>
-        <div className="p-[var(--space-card)] border-b border-border/30">
-          <h3 className="text-sm font-semibold text-foreground">{l(t.wallet.txHistory)}</h3>
-        </div>
-        <ResponsiveTable columns={txColumns} data={transactions || []} keyExtractor={(row) => row.id} emptyMessage={l(t.wallet.noTx)} />
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
