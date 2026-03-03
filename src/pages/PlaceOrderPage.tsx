@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import ServiceSelector from "@/components/products/ServiceSelector";
 import {
   ShoppingCart,
   CheckCircle2,
@@ -221,26 +222,27 @@ export default function PlaceOrderPage() {
             {/* Service Selector */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Service Name</Label>
-              <Select
-                value={selectedProductId}
-                onValueChange={(val) => {
-                  setSelectedProductId(val);
+              <ServiceSelector
+                services={products.map((p: any) => ({
+                  id: p.id,
+                  slug: p.slug,
+                  name: p.name,
+                  wholesale_price: p.wholesale_price,
+                  category: p.category,
+                  product_type: p.product_type,
+                  stock: p.stock,
+                  type: p.type,
+                  display_id: p.display_id,
+                  delivery_time_config: p.delivery_time_config,
+                  fulfillment_modes: p.fulfillment_modes,
+                  processing_time: p.processing_time,
+                }))}
+                onSelect={(service) => {
+                  setSelectedProductId(service.id);
                   setCustomFieldValues({});
                   setResult(null);
                 }}
-              >
-                <SelectTrigger className="bg-secondary border-border h-11">
-                  <SelectValue placeholder="-- Choose a service --" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border max-h-[300px]">
-                  {products.map((p: any) => (
-                    <SelectItem key={p.id} value={p.id} className="text-sm">
-                      <span className="font-mono text-primary mr-1">#{p.display_id}</span>
-                      {p.name} — <Money amount={p.wholesale_price} className="inline text-xs" />
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
 
             {/* Service Price Display */}
