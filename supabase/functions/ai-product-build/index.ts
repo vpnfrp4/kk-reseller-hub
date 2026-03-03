@@ -23,28 +23,30 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
     const modeInstructions: Record<string, string> = {
-      "ultra-short": `Generate a VERY SHORT product description (max 5 bullet lines). Format:
-Line 1: Clean product title
+      "ultra-short": `Generate a VERY SHORT product description (max 7 lines). Format:
+Line 1: Clean product title with a relevant emoji prefix (e.g. 🔐, 🛡️, 📱, 💻, 🎬, 🔑)
 Line 2: empty
-Lines 3-7: Bullet points starting with "- " covering: Type, Processing/Delivery, Key Feature, Warranty.
-No headings, no paragraphs. Max 7 lines total.`,
-      "standard": `Generate a structured product description with these sections (use ALL CAPS headers):
-SERVICE OVERVIEW (2-3 sentences)
-KEY FEATURES (4-5 bullet points with "- ")
-DELIVERY TIME (1 line)
-WARRANTY / GUARANTEE (1-2 lines)
-COMPATIBILITY / REQUIREMENTS (3-4 bullets)
-RESELLER ADVANTAGE (3 bullets)
-IMPORTANT NOTES (2 bullets)`,
-      "seo-full": `Generate a comprehensive SEO-optimized product description with these sections (use ALL CAPS headers):
-SERVICE OVERVIEW (3-4 sentences, keyword-rich)
-KEY FEATURES (5-6 bullet points)
-DELIVERY TIME (1-2 lines)
-WARRANTY / GUARANTEE (2-3 lines)
-COMPATIBILITY / REQUIREMENTS (4-5 bullets)
-RESELLER ADVANTAGE (3-4 bullets)
-IMPORTANT NOTES (2-3 bullets)
-SEO KEYWORDS (comma-separated relevant keywords including the product name, category, and "KKTech")`,
+Lines 3-7: Bullet points using emoji bullets (e.g. "✅ ", "⚡ ", "🔒 ", "📦 ", "🛡️ ") covering: Type, Processing/Delivery, Key Feature, Warranty.
+No headings, no paragraphs. Max 7 lines total. Every bullet MUST start with an emoji.`,
+      "standard": `Generate a structured product description using emoji section headers and emoji bullet points:
+📋 SERVICE OVERVIEW (2-3 sentences)
+✨ KEY FEATURES (4-5 bullet points, each starting with a relevant emoji like ✅, ⚡, 🔒, 🌐, 📱)
+⏱️ DELIVERY TIME (1 line with ⚡ or 📦 emoji)
+🛡️ WARRANTY / GUARANTEE (1-2 lines)
+📝 COMPATIBILITY / REQUIREMENTS (3-4 bullets with emoji)
+💼 RESELLER ADVANTAGE (3 bullets with emoji)
+⚠️ IMPORTANT NOTES (2 bullets with emoji)
+Make every section header and bullet point start with an emoji. Keep it professional but visually scannable.`,
+      "seo-full": `Generate a comprehensive SEO-optimized product description with emoji formatting:
+📋 SERVICE OVERVIEW (3-4 sentences, keyword-rich)
+✨ KEY FEATURES (5-6 bullet points, each with a relevant emoji)
+⏱️ DELIVERY TIME (1-2 lines with emoji)
+🛡️ WARRANTY / GUARANTEE (2-3 lines)
+📝 COMPATIBILITY / REQUIREMENTS (4-5 bullets with emoji)
+💼 RESELLER ADVANTAGE (3-4 bullets with emoji)
+⚠️ IMPORTANT NOTES (2-3 bullets with emoji)
+🔍 SEO KEYWORDS (comma-separated relevant keywords including the product name, category, and "KKTech")
+Make every section header and bullet point start with an emoji. Professional but visually rich.`,
     };
 
     const systemPrompt = `You are a product description writer for KKTech, a wholesale digital services marketplace for resellers in Myanmar. You write professional, informative descriptions for services including digital accounts, IMEI unlocks, VPN keys, API services, and software licenses.
@@ -52,6 +54,8 @@ SEO KEYWORDS (comma-separated relevant keywords including the product name, cate
 Rules:
 - Write in English
 - Be factual and professional — no hype or marketing fluff
+- ALWAYS use emojis for section headers and bullet points (✅, ⚡, 🔒, 🛡️, 📦, 💼, 📱, 🔑, 🌐, 📋, ✨, ⏱️, ⚠️, 📝)
+- Every bullet point MUST start with a relevant emoji — no plain dashes
 - Focus on what the service IS and what the customer GETS
 - Include practical details: delivery time, warranty, requirements
 - Use the exact formatting specified
@@ -59,7 +63,7 @@ Rules:
 - For IMEI services: mention "server-based unlock", "permanent", "warranty-safe"
 - For digital accounts: mention "instant delivery", "credential-based"
 - For API services: mention "automated processing", "real-time", "bulk support"
-- Keep it concise and scannable`;
+- Keep it concise and visually scannable with emojis`;
 
     const userPrompt = `Service Name: "${service_name}"
 Category: ${category || "Auto-detect"}
