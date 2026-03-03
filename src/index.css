@@ -464,25 +464,47 @@
   /* ─── Professional Table ─── */
   .premium-table {
     @apply w-full;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+
+  .premium-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
 
   .premium-table thead tr {
     @apply border-b border-border;
-    background: hsl(var(--muted) / 0.4);
+    background: hsl(var(--card));
+    box-shadow: 0 1px 0 hsl(var(--border));
   }
 
   .premium-table thead th {
-    @apply text-left text-sm font-semibold uppercase tracking-wide text-secondary-foreground;
-    padding: var(--space-default);
+    @apply text-left text-[10px] font-bold uppercase tracking-widest;
+    padding: 12px 14px;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--card));
+    white-space: nowrap;
   }
 
   .premium-table tbody tr {
-    @apply border-b border-border/40;
-    transition: background var(--transition-base);
+    @apply border-b border-border/30;
+    transition: all 150ms ease;
   }
 
   .premium-table tbody tr:hover {
-    background: hsl(var(--primary) / 0.03);
+    background: hsl(var(--primary) / 0.04);
+    box-shadow: inset 3px 0 0 hsl(var(--primary) / 0.5);
+  }
+
+  .premium-table tbody tr.row-selected {
+    background: hsl(var(--primary) / 0.06);
+  }
+
+  .premium-table tbody td {
+    padding: 10px 14px;
+    vertical-align: middle;
   }
 
   /* ─── Headers ─── */

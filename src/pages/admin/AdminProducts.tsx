@@ -112,6 +112,8 @@ export default function AdminProducts() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkToggling, setBulkToggling] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 25;
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
   const [bulkPricePercent, setBulkPricePercent] = useState("10");
   const [bulkPriceDirection, setBulkPriceDirection] = useState<"increase" | "decrease">("increase");
@@ -868,6 +870,13 @@ export default function AdminProducts() {
   });
 
   
+  // Pagination
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1); }, [searchQuery, activeCategory, typeFilter, visibilityFilter]);
+
   const selectedCount = selectedIds.size;
   const allFilteredSelected = filteredProducts.length > 0 && filteredProducts.every((p: any) => selectedIds.has(p.id));
 
@@ -948,7 +957,8 @@ export default function AdminProducts() {
         <div>
           <h1 className="text-h1 text-foreground">Products</h1>
           <p className="text-caption text-muted-foreground">
-            Manage all products · {(products || []).length} total · {filteredProducts.length} shown
+            Manage all products · {(products || []).length} total · {filteredProducts.length} filtered
+            {totalPages > 1 && ` · Page ${currentPage}/${totalPages}`}
           </p>
         </div>
         <div className="flex gap-2">
@@ -1883,7 +1893,7 @@ export default function AdminProducts() {
 
       {/* ── Product Table ── */}
       <DataCard noPadding className="animate-fade-in">
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto max-h-[70vh] overflow-y-auto relative">
           <DragDropContext onDragEnd={handleDragEnd}>
             <table className="premium-table">
               <thead>
@@ -1909,7 +1919,7 @@ export default function AdminProducts() {
               <Droppable droppableId="products">
                 {(provided) => (
                   <tbody ref={provided.innerRef} {...provided.droppableProps}>
-                    {filteredProducts.map((p: any, index: number) => {
+                    {paginatedProducts.map((p: any, index: number) => {
                       const cc = credentialCounts?.[p.id];
                       const pt = p.product_type || "digital";
                       const costPrice = p.provider_price || p.base_price || 0;
@@ -1935,7 +1945,7 @@ export default function AdminProducts() {
                         <Draggable key={p.id} draggableId={p.id} index={index}>
                           {(provided, snapshot) => (
                             <tr ref={provided.innerRef} {...provided.draggableProps}
-                              className={`border-b border-border/50 transition-all duration-150 ${snapshot.isDragging ? "bg-muted/60 shadow-lg" : "hover:bg-muted/20"} ${selectedIds.has(p.id) ? "bg-primary/5" : ""}`}>
+                              className={`border-b border-border/30 transition-all duration-150 ${snapshot.isDragging ? "bg-muted/60 shadow-lg" : "hover:bg-muted/20"} ${selectedIds.has(p.id) ? "row-selected" : ""}`}>
                               <td className="p-3">
                                 <input type="checkbox" checked={selectedIds.has(p.id)}
                                   onChange={() => toggleSelect(p.id)}
@@ -1945,7 +1955,10 @@ export default function AdminProducts() {
                                 <GripVertical className="w-3.5 h-3.5 text-muted-foreground/40 cursor-grab hover:text-muted-foreground transition-colors" />
                               </td>
                               <td className="p-3">
-                                <span className="text-[11px] font-mono font-bold text-primary">#{p.display_id || '—'}</span>
+                                <button onClick={() => { navigator.clipboard.writeText(String(p.display_id || p.id)); toast.success("ID copied"); }}
+                                  className="text-[11px] font-mono font-bold text-primary hover:underline cursor-pointer" title="Click to copy">
+                                  #{p.display_id || '—'}
+                                </button>
                               </td>
                               <td className="p-3">
                                 <div className="flex items-center gap-2.5">
@@ -1961,7 +1974,9 @@ export default function AdminProducts() {
                                 </div>
                               </td>
                               <td className="p-3">
-                                <span className="text-[11px] text-muted-foreground">{p.category}</span>
+                                <span className="text-[10px] px-2.5 py-1 rounded-full font-semibold bg-secondary text-secondary-foreground border border-border/30">
+                                  {p.category}
+                                </span>
                               </td>
                               <td className="p-3">
                                 <div className="flex items-center gap-1.5">
@@ -1986,7 +2001,7 @@ export default function AdminProducts() {
                                 </span>
                               </td>
                               <td className="p-3 text-right">
-                                <span className="text-[11px] font-mono font-semibold text-foreground">
+                                <span className="text-[11px] font-mono font-bold" style={{ color: "hsl(var(--gold))" }}>
                                   <Money amount={sellPrice} />
                                 </span>
                               </td>
@@ -2007,17 +2022,21 @@ export default function AdminProducts() {
                                 ) : <span className="text-[11px] text-muted-foreground">—</span>}
                               </td>
                               <td className="p-3">
-                                <div className="flex items-center justify-center gap-1">
+                                <div className="flex items-center justify-center gap-0.5">
+                                  <button onClick={() => { navigator.clipboard.writeText(p.id); toast.success("Product ID copied"); }}
+                                    className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors" title="Copy ID">
+                                    <Copy className="w-3.5 h-3.5" />
+                                  </button>
                                   {pt === "digital" && (
                                     <Link to={`/admin/credentials?product=${p.id}`} className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="Credentials">
                                       <KeyRound className="w-3.5 h-3.5" />
                                     </Link>
                                   )}
                                   <PricingTiersDialog productId={p.id} productName={`${p.name} ${p.duration || ""}`} />
-                                  <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                                  <button onClick={() => openEdit(p)} className="p-1.5 rounded-lg hover:bg-primary/10 text-muted-foreground hover:text-primary transition-colors" title="Edit">
                                     <Pencil className="w-3.5 h-3.5" />
                                   </button>
-                                  <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                                  <button onClick={() => handleDelete(p.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors" title="Delete">
                                     <Trash2 className="w-3.5 h-3.5" />
                                   </button>
                                 </div>
@@ -2034,6 +2053,37 @@ export default function AdminProducts() {
             </table>
           </DragDropContext>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-border/40">
+            <span className="text-xs text-muted-foreground">
+              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1}–{Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length}
+            </span>
+            <div className="flex items-center gap-1">
+              <Button variant="outline" size="sm" className="h-7 text-xs px-2.5"
+                disabled={currentPage === 1} onClick={() => setCurrentPage(1)}>First</Button>
+              <Button variant="outline" size="sm" className="h-7 text-xs px-2.5"
+                disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>Prev</Button>
+              {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                let page: number;
+                if (totalPages <= 5) { page = i + 1; }
+                else if (currentPage <= 3) { page = i + 1; }
+                else if (currentPage >= totalPages - 2) { page = totalPages - 4 + i; }
+                else { page = currentPage - 2 + i; }
+                return (
+                  <Button key={page} variant={currentPage === page ? "default" : "outline"} size="sm"
+                    className={`h-7 w-7 text-xs p-0 ${currentPage === page ? "btn-glow" : ""}`}
+                    onClick={() => setCurrentPage(page)}>{page}</Button>
+                );
+              })}
+              <Button variant="outline" size="sm" className="h-7 text-xs px-2.5"
+                disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>Next</Button>
+              <Button variant="outline" size="sm" className="h-7 text-xs px-2.5"
+                disabled={currentPage === totalPages} onClick={() => setCurrentPage(totalPages)}>Last</Button>
+            </div>
+          </div>
+        )}
       </DataCard>
     </div>
   );
