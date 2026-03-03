@@ -5,7 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import PageTransition from "@/components/dashboard/PageTransition";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import TopUpDialog from "@/components/wallet/TopUpDialog";
+
 import {
   Home,
   ShoppingCart,
@@ -37,17 +37,16 @@ const navItems = [
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [quickTopUpOpen, setQuickTopUpOpen] = useState(false);
   const { user, profile, logout } = useAuth();
   const { lang, toggle: toggleLang } = useLang();
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handler = () => setQuickTopUpOpen(true);
+    const handler = () => navigate("/dashboard/wallet");
     window.addEventListener("open-topup-dialog", handler);
     return () => window.removeEventListener("open-topup-dialog", handler);
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (!user) return;
@@ -231,17 +230,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </footer>
       </div>
 
-      {/* Quick Top-up Dialog */}
-      <TopUpDialog
-        userId={profile?.user_id}
-        open={quickTopUpOpen}
-        onOpenChange={setQuickTopUpOpen}
-        hideTrigger
-        onSubmitted={(id) => {
-          setQuickTopUpOpen(false);
-          navigate(`/dashboard/wallet/topup-status?id=${id}`);
-        }}
-      />
     </div>
   );
 }
