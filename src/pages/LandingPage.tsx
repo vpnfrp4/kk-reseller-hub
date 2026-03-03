@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useLang } from "@/contexts/LangContext";
 import ProviderLogosCarousel from "@/components/landing/ProviderLogosCarousel";
+import HeroIphoneMockup from "@/components/landing/HeroIphoneMockup";
 import kkLogo from "@/assets/kkremote-logo.png";
 import {
   Accordion,
@@ -230,59 +231,81 @@ export default function LandingPage() {
       </header>
 
       <main>
-        {/* ═══════════ HERO ═══════════ */}
-        <section className="relative overflow-hidden bg-[#060608] dark:bg-[#060608] landing-hero-bg">
+        {/* ═══════════ HERO — TWO COLUMN ═══════════ */}
+        <section className="relative overflow-hidden landing-hero-bg">
           {/* Circuit grid background */}
           <div className="absolute inset-0 circuit-grid" />
 
-          {/* Neon green radial glow */}
+          {/* Neon green radial glow — shifted left for two-col */}
           <div
             className="pointer-events-none absolute inset-0 will-change-transform dark:block hidden"
             style={{
-              background: `radial-gradient(800px circle at 50% 35%, rgba(${neonRgb}, 0.07), transparent 60%)`,
-              transform: `translateY(${scrollY * 0.3}px) scale(${1 + scrollY * 0.0002})`,
+              background: `radial-gradient(900px circle at 30% 40%, rgba(${neonRgb}, 0.08), transparent 55%)`,
+              transform: `translateY(${scrollY * 0.25}px)`,
             }}
           />
-          {/* Light mode subtle green glow */}
           <div
             className="pointer-events-none absolute inset-0 will-change-transform dark:hidden block"
             style={{
-              background: "radial-gradient(800px circle at 50% 35%, rgba(21, 128, 61, 0.06), transparent 60%)",
-              transform: `translateY(${scrollY * 0.3}px) scale(${1 + scrollY * 0.0002})`,
-            }}
-          />
-          {/* Secondary accent */}
-          <div
-            className="pointer-events-none absolute inset-0 will-change-transform"
-            style={{
-              background: "radial-gradient(500px circle at 70% 70%, rgba(212, 175, 55, 0.03), transparent 50%)",
-              transform: `translateY(${scrollY * 0.15}px)`,
+              background: "radial-gradient(900px circle at 30% 40%, rgba(21, 128, 61, 0.06), transparent 55%)",
+              transform: `translateY(${scrollY * 0.25}px)`,
             }}
           />
 
           {/* Animated circuit lines */}
-          <div className="absolute inset-0 overflow-hidden opacity-[0.04] dark:opacity-[0.04]">
-            <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#39FF14] dark:via-[#39FF14] to-transparent animate-[shimmerLine_3s_ease-in-out_infinite]" />
+          <div className="absolute inset-0 overflow-hidden opacity-[0.04]">
+            <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#39FF14] to-transparent animate-[shimmerLine_3s_ease-in-out_infinite]" />
             <div className="absolute top-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#39FF14]/50 to-transparent animate-[shimmerLine_4s_ease-in-out_infinite_0.5s]" />
-            <div className="absolute top-2/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#39FF14]/50 to-transparent animate-[shimmerLine_3.5s_ease-in-out_infinite_1s]" />
           </div>
 
-          <div className="relative mx-auto max-w-[1120px] px-6 pt-36 pb-32 md:pt-44 md:pb-40 text-center">
-            <ScrollReveal>
-              <p className="mb-6 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60 dark:text-[#39FF14]/60 light-neon-label">
-                Reseller-First Infrastructure
-              </p>
-              <h1 className="text-[2.5rem] font-extrabold leading-[1.08] tracking-tight text-foreground sm:text-[3.5rem] lg:text-[4rem]">
-                Myanmar's Most Reliable Hub for
-                <br />
-                <span className="neon-text">Digital Unlocks</span>
-                {" "}
-                <span className="text-muted-foreground">&</span>
-                {" "}
-                <span className="neon-text">GSM Services</span>
-                <span className="text-muted-foreground">.</span>
-              </h1>
-            </ScrollReveal>
+          <div className="relative mx-auto max-w-[1120px] px-6 pt-24 pb-20 md:pt-36 md:pb-32">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-8 items-center">
+              {/* ─── LEFT: Text ─── */}
+              <ScrollReveal className="text-center md:text-left">
+                <p className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60 dark:text-[#39FF14]/60 light-neon-label">
+                  Reseller-First Infrastructure
+                </p>
+                <h1 className="text-[2rem] font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-[2.8rem] lg:text-[3.4rem]">
+                  Myanmar's Most Reliable Hub for{" "}
+                  <span className="neon-text">Digital Unlocks</span>
+                  {" "}
+                  <span className="text-muted-foreground">&</span>
+                  {" "}
+                  <span className="neon-text">GSM Services</span>
+                </h1>
+                <p className="mt-5 text-base sm:text-lg font-medium text-muted-foreground tracking-wide">
+                  Fast. Secure. Automated.
+                </p>
+
+                {/* CTA Buttons */}
+                <div className="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
+                  <Button
+                    size="lg"
+                    className="text-sm px-7 font-semibold bg-[#39FF14] dark:bg-[#39FF14] text-[#060608] hover:bg-[#39FF14]/90 neon-glow-btn"
+                    asChild
+                  >
+                    <Link to="/login">
+                      Get Started <ArrowRight className="w-4 h-4 ml-1" />
+                    </Link>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="text-sm px-7 font-semibold landing-outline-btn border-[#39FF14]/20 dark:border-[#39FF14]/20"
+                    asChild
+                  >
+                    <a href="#services">View Services</a>
+                  </Button>
+                </div>
+              </ScrollReveal>
+
+              {/* ─── RIGHT: iPhone Mockup ─── */}
+              <ScrollReveal delay={200} className="flex justify-center md:justify-end">
+                <div className="w-[280px] sm:w-[320px] lg:w-[360px]">
+                  <HeroIphoneMockup />
+                </div>
+              </ScrollReveal>
+            </div>
           </div>
         </section>
 
