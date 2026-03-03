@@ -3,16 +3,28 @@ import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { t, useT } from "@/lib/i18n";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Package } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import ServiceSelector from "@/components/products/ServiceSelector";
 import { cn } from "@/lib/utils";
 
 export default function ProductsPage() {
   const l = useT();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [activeCategory, setActiveCategory] = useState<string>("All");
+
+  // Realtime: auto-refresh when admin changes products
+  useEffect(() => {
+    const channel = supabase
+      .channel("products-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "products" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [queryClient]);
 
   const { data: products, isLoading } = useQuery({
     queryKey: ["products"],
