@@ -822,3 +822,8 @@ html, body {
   0%, 100% { opacity: 0; }
   50% { opacity: 1; }
 }
+
+@keyframes hero-phone-float {
+  0%, 100% { transform: rotateY(-6deg) rotateX(3deg) translateY(0); }
+  50% { transform: rotateY(-6deg) rotateX(3deg) translateY(-10px); }
+}
