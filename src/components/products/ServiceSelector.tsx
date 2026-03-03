@@ -167,15 +167,20 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
                           {service.name}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
+                          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-primary/15 text-primary">
+                            Service Active
+                          </span>
                           <span className={cn(
-                            "inline-flex items-center gap-1 text-[10px] font-semibold",
-                            isAuto ? "text-primary/70" : "text-muted-foreground/50"
+                            "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
+                            isAuto
+                              ? "bg-success/15 text-success"
+                              : "bg-warning/15 text-warning"
                           )}>
                             {isAuto ? <Zap className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
-                            {isAuto ? "Auto" : "Manual"}
+                            {isAuto ? "Instant" : "Manual"}
                           </span>
                           {isOutOfStock && (
-                            <span className="text-[10px] text-destructive font-semibold">Out of Stock</span>
+                            <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-destructive/15 text-destructive">Out of Stock</span>
                           )}
                         </div>
                       </div>
