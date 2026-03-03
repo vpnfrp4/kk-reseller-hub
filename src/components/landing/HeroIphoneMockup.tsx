@@ -80,10 +80,10 @@ export default function HeroIphoneMockup() {
             {/* Service grid */}
             <div className="grid grid-cols-2 gap-1.5">
               {[
-                { label: "iCloud", icon: "☁️" },
-                { label: "Unlock", icon: "🔓" },
-                { label: "IMEI", icon: "📱" },
-                { label: "Repair", icon: "🔧" },
+                { label: "iCloud", icon: "☁️", delay: "0s" },
+                { label: "Unlock", icon: "🔓", delay: "0.5s" },
+                { label: "IMEI", icon: "📱", delay: "1s" },
+                { label: "Repair", icon: "🔧", delay: "1.5s" },
               ].map((s) => (
                 <div
                   key={s.label}
@@ -93,7 +93,12 @@ export default function HeroIphoneMockup() {
                     borderColor: "rgba(255,255,255,0.05)",
                   }}
                 >
-                  <div className="text-[10px] mb-0.5">{s.icon}</div>
+                  <div
+                    className="text-[10px] mb-0.5"
+                    style={{ animation: `mockup-icon-float 3s ease-in-out ${s.delay} infinite` }}
+                  >
+                    {s.icon}
+                  </div>
                   <span className="text-[6.5px] font-semibold text-white/45">{s.label}</span>
                 </div>
               ))}
