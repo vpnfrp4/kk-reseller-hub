@@ -14,6 +14,7 @@ import OrdersPage from "./pages/OrdersPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import OrderFlowPage from "./pages/OrderFlowPage";
+import PlaceOrderPage from "./pages/PlaceOrderPage";
 import ProviderProfilePage from "./pages/ProviderProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import NotificationsPage from "./pages/NotificationsPage";
@@ -117,6 +118,7 @@ function AppRoutes() {
       <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
       <Route path="/notifications" element={<Navigate to="/dashboard/notifications" replace />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
+      <Route path="/dashboard/place-order" element={<ProtectedRoute><PlaceOrderPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet/topup-status" element={<WalletTopupRedirect />} />
       <Route path="/dashboard/topup-status/:id" element={<ProtectedRoute><TopUpStatusPage /></ProtectedRoute>} />

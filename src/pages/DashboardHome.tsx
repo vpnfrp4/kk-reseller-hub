@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import { useCountUp } from "@/hooks/use-count-up";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
@@ -7,34 +7,22 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Wallet,
-  TrendingUp,
-  ShoppingCart,
-  ArrowUpRight,
   Plus,
-  Package,
-  Clock,
-  AlertTriangle,
+  User,
+  Mail,
+  Calendar,
+  Search,
   Receipt,
-  Zap,
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Link, useNavigate } from "react-router-dom";
-import CrossFade from "@/components/CrossFade";
-import { format, subDays } from "date-fns";
 import { PageContainer, Money } from "@/components/shared";
 import TopUpDialog from "@/components/wallet/TopUpDialog";
-import MiniSparkline from "@/components/admin/MiniSparkline";
-import CollapsibleSection from "@/components/shared/CollapsibleSection";
-import BalanceTrendChart from "@/components/dashboard/BalanceTrendChart";
-import SpendingDoughnut from "@/components/dashboard/SpendingDoughnut";
-import TransactionBarChart from "@/components/dashboard/TransactionBarChart";
-import QuickServiceHub from "@/components/dashboard/QuickServiceHub";
 import { cn } from "@/lib/utils";
 import { t, useT } from "@/lib/i18n";
 import { MmStatus } from "@/components/shared/MmLabel";
 import PwaInstallBanner from "@/components/PwaInstallBanner";
-
-const LOW_BALANCE_THRESHOLD = 20000;
+import { Input } from "@/components/ui/input";
+import { format } from "date-fns";
 
 export default function DashboardHome() {
   const { user, profile, refreshProfile } = useAuth();
@@ -42,6 +30,7 @@ export default function DashboardHome() {
   const initialized = useRef(false);
   const navigate = useNavigate();
   const [topUpOpen, setTopUpOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const l = useT();
 
   useEffect(() => { requestNotificationPermission(); }, []);
@@ -52,439 +41,166 @@ export default function DashboardHome() {
       .channel("reseller-dashboard-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "wallet_transactions" }, (payload: any) => {
         queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
-        queryClient.invalidateQueries({ queryKey: ["wallet-health"] });
         refreshProfile();
         if (!initialized.current) return;
         if (payload.eventType === "UPDATE" && payload.new?.status === "approved" && payload.new?.type === "topup") {
           const msg = l(t.dashboard.topupApprovedToast).replace("{amount}", Number(payload.new.amount).toLocaleString());
           toast.success(msg);
           notifyEvent(l(t.dashboard.topupApprovedNotif), msg, "success");
-        } else if (payload.eventType === "UPDATE" && payload.new?.status === "rejected") {
-          const msg = l(t.dashboard.topupRejectedToast);
-          toast.error(msg);
-          notifyEvent(l(t.dashboard.topupRejectedNotif), msg, "error");
         }
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, (payload: any) => {
-        queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
-        queryClient.invalidateQueries({ queryKey: ["wallet-health"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] });
         refreshProfile();
         if (!initialized.current) return;
-        const msg = l(t.dashboard.orderToast).replace("{name}", payload.new?.product_name || l(t.dashboard.orderNewFallback));
+        const msg = l(t.dashboard.orderToast).replace("{name}", payload.new?.product_name || "New order");
         toast.success(msg);
-        notifyEvent(l(t.dashboard.orderNotif), msg, "success");
       })
       .subscribe();
     setTimeout(() => { initialized.current = true; }, 2000);
     return () => { supabase.removeChannel(channel); initialized.current = false; };
   }, [queryClient, refreshProfile, l]);
 
-  // Recent transactions
-  const { data: transactions, isLoading: txLoading } = useQuery({
-    queryKey: ["recent-transactions"],
+  // Orders for history
+  const { data: orders } = useQuery({
+    queryKey: ["dashboard-orders"],
     queryFn: async () => {
-      const { data } = await supabase.from("wallet_transactions").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(5);
+      const { data } = await supabase.from("orders").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(20);
       return data || [];
-    },
-  });
-
-  // Recent orders
-  const { data: orders, isLoading: ordersLoading } = useQuery({
-    queryKey: ["recent-orders"],
-    queryFn: async () => {
-      const { data } = await supabase.from("orders").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(5);
-      return data || [];
-    },
-  });
-
-  // Wallet health stats
-  const { data: walletHealth } = useQuery({
-    queryKey: ["wallet-health"],
-    queryFn: async () => {
-      const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
-      const [ordersRes, topupsRes] = await Promise.all([
-        supabase.from("orders").select("price").eq("user_id", user!.id).gte("created_at", thirtyDaysAgo),
-        supabase.from("wallet_transactions").select("amount").eq("user_id", user!.id).eq("type", "topup").eq("status", "approved").gte("created_at", thirtyDaysAgo),
-      ]);
-      const orderPrices = (ordersRes.data || []).map((o) => Number(o.price));
-      const spendingThisMonth = orderPrices.reduce((a, b) => a + b, 0);
-      const avgOrderValue = orderPrices.length > 0 ? Math.round(spendingThisMonth / orderPrices.length) : 0;
-      const totalTopups = (topupsRes.data || []).reduce((a, b) => a + Number(b.amount), 0);
-      return { spendingThisMonth, totalTopups, avgOrderValue, orderCount: orderPrices.length };
-    },
-  });
-
-  // 7-day spending sparkline
-  const { data: sparklineData } = useQuery({
-    queryKey: ["spending-sparkline-7d"],
-    queryFn: async () => {
-      const sevenDaysAgo = subDays(new Date(), 6).toISOString();
-      const { data } = await supabase.from("orders").select("price, created_at").eq("user_id", user!.id).gte("created_at", sevenDaysAgo).order("created_at", { ascending: true });
-      const days: Record<string, number> = {};
-      for (let i = 6; i >= 0; i--) days[format(subDays(new Date(), i), "yyyy-MM-dd")] = 0;
-      (data || []).forEach((row: any) => { const key = format(new Date(row.created_at), "yyyy-MM-dd"); if (key in days) days[key] += Number(row.price); });
-      return Object.values(days);
     },
   });
 
   const balance = profile?.balance || 0;
   const displayBalance = useCountUp(balance, 800);
-  const isLowBalance = balance < LOW_BALANCE_THRESHOLD;
-  const avgOrder = walletHealth?.avgOrderValue || 3600;
-  const approxPurchases = avgOrder > 0 ? Math.floor(balance / avgOrder) : 0;
+  // Use user metadata created_at or fallback
+  const memberSince = user?.created_at ? format(new Date(user.created_at), "MMM dd, yyyy") : "—";
 
-  // 7-day balance trend
-  const { data: balanceTrendData, isLoading: balanceTrendLoading } = useQuery({
-    queryKey: ["balance-trend-7d", balance],
-    queryFn: async () => {
-      const sevenDaysAgo = subDays(new Date(), 6).toISOString();
-      const [ordersRes, topupsRes] = await Promise.all([
-        supabase.from("orders").select("price, created_at").eq("user_id", user!.id).gte("created_at", sevenDaysAgo),
-        supabase.from("wallet_transactions").select("amount, created_at").eq("user_id", user!.id).eq("type", "topup").eq("status", "approved").gte("created_at", sevenDaysAgo),
-      ]);
-      const dayChanges: Record<string, number> = {};
-      for (let i = 6; i >= 0; i--) dayChanges[format(subDays(new Date(), i), "yyyy-MM-dd")] = 0;
-      (ordersRes.data || []).forEach((o: any) => { const key = format(new Date(o.created_at), "yyyy-MM-dd"); if (key in dayChanges) dayChanges[key] -= Number(o.price); });
-      (topupsRes.data || []).forEach((tx: any) => { const key = format(new Date(tx.created_at), "yyyy-MM-dd"); if (key in dayChanges) dayChanges[key] += Number(tx.amount); });
-      const days = Object.keys(dayChanges).sort();
-      const result: Array<{ day: string; balance: number }> = [];
-      let runningBalance = balance;
-      for (let i = days.length - 1; i >= 0; i--) {
-        result.unshift({ day: format(new Date(days[i]), "MMM dd"), balance: runningBalance });
-        runningBalance -= dayChanges[days[i]];
-      }
-      return result;
-    },
-    enabled: !!profile,
-  });
-
-  // Spending by category (doughnut)
-  const { data: spendingByCategory, isLoading: categoryLoading } = useQuery({
-    queryKey: ["spending-by-category"],
-    queryFn: async () => {
-      const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
-      const { data } = await supabase.from("orders").select("product_name, product_type, price").eq("user_id", user!.id).gte("created_at", thirtyDaysAgo);
-      const categories: Record<string, number> = {};
-      (data || []).forEach((o: any) => {
-        const cat = o.product_type === "imei" ? "IMEI Unlocks" : o.product_type === "smm" ? "GSM Services" : "Digital Subscriptions";
-        categories[cat] = (categories[cat] || 0) + Number(o.price);
-      });
-      const colors = ["#22c55e", "#D4AF37", "#3b82f6", "#f97316", "#a855f7"];
-      return Object.entries(categories).map(([name, value], i) => ({ name, value, color: colors[i % colors.length] }));
-    },
-  });
-
-  // Daily transaction volume (bar chart) - current month
-  const { data: dailyTxData, isLoading: dailyTxLoading } = useQuery({
-    queryKey: ["daily-tx-volume"],
-    queryFn: async () => {
-      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString();
-      const [ordersRes, topupsRes] = await Promise.all([
-        supabase.from("orders").select("price, created_at").eq("user_id", user!.id).gte("created_at", startOfMonth),
-        supabase.from("wallet_transactions").select("amount, created_at").eq("user_id", user!.id).eq("type", "topup").eq("status", "approved").gte("created_at", startOfMonth),
-      ]);
-      const dayMap: Record<string, { topups: number; purchases: number }> = {};
-      const today = new Date();
-      for (let i = 0; i < today.getDate(); i++) {
-        const d = new Date(today.getFullYear(), today.getMonth(), i + 1);
-        if (d > today) break;
-        dayMap[format(d, "yyyy-MM-dd")] = { topups: 0, purchases: 0 };
-      }
-      (ordersRes.data || []).forEach((o: any) => { const key = format(new Date(o.created_at), "yyyy-MM-dd"); if (key in dayMap) dayMap[key].purchases += Number(o.price); });
-      (topupsRes.data || []).forEach((tx: any) => { const key = format(new Date(tx.created_at), "yyyy-MM-dd"); if (key in dayMap) dayMap[key].topups += Number(tx.amount); });
-      return Object.entries(dayMap).map(([date, vals]) => ({ day: format(new Date(date), "dd"), ...vals }));
-    },
-  });
-
-  // Parallax for wallet hero
-  const heroRef = useRef<HTMLDivElement>(null);
-  const [parallaxY, setParallaxY] = useState(0);
-  const handleScroll = useCallback(() => {
-    if (!heroRef.current) return;
-    const rect = heroRef.current.getBoundingClientRect();
-    setParallaxY((rect.top / window.innerHeight) * 30);
-  }, []);
-  useEffect(() => {
-    const scrollEl = heroRef.current?.closest("main") || window;
-    scrollEl.addEventListener("scroll", handleScroll, { passive: true });
-    return () => scrollEl.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
-
-  // Merge recent activity
-  const recentActivity = useMemo(() => {
-    const items: Array<{ id: string; type: "purchase" | "topup" | "debit"; label: string; amount: number; date: string; status: string }> = [];
-    (orders || []).forEach((o: any) => { items.push({ id: o.id, type: "purchase", label: o.product_name, amount: -Number(o.price), date: o.created_at, status: o.status }); });
-    (transactions || []).forEach((tx: any) => { items.push({ id: tx.id, type: tx.type === "topup" ? "topup" : "debit", label: tx.description, amount: tx.type === "topup" ? Number(tx.amount) : -Number(tx.amount), date: tx.created_at, status: tx.status }); });
-    return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 8);
-  }, [orders, transactions]);
-
-  const quickActions = [
-    { icon: Plus, label: t.dashboard.addFunds, onClick: () => setTopUpOpen(true), primary: true },
-    { icon: Package, label: t.dashboard.browseProducts, onClick: () => navigate("/dashboard/products") },
-    { icon: ShoppingCart, label: t.dashboard.viewOrders, onClick: () => navigate("/dashboard/orders") },
-    { icon: Receipt, label: t.dashboard.transactions, onClick: () => navigate("/dashboard/wallet") },
-  ];
+  // Filter orders
+  const filteredOrders = useMemo(() => {
+    if (!orders) return [];
+    if (!searchQuery.trim()) return orders;
+    const q = searchQuery.toLowerCase();
+    return orders.filter((o: any) =>
+      o.order_code?.toLowerCase().includes(q) ||
+      o.product_name?.toLowerCase().includes(q)
+    );
+  }, [orders, searchQuery]);
 
   return (
     <PageContainer>
-      {/* PWA INSTALL BANNER */}
       <PwaInstallBanner />
 
-      {/* WALLET HERO */}
-      <div
-        ref={heroRef}
-        className="wallet-hero p-8 md:p-12 animate-fade-in relative"
-        style={{ transform: `translateY(${parallaxY * 0.3}px)`, transition: "transform 0.1s linear" }}
-      >
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <CrossFade
-            isLoading={!profile}
-            skeleton={
-              <div className="space-y-4">
-                <Skeleton className="h-5 w-32 rounded bg-secondary" />
-                <Skeleton className="h-16 w-64 rounded bg-secondary" />
-                <Skeleton className="h-4 w-48 rounded bg-secondary" />
-              </div>
-            }
-          >
+      {/* USER PROFILE CARD */}
+      <div className="glass-card overflow-hidden animate-fade-in">
+        <div className="p-6 border-b border-border/30">
+          <h2 className="text-lg font-bold text-foreground">User Profile</h2>
+        </div>
+
+        {/* Balance Section */}
+        <div className="p-6">
+          <div className="balance-card flex items-center justify-between">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary mb-3">
-                {l(t.dashboard.balance)}
+              <p className="text-[11px] uppercase tracking-[0.15em] font-medium text-muted-foreground mb-2">
+                ACCOUNT BALANCE
               </p>
-              <div className="flex items-baseline gap-3">
-                <p className="text-6xl lg:text-7xl font-extrabold font-mono tabular-nums text-foreground tracking-tighter leading-none gold-shimmer">
-                  {displayBalance.toLocaleString()}
-                </p>
-                <span className="text-lg font-semibold text-muted-foreground">MMK</span>
-              </div>
-              <p className="text-sm text-muted-foreground mt-3">
-                {l(t.dashboard.approxPurchases)}{" "}
-                <span className="font-bold text-foreground">{approxPurchases}</span>{" "}
-                {l(t.products.qty)}
+              <p className="text-4xl font-extrabold font-mono tabular-nums tracking-tight gold-shimmer">
+                {displayBalance.toLocaleString()}
               </p>
+              <p className="text-[11px] text-muted-foreground/50 mt-1">MMK</p>
             </div>
-          </CrossFade>
-
-          {/* Sparkline */}
-          <div className="hidden md:flex flex-col items-center gap-2 shrink-0">
-            {sparklineData && sparklineData.length > 1 ? (
-              <>
-                <MiniSparkline data={sparklineData} width={120} height={40} color="hsl(var(--primary))" className="opacity-80" />
-                <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                  {l(t.dashboard.spending7d)}
-                </span>
-              </>
-            ) : (
-              <div className="w-[120px] h-[40px] rounded-xl bg-secondary" />
-            )}
-          </div>
-
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-3 shrink-0">
             <button
               onClick={() => setTopUpOpen(true)}
-              className="btn-glow px-6 py-3 font-semibold text-sm flex items-center justify-center gap-2"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-[var(--radius-btn)] font-semibold text-sm transition-all"
+              style={{
+                background: "linear-gradient(135deg, #FFC107, #FFD54F)",
+                color: "#0B0E14",
+              }}
             >
               <Plus className="w-4 h-4" />
-              {l(t.dashboard.addFunds)}
+              Add Fund
             </button>
-            <Link to="/dashboard/wallet">
-              <button className="btn-glass px-6 py-3 font-semibold text-sm flex items-center justify-center gap-2 w-full">
-                <Receipt className="w-4 h-4" />
-                {l(t.dashboard.viewTransactions)}
-              </button>
-            </Link>
           </div>
         </div>
-      </div>
 
-      {/* QUICK SERVICES HUB */}
-      <div className="animate-fade-in" style={{ animationDelay: "0.06s" }}>
-        <QuickServiceHub />
-      </div>
-
-      {/* QUICK ACTIONS */}
-      <div
-        className="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-fade-in"
-        style={{ animationDelay: "0.12s" }}
-      >
-        {quickActions.map((action, i) => (
-          <button
-            key={action.label.en}
-            onClick={action.onClick}
-            className={cn(
-              "glass-card p-6 flex flex-col items-center gap-3 text-center hover-lift group cursor-pointer",
-              "opacity-0 animate-stagger-in"
-            )}
-            style={{ animationDelay: `${0.14 + i * 0.05}s` }}
-          >
-            <div
-              className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center transition-colors",
-                action.primary
-                  ? "bg-primary/10 text-primary group-hover:bg-primary/15"
-                  : "bg-secondary text-muted-foreground group-hover:bg-secondary/80"
-              )}
-            >
-              <action.icon className="w-5 h-5" />
-            </div>
-            <span className="text-sm font-semibold text-foreground">{l(action.label)}</span>
-          </button>
-        ))}
-      </div>
-
-      {/* WALLET HEALTH */}
-      <div
-        className="grid grid-cols-1 sm:grid-cols-3 gap-4 animate-fade-in"
-        style={{ animationDelay: "0.15s" }}
-      >
-        <HealthCard label={t.dashboard.spendingThisMonth} value={walletHealth?.spendingThisMonth || 0} icon={TrendingUp} isCurrency />
-        <HealthCard label={t.dashboard.topups30d} value={walletHealth?.totalTopups || 0} icon={Wallet} isCurrency />
-        <HealthCard label={t.dashboard.avgOrder} value={walletHealth?.avgOrderValue || 0} icon={ShoppingCart} isCurrency />
-      </div>
-
-      {/* CHARTS ROW: Balance Trend + Spending Breakdown */}
-      <div
-        className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-fade-in"
-        style={{ animationDelay: "0.18s" }}
-      >
-        <div className="glass-card p-6">
-          <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">
-            Balance Trend — Last 7 Days
-          </p>
-          <BalanceTrendChart data={balanceTrendData} isLoading={balanceTrendLoading} />
-        </div>
-        <div className="glass-card p-6">
-          <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">
-            Spending Breakdown — 30 Days
-          </p>
-          <SpendingDoughnut data={spendingByCategory} isLoading={categoryLoading} />
+        {/* User Info Grid */}
+        <div className="px-6 pb-6 space-y-0">
+          <ProfileRow icon={User} label="Username" value={profile?.name || "—"} />
+          <ProfileRow icon={Mail} label="Email" value={profile?.email || "—"} />
+          <ProfileRow icon={Calendar} label="Member Since" value={memberSince} />
         </div>
       </div>
 
-      {/* TRANSACTION VOLUME BAR CHART */}
-      <div
-        className="glass-card p-6 animate-fade-in"
-        style={{ animationDelay: "0.22s" }}
-      >
-        <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4">
-          Daily Volume — {format(new Date(), "MMMM yyyy")}
-        </p>
-        <TransactionBarChart data={dailyTxData} isLoading={dailyTxLoading} />
-      </div>
-
-      {/* LOW BALANCE */}
-      {profile && isLowBalance && (
-        <div
-          className="glass-card border-warning/30 bg-warning/[0.05] p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in"
-          style={{ animationDelay: "0.2s" }}
-        >
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
-              <AlertTriangle className="w-5 h-5 text-warning" />
-            </div>
-            <div>
-              <p className="text-base font-semibold text-foreground">{l(t.dashboard.lowBalanceTitle)}</p>
-              <p className="text-sm text-muted-foreground mt-1">{l(t.dashboard.lowBalanceMsg)}</p>
-            </div>
+      {/* ORDER HISTORY */}
+      <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        <div className="p-6 border-b border-border/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h2 className="text-lg font-bold text-foreground">Order History</h2>
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search order..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 bg-secondary border-border h-9 text-sm"
+            />
           </div>
-          <button
-            onClick={() => setTopUpOpen(true)}
-            className="btn-glow px-6 py-3 text-sm font-semibold flex items-center gap-2 shrink-0"
-          >
-            <Zap className="w-4 h-4" />
-            {l(t.dashboard.quickTopUp)}
-          </button>
         </div>
-      )}
 
-      {/* RECENT ACTIVITY */}
-      <div className="animate-fade-in" style={{ animationDelay: "0.25s" }}>
-        <CrossFade
-          isLoading={txLoading && ordersLoading}
-          skeleton={
-            <div className="glass-card p-6 space-y-0">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center justify-between py-4 border-b border-border/40 last:border-0">
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-40 rounded bg-secondary" />
-                    <Skeleton className="h-3 w-24 rounded bg-secondary" />
-                  </div>
-                  <Skeleton className="h-5 w-24 rounded bg-secondary" />
-                </div>
-              ))}
-            </div>
-          }
-        >
-          <CollapsibleSection
-            title={l(t.dashboard.recentActivity)}
-            totalCount={recentActivity.length}
-            previewCount={3}
-            summary={
-              recentActivity.length > 3
-                ? `+${recentActivity.length - 3} more \u00b7 Last: ${recentActivity[3]?.label?.slice(0, 30) || ""}`
-                : undefined
-            }
-            headerRight={
-              <div className="flex gap-3">
-                <Link to="/dashboard/wallet" className="text-sm text-primary hover:underline font-medium" onClick={(e) => e.stopPropagation()}>
-                  {l(t.dashboard.allTransactions)}
-                </Link>
-                <span className="text-border">|</span>
-                <Link to="/dashboard/orders" className="text-sm text-primary hover:underline font-medium" onClick={(e) => e.stopPropagation()}>
-                  {l(t.dashboard.allOrders)}
-                </Link>
+        {/* Table Header */}
+        <div className="hidden md:grid grid-cols-7 gap-4 px-6 py-3 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground border-b border-border/30 bg-secondary/30">
+          <span>Order ID</span>
+          <span>Service</span>
+          <span>Order</span>
+          <span className="text-right">Amount</span>
+          <span>Date</span>
+          <span className="text-center">Status</span>
+          <span className="text-center">Action</span>
+        </div>
+
+        {/* Table Body */}
+        {filteredOrders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+            <Receipt className="w-12 h-12 mb-3 opacity-40" />
+            <p className="text-sm">No orders found</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-border/30">
+            {filteredOrders.map((order: any) => (
+              <div
+                key={order.id}
+                className="grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-4 px-6 py-4 hover:bg-secondary/20 transition-colors cursor-pointer"
+                onClick={() => navigate(`/dashboard/orders/${order.id}`)}
+              >
+                <span className="font-mono text-xs text-primary font-medium">
+                  {order.order_code}
+                </span>
+                <span className="text-sm text-foreground truncate col-span-1">
+                  {order.product_name}
+                </span>
+                <span className="text-xs text-muted-foreground hidden md:block">
+                  {order.fulfillment_mode || "instant"}
+                </span>
+                <span className="text-sm font-mono font-semibold text-right">
+                  <Money amount={order.price} className="inline" />
+                </span>
+                <span className="text-xs text-muted-foreground hidden md:block">
+                  {format(new Date(order.created_at), "MMM dd, yyyy")}
+                </span>
+                <span className="text-center hidden md:block">
+                  <MmStatus status={order.status} />
+                </span>
+                <span className="text-center hidden md:block">
+                  <Link
+                    to={`/dashboard/orders/${order.id}`}
+                    className="text-xs text-primary hover:underline font-medium"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    View
+                  </Link>
+                </span>
               </div>
-            }
-          >
-            {recentActivity.length === 0 ? (
-              <p className="text-base text-muted-foreground py-8 text-center">
-                {l(t.dashboard.noActivity)}
-              </p>
-            ) : (
-              recentActivity.map((item, i) => (
-                <div
-                  key={`${item.type}-${item.id}`}
-                  className="flex items-center justify-between px-6 py-4 border-b border-border/40 last:border-0 hover:bg-secondary/30 transition-colors"
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className={cn(
-                        "w-9 h-9 rounded-xl flex items-center justify-center shrink-0",
-                        item.amount > 0 ? "bg-primary/10" : "bg-secondary"
-                      )}
-                    >
-                      {item.type === "topup" ? (
-                        <ArrowUpRight className="w-4 h-4 text-primary" />
-                      ) : (
-                        <ShoppingCart className="w-4 h-4 text-muted-foreground" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{item.label}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {format(new Date(item.date), "MMM dd, hh:mm a")}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right shrink-0 ml-4">
-                    <p
-                      className={cn(
-                        "text-sm font-mono font-bold tabular-nums",
-                        item.amount > 0 ? "text-primary" : "text-foreground"
-                      )}
-                    >
-                      {item.amount > 0 ? "+" : "\u2212"}
-                      {Math.abs(item.amount).toLocaleString()}
-                      <span className="text-xs font-semibold text-muted-foreground ml-1">MMK</span>
-                    </p>
-                    {item.type === "topup" && <MmStatus status={item.status} />}
-                  </div>
-                </div>
-              ))
-            )}
-          </CollapsibleSection>
-        </CrossFade>
+            ))}
+          </div>
+        )}
       </div>
 
       <TopUpDialog
@@ -501,42 +217,14 @@ export default function DashboardHome() {
   );
 }
 
-/* Wallet Health Card */
-function HealthCard({
-  label,
-  value,
-  icon: Icon,
-  isCurrency,
-}: {
-  label: { mm: string; en: string };
-  value: number;
-  icon: React.ElementType;
-  isCurrency?: boolean;
-}) {
-  const animated = useCountUp(value, 700);
-  const l = useT();
+function ProfileRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
-    <div className="stat-card space-y-3">
-      <div className="flex items-center gap-3">
-        <div className="w-9 h-9 rounded-xl bg-secondary flex items-center justify-center">
-          <Icon className="w-[18px] h-[18px] text-muted-foreground" />
-        </div>
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide leading-tight">
-          {l(label)}
-        </span>
+    <div className="flex items-center justify-between py-3 border-b border-border/20 last:border-0">
+      <div className="flex items-center gap-3 text-muted-foreground">
+        <Icon className="w-4 h-4" />
+        <span className="text-sm">{label}</span>
       </div>
-      <p
-        className="text-3xl font-extrabold font-mono tabular-nums tracking-tight"
-        style={{
-          backgroundImage: "linear-gradient(90deg, hsl(var(--foreground)) 0%, hsl(43 65% 72%) 40%, hsl(43 65% 52%) 50%, hsl(43 65% 72%) 60%, hsl(var(--foreground)) 100%)",
-          backgroundSize: "200% 100%",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          animation: "gold-shimmer 4s ease-in-out infinite",
-        }}
-      >
-        {isCurrency ? <Money amount={animated} /> : animated.toLocaleString()}
-      </p>
+      <span className="text-sm font-medium text-foreground">{value}</span>
     </div>
   );
 }
