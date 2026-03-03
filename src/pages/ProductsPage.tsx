@@ -34,7 +34,6 @@ export default function ProductsPage() {
         .select("*")
         .order("sort_order", { ascending: true })
         .order("name", { ascending: true });
-      console.log("[ProductsPage] fetched products:", data?.length);
       return data || [];
     },
   });
