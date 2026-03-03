@@ -665,3 +665,27 @@ html, body {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-3px); }
 }
+
+/* ═══ S-Tool Pro thin scrollbar ═══ */
+.stool-scrollbar {
+  overflow-y: auto;
+  pointer-events: auto;
+}
+.stool-scrollbar::-webkit-scrollbar {
+  width: 5px;
+}
+.stool-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.stool-scrollbar::-webkit-scrollbar-thumb {
+  background: hsl(var(--border));
+  border-radius: 999px;
+}
+.stool-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
+}
+/* Firefox */
+.stool-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: hsl(var(--border)) transparent;
+}
