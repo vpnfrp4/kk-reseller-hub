@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import ServiceSelector from "@/components/products/ServiceSelector";
 import {
   ShoppingCart,
   CheckCircle2,
@@ -24,6 +25,7 @@ import {
   X,
   AlertTriangle,
   Wallet,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -220,26 +222,27 @@ export default function PlaceOrderPage() {
             {/* Service Selector */}
             <div className="space-y-2">
               <Label className="text-sm font-medium text-muted-foreground">Service Name</Label>
-              <Select
-                value={selectedProductId}
-                onValueChange={(val) => {
-                  setSelectedProductId(val);
+              <ServiceSelector
+                services={products.map((p: any) => ({
+                  id: p.id,
+                  slug: p.slug,
+                  name: p.name,
+                  wholesale_price: p.wholesale_price,
+                  category: p.category,
+                  product_type: p.product_type,
+                  stock: p.stock,
+                  type: p.type,
+                  display_id: p.display_id,
+                  delivery_time_config: p.delivery_time_config,
+                  fulfillment_modes: p.fulfillment_modes,
+                  processing_time: p.processing_time,
+                }))}
+                onSelect={(service) => {
+                  setSelectedProductId(service.id);
                   setCustomFieldValues({});
                   setResult(null);
                 }}
-              >
-                <SelectTrigger className="bg-secondary border-border h-11">
-                  <SelectValue placeholder="-- Choose a service --" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border max-h-[300px]">
-                  {products.map((p: any) => (
-                    <SelectItem key={p.id} value={p.id} className="text-sm">
-                      <span className="font-mono text-primary mr-1">#{p.display_id}</span>
-                      {p.name} — <Money amount={p.wholesale_price} className="inline text-xs" />
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
 
             {/* Service Price Display */}
@@ -449,11 +452,26 @@ function DetailRow({ label, value, mono }: { label: string; value: React.ReactNo
 
 function ServiceDescription({ product }: { product: any }) {
   const description = product.description || "";
-  const lines = description.split("\n").filter((l: string) => l.trim());
+  const allLines = description.split("\n").filter((l: string) => l.trim());
+
+  // Extract download URLs from description lines
+  const urlRegex = /https?:\/\/[^\s)>\]]+/gi;
+  const downloadLines: string[] = [];
+  const displayLines: string[] = [];
+
+  for (const line of allLines) {
+    const lower = line.toLowerCase();
+    if (lower.includes("[download]") || lower.includes("download tool") || lower.includes("download link")) {
+      const urls = line.match(urlRegex);
+      if (urls) downloadLines.push(...urls);
+    } else {
+      displayLines.push(line);
+    }
+  }
 
   return (
-    <div className="prose prose-sm prose-invert max-w-none">
-      {lines.map((line: string, i: number) => {
+    <div className="prose prose-sm prose-invert max-w-none space-y-1">
+      {displayLines.map((line: string, i: number) => {
         const trimmed = line.trim();
 
         // Check marks ✅
@@ -485,6 +503,29 @@ function ServiceDescription({ product }: { product: any }) {
           <p key={i} className="text-sm text-muted-foreground py-0.5">{trimmed}</p>
         );
       })}
+
+      {/* Download Tool Button */}
+      {downloadLines.length > 0 && (
+        <div className="pt-4 border-t border-border/20 mt-4">
+          {downloadLines.map((url, i) => (
+            <a
+              key={i}
+              href={url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                "flex items-center justify-center gap-2 w-full py-3 rounded-xl",
+                "bg-primary/10 border border-primary/20 text-primary font-semibold text-sm",
+                "hover:bg-primary/20 transition-all duration-200",
+                "mb-2 last:mb-0"
+              )}
+            >
+              <Download className="w-4 h-4" />
+              Download Tool{downloadLines.length > 1 ? ` ${i + 1}` : ""}
+            </a>
+          ))}
+        </div>
+      )}
 
       {!description && (
         <p className="text-sm text-muted-foreground italic">No description available for this service.</p>
