@@ -25,6 +25,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { t } from "@/lib/i18n";
 import { useLang } from "@/contexts/LangContext";
 import { cn } from "@/lib/utils";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import kkLogo from "@/assets/kkremote-logo.png";
 
 /* ── Sidebar nav items ── */
@@ -91,6 +92,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
+        <TooltipProvider delayDuration={0}>
         {/* Logo + Collapse toggle */}
         <div className="px-3 py-4 border-b border-sidebar-border flex items-center justify-between">
           <Link to="/dashboard" className="flex items-center gap-3 group min-w-0" onClick={() => setSidebarOpen(false)}>
@@ -125,12 +127,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             const active = location.pathname === item.path ||
               (item.path === "/dashboard" && location.pathname === "/dashboard") ||
               (item.path !== "/dashboard" && location.pathname.startsWith(item.path));
-            return (
+
+            const linkEl = (
               <Link
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
-                title={collapsed ? item.label : undefined}
                 className={cn(
                   "group relative flex items-center gap-3 h-[42px] rounded-lg text-[13px]",
                   "transition-all duration-200",
@@ -153,24 +155,44 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
               </Link>
             );
+
+            return collapsed ? (
+              <Tooltip key={item.path}>
+                <TooltipTrigger asChild>{linkEl}</TooltipTrigger>
+                <TooltipContent side="right" className="text-xs">{item.label}</TooltipContent>
+              </Tooltip>
+            ) : (
+              <span key={item.path}>{linkEl}</span>
+            );
           })}
         </nav>
 
         {/* Footer */}
         <div className="mt-auto border-t border-sidebar-border px-2 pt-3 pb-3 space-y-1">
           {isAdmin && (
-            <Link
-              to="/admin"
-              onClick={() => setSidebarOpen(false)}
-              title={collapsed ? "Admin Panel" : undefined}
-              className={cn(
-                "flex items-center gap-3 h-[42px] rounded-lg text-[13px] text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all duration-200",
-                collapsed ? "justify-center px-0" : "pl-4 pr-3"
-              )}
-            >
-              <ArrowLeftRight className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
-              {!collapsed && <span>Admin Panel</span>}
-            </Link>
+            collapsed ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link
+                    to="/admin"
+                    onClick={() => setSidebarOpen(false)}
+                    className="flex items-center justify-center gap-3 h-[42px] rounded-lg text-[13px] text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all duration-200 px-0"
+                  >
+                    <ArrowLeftRight className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right" className="text-xs">Admin Panel</TooltipContent>
+              </Tooltip>
+            ) : (
+              <Link
+                to="/admin"
+                onClick={() => setSidebarOpen(false)}
+                className="flex items-center gap-3 h-[42px] rounded-lg text-[13px] text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all duration-200 pl-4 pr-3"
+              >
+                <ArrowLeftRight className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
+                <span>Admin Panel</span>
+              </Link>
+            )
           )}
 
           {!collapsed && (
@@ -190,30 +212,47 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           )}
 
           {collapsed && (
-            <div className="flex justify-center py-2">
-              <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  profile?.name?.charAt(0)?.toUpperCase() || "R"
-                )}
-              </div>
-            </div>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex justify-center py-2 cursor-default">
+                  <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-xs font-bold text-foreground shrink-0 overflow-hidden">
+                    {profile?.avatar_url ? (
+                      <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      profile?.name?.charAt(0)?.toUpperCase() || "R"
+                    )}
+                  </div>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="text-xs">{profile?.name || "Reseller"}</TooltipContent>
+            </Tooltip>
           )}
 
-          <Button
-            variant="ghost"
-            title={collapsed ? "Sign Out" : undefined}
-            className={cn(
-              "w-full text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[42px] text-[13px] rounded-lg transition-all duration-200",
-              collapsed ? "justify-center px-0" : "justify-start pl-4"
-            )}
-            onClick={handleLogout}
-          >
-            <LogOut className={cn("w-[18px] h-[18px] shrink-0 text-destructive/60", !collapsed && "mr-3")} strokeWidth={1.5} />
-            {!collapsed && <span>Sign Out</span>}
-          </Button>
+          {collapsed ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[42px] text-[13px] rounded-lg transition-all duration-200 justify-center px-0"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="w-[18px] h-[18px] shrink-0 text-destructive/60" strokeWidth={1.5} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="text-xs">Sign Out</TooltipContent>
+            </Tooltip>
+          ) : (
+            <Button
+              variant="ghost"
+              className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[42px] text-[13px] rounded-lg transition-all duration-200 justify-start pl-4"
+              onClick={handleLogout}
+            >
+              <LogOut className="w-[18px] h-[18px] shrink-0 text-destructive/60 mr-3" strokeWidth={1.5} />
+              <span>Sign Out</span>
+            </Button>
+          )}
         </div>
+        </TooltipProvider>
       </aside>
 
       {/* Main Area */}
