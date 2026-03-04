@@ -19,6 +19,7 @@ import {
   ShieldAlert,
   Sparkles,
   ArrowLeft,
+  Smartphone,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -27,6 +28,7 @@ import { PageContainer } from "@/components/shared";
 
 import Confetti from "@/components/Confetti";
 import { motion, AnimatePresence } from "framer-motion";
+import IFreeImeiCheck from "@/components/imei/IFreeImeiCheck";
 
 interface PurchaseResult {
   order_id: string;
@@ -41,6 +43,7 @@ export default function PlaceOrderPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
+  const [activeTab, setActiveTab] = useState<"services" | "ifree">("services");
   const [selectedProductId, setSelectedProductId] = useState<string>("");
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
   const [purchasing, setPurchasing] = useState(false);
@@ -215,6 +218,35 @@ export default function PlaceOrderPage() {
         </div>
       </div>
 
+      {/* Tab Switcher */}
+      <div className="flex gap-1.5 mb-5 p-1 rounded-[var(--radius-btn)] bg-secondary/40 border border-border w-fit">
+        <button
+          onClick={() => setActiveTab("services")}
+          className={cn(
+            "flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-btn)] text-xs font-bold transition-all duration-200",
+            activeTab === "services"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+          )}
+        >
+          <ShoppingCart className="w-3.5 h-3.5" /> Services
+        </button>
+        <button
+          onClick={() => setActiveTab("ifree")}
+          className={cn(
+            "flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-btn)] text-xs font-bold transition-all duration-200",
+            activeTab === "ifree"
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+          )}
+        >
+          <Smartphone className="w-3.5 h-3.5" /> iFree IMEI Check
+        </button>
+      </div>
+
+      {activeTab === "ifree" ? (
+        <IFreeImeiCheck />
+      ) : (
       <AnimatePresence mode="wait">
         {/* ═══════════════════════════════════════════
             MODE 1: SELECTION — no service chosen yet
@@ -465,6 +497,9 @@ export default function PlaceOrderPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      )}
+
+
 
       {/* Success Modal */}
       {result && <SuccessModal result={result} credentialsList={credentialsList} onCopy={copyCredentials} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
