@@ -23,6 +23,7 @@ import { MmStatus } from "@/components/shared/MmLabel";
 import PwaInstallBanner from "@/components/PwaInstallBanner";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
+import PullToRefresh from "@/components/shared/PullToRefresh";
 
 export default function DashboardHome() {
   const { user, profile, refreshProfile } = useAuth();
@@ -88,6 +89,12 @@ export default function DashboardHome() {
 
   return (
     <PageContainer>
+      <PullToRefresh onRefresh={async () => {
+        await Promise.all([
+          refreshProfile(),
+          queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] }),
+        ]);
+      }}>
       <PwaInstallBanner />
 
       {/* USER PROFILE CARD */}
@@ -253,6 +260,7 @@ export default function DashboardHome() {
         )}
       </div>
 
+      </PullToRefresh>
     </PageContainer>
   );
 }
