@@ -236,8 +236,14 @@ export default function WalletPage() {
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-[var(--radius-card)] bg-secondary border border-border">
             <Wallet className="w-4 h-4 text-primary" />
-            <span className="font-mono font-bold text-foreground tabular-nums">{(profile?.balance || 0).toLocaleString()}</span>
-            <span className="text-[10px] text-muted-foreground font-medium">MMK</span>
+            {!profile ? (
+              <Skeleton className="h-5 w-24" />
+            ) : (
+              <>
+                <span className="font-mono font-bold text-foreground tabular-nums">{(profile.balance || 0).toLocaleString()}</span>
+                <span className="text-[10px] text-muted-foreground font-medium">MMK</span>
+              </>
+            )}
           </div>
           {step !== "history" && (
             <button onClick={() => setStep("history")}
