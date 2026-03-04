@@ -48,12 +48,13 @@ export default function AdminResellers() {
   const toggleUserRole = async (userId: string, currentRole: string) => {
     setTogglingRole(userId);
     try {
-      // Toggle by setting total_orders to 1 (reseller) or 0 (customer) as a designation
-      // In practice, this is a visual designation — actual order history is preserved
-      const newVal = currentRole === "customer" ? { total_orders: 1 } : { total_orders: 0, total_spent: 0 };
-      const { error } = await supabase.from("profiles").update(newVal).eq("user_id", userId);
+      const newDesignation = currentRole === "customer" ? "reseller" : "customer";
+      const { error } = await supabase
+        .from("profiles")
+        .update({ designation: newDesignation } as any)
+        .eq("user_id", userId);
       if (error) throw error;
-      toast.success(`User role updated to ${currentRole === "customer" ? "Reseller" : "Customer"}`);
+      toast.success(`User role updated to ${newDesignation === "reseller" ? "Reseller" : "Customer"}`);
       queryClient.invalidateQueries({ queryKey: ["admin-resellers"] });
     } catch (err: any) {
       toast.error(err.message || "Failed to update role");
