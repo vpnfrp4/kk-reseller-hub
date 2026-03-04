@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { StatusBadge } from "@/components/shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
