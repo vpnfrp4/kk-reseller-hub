@@ -7,7 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { KeyRound, Wallet, ShoppingCart, User, Calendar, Copy, Check, Zap, Clock, Smartphone, UserIcon, CheckCircle2, Loader2, FileText, StickyNote, Save, Sparkles, Eye, SendHorizonal, LayoutTemplate } from "lucide-react";
+  import { KeyRound, Wallet, ShoppingCart, User, Calendar, Copy, Check, Zap, Clock, Smartphone, UserIcon, CheckCircle2, Loader2, FileText, StickyNote, Save, Sparkles, Eye, SendHorizonal, LayoutTemplate, Undo2 } from "lucide-react";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
