@@ -8,32 +8,33 @@ import { cn } from "@/lib/utils";
 const LINK_CLASSES = "text-blue-400 hover:text-blue-300 no-underline hover:underline underline-offset-4 break-all transition-colors font-medium cursor-pointer";
 
 function MarkdownLine({ children, className }: { children: string; className?: string }) {
+  // Pre-process: wrap bare URLs in markdown link syntax so remark-gfm picks them up
+  const processed = children.replace(
+    /(?<!\[.*?\]\()(?<!\()(https?:\/\/[^\s)<>]+)/g,
+    (url) => `[${url}](${url})`
+  );
+
   return (
     <ReactMarkdown
+      remarkPlugins={[remarkGfm]}
       components={{
-        // Links open in new tab with blue styling
         a: ({ href, children: c }) => (
           <a href={href} target="_blank" rel="noopener noreferrer" className={LINK_CLASSES}>
             {c}
           </a>
         ),
-        // Bold
         strong: ({ children: c }) => <strong className="font-semibold text-foreground/90">{c}</strong>,
-        // Italic
         em: ({ children: c }) => <em className="italic">{c}</em>,
-        // Inline code
         code: ({ children: c }) => (
           <code className="rounded bg-muted px-1.5 py-0.5 text-[11px] font-mono text-foreground/80">{c}</code>
         ),
-        // Render paragraphs inline (since each line is already wrapped)
         p: ({ children: c }) => <span className={className}>{c}</span>,
-        // Flatten nested lists into the line
         ul: ({ children: c }) => <span>{c}</span>,
         ol: ({ children: c }) => <span>{c}</span>,
         li: ({ children: c }) => <span>{c}</span>,
       }}
     >
-      {children}
+      {processed}
     </ReactMarkdown>
   );
 }
