@@ -27,12 +27,15 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function AdminResellers() {
+  const queryClient = useQueryClient();
   const [selectedReseller, setSelectedReseller] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortField>("created_at");
   const [balanceFilter, setBalanceFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [tierFilter, setTierFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [togglingRole, setTogglingRole] = useState<string | null>(null);
 
   const { data: resellers } = useQuery({
     queryKey: ["admin-resellers"],
