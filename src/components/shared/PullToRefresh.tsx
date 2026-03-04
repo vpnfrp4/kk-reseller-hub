@@ -16,7 +16,8 @@ export default function PullToRefresh({ onRefresh, children, threshold = 80 }: P
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    const scrollTop = containerRef.current?.closest("main")?.scrollTop ?? window.scrollY;
+    const mainEl = containerRef.current?.closest("main");
+    const scrollTop = mainEl ? mainEl.scrollTop : window.scrollY;
     if (scrollTop <= 0 && !refreshing) {
       startY.current = e.touches[0].clientY;
       pulling.current = true;
