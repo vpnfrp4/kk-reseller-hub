@@ -88,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="h-screen flex bg-background overflow-hidden">
+    <div className="min-h-screen lg:h-screen flex flex-col lg:flex-row bg-background lg:overflow-hidden">
       {/* Mobile overlay — only used for sidebar sheet on large screens; bottom nav replaces sidebar on mobile */}
       <div
         className={cn(
@@ -239,9 +239,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* ═══ MAIN AREA ═══ */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        {/* Top Navbar */}
-        <header className="h-14 border-b border-border/50 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 bg-card/80 backdrop-blur-xl">
-          <div className="flex items-center gap-3">
+        {/* Top Navbar — ALWAYS visible, fixed on mobile, sticky on desktop */}
+        <header className="h-14 border-b border-border/50 flex items-center justify-between px-3 sm:px-4 lg:px-8 fixed top-0 left-0 right-0 lg:sticky lg:relative z-30 bg-card/90 backdrop-blur-xl">
+          <div className="flex items-center gap-2 sm:gap-3">
             <Link to="/dashboard" className="lg:hidden flex items-center gap-2">
               <img src={kkLogo} alt="KKTech" className="w-7 h-7 rounded-lg object-contain" />
               <span className="text-sm font-bold text-foreground">KK<span className="text-primary">Tech</span></span>
@@ -255,11 +255,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Language toggle */}
+          <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
+            {/* Language toggle — hide on very small screens */}
             <button
               onClick={toggleLang}
-              className="flex items-center h-8 rounded-lg border border-border bg-secondary/60 text-[11px] font-bold uppercase tracking-wider overflow-hidden transition-all duration-200"
+              className="hidden sm:flex items-center h-8 rounded-lg border border-border bg-secondary/60 text-[11px] font-bold uppercase tracking-wider overflow-hidden transition-all duration-200"
             >
               <span className={cn("px-2 py-1.5 transition-all duration-300", lang === "en" ? "bg-primary/15 text-primary" : "text-muted-foreground")}>
                 EN
@@ -271,7 +271,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             <CurrencyToggle />
 
-            <ThemeToggle />
+            <div className="hidden sm:block">
+              <ThemeToggle />
+            </div>
 
             <WalletChip profile={profile} />
 
@@ -280,7 +282,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* User Avatar */}
             <button
               onClick={() => navigate("/dashboard/settings")}
-              className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden transition-all hover:border-primary/40"
+              className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden transition-all hover:border-primary/40 shrink-0"
             >
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -291,7 +293,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 pb-20 lg:pb-8 overflow-y-auto" data-scroll-area>
+        {/* Spacer for fixed header on mobile */}
+        <div className="h-14 shrink-0 lg:hidden" />
+
+        <main
+          className="flex-1 p-3 sm:p-4 lg:p-8 pb-20 lg:pb-8 overflow-y-auto"
+          data-scroll-area
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           <AnimatePresence mode="wait">
             <PageTransition key={location.pathname}>
               {children}
