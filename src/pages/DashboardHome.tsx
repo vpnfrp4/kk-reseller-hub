@@ -13,6 +13,7 @@ import {
   Calendar,
   Search,
   Receipt,
+  PackageOpen,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { PageContainer, Money } from "@/components/shared";
@@ -73,7 +74,6 @@ export default function DashboardHome() {
 
   const balance = profile?.balance || 0;
   const displayBalance = useCountUp(balance, 800);
-  // Use user metadata created_at or fallback
   const memberSince = user?.created_at ? format(new Date(user.created_at), "MMM dd, yyyy") : "—";
 
   // Filter orders
@@ -95,171 +95,177 @@ export default function DashboardHome() {
           queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] }),
         ]);
       }}>
-      <PwaInstallBanner />
+        <div className="space-y-6">
+          <PwaInstallBanner />
 
-      {/* USER PROFILE CARD */}
-      {!profile ? (
-        <div className="glass-card overflow-hidden animate-fade-in">
-          <div className="p-6 border-b border-border/30">
-            <div className="h-5 w-32 rounded-md bg-muted/30 animate-pulse" />
-          </div>
-          <div className="p-6">
-            <div className="balance-card flex items-center justify-between">
-              <div className="space-y-3">
-                <div className="h-3 w-28 rounded bg-muted/20 animate-pulse" />
-                <div className="h-10 w-48 rounded-lg bg-muted/25 animate-pulse" />
-                <div className="h-3 w-12 rounded bg-muted/15 animate-pulse" />
+          {/* USER PROFILE CARD */}
+          {!profile ? (
+            <div className="glass-card overflow-hidden animate-fade-in">
+              <div className="p-5 sm:p-6 border-b border-border/30">
+                <div className="h-5 w-32 rounded-md bg-muted/30 animate-pulse" />
               </div>
-              <div className="h-10 w-28 rounded-[var(--radius-btn)] bg-muted/20 animate-pulse" />
-            </div>
-          </div>
-          <div className="px-6 pb-6 space-y-0">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between py-3.5 border-b border-border/10 last:border-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-4 h-4 rounded bg-muted/20 animate-pulse" />
-                  <div className="h-3.5 w-20 rounded bg-muted/20 animate-pulse" />
-                </div>
-                <div className="h-3.5 w-36 rounded bg-muted/20 animate-pulse" />
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-      <div className="glass-card overflow-hidden animate-fade-in">
-        <div className="p-6 border-b border-border/30">
-          <h2 className="text-lg font-bold text-foreground">User Profile</h2>
-        </div>
-
-        {/* Balance Section */}
-        <div className="p-6">
-          <div className="balance-card flex items-center justify-between">
-            <div>
-              <p className="text-[11px] uppercase tracking-[0.15em] font-medium text-muted-foreground mb-2">
-                ACCOUNT BALANCE
-              </p>
-              <p className="text-4xl font-extrabold font-mono tabular-nums tracking-tight gold-shimmer">
-                {displayBalance.toLocaleString()}
-              </p>
-              <p className="text-[11px] text-muted-foreground/50 mt-1">MMK</p>
-            </div>
-            <button
-              onClick={() => navigate("/dashboard/wallet")}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-[var(--radius-btn)] font-semibold text-sm transition-all"
-              style={{
-                background: "linear-gradient(135deg, #FFC107, #FFD54F)",
-                color: "#0B0E14",
-              }}
-            >
-              <Plus className="w-4 h-4" />
-              Add Fund
-            </button>
-          </div>
-        </div>
-
-        {/* User Info Grid */}
-        <div className="px-6 pb-6 space-y-0">
-          <ProfileRow icon={User} label="Username" value={profile?.name || "—"} />
-          <ProfileRow icon={Mail} label="Email" value={profile?.email || "—"} />
-          <ProfileRow icon={Calendar} label="Member Since" value={memberSince} />
-        </div>
-      </div>
-      )}
-
-      {/* ORDER HISTORY */}
-      <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.1s" }}>
-        <div className="p-6 border-b border-border/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h2 className="text-lg font-bold text-foreground">Order History</h2>
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search order..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 bg-secondary border-border h-9 text-sm"
-            />
-          </div>
-        </div>
-
-        {/* Table Header */}
-        <div className="hidden md:grid grid-cols-7 gap-4 px-6 py-3 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground border-b border-border/30 bg-secondary/30">
-          <span>Order ID</span>
-          <span>Service</span>
-          <span>Order</span>
-          <span className="text-right">Amount</span>
-          <span>Date</span>
-          <span className="text-center">Status</span>
-          <span className="text-center">Action</span>
-        </div>
-
-        {/* Table Body */}
-        {ordersLoading ? (
-          <div className="space-y-0 divide-y divide-border/30">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div key={i} className="px-6 py-4 animate-pulse">
-                <div className="grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-4">
-                  <div className="h-4 w-20 bg-muted-foreground/10 rounded" />
-                  <div className="h-4 w-32 bg-muted-foreground/10 rounded" />
-                  <div className="h-4 w-16 bg-muted-foreground/10 rounded hidden md:block" />
-                  <div className="h-4 w-20 bg-muted-foreground/10 rounded ml-auto" />
-                  <div className="h-4 w-24 bg-muted-foreground/10 rounded hidden md:block" />
-                  <div className="h-5 w-16 bg-muted-foreground/10 rounded-full mx-auto hidden md:block" />
-                  <div className="h-4 w-10 bg-muted-foreground/10 rounded mx-auto hidden md:block" />
+              <div className="p-5 sm:p-6">
+                <div className="balance-card flex items-center justify-between">
+                  <div className="space-y-3">
+                    <div className="h-3 w-28 rounded bg-muted/20 animate-pulse" />
+                    <div className="h-10 w-48 rounded-lg bg-muted/25 animate-pulse" />
+                    <div className="h-3 w-12 rounded bg-muted/15 animate-pulse" />
+                  </div>
+                  <div className="h-10 w-28 rounded-[var(--radius-btn)] bg-muted/20 animate-pulse" />
                 </div>
               </div>
-            ))}
-          </div>
-        ) : filteredOrders.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-            <Receipt className="w-12 h-12 mb-3 opacity-40" />
-            <p className="text-sm">No orders found</p>
-          </div>
-        ) : (
-          <div className="divide-y divide-border/30">
-            {filteredOrders.map((order: any) => (
-              <div
-                key={order.id}
-                className="grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-4 px-4 md:px-6 py-3 md:py-4 hover:bg-secondary/20 transition-colors cursor-pointer"
-                onClick={() => navigate(`/dashboard/orders/${order.id}`)}
-              >
-                <span className="font-mono text-xs text-primary font-medium truncate">
-                  {order.order_code}
-                </span>
-                <span className="text-sm text-foreground truncate col-span-1">
-                  {order.product_name}
-                </span>
-                <span className="text-xs text-muted-foreground hidden md:block">
-                  {order.fulfillment_mode || "instant"}
-                </span>
-                <span className="text-sm font-mono font-semibold text-right">
-                  <Money amount={order.price} className="inline" />
-                </span>
-                <span className="text-xs text-muted-foreground hidden md:block">
-                  {format(new Date(order.created_at), "MMM dd, yyyy")}
-                </span>
-                <span className="text-center hidden md:block">
-                  <MmStatus status={order.status} />
-                </span>
-                {/* Mobile: show status + date inline */}
-                <span className="md:hidden flex items-center gap-2">
-                  <MmStatus status={order.status} />
-                  <span className="text-[10px] text-muted-foreground">{format(new Date(order.created_at), "MMM dd")}</span>
-                </span>
-                <span className="text-center hidden md:block">
-                  <Link
-                    to={`/dashboard/orders/${order.id}`}
-                    className="text-xs text-primary hover:underline font-medium"
-                    onClick={(e) => e.stopPropagation()}
+              <div className="px-5 sm:px-6 pb-5 sm:pb-6 space-y-0">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center justify-between py-3.5 border-b border-border/10 last:border-0">
+                    <div className="flex items-center gap-3">
+                      <div className="w-4 h-4 rounded bg-muted/20 animate-pulse" />
+                      <div className="h-3.5 w-20 rounded bg-muted/20 animate-pulse" />
+                    </div>
+                    <div className="h-3.5 w-36 rounded bg-muted/20 animate-pulse" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="glass-card overflow-hidden animate-fade-in">
+              <div className="p-5 sm:p-6 border-b border-border/30">
+                <h2 className="text-lg font-bold text-foreground">User Profile</h2>
+              </div>
+
+              {/* Balance Section */}
+              <div className="p-5 sm:p-6">
+                <div className="balance-card flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase tracking-[0.15em] font-medium text-muted-foreground mb-2">
+                      ACCOUNT BALANCE
+                    </p>
+                    <p className="text-3xl sm:text-4xl font-extrabold font-mono tabular-nums tracking-tight gold-shimmer">
+                      {displayBalance.toLocaleString()}
+                    </p>
+                    <p className="text-[11px] text-muted-foreground/50 mt-1">MMK</p>
+                  </div>
+                  <button
+                    onClick={() => navigate("/dashboard/wallet")}
+                    className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-[var(--radius-btn)] font-semibold text-sm transition-all shrink-0"
+                    style={{
+                      background: "linear-gradient(135deg, #FFC107, #FFD54F)",
+                      color: "#0B0E14",
+                    }}
                   >
-                    View
-                  </Link>
-                </span>
+                    <Plus className="w-4 h-4" />
+                    Add Fund
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
 
+              {/* User Info Grid */}
+              <div className="px-5 sm:px-6 pb-5 sm:pb-6 space-y-0">
+                <ProfileRow icon={User} label="Username" value={profile?.name || "—"} />
+                <ProfileRow icon={Mail} label="Email" value={profile?.email || "—"} />
+                <ProfileRow icon={Calendar} label="Member Since" value={memberSince} />
+              </div>
+            </div>
+          )}
+
+          {/* ORDER HISTORY */}
+          <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.1s" }}>
+            <div className="p-5 sm:p-6 border-b border-border/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <h2 className="text-lg font-bold text-foreground">Order History</h2>
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search order..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 bg-secondary border-border h-9 text-sm"
+                />
+              </div>
+            </div>
+
+            {/* Table Header */}
+            <div className="hidden md:grid grid-cols-7 gap-4 px-5 sm:px-6 py-3 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground border-b border-border/30 bg-secondary/30">
+              <span>Order ID</span>
+              <span>Service</span>
+              <span>Order</span>
+              <span className="text-right">Amount</span>
+              <span>Date</span>
+              <span className="text-center">Status</span>
+              <span className="text-center">Action</span>
+            </div>
+
+            {/* Table Body */}
+            {ordersLoading ? (
+              <div className="space-y-0 divide-y divide-border/30">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="px-5 sm:px-6 py-4 animate-pulse">
+                    <div className="grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-4">
+                      <div className="h-4 w-20 bg-muted-foreground/10 rounded" />
+                      <div className="h-4 w-32 bg-muted-foreground/10 rounded" />
+                      <div className="h-4 w-16 bg-muted-foreground/10 rounded hidden md:block" />
+                      <div className="h-4 w-20 bg-muted-foreground/10 rounded ml-auto" />
+                      <div className="h-4 w-24 bg-muted-foreground/10 rounded hidden md:block" />
+                      <div className="h-5 w-16 bg-muted-foreground/10 rounded-full mx-auto hidden md:block" />
+                      <div className="h-4 w-10 bg-muted-foreground/10 rounded mx-auto hidden md:block" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredOrders.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                <div className="w-16 h-16 rounded-2xl bg-muted/30 flex items-center justify-center mb-4">
+                  <PackageOpen className="w-8 h-8 text-muted-foreground/40" />
+                </div>
+                <p className="text-sm font-medium text-foreground/70 mb-1">No orders found</p>
+                <p className="text-xs text-muted-foreground max-w-[240px]">
+                  {searchQuery ? "Try adjusting your search query." : "Your order history will appear here once you place your first order."}
+                </p>
+              </div>
+            ) : (
+              <div className="divide-y divide-border/30">
+                {filteredOrders.map((order: any) => (
+                  <div
+                    key={order.id}
+                    className="grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-4 px-4 sm:px-5 md:px-6 py-3 md:py-4 hover:bg-secondary/20 transition-colors cursor-pointer items-center"
+                    onClick={() => navigate(`/dashboard/orders/${order.id}`)}
+                  >
+                    <span className="font-mono text-xs text-primary font-medium truncate">
+                      {order.order_code}
+                    </span>
+                    <span className="text-sm text-foreground truncate col-span-1">
+                      {order.product_name}
+                    </span>
+                    <span className="text-xs text-muted-foreground hidden md:block">
+                      {order.fulfillment_mode || "instant"}
+                    </span>
+                    <span className="text-sm font-mono font-semibold text-right tabular-nums">
+                      <Money amount={order.price} className="inline" />
+                    </span>
+                    <span className="text-xs text-muted-foreground hidden md:block">
+                      {format(new Date(order.created_at), "MMM dd, yyyy")}
+                    </span>
+                    <span className="text-center hidden md:flex justify-center">
+                      <MmStatus status={order.status} />
+                    </span>
+                    {/* Mobile: show status + date inline */}
+                    <span className="md:hidden flex items-center gap-2">
+                      <MmStatus status={order.status} />
+                      <span className="text-[10px] text-muted-foreground">{format(new Date(order.created_at), "MMM dd")}</span>
+                    </span>
+                    <span className="text-center hidden md:flex justify-center">
+                      <Link
+                        to={`/dashboard/orders/${order.id}`}
+                        className="text-xs text-primary hover:underline font-medium"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        View
+                      </Link>
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </PullToRefresh>
     </PageContainer>
   );
@@ -267,12 +273,12 @@ export default function DashboardHome() {
 
 function ProfileRow({ icon: Icon, label, value }: { icon: React.ElementType; label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between py-3 border-b border-border/20 last:border-0">
+    <div className="flex items-center justify-between py-3.5 border-b border-border/20 last:border-0">
       <div className="flex items-center gap-3 text-muted-foreground">
-        <Icon className="w-4 h-4" />
+        <Icon className="w-4 h-4 shrink-0" />
         <span className="text-sm">{label}</span>
       </div>
-      <span className="text-sm font-medium text-foreground">{value}</span>
+      <span className="text-sm font-medium text-foreground truncate ml-4 text-right">{value}</span>
     </div>
   );
 }
