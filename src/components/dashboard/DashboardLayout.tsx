@@ -154,7 +154,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   strokeWidth={1.5}
                 />
                 {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
-              </Link>
+              </PrefetchLink>
             );
 
             return collapsed ? (
