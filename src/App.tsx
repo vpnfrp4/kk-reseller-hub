@@ -7,49 +7,59 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { LangProvider } from "@/contexts/LangContext";
-import Login from "./pages/Login";
-import DashboardHome from "./pages/DashboardHome";
-import WalletPage from "./pages/WalletPage";
-import ProductsPage from "./pages/ProductsPage";
-import OrdersPage from "./pages/OrdersPage";
-import OrderDetailPage from "./pages/OrderDetailPage";
-import ProductDetailPage from "./pages/ProductDetailPage";
-import OrderFlowPage from "./pages/OrderFlowPage";
-import PlaceOrderPage from "./pages/PlaceOrderPage";
-import ProviderProfilePage from "./pages/ProviderProfilePage";
-import SettingsPage from "./pages/SettingsPage";
-import NotificationsPage from "./pages/NotificationsPage";
-import TopUpStatusPage from "./pages/TopUpStatusPage";
-import ResetPassword from "./pages/ResetPassword";
-import TermsPage from "./pages/TermsPage";
-import DashboardLayout from "./components/dashboard/DashboardLayout";
-import AdminLayout from "./components/admin/AdminLayout";
-import AdminOverview from "./pages/admin/AdminOverview";
-import AdminProducts from "./pages/admin/AdminProducts";
-import AdminCredentials from "./pages/admin/AdminCredentials";
-import AdminTopups from "./pages/admin/AdminTopups";
-import AdminResellers from "./pages/admin/AdminResellers";
-import AdminOrders from "./pages/admin/AdminOrders";
-import AdminSettings from "./pages/admin/AdminSettings";
-import AdminProviders from "./pages/admin/AdminProviders";
-import LandingPage from "./pages/LandingPage";
-import ImeiCheckPage from "./pages/ImeiCheckPage";
-import ImeiMarketplacePage from "./pages/ImeiMarketplacePage";
-import ImeiOrdersPage from "./pages/ImeiOrdersPage";
-import ImeiUnlockPage from "./pages/services/ImeiUnlockPage";
-import VpnKeysPage from "./pages/services/VpnKeysPage";
-import CapcutProPage from "./pages/services/CapcutProPage";
-import InstallPage from "./pages/InstallPage";
-import BlogListPage from "./pages/BlogListPage";
-import BlogPostPage from "./pages/BlogPostPage";
-import AdminBlog from "./pages/admin/AdminBlog";
-import AdminProfitDashboard from "./pages/admin/AdminProfitDashboard";
-import AdminMonitoring from "./pages/admin/AdminMonitoring";
-import NotFound from "./pages/NotFound";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
-import { useState, useCallback } from "react";
+import { lazy, Suspense, useState, useCallback } from "react";
 import SplashScreen from "@/components/SplashScreen";
 import PwaUpdatePrompt from "@/components/PwaUpdatePrompt";
+import DashboardLayout from "./components/dashboard/DashboardLayout";
+import AdminLayout from "./components/admin/AdminLayout";
+
+// ─── Lazy-loaded pages ───
+const Login = lazy(() => import("./pages/Login"));
+const DashboardHome = lazy(() => import("./pages/DashboardHome"));
+const WalletPage = lazy(() => import("./pages/WalletPage"));
+const ProductsPage = lazy(() => import("./pages/ProductsPage"));
+const OrdersPage = lazy(() => import("./pages/OrdersPage"));
+const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
+const ProductDetailPage = lazy(() => import("./pages/ProductDetailPage"));
+const OrderFlowPage = lazy(() => import("./pages/OrderFlowPage"));
+const PlaceOrderPage = lazy(() => import("./pages/PlaceOrderPage"));
+const ProviderProfilePage = lazy(() => import("./pages/ProviderProfilePage"));
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
+const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
+const TopUpStatusPage = lazy(() => import("./pages/TopUpStatusPage"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const TermsPage = lazy(() => import("./pages/TermsPage"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const ImeiCheckPage = lazy(() => import("./pages/ImeiCheckPage"));
+const ImeiMarketplacePage = lazy(() => import("./pages/ImeiMarketplacePage"));
+const ImeiOrdersPage = lazy(() => import("./pages/ImeiOrdersPage"));
+const ImeiUnlockPage = lazy(() => import("./pages/services/ImeiUnlockPage"));
+const VpnKeysPage = lazy(() => import("./pages/services/VpnKeysPage"));
+const CapcutProPage = lazy(() => import("./pages/services/CapcutProPage"));
+const InstallPage = lazy(() => import("./pages/InstallPage"));
+const BlogListPage = lazy(() => import("./pages/BlogListPage"));
+const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
+const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
+const AdminCredentials = lazy(() => import("./pages/admin/AdminCredentials"));
+const AdminTopups = lazy(() => import("./pages/admin/AdminTopups"));
+const AdminResellers = lazy(() => import("./pages/admin/AdminResellers"));
+const AdminOrders = lazy(() => import("./pages/admin/AdminOrders"));
+const AdminSettings = lazy(() => import("./pages/admin/AdminSettings"));
+const AdminProviders = lazy(() => import("./pages/admin/AdminProviders"));
+const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
+const AdminProfitDashboard = lazy(() => import("./pages/admin/AdminProfitDashboard"));
+const AdminMonitoring = lazy(() => import("./pages/admin/AdminMonitoring"));
+
+function PageLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
 
 const queryClient = new QueryClient();
 
@@ -100,6 +110,7 @@ function AppRoutes() {
   }
 
   return (
+    <Suspense fallback={<PageLoader />}>
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
@@ -147,6 +158,7 @@ function AppRoutes() {
         <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
         <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
   );
 }
 
