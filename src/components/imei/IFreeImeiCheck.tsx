@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -46,10 +47,15 @@ interface IFreeResult {
   account_balance?: string | number;
   error?: string;
   error_code?: string;
+  charged?: number;
+  charge_error?: string;
+  required?: number;
+  current_balance?: number;
   [key: string]: unknown;
 }
 
 export default function IFreeImeiCheck() {
+  const queryClient = useQueryClient();
   const [imei, setImei] = useState("");
   const [serviceId, setServiceId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -136,7 +142,6 @@ export default function IFreeImeiCheck() {
       return;
     }
 
-    // Clean the IMEI before sending
     const cleanImei = imei.replace(/\D/g, "").trim();
     if (cleanImei.length !== 15) {
       toast.error("IMEI must be exactly 15 digits");
@@ -147,11 +152,34 @@ export default function IFreeImeiCheck() {
     setResult(null);
 
     try {
+      // Pass the sell price so the edge function can charge the user
+      const sellPrice = selectedService?.price ? Number(selectedService.price) : 0;
+
       const { data, error } = await supabase.functions.invoke("check-ifree", {
-        body: { imei: cleanImei, serviceId: String(serviceId).trim(), serviceName: selectedService?.name || "" },
+        body: {
+          imei: cleanImei,
+          serviceId: String(serviceId).trim(),
+          serviceName: selectedService?.name || "",
+          servicePrice: sellPrice,
+        },
       });
       if (error) throw new Error(error.message);
-      setResult(data as IFreeResult);
+
+      const res = data as IFreeResult;
+      setResult(res);
+
+      // If balance was charged, refresh profile data instantly
+      if (res.charged && res.charged > 0) {
+        toast.success(`Charged ${res.charged.toLocaleString()} MMK for IMEI check`);
+        // Invalidate all profile-related queries to refresh balance everywhere
+        queryClient.invalidateQueries({ queryKey: ["profile"] });
+        queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+        queryClient.invalidateQueries({ queryKey: ["wallet"] });
+      }
+
+      if (res.charge_error) {
+        toast.warning(res.charge_error);
+      }
     } catch (err: any) {
       toast.error(err.message || "Check failed");
       setResult({ error: err.message || "Check failed" });
@@ -178,7 +206,7 @@ export default function IFreeImeiCheck() {
   }, [result]);
 
   const isServiceError = result?.error_code === "SERVICE_NOT_FOUND";
-  const isBalanceError = result?.error_code === "INSUFFICIENT_BALANCE";
+  const isBalanceError = result?.error_code === "INSUFFICIENT_BALANCE" || result?.error_code === "USER_INSUFFICIENT_BALANCE";
   const isApiKeyError = result?.error_code === "INVALID_API_KEY";
 
   const getErrorIcon = () => {
