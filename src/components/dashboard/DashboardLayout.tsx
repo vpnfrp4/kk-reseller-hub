@@ -30,6 +30,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import FloatingSupport from "@/components/shared/FloatingSupport";
+import BottomNav from "@/components/dashboard/BottomNav";
 import kkLogo from "@/assets/kkremote-logo.png";
 
 /* ── Sidebar nav items ── */
@@ -88,24 +89,22 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="h-screen flex bg-background overflow-hidden">
-      {/* Mobile overlay */}
+      {/* Mobile overlay — only used for sidebar sheet on large screens; bottom nav replaces sidebar on mobile */}
       <div
         className={cn(
-          "fixed inset-0 bg-background/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300",
-          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          "fixed inset-0 bg-background/60 backdrop-blur-sm z-40 hidden transition-opacity duration-300",
+          sidebarOpen ? "lg:block opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* ═══ SIDEBAR — Dark Glass Style ═══ */}
+      {/* ═══ SIDEBAR — Desktop only ═══ */}
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 flex flex-col",
+          "hidden lg:static lg:flex inset-y-0 left-0 z-50 flex-col",
           "bg-sidebar/80 backdrop-blur-xl border-r border-sidebar-border/50",
           "transition-all duration-300 ease-out",
           collapsed ? "lg:w-[68px]" : "lg:w-[260px]",
-          "w-[260px]",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <TooltipProvider delayDuration={0}>
@@ -243,12 +242,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Top Navbar */}
         <header className="h-14 border-b border-border/50 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 bg-card/80 backdrop-blur-xl">
           <div className="flex items-center gap-3">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
-            >
-              <Menu className="w-5 h-5" strokeWidth={1.5} />
-            </button>
+            <Link to="/dashboard" className="lg:hidden flex items-center gap-2">
+              <img src={kkLogo} alt="KKTech" className="w-7 h-7 rounded-lg object-contain" />
+              <span className="text-sm font-bold text-foreground">KK<span className="text-primary">Tech</span></span>
+            </Link>
             <div className="hidden lg:block">
               <h2 className="text-sm font-semibold text-foreground tracking-wide">
                 {location.pathname.startsWith("/dashboard/wallet") ? "Wallet"
@@ -294,7 +291,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto" data-scroll-area>
+        <main className="flex-1 p-4 lg:p-8 pb-20 lg:pb-8 overflow-y-auto" data-scroll-area>
           <AnimatePresence mode="wait">
             <PageTransition key={location.pathname}>
               {children}
@@ -302,13 +299,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </AnimatePresence>
         </main>
 
-        <footer className="border-t border-border/30 px-4 lg:px-8 py-3 text-center">
+        <footer className="hidden lg:block border-t border-border/30 px-4 lg:px-8 py-3 text-center">
           <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
             Terms & Conditions
           </Link>
         </footer>
       </div>
 
+      <BottomNav />
       <FloatingSupport />
     </div>
   );
