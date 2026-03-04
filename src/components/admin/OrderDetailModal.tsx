@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { StatusBadge } from "@/components/shared";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
