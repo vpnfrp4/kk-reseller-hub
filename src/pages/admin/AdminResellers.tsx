@@ -123,9 +123,33 @@ export default function AdminResellers() {
       ),
     },
     {
+      key: "role",
+      label: "Role",
+      align: "center" as const,
+      render: (row) => {
+        const role = getUserRole(row);
+        const isReseller = role === "reseller";
+        return (
+          <button
+            onClick={(e) => { e.stopPropagation(); toggleUserRole(row.user_id, role); }}
+            disabled={togglingRole === row.user_id}
+            className={`inline-flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full font-semibold transition-all hover:scale-105 ${
+              isReseller
+                ? "bg-primary/10 text-primary border border-primary/20"
+                : "bg-muted/50 text-muted-foreground border border-border/50"
+            } ${togglingRole === row.user_id ? "opacity-50" : "cursor-pointer"}`}
+          >
+            {isReseller ? <UserCheck className="w-3 h-3" /> : <User className="w-3 h-3" />}
+            {isReseller ? "Reseller" : "Customer"}
+          </button>
+        );
+      },
+    },
+    {
       key: "tier",
       label: "Tier",
       align: "center" as const,
+      hideOnMobile: true,
       render: (row) => {
         const tier = row.tier || "bronze";
         return (
@@ -172,14 +196,7 @@ export default function AdminResellers() {
       label: "Status",
       align: "center" as const,
       hideOnMobile: true,
-      render: (row) => {
-        const s = row.status || "active";
-        return (
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium capitalize ${statusStyles[s] || statusStyles.active}`}>
-            {s}
-          </span>
-        );
-      },
+      render: (row) => <StatusBadge status={row.status || "active"} />,
     },
     {
       key: "created_at",
