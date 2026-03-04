@@ -75,6 +75,8 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
   const [savingNotes, setSavingNotes] = useState(false);
   const [showResultPreview, setShowResultPreview] = useState(false);
   const [savingResult, setSavingResult] = useState(false);
+  const [refundConfirmOpen, setRefundConfirmOpen] = useState(false);
+  const [refunding, setRefunding] = useState(false);
 
   // Initialize when order changes
   if (order && order.id !== notesInitialized) {
