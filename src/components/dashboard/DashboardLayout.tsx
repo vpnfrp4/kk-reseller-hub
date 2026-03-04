@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import PrefetchLink from "@/components/PrefetchLink";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "@/components/dashboard/PageTransition";
 import { useAuth } from "@/contexts/AuthContext";
@@ -129,7 +130,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               (item.path !== "/dashboard" && location.pathname.startsWith(item.path));
 
             const linkEl = (
-              <Link
+              <PrefetchLink
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
@@ -153,7 +154,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   strokeWidth={1.5}
                 />
                 {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
-              </Link>
+              </PrefetchLink>
             );
 
             return collapsed ? (
