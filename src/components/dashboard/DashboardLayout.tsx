@@ -130,7 +130,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               (item.path !== "/dashboard" && location.pathname.startsWith(item.path));
 
             const linkEl = (
-              <Link
+              <PrefetchLink
                 key={item.path}
                 to={item.path}
                 onClick={() => setSidebarOpen(false)}
