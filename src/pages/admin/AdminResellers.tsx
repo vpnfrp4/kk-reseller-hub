@@ -20,11 +20,6 @@ const tierColors: Record<string, string> = {
   platinum: "bg-purple-400/15 text-purple-300 border-purple-400/20",
 };
 
-const statusStyles: Record<string, string> = {
-  active: "bg-success/10 text-success",
-  suspended: "bg-warning/10 text-warning",
-  blocked: "bg-destructive/10 text-destructive",
-};
 
 export default function AdminResellers() {
   const queryClient = useQueryClient();
