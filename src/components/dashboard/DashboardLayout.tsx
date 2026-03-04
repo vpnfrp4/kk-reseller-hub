@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
+import PrefetchLink from "@/components/PrefetchLink";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "@/components/dashboard/PageTransition";
 import { useAuth } from "@/contexts/AuthContext";
