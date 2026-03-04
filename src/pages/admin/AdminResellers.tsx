@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, X, ShieldCheck, Ban, Crown, UserCheck, User } from "lucide-react";
+import { Search, X, ShieldCheck, Ban, UserCheck, User } from "lucide-react";
 import ResellerDetailModal from "@/components/admin/ResellerDetailModal";
 import { DataCard, Money, ResponsiveTable, StatusBadge } from "@/components/shared";
 import type { Column } from "@/components/shared";
@@ -19,7 +19,6 @@ const tierColors: Record<string, string> = {
   gold: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20",
   platinum: "bg-purple-400/15 text-purple-300 border-purple-400/20",
 };
-
 
 export default function AdminResellers() {
   const queryClient = useQueryClient();
@@ -214,94 +213,103 @@ export default function AdminResellers() {
   ];
 
   return (
-    <div className="space-y-section">
+    <div className="space-y-6 lg:space-y-8">
+      {/* Header */}
       <div className="animate-fade-in">
         <h1 className="text-h1 text-foreground">Resellers</h1>
-        <p className="text-caption text-muted-foreground">
+        <p className="text-caption text-muted-foreground mt-1">
           Manage registered resellers
           {resellers?.length ? ` · ${filtered.length} of ${resellers.length}` : ""}
         </p>
       </div>
 
-      {/* Search & Filters */}
-      <div className="flex flex-col sm:flex-row gap-3 animate-fade-in flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by name or email…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 h-9"
-          />
-          {search && (
-            <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
-        </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-full sm:w-32 h-9">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Status</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="suspended">Suspended</SelectItem>
-            <SelectItem value="blocked">Blocked</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={tierFilter} onValueChange={setTierFilter}>
-          <SelectTrigger className="w-full sm:w-32 h-9">
-            <SelectValue placeholder="Tier" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tiers</SelectItem>
-            <SelectItem value="bronze">Bronze</SelectItem>
-            <SelectItem value="silver">Silver</SelectItem>
-            <SelectItem value="gold">Gold</SelectItem>
-            <SelectItem value="platinum">Platinum</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={roleFilter} onValueChange={setRoleFilter}>
-          <SelectTrigger className="w-full sm:w-32 h-9">
-            <SelectValue placeholder="Role" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Roles</SelectItem>
-            <SelectItem value="reseller">Reseller</SelectItem>
-            <SelectItem value="customer">Customer</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={balanceFilter} onValueChange={setBalanceFilter}>
-          <SelectTrigger className="w-full sm:w-36 h-9">
-            <SelectValue placeholder="Balance" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Balances</SelectItem>
-            <SelectItem value="active">≥ 5,000 MMK</SelectItem>
-            <SelectItem value="low">1–4,999 MMK</SelectItem>
-            <SelectItem value="zero">Zero Balance</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortField)}>
-          <SelectTrigger className="w-full sm:w-36 h-9">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="created_at">Newest</SelectItem>
-            <SelectItem value="name">Name</SelectItem>
-            <SelectItem value="balance">Balance</SelectItem>
-            <SelectItem value="total_spent">Total Spent</SelectItem>
-            <SelectItem value="total_orders">Total Orders</SelectItem>
-          </SelectContent>
-        </Select>
-        {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-9 text-xs gap-1" onClick={() => { setSearch(""); setSortBy("created_at"); setBalanceFilter("all"); setStatusFilter("all"); setTierFilter("all"); setRoleFilter("all"); }}>
-            <X className="w-3 h-3" /> Clear
-          </Button>
-        )}
-      </div>
+      {/* Search & Filters — wrapped in a card for visual grouping */}
+      <DataCard className="animate-fade-in">
+        <div className="space-y-3">
+          {/* Search row */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or email…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 h-9"
+            />
+            {search && (
+              <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
 
+          {/* Filter row */}
+          <div className="flex flex-wrap gap-2">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-full sm:w-28 h-8 text-xs">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="suspended">Suspended</SelectItem>
+                <SelectItem value="blocked">Blocked</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={tierFilter} onValueChange={setTierFilter}>
+              <SelectTrigger className="w-full sm:w-28 h-8 text-xs">
+                <SelectValue placeholder="Tier" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tiers</SelectItem>
+                <SelectItem value="bronze">Bronze</SelectItem>
+                <SelectItem value="silver">Silver</SelectItem>
+                <SelectItem value="gold">Gold</SelectItem>
+                <SelectItem value="platinum">Platinum</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={roleFilter} onValueChange={setRoleFilter}>
+              <SelectTrigger className="w-full sm:w-28 h-8 text-xs">
+                <SelectValue placeholder="Role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Roles</SelectItem>
+                <SelectItem value="reseller">Reseller</SelectItem>
+                <SelectItem value="customer">Customer</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={balanceFilter} onValueChange={setBalanceFilter}>
+              <SelectTrigger className="w-full sm:w-32 h-8 text-xs">
+                <SelectValue placeholder="Balance" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Balances</SelectItem>
+                <SelectItem value="active">≥ 5,000 MMK</SelectItem>
+                <SelectItem value="low">1–4,999 MMK</SelectItem>
+                <SelectItem value="zero">Zero Balance</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortField)}>
+              <SelectTrigger className="w-full sm:w-32 h-8 text-xs">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="created_at">Newest</SelectItem>
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="balance">Balance</SelectItem>
+                <SelectItem value="total_spent">Total Spent</SelectItem>
+                <SelectItem value="total_orders">Total Orders</SelectItem>
+              </SelectContent>
+            </Select>
+            {hasFilters && (
+              <Button variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={() => { setSearch(""); setSortBy("created_at"); setBalanceFilter("all"); setStatusFilter("all"); setTierFilter("all"); setRoleFilter("all"); }}>
+                <X className="w-3 h-3" /> Clear
+              </Button>
+            )}
+          </div>
+        </div>
+      </DataCard>
+
+      {/* Table */}
       <DataCard noPadding className="animate-fade-in">
         <ResponsiveTable
           columns={columns}

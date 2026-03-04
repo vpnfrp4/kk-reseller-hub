@@ -255,53 +255,52 @@ export default function AdminOrders() {
   );
 
   return (
-    <div className="space-y-section">
+    <div className="space-y-6 lg:space-y-8">
+      {/* Header */}
       <div className="animate-fade-in">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-h1 text-foreground">Order Management</h1>
-            <p className="text-caption text-muted-foreground">Search, filter, and manage all orders</p>
-          </div>
-        </div>
+        <h1 className="text-h1 text-foreground">Order Management</h1>
+        <p className="text-caption text-muted-foreground mt-1">Search, filter, and manage all orders</p>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-default animate-fade-in">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search by product, order ID, user, or IMEI..."
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            className="pl-9 bg-card border-border"
-          />
+      {/* Filters — wrapped in a card */}
+      <DataCard className="animate-fade-in">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by product, order ID, user, or IMEI..."
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              className="pl-9 h-9"
+            />
+          </div>
+          <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
+            <SelectTrigger className="w-full sm:w-[150px] h-9">
+              <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {STATUS_OPTIONS.map((s) => (
+                <SelectItem key={s} value={s}>
+                  {s === "all" ? "All Statuses" : s.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
+            <SelectTrigger className="w-full sm:w-[130px] h-9">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              {TYPE_OPTIONS.map((t) => (
+                <SelectItem key={t} value={t}>
+                  {t === "all" ? "All Types" : t.charAt(0).toUpperCase() + t.slice(1)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
-        <Select value={statusFilter} onValueChange={(v) => { setStatusFilter(v); setPage(1); }}>
-          <SelectTrigger className="w-full sm:w-[160px] bg-card border-border">
-            <Filter className="w-4 h-4 mr-2 text-muted-foreground" />
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            {STATUS_OPTIONS.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s === "all" ? "All Statuses" : s.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={typeFilter} onValueChange={(v) => { setTypeFilter(v); setPage(1); }}>
-          <SelectTrigger className="w-full sm:w-[140px] bg-card border-border">
-            <SelectValue placeholder="Type" />
-          </SelectTrigger>
-          <SelectContent>
-            {TYPE_OPTIONS.map((t) => (
-              <SelectItem key={t} value={t}>
-                {t === "all" ? "All Types" : t.charAt(0).toUpperCase() + t.slice(1)}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      </DataCard>
 
       {/* Summary */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground animate-fade-in">
@@ -336,9 +335,9 @@ export default function AdminOrders() {
       )}
 
       {/* Table */}
-      <DataCard noPadding className="animate-fade-in" footer={paginationFooter}>
-        <div className="overflow-x-auto">
-          <table className="premium-table">
+      <DataCard noPadding className="animate-fade-in overflow-hidden" footer={paginationFooter}>
+        <div className="overflow-x-auto -mx-px">
+          <table className="premium-table min-w-[800px]">
             <thead>
               <tr>
                 <th className="w-10 pl-4">

@@ -19,7 +19,7 @@ import {
   Dialog,
   DialogContent,
 } from "@/components/ui/dialog";
-import { CheckCircle2, XCircle, Clock, Image as ImageIcon, Settings2, ExternalLink } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, Image as ImageIcon, Settings2, ExternalLink, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { DataCard, Money, ResponsiveTable, StatusBadge } from "@/components/shared";
 import type { Column } from "@/components/shared";
@@ -51,17 +51,17 @@ function ScreenshotThumb({ path, onClick }: { path: string; onClick: () => void 
 
   if (!url) {
     return (
-      <div className="w-14 h-14 rounded-lg bg-muted/30 border border-border/50 flex items-center justify-center shrink-0 animate-pulse">
+      <div className="w-12 h-12 rounded-lg bg-muted/30 border border-border/50 flex items-center justify-center shrink-0 animate-pulse">
         <ImageIcon className="w-4 h-4 text-muted-foreground/40" />
       </div>
     );
   }
 
   return (
-    <button onClick={onClick} className="relative w-14 h-14 rounded-lg border border-border/50 overflow-hidden shrink-0 group hover:ring-2 hover:ring-primary/40 transition-all">
+    <button onClick={onClick} className="relative w-12 h-12 rounded-lg border border-border/50 overflow-hidden shrink-0 group hover:ring-2 hover:ring-primary/40 transition-all">
       <img src={url} alt="Payment screenshot" className="w-full h-full object-cover" />
       <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-        <ExternalLink className="w-4 h-4 text-foreground" />
+        <ExternalLink className="w-3.5 h-3.5 text-foreground" />
       </div>
     </button>
   );
@@ -175,6 +175,10 @@ export default function AdminTopups() {
   const pending = (transactions || []).filter((t) => t.status === "pending");
   const processed = (transactions || []).filter((t) => t.status !== "pending");
 
+  // Stats
+  const approvedTotal = processed.filter(t => t.status === "approved").reduce((s, t) => s + t.amount, 0);
+  const rejectedCount = processed.filter(t => t.status === "rejected").length;
+
   const processedColumns: Column<TopupTransaction>[] = [
     {
       key: "reseller_name",
@@ -212,70 +216,94 @@ export default function AdminTopups() {
   ];
 
   return (
-    <div className="space-y-section">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-tight animate-fade-in">
-        <div>
-          <h1 className="text-h1 text-foreground">Wallet Top-ups</h1>
-          <p className="text-caption text-muted-foreground">Review and approve reseller top-up requests</p>
-        </div>
+    <div className="space-y-6 lg:space-y-8">
+      {/* Header */}
+      <div className="animate-fade-in">
+        <h1 className="text-h1 text-foreground">Wallet Top-ups</h1>
+        <p className="text-caption text-muted-foreground mt-1">Review and approve reseller top-up requests</p>
       </div>
 
-      {/* Settings Card */}
-      <DataCard className="animate-fade-in" actions={<Settings2 className="w-4 h-4 text-muted-foreground" />}>
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-default">
-          <div className="flex items-center gap-compact">
-            <Switch checked={autoApprove} onCheckedChange={setAutoApprove} />
-            <div>
-              <Label className="text-sm font-medium text-foreground">Auto-Approve Top-ups</Label>
-              <p className="text-[11px] text-muted-foreground mt-micro">
-                Automatically approve requests below the threshold
-              </p>
+      {/* Settings + Stats — side by side on desktop, stacked on mobile */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 animate-fade-in">
+        {/* Auto-Approve Settings */}
+        <DataCard title="Auto-Approve Settings" actions={<Settings2 className="w-4 h-4 text-muted-foreground" />}>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <Switch checked={autoApprove} onCheckedChange={setAutoApprove} className="mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <Label className="text-sm font-medium text-foreground">Auto-Approve Top-ups</Label>
+                <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
+                  Automatically approve requests below the threshold amount
+                </p>
+              </div>
+            </div>
+            {autoApprove && (
+              <div className="flex items-center gap-3 pl-10">
+                <Label className="text-xs text-muted-foreground whitespace-nowrap">Max Amount:</Label>
+                <Input
+                  type="number"
+                  value={autoThreshold}
+                  onChange={(e) => setAutoThreshold(Number(e.target.value) || 0)}
+                  className="w-28 h-8 text-sm"
+                />
+                <span className="text-xs text-muted-foreground">MMK</span>
+              </div>
+            )}
+          </div>
+        </DataCard>
+
+        {/* Quick Stats */}
+        <DataCard title="Top-up Statistics" actions={<TrendingUp className="w-4 h-4 text-muted-foreground" />}>
+          <div className="grid grid-cols-3 gap-4">
+            <div className="text-center">
+              <p className="text-2xl font-bold text-warning tabular-nums">{pending.length}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Pending</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-success tabular-nums">{approvedTotal.toLocaleString()}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Approved (MMK)</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold text-destructive tabular-nums">{rejectedCount}</p>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-1">Rejected</p>
             </div>
           </div>
-          {autoApprove && (
-            <div className="flex items-center gap-compact">
-              <Label className="text-xs text-muted-foreground whitespace-nowrap">Max Amount:</Label>
-              <Input
-                type="number"
-                value={autoThreshold}
-                onChange={(e) => setAutoThreshold(Number(e.target.value) || 0)}
-                className="w-32 h-8 text-sm"
-              />
-              <span className="text-xs text-muted-foreground">MMK</span>
-            </div>
-          )}
-        </div>
-      </DataCard>
+        </DataCard>
+      </div>
 
-      {/* Pending */}
+      {/* Pending Requests */}
       <DataCard
-        title={`Pending (${pending.length})`}
+        title={`Pending Requests (${pending.length})`}
         className="animate-fade-in"
         actions={<Clock className="w-4 h-4 text-warning" />}
       >
         {pending.length === 0 ? (
-          <p className="text-center text-sm text-muted-foreground py-card">
+          <p className="text-center text-sm text-muted-foreground py-8">
             {isLoading ? "Loading..." : "No pending top-ups"}
           </p>
         ) : (
-          <div className="space-y-compact">
+          <div className="space-y-3">
             {pending.map((tx) => (
-              <div key={tx.id} className="glass-card p-default flex flex-col sm:flex-row sm:items-center justify-between gap-default">
-                <div className="flex gap-compact flex-1 min-w-0">
-                  {/* Inline screenshot thumbnail */}
+              <div
+                key={tx.id}
+                className="rounded-xl border border-border/60 bg-secondary/30 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              >
+                <div className="flex gap-3 flex-1 min-w-0">
                   {tx.screenshot_url && (
                     <ScreenshotThumb path={tx.screenshot_url} onClick={() => openScreenshot(tx.screenshot_url!)} />
                   )}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground">
-                      {tx.reseller_name}{" "}
-                      <span className="text-muted-foreground font-normal text-xs">({tx.reseller_email})</span>
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {tx.reseller_name}
+                      <span className="text-muted-foreground font-normal text-xs ml-1.5">({tx.reseller_email})</span>
                     </p>
-                    <div className="flex flex-wrap items-center gap-compact mt-micro text-xs text-muted-foreground">
+                    <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-muted-foreground">
                       <span className="font-mono font-semibold text-foreground text-base">
                         +<Money amount={tx.amount} className="inline text-base" />
                       </span>
+                      <span className="text-muted-foreground/60">•</span>
                       <span>via {tx.method}</span>
+                      <span className="text-muted-foreground/60">•</span>
                       <span>{new Date(tx.created_at).toLocaleDateString()}</span>
                       {autoApprove && tx.amount <= autoThreshold && (
                         <span className="text-[10px] px-2 py-0.5 rounded-full badge-completed">Auto-eligible</span>
@@ -283,14 +311,14 @@ export default function AdminTopups() {
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-tight shrink-0">
+                <div className="flex items-center gap-2 shrink-0 sm:ml-4">
                   <Button
                     size="sm"
                     onClick={() => setConfirmDialog({ txId: tx.id, action: "approve", name: tx.reseller_name || "Unknown", amount: tx.amount })}
                     disabled={processing === tx.id}
-                    className="bg-success hover:bg-success/80 text-success-foreground gap-1 text-xs"
+                    className="bg-success hover:bg-success/80 text-success-foreground gap-1.5 text-xs h-9 px-4"
                   >
-                    <CheckCircle2 className="w-3 h-3" />
+                    <CheckCircle2 className="w-3.5 h-3.5" />
                     Approve
                   </Button>
                   <Button
@@ -298,9 +326,9 @@ export default function AdminTopups() {
                     variant="destructive"
                     onClick={() => setConfirmDialog({ txId: tx.id, action: "reject", name: tx.reseller_name || "Unknown", amount: tx.amount })}
                     disabled={processing === tx.id}
-                    className="gap-1 text-xs"
+                    className="gap-1.5 text-xs h-9 px-4"
                   >
-                    <XCircle className="w-3 h-3" />
+                    <XCircle className="w-3.5 h-3.5" />
                     Reject
                   </Button>
                 </div>
@@ -310,8 +338,8 @@ export default function AdminTopups() {
         )}
       </DataCard>
 
-      {/* Processed */}
-      <DataCard title="Processed" noPadding className="animate-fade-in">
+      {/* Processed History */}
+      <DataCard title="Processed History" noPadding className="animate-fade-in">
         <ResponsiveTable
           columns={processedColumns}
           data={processed}
