@@ -223,21 +223,7 @@ export default function AdminOrders() {
   const allPageSelected = pageIds.length > 0 && pageIds.every((id: string) => selectedIds.has(id));
   const somePageSelected = pageIds.some((id: string) => selectedIds.has(id));
 
-  const statusBadge = (status: string) => {
-    const badgeClass: Record<string, string> = {
-      delivered: "badge-delivered",
-      pending: "badge-pending",
-      cancelled: "badge-cancelled",
-      processing: "bg-warning/10 text-warning",
-      completed: "bg-success/10 text-success",
-      rejected: "bg-destructive/10 text-destructive",
-    };
-    return (
-      <span className={`text-[11px] px-2.5 py-1 rounded-full ${badgeClass[status] || "bg-muted text-muted-foreground"}`}>
-        {status.replace("_", " ")}
-      </span>
-    );
-  };
+  const statusBadge = (status: string) => <StatusBadge status={status} />;
 
   const paginationFooter = (
     <div className="flex items-center justify-between">
