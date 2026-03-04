@@ -311,18 +311,19 @@
    ═══════════════════════════════════════════════════════ */
 
 @layer components {
-  /* ─── Solid Cards (navy surfaces) ─── */
+  /* ─── Solid Cards (premium surfaces) ─── */
   .glass-card {
     position: relative;
     background: hsl(var(--card));
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
-    transition: border-color var(--transition-base);
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
   }
 
   .glass-card:hover {
-    border-color: hsl(var(--primary) / 0.2);
+    border-color: hsl(var(--primary) / 0.15);
+    box-shadow: var(--shadow-elevated);
   }
 
   .stat-card {
@@ -337,7 +338,7 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.3), transparent);
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.25), transparent);
   }
 
   .card-elevated {
