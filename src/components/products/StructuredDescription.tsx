@@ -143,7 +143,7 @@ function OverviewBlock({ lines }: { lines: string[] }) {
   return (
     <div className="space-y-1.5">
       {lines.map((line, i) => (
-        <p key={i} className="text-xs text-muted-foreground/90 leading-relaxed">{line}</p>
+        <p key={i} className="text-xs text-muted-foreground/90 leading-relaxed"><RichText>{line}</RichText></p>
       ))}
     </div>
   );
