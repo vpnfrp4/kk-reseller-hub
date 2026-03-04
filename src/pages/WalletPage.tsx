@@ -522,6 +522,7 @@ export default function WalletPage() {
         )}
       </AnimatePresence>
     </div>
+    </PullToRefresh>
   );
 }
 
