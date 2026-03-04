@@ -242,8 +242,7 @@ export default function WalletPage() {
               <Skeleton className="h-5 w-24" />
             ) : (
               <>
-                <span className="font-mono font-bold text-foreground tabular-nums">{(profile.balance || 0).toLocaleString()}</span>
-                <span className="text-[10px] text-muted-foreground font-medium">MMK</span>
+                <Money amount={profile.balance || 0} className="font-mono font-bold text-foreground tabular-nums" />
               </>
             )}
           </div>

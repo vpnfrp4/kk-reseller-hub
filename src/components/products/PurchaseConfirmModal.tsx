@@ -193,7 +193,7 @@ export default function PurchaseConfirmModal({
               {totalSavings > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">{l(t.products.savings)}</span>
-                  <span className="font-mono tabular-nums text-primary font-medium">-{totalSavings.toLocaleString()} MMK</span>
+                  <span className="font-mono tabular-nums text-primary font-medium">-<Money amount={totalSavings} compact /></span>
                 </div>
               )}
 
@@ -217,7 +217,7 @@ export default function PurchaseConfirmModal({
                       {l(t.products.needMore)} {deficit.toLocaleString()} {l(t.products.moreToComplete)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {l(t.products.currentBalance)}: {userBalance.toLocaleString()} MMK
+                      {l(t.products.currentBalance)}: <Money amount={userBalance} compact />
                     </p>
                   </div>
                 </div>
@@ -231,7 +231,7 @@ export default function PurchaseConfirmModal({
                     }}
                   >
                     <Wallet className="w-4 h-4" />
-                    {l(t.products.quickTopUp)} {suggestedTopUp.toLocaleString()} MMK
+                    {l(t.products.quickTopUp)} <Money amount={suggestedTopUp} compact />
                   </Button>
                 )}
               </div>

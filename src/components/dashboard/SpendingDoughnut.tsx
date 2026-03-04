@@ -1,5 +1,6 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface SpendingCategory {
   name: string;
@@ -26,6 +27,7 @@ const CustomLabel = ({ cx, cy, total }: { cx: number; cy: number; total: number 
 );
 
 export default function SpendingDoughnut({ data, isLoading }: SpendingDoughnutProps) {
+  const { formatAmount, currency } = useCurrency();
   if (isLoading || !data || data.length === 0) {
     return (
       <div className="w-full h-[240px] flex items-center justify-center">
@@ -61,10 +63,10 @@ export default function SpendingDoughnut({ data, isLoading }: SpendingDoughnutPr
             ))}
           </Pie>
           <text x="50%" y="40%" textAnchor="middle" fill="hsl(var(--foreground))" fontSize="18" fontWeight="800" fontFamily="monospace">
-            {total.toLocaleString()}
+            {formatAmount(total)}
           </text>
           <text x="50%" y="48%" textAnchor="middle" fill="hsl(var(--muted-foreground))" fontSize="9" fontWeight="600" letterSpacing="0.1em">
-            MMK TOTAL
+            TOTAL
           </text>
           <Tooltip
             contentStyle={{
@@ -75,7 +77,7 @@ export default function SpendingDoughnut({ data, isLoading }: SpendingDoughnutPr
               fontSize: "12px",
               boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
             }}
-            formatter={(value: number, name: string) => [`${value.toLocaleString()} MMK`, name]}
+            formatter={(value: number, name: string) => [formatAmount(value), name]}
           />
           <Legend
             verticalAlign="bottom"

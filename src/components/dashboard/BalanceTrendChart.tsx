@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { AreaChart, Area, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface BalanceTrendChartProps {
   /** Array of { day: string, balance: number } for last 7 days */
@@ -9,6 +10,7 @@ interface BalanceTrendChartProps {
 }
 
 export default function BalanceTrendChart({ data, isLoading }: BalanceTrendChartProps) {
+  const { formatAmount } = useCurrency();
   if (isLoading || !data) {
     return (
       <div className="w-full h-[180px] rounded-xl bg-secondary/30 overflow-hidden animate-gold-shimmer"
@@ -50,7 +52,7 @@ export default function BalanceTrendChart({ data, isLoading }: BalanceTrendChart
             }}
             labelStyle={{ color: "hsl(var(--muted-foreground))", fontWeight: 600, fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.05em" }}
             itemStyle={{ color: "#22c55e", fontWeight: 700, fontFamily: "monospace" }}
-            formatter={(value: number) => [`${value.toLocaleString()} MMK`, "Balance"]}
+            formatter={(value: number) => [formatAmount(value), "Balance"]}
           />
           <Area
             type="monotone"

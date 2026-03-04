@@ -122,7 +122,7 @@ export default function PurchaseSuccessModal({
                   {result.quantity && result.quantity > 1 && (
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {result.quantity} {l(t.products.accounts)} ×{" "}
-                      {(result.unit_price || 0).toLocaleString()} MMK
+                      <Money amount={result.unit_price || 0} compact />
                     </p>
                   )}
                 </div>
@@ -239,7 +239,7 @@ export default function PurchaseSuccessModal({
               <div className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-full bg-success/10 border border-success/20 animate-fade-in [animation-delay:0.25s]">
                 <BadgePercent className="w-4 h-4 text-success" />
                 <span className="text-sm font-semibold text-success">
-                  {l(t.success.saved)} {totalSavings.toLocaleString()} MMK
+                  {l(t.success.saved)} <Money amount={totalSavings} compact />
                   {showConfetti ? "" : ""}
                 </span>
               </div>

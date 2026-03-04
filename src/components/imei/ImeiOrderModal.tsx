@@ -201,11 +201,11 @@ export default function ImeiOrderModal({ service, onClose }: Props) {
               }`}>
                 <Wallet className="w-4 h-4 shrink-0" />
                 <span>
-                  Balance: <strong className="font-mono">{balance.toLocaleString()} MMK</strong>
+                  Balance: <strong className="font-mono"><Money amount={balance} /></strong>
                 </span>
                 {insufficientBalance && (
                    <span className="ml-auto text-xs font-semibold">
-                     Need {(displayPrice - balance).toLocaleString()} more
+                     Need <Money amount={displayPrice - balance} /> more
                   </span>
                 )}
               </div>

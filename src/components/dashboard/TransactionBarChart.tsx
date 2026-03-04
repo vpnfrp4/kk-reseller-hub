@@ -1,5 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface DailyTransaction {
   day: string;
@@ -13,6 +14,7 @@ interface TransactionBarChartProps {
 }
 
 export default function TransactionBarChart({ data, isLoading }: TransactionBarChartProps) {
+  const { formatAmount } = useCurrency();
   if (isLoading || !data) {
     return (
       <div className="w-full h-[240px] rounded-xl bg-secondary/30 overflow-hidden animate-gold-shimmer"
@@ -52,7 +54,7 @@ export default function TransactionBarChart({ data, isLoading }: TransactionBarC
               fontSize: "12px",
               boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
             }}
-            formatter={(value: number, name: string) => [`${value.toLocaleString()} MMK`, name === "topups" ? "Top-ups" : "Purchases"]}
+            formatter={(value: number, name: string) => [formatAmount(value), name === "topups" ? "Top-ups" : "Purchases"]}
           />
           <Legend
             verticalAlign="top"
