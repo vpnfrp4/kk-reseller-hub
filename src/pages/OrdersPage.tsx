@@ -282,6 +282,7 @@ export default function OrdersPage() {
   ) : undefined;
 
   return (
+    <PullToRefresh onRefresh={async () => { await Promise.all([queryClient.invalidateQueries({ queryKey: ["orders"] }), queryClient.invalidateQueries({ queryKey: ["orders-count"] })]); }}>
     <div className="space-y-[var(--space-section)]">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
