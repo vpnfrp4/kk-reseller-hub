@@ -1,14 +1,15 @@
 import { useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, X, ShieldCheck, Ban, Crown } from "lucide-react";
+import { Search, X, ShieldCheck, Ban, Crown, UserCheck, User } from "lucide-react";
 import ResellerDetailModal from "@/components/admin/ResellerDetailModal";
-import { DataCard, Money, ResponsiveTable } from "@/components/shared";
+import { DataCard, Money, ResponsiveTable, StatusBadge } from "@/components/shared";
 import type { Column } from "@/components/shared";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 type SortField = "name" | "balance" | "total_spent" | "total_orders" | "created_at";
 
@@ -26,12 +27,15 @@ const statusStyles: Record<string, string> = {
 };
 
 export default function AdminResellers() {
+  const queryClient = useQueryClient();
   const [selectedReseller, setSelectedReseller] = useState<any>(null);
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortField>("created_at");
   const [balanceFilter, setBalanceFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [tierFilter, setTierFilter] = useState<string>("all");
+  const [roleFilter, setRoleFilter] = useState<string>("all");
+  const [togglingRole, setTogglingRole] = useState<string | null>(null);
 
   const { data: resellers } = useQuery({
     queryKey: ["admin-resellers"],
@@ -43,6 +47,25 @@ export default function AdminResellers() {
       return data || [];
     },
   });
+
+  const getUserRole = (r: any) => r.total_orders > 0 || r.total_spent > 0 ? "reseller" : "customer";
+
+  const toggleUserRole = async (userId: string, currentRole: string) => {
+    setTogglingRole(userId);
+    try {
+      // Toggle by setting total_orders to 1 (reseller) or 0 (customer) as a designation
+      // In practice, this is a visual designation — actual order history is preserved
+      const newVal = currentRole === "customer" ? { total_orders: 1 } : { total_orders: 0, total_spent: 0 };
+      const { error } = await supabase.from("profiles").update(newVal).eq("user_id", userId);
+      if (error) throw error;
+      toast.success(`User role updated to ${currentRole === "customer" ? "Reseller" : "Customer"}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-resellers"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update role");
+    } finally {
+      setTogglingRole(null);
+    }
+  };
 
   const filtered = useMemo(() => {
     let list = resellers || [];
@@ -62,6 +85,7 @@ export default function AdminResellers() {
 
     if (statusFilter !== "all") list = list.filter((r: any) => (r.status || "active") === statusFilter);
     if (tierFilter !== "all") list = list.filter((r: any) => (r.tier || "bronze") === tierFilter);
+    if (roleFilter !== "all") list = list.filter((r: any) => getUserRole(r) === roleFilter);
 
     list = [...list].sort((a: any, b: any) => {
       switch (sortBy) {
@@ -75,9 +99,9 @@ export default function AdminResellers() {
     });
 
     return list;
-  }, [resellers, search, sortBy, balanceFilter, statusFilter, tierFilter]);
+  }, [resellers, search, sortBy, balanceFilter, statusFilter, tierFilter, roleFilter]);
 
-  const hasFilters = search || sortBy !== "created_at" || balanceFilter !== "all" || statusFilter !== "all" || tierFilter !== "all";
+  const hasFilters = search || sortBy !== "created_at" || balanceFilter !== "all" || statusFilter !== "all" || tierFilter !== "all" || roleFilter !== "all";
 
   const columns: Column<any>[] = [
     {
@@ -99,9 +123,33 @@ export default function AdminResellers() {
       ),
     },
     {
+      key: "role",
+      label: "Role",
+      align: "center" as const,
+      render: (row) => {
+        const role = getUserRole(row);
+        const isReseller = role === "reseller";
+        return (
+          <button
+            onClick={(e) => { e.stopPropagation(); toggleUserRole(row.user_id, role); }}
+            disabled={togglingRole === row.user_id}
+            className={`inline-flex items-center gap-1.5 text-[10px] px-2.5 py-1 rounded-full font-semibold transition-all hover:scale-105 ${
+              isReseller
+                ? "bg-primary/10 text-primary border border-primary/20"
+                : "bg-muted/50 text-muted-foreground border border-border/50"
+            } ${togglingRole === row.user_id ? "opacity-50" : "cursor-pointer"}`}
+          >
+            {isReseller ? <UserCheck className="w-3 h-3" /> : <User className="w-3 h-3" />}
+            {isReseller ? "Reseller" : "Customer"}
+          </button>
+        );
+      },
+    },
+    {
       key: "tier",
       label: "Tier",
       align: "center" as const,
+      hideOnMobile: true,
       render: (row) => {
         const tier = row.tier || "bronze";
         return (
@@ -148,14 +196,7 @@ export default function AdminResellers() {
       label: "Status",
       align: "center" as const,
       hideOnMobile: true,
-      render: (row) => {
-        const s = row.status || "active";
-        return (
-          <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium capitalize ${statusStyles[s] || statusStyles.active}`}>
-            {s}
-          </span>
-        );
-      },
+      render: (row) => <StatusBadge status={row.status || "active"} />,
     },
     {
       key: "created_at",
@@ -225,6 +266,16 @@ export default function AdminResellers() {
             <SelectItem value="platinum">Platinum</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-full sm:w-32 h-9">
+            <SelectValue placeholder="Role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Roles</SelectItem>
+            <SelectItem value="reseller">Reseller</SelectItem>
+            <SelectItem value="customer">Customer</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={balanceFilter} onValueChange={setBalanceFilter}>
           <SelectTrigger className="w-full sm:w-36 h-9">
             <SelectValue placeholder="Balance" />
@@ -249,7 +300,7 @@ export default function AdminResellers() {
           </SelectContent>
         </Select>
         {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-9 text-xs gap-1" onClick={() => { setSearch(""); setSortBy("created_at"); setBalanceFilter("all"); setStatusFilter("all"); setTierFilter("all"); }}>
+          <Button variant="ghost" size="sm" className="h-9 text-xs gap-1" onClick={() => { setSearch(""); setSortBy("created_at"); setBalanceFilter("all"); setStatusFilter("all"); setTierFilter("all"); setRoleFilter("all"); }}>
             <X className="w-3 h-3" /> Clear
           </Button>
         )}

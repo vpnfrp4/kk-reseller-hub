@@ -435,8 +435,14 @@
   .badge-sold       { @apply text-destructive font-semibold; background: hsl(var(--destructive) / 0.12); }
   .badge-expiring   { @apply text-muted-foreground font-semibold; background: hsl(var(--muted-foreground) / 0.12); }
   .badge-pending    { @apply text-warning font-semibold; background: hsl(var(--warning) / 0.12); }
+  .badge-processing { @apply text-sky-400 font-semibold; background: hsl(200 90% 60% / 0.12); }
   .badge-delivered  { @apply text-success font-semibold; background: hsl(var(--success) / 0.12); }
+  .badge-completed  { @apply text-success font-semibold; background: hsl(var(--success) / 0.12); }
+  .badge-approved   { @apply text-success font-semibold; background: hsl(var(--success) / 0.12); }
+  .badge-rejected   { @apply text-destructive font-semibold; background: hsl(var(--destructive) / 0.12); }
   .badge-cancelled  { @apply text-destructive font-semibold; background: hsl(var(--destructive) / 0.12); }
+  .badge-review     { @apply text-violet-400 font-semibold; background: hsl(270 70% 60% / 0.12); }
+  .badge-api-pending { @apply text-cyan-400 font-semibold; background: hsl(190 80% 50% / 0.12); }
 
   /* ─── Filter Pills ─── */
   .filter-pill {
