@@ -302,7 +302,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 3.5rem)', WebkitOverflowScrolling: 'touch' }}>
+        <main className="flex-1 p-4 lg:p-8 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
           <AnimatePresence mode="wait">
             <PageTransition key={location.pathname}>
               {children}
