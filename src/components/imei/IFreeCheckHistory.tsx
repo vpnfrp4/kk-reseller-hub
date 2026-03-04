@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { parseIfreeResponse, cleanIfreeResponse } from "@/lib/ifree-response-parser";
 
 interface IFreeCheck {
   id: string;
