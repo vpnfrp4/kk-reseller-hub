@@ -15,6 +15,8 @@ import {
   RefreshCw,
   ChevronsUpDown,
   Check,
+  RotateCcw,
+  ListRestart,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -43,6 +45,7 @@ interface IFreeResult {
   response?: string;
   account_balance?: string | number;
   error?: string;
+  error_code?: string;
   [key: string]: unknown;
 }
 
@@ -53,6 +56,7 @@ export default function IFreeImeiCheck() {
   const [result, setResult] = useState<IFreeResult | null>(null);
   const [services, setServices] = useState<IFreeService[]>([]);
   const [servicesLoading, setServicesLoading] = useState(true);
+  const [servicesSource, setServicesSource] = useState<string>("");
   const [serviceOpen, setServiceOpen] = useState(false);
 
   const selectedService = useMemo(
@@ -67,6 +71,9 @@ export default function IFreeImeiCheck() {
       if (error) throw new Error(error.message);
 
       let parsed: IFreeService[] = [];
+      const source = data?.source || "unknown";
+      setServicesSource(source);
+
       if (data?.services && Array.isArray(data.services)) {
         parsed = data.services.map((s: any) => ({
           id: String(s.id ?? ""),
@@ -98,6 +105,9 @@ export default function IFreeImeiCheck() {
 
       if (parsed.length > 0) {
         setServices(parsed);
+        if (source === "fallback") {
+          toast.info("Using cached service list. Live sync may be unavailable.", { duration: 4000 });
+        }
       } else if (data?.error) {
         toast.error(data.error);
       } else {
@@ -124,12 +134,19 @@ export default function IFreeImeiCheck() {
       return;
     }
 
+    // Clean the IMEI before sending
+    const cleanImei = imei.replace(/\D/g, "").trim();
+    if (cleanImei.length !== 15) {
+      toast.error("IMEI must be exactly 15 digits");
+      return;
+    }
+
     setLoading(true);
     setResult(null);
 
     try {
       const { data, error } = await supabase.functions.invoke("check-ifree", {
-        body: { imei: imei.trim(), serviceId, serviceName: selectedService?.name || "" },
+        body: { imei: cleanImei, serviceId: String(serviceId).trim(), serviceName: selectedService?.name || "" },
       });
       if (error) throw new Error(error.message);
       setResult(data as IFreeResult);
@@ -150,7 +167,6 @@ export default function IFreeImeiCheck() {
 
   const parsedResponse = useMemo(() => {
     if (!result) return [];
-    // SickW beta format: result has direct key-value fields (not a `response` string)
     if (!result.response && !result.error && typeof result === "object") {
       const beta = parseSickwBetaResult(result as Record<string, unknown>);
       if (beta.length > 0) return beta;
@@ -158,6 +174,22 @@ export default function IFreeImeiCheck() {
     if (!result.response) return [];
     return parseIfreeResponse(result.response);
   }, [result]);
+
+  const isServiceError = result?.error_code === "SERVICE_NOT_FOUND";
+  const isBalanceError = result?.error_code === "INSUFFICIENT_BALANCE";
+  const isApiKeyError = result?.error_code === "INVALID_API_KEY";
+
+  const getErrorIcon = () => {
+    if (isBalanceError) return <Wallet className="w-4 h-4 text-destructive shrink-0 mt-0.5" />;
+    return <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />;
+  };
+
+  const getErrorTitle = () => {
+    if (isServiceError) return "Service Not Found";
+    if (isBalanceError) return "Insufficient Balance";
+    if (isApiKeyError) return "API Key Error";
+    return "Check Failed";
+  };
 
   return (
     <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
@@ -168,13 +200,18 @@ export default function IFreeImeiCheck() {
         </div>
         <div className="flex-1">
           <h2 className="text-sm font-bold text-foreground">iFreeICloud Check</h2>
-          <p className="text-[10px] text-muted-foreground">IMEI lookup via ifreeicloud API</p>
+          <p className="text-[10px] text-muted-foreground">
+            IMEI lookup via ifreeicloud API
+            {servicesSource === "fallback" && (
+              <span className="ml-1 text-warning">(cached list)</span>
+            )}
+          </p>
         </div>
         <button
           onClick={fetchServices}
           disabled={servicesLoading}
           className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-          title="Refresh services"
+          title="Refresh services from provider"
         >
           <RefreshCw className={cn("w-3.5 h-3.5", servicesLoading && "animate-spin")} />
         </button>
@@ -242,6 +279,9 @@ export default function IFreeImeiCheck() {
           {services.length > 0 && (
             <p className="text-[10px] text-muted-foreground/50">
               {services.length} services available
+              {servicesSource && servicesSource !== "unknown" && (
+                <span className="ml-1">· source: {servicesSource}</span>
+              )}
             </p>
           )}
         </div>
@@ -263,7 +303,13 @@ export default function IFreeImeiCheck() {
             className="bg-secondary/50 border-border font-mono text-sm rounded-[var(--radius-input)]"
             maxLength={15}
           />
-          <p className="text-[10px] text-muted-foreground/50">{imei.length}/15 digits</p>
+          <p className={cn(
+            "text-[10px]",
+            imei.length === 15 ? "text-success" : "text-muted-foreground/50"
+          )}>
+            {imei.length}/15 digits
+            {imei.length === 15 && " ✓"}
+          </p>
         </div>
 
         {/* Submit */}
@@ -298,11 +344,6 @@ export default function IFreeImeiCheck() {
             <div className="h-3 w-3/5 rounded bg-muted-foreground/15" />
             <div className="h-3 w-2/3 rounded bg-muted-foreground/15" />
           </div>
-          <div className="flex items-center gap-2 rounded-[var(--radius-btn)] bg-primary/5 border border-primary/15 px-4 py-3">
-            <div className="w-4 h-4 rounded bg-primary/20" />
-            <div className="h-3 w-16 rounded bg-muted-foreground/15" />
-            <div className="h-4 w-12 rounded bg-muted-foreground/20" />
-          </div>
         </div>
       )}
 
@@ -310,15 +351,43 @@ export default function IFreeImeiCheck() {
       {result && !loading && (
         <div className="border-t border-border px-5 py-5 space-y-4">
           {(result.error || (result as any).status === "error" || result.response === "") ? (
-            <div className="flex items-start gap-2.5 rounded-[var(--radius-btn)] bg-destructive/8 border border-destructive/15 p-4">
-              <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
-              <div>
-                <p className="text-xs font-bold text-destructive">Check Failed</p>
-                <p className="text-xs text-destructive/80 mt-0.5">
-                  {result.error || "The service returned an error. Please verify the IMEI and service selection, then try again."}
-                </p>
+            <>
+              <div className="flex items-start gap-2.5 rounded-[var(--radius-btn)] bg-destructive/8 border border-destructive/15 p-4">
+                {getErrorIcon()}
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-destructive">{getErrorTitle()}</p>
+                  <p className="text-xs text-destructive/80 mt-0.5">
+                    {result.error || "The service returned an error. Please verify the IMEI and service selection, then try again."}
+                  </p>
+                </div>
               </div>
-            </div>
+
+              {/* Contextual action buttons for specific errors */}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCheck}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-1.5 flex-1 py-2.5 rounded-[var(--radius-btn)] border border-border bg-secondary/50 hover:bg-secondary text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Retry Check
+                </button>
+
+                {isServiceError && (
+                  <button
+                    onClick={() => {
+                      setServiceId("");
+                      setResult(null);
+                      fetchServices();
+                    }}
+                    className="flex items-center justify-center gap-1.5 flex-1 py-2.5 rounded-[var(--radius-btn)] border border-primary/30 bg-primary/5 hover:bg-primary/10 text-xs font-semibold text-primary transition-colors"
+                  >
+                    <ListRestart className="w-3.5 h-3.5" />
+                    Refresh Services
+                  </button>
+                )}
+              </div>
+            </>
           ) : (
             <>
               {result.response && (
@@ -382,18 +451,18 @@ export default function IFreeImeiCheck() {
                   </pre>
                 </div>
               )}
+
+              {/* Re-check button for successful results */}
+              <button
+                onClick={handleCheck}
+                disabled={loading}
+                className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-[var(--radius-btn)] border border-border bg-secondary/50 hover:bg-secondary text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                Re-check IMEI
+              </button>
             </>
           )}
-
-          {/* Retry button */}
-          <button
-            onClick={handleCheck}
-            disabled={loading}
-            className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-[var(--radius-btn)] border border-border bg-secondary/50 hover:bg-secondary text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <RefreshCw className="w-3.5 h-3.5" />
-            Re-check IMEI
-          </button>
         </div>
       )}
     </div>
