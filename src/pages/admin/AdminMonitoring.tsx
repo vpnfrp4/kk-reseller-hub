@@ -71,6 +71,20 @@ export default function AdminMonitoring() {
     },
   });
 
+  // Client-side errors (from ErrorBoundary)
+  const { data: clientErrors = [], isLoading: loadingClientErrors, refetch: refetchClientErrors } = useQuery({
+    queryKey: ["admin-client-errors"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("api_logs")
+        .select("*")
+        .eq("log_type", "error_boundary")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      return data || [];
+    },
+  });
+
   // Provider health
   const { data: providerHealth = [], isLoading: loadingHealth, refetch: refetchHealth } = useQuery({
     queryKey: ["admin-provider-health"],
