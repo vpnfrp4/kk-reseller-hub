@@ -52,6 +52,7 @@ const AdminProviders = lazy(() => import("./pages/admin/AdminProviders"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const AdminProfitDashboard = lazy(() => import("./pages/admin/AdminProfitDashboard"));
 const AdminMonitoring = lazy(() => import("./pages/admin/AdminMonitoring"));
+const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 
 function PageLoader() {
   return (
@@ -115,6 +116,7 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/error" element={<ErrorPage />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/install" element={<InstallPage />} />
       <Route path="/tools/imei-check" element={<ImeiCheckPage />} />
