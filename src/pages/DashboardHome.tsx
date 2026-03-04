@@ -95,7 +95,7 @@ export default function DashboardHome() {
           queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] }),
         ]);
       }}>
-        <div className="space-y-6 sm:space-y-8">
+        <div className="space-y-8">
           <PwaInstallBanner />
 
           {/* USER PROFILE CARD */}

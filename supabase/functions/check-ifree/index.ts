@@ -7,38 +7,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-/** Try to extract a meaningful error from an iFreeiCloud response */
-function extractProviderError(raw: string, status: number): string {
-  const lower = raw.toLowerCase();
-
-  // Common iFreeiCloud error patterns
-  if (lower.includes("invalid api key") || lower.includes("invalid key") || lower.includes("authentication")) {
-    return "Invalid API key. Please check your iFreeiCloud API key configuration.";
-  }
-  if (lower.includes("insufficient") || lower.includes("balance") || lower.includes("credit")) {
-    return "Insufficient API balance. Please top up your iFreeiCloud account.";
-  }
-  if (lower.includes("service doesn") || lower.includes("service not found") || lower.includes("invalid service")) {
-    return "Service doesn't exist or has been discontinued by the provider. Please refresh the service list.";
-  }
-  if (lower.includes("invalid imei") || lower.includes("wrong imei")) {
-    return "Invalid IMEI number. Please verify and try again.";
-  }
-  if (lower.includes("rate limit") || lower.includes("too many")) {
-    return "Rate limited by the provider. Please wait a moment and try again.";
-  }
-  if (lower.includes("maintenance") || lower.includes("unavailable")) {
-    return "The iFreeiCloud service is temporarily unavailable. Please try again later.";
-  }
-
-  // HTML response = likely auth issue or server error
-  if (raw.trim().startsWith("<!") || raw.includes("<html")) {
-    return `Provider returned an HTML page instead of data (HTTP ${status}). This usually means the API key is invalid or the account session expired.`;
-  }
-
-  return `Provider error (HTTP ${status}): ${raw.substring(0, 200)}`;
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -50,34 +18,36 @@ serve(async (req) => {
 
     if (!API_KEY) {
       return new Response(
-        JSON.stringify({ error: "API key not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "API key not configured", error_code: "NO_API_KEY" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     if (!imei || !serviceId) {
       return new Response(
-        JSON.stringify({ error: "IMEI and Service ID are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "IMEI and Service ID are required", error_code: "MISSING_PARAMS" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     // Clean IMEI: strip whitespace and non-digit chars
-    const cleanImei = imei.replace(/\D/g, "").trim();
+    const cleanImei = String(imei).replace(/\D/g, "").trim();
     if (cleanImei.length !== 15) {
       return new Response(
-        JSON.stringify({ error: "IMEI must be exactly 15 digits." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: "IMEI must be exactly 15 digits.", error_code: "INVALID_IMEI" }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
+    const cleanServiceId = String(serviceId).trim();
+    
     const body = new URLSearchParams({
       key: API_KEY,
       imei: cleanImei,
-      service: String(serviceId).trim(),
+      service: cleanServiceId,
     });
 
-    console.log("check-ifree request:", { imei: cleanImei, serviceId: String(serviceId).trim() });
+    console.log("check-ifree request:", { imei: cleanImei, serviceId: cleanServiceId });
 
     const response = await fetch("https://api.ifreeicloud.co.uk", {
       method: "POST",
@@ -93,28 +63,61 @@ serve(async (req) => {
     try {
       data = JSON.parse(rawText);
     } catch {
-      // Not valid JSON – extract a useful error message
-      const specificError = extractProviderError(rawText, response.status);
-      data = {
-        error: specificError,
-        error_code: "INVALID_RESPONSE",
-        raw_preview: rawText.substring(0, 200),
-      };
+      // Not valid JSON — check if it's an HTML page
+      if (rawText.trim().startsWith("<!") || rawText.includes("<html")) {
+        data = {
+          error: "Provider returned an HTML page instead of data. This usually means the API key is invalid or the session expired.",
+          error_code: "HTML_RESPONSE",
+        };
+      } else {
+        data = {
+          error: `Unexpected response format from provider.`,
+          error_code: "INVALID_RESPONSE",
+          raw_preview: rawText.substring(0, 200),
+        };
+      }
     }
 
-    // Check for provider-level errors in the JSON response
-    if (data.error) {
-      // Enrich generic error messages
-      const errorLower = String(data.error).toLowerCase();
-      if (errorLower.includes("service doesn") || errorLower.includes("not exist")) {
-        data.error = "This service no longer exists or its ID has changed. Please refresh the service list and try again.";
-        data.error_code = "SERVICE_NOT_FOUND";
-      } else if (errorLower.includes("insufficient") || errorLower.includes("balance") || errorLower.includes("credit")) {
-        data.error = "Insufficient API balance. Please top up your iFreeiCloud account.";
-        data.error_code = "INSUFFICIENT_BALANCE";
-      } else if (errorLower.includes("invalid") && errorLower.includes("key")) {
-        data.error = "Invalid API key. Please check your iFreeiCloud API key configuration.";
-        data.error_code = "INVALID_API_KEY";
+    // Normalize the iFreeiCloud response format
+    if (data && typeof data === "object") {
+      // iFreeiCloud returns { success: true/false, response: "...", error: "...", account_balance: "..." }
+      
+      // Case: success is true but response is empty/null → "Processing"
+      if (data.success === true && !data.response && !data.error) {
+        data.status = "processing";
+        data.response = "⏳ Your request is being processed. Please check back shortly.";
+      }
+      
+      // Case: success is false with a message
+      if (data.success === false && !data.error) {
+        data.error = data.message || data.msg || "The provider returned an error. Please try again.";
+      }
+
+      // Enrich specific error messages
+      if (data.error) {
+        const errorLower = String(data.error).toLowerCase();
+        
+        if (errorLower.includes("service doesn") || errorLower.includes("not exist") || errorLower.includes("invalid service")) {
+          data.error = "This service ID no longer exists at the provider. Please refresh the service list and select a valid service.";
+          data.error_code = "SERVICE_NOT_FOUND";
+        } else if (errorLower.includes("insufficient") || errorLower.includes("balance") || errorLower.includes("credit") || errorLower.includes("not enough")) {
+          data.error = "Insufficient API balance at the provider. Please contact admin to top up the iFreeiCloud account.";
+          data.error_code = "INSUFFICIENT_BALANCE";
+        } else if (errorLower.includes("invalid") && (errorLower.includes("key") || errorLower.includes("api"))) {
+          data.error = "Invalid API key. Please verify the iFreeiCloud API key configuration.";
+          data.error_code = "INVALID_API_KEY";
+        } else if (errorLower.includes("invalid") && errorLower.includes("imei")) {
+          data.error = "The provider rejected this IMEI number. Please verify it is correct.";
+          data.error_code = "INVALID_IMEI";
+        } else if (errorLower.includes("maintenance") || errorLower.includes("unavailable") || errorLower.includes("down")) {
+          data.error = "This service is currently under maintenance. Please try again later.";
+          data.error_code = "MAINTENANCE";
+        } else if (errorLower.includes("slow") || errorLower.includes("queue") || errorLower.includes("wait")) {
+          data.error = "This service is experiencing delays. Your request has been queued — please check back in a few minutes.";
+          data.error_code = "SLOW_SERVICE";
+        } else if (!data.error_code) {
+          data.error_code = "PROVIDER_ERROR";
+        }
       }
     }
 
@@ -133,12 +136,12 @@ serve(async (req) => {
           await supabase.from("ifree_checks").insert({
             user_id: user.id,
             imei: cleanImei,
-            service_id: String(serviceId).trim(),
+            service_id: cleanServiceId,
             service_name: serviceName || "",
             response_text: data.response || null,
             account_balance: data.account_balance != null ? String(data.account_balance) : null,
             error_message: data.error || null,
-            success: !data.error && !data.error_code,
+            success: data.success === true && !data.error,
           });
         }
       }
@@ -151,8 +154,8 @@ serve(async (req) => {
     });
   } catch (err) {
     return new Response(
-      JSON.stringify({ error: err.message || "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: err.message || "Unknown error", error_code: "INTERNAL_ERROR" }),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });

@@ -107,11 +107,13 @@ export default function IFreeImeiCheck() {
         setServices(parsed);
         if (source === "fallback") {
           toast.info("Using cached service list. Live sync may be unavailable.", { duration: 4000 });
+        } else {
+          toast.success(`Loaded ${parsed.length} services from provider`, { duration: 2000 });
         }
       } else if (data?.error) {
         toast.error(data.error);
       } else {
-        toast.error("No services returned from API");
+        toast.error("No services returned from API. Please try refreshing.");
       }
     } catch (err: any) {
       toast.error("Failed to load services: " + (err.message || "Unknown error"));
@@ -350,7 +352,28 @@ export default function IFreeImeiCheck() {
       {/* Result */}
       {result && !loading && (
         <div className="border-t border-border px-5 py-5 space-y-4">
-          {(result.error || (result as any).status === "error" || result.response === "") ? (
+          {/* Processing state: success but empty/pending */}
+          {(result as any).status === "processing" ? (
+            <>
+              <div className="flex items-start gap-2.5 rounded-[var(--radius-btn)] bg-primary/5 border border-primary/15 p-4">
+                <Loader2 className="w-4 h-4 text-primary shrink-0 mt-0.5 animate-spin" />
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-primary">Processing</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {result.response || "Your request is being processed by the provider. Please check back shortly."}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={handleCheck}
+                disabled={loading}
+                className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-[var(--radius-btn)] border border-primary/30 bg-primary/5 hover:bg-primary/10 text-xs font-semibold text-primary transition-colors"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                Check Again
+              </button>
+            </>
+          ) : (result.error || (result as any).status === "error" || result.response === "") ? (
             <>
               <div className="flex items-start gap-2.5 rounded-[var(--radius-btn)] bg-destructive/8 border border-destructive/15 p-4">
                 {getErrorIcon()}
@@ -359,6 +382,9 @@ export default function IFreeImeiCheck() {
                   <p className="text-xs text-destructive/80 mt-0.5">
                     {result.error || "The service returned an error. Please verify the IMEI and service selection, then try again."}
                   </p>
+                  {result.error_code && (
+                    <p className="text-[10px] text-destructive/50 mt-1 font-mono">Code: {result.error_code}</p>
+                  )}
                 </div>
               </div>
 
@@ -373,7 +399,7 @@ export default function IFreeImeiCheck() {
                   Retry Check
                 </button>
 
-                {isServiceError && (
+                {(isServiceError || result.error_code === "PROVIDER_ERROR") && (
                   <button
                     onClick={() => {
                       setServiceId("");
