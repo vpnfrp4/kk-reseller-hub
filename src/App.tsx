@@ -110,6 +110,7 @@ function AppRoutes() {
   }
 
   return (
+    <Suspense fallback={<PageLoader />}>
     <Routes>
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
