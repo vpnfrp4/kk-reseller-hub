@@ -265,7 +265,7 @@ function HowItWorksBlock({ lines }: { lines: string[] }) {
             <span className="shrink-0 flex items-center justify-center w-5 h-5 rounded-md bg-primary/10 text-primary text-[10px] font-bold tabular-nums mt-0.5">
               {i + 1}
             </span>
-            <span className="text-xs text-muted-foreground leading-relaxed">{line}</span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
           </li>
         ))}
       </ol>
