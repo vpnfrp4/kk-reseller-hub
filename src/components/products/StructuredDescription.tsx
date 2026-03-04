@@ -176,7 +176,7 @@ function DeliveryBlock({ lines }: { lines: string[] }) {
       <div>
         <p className="text-[10px] uppercase tracking-[0.12em] font-semibold text-foreground/60 mb-0.5">Delivery Time</p>
         {lines.map((line, i) => (
-          <p key={i} className="text-xs text-muted-foreground">{line}</p>
+          <p key={i} className="text-xs text-muted-foreground"><RichText>{line}</RichText></p>
         ))}
       </div>
     </div>
