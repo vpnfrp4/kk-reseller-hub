@@ -1,4 +1,77 @@
+import React from "react";
 import { cn } from "@/lib/utils";
+
+/* ─── Inline Rich Text (links + markdown links) ─── */
+
+const MARKDOWN_LINK_RE = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+const URL_RE = /(https?:\/\/[^\s<>,;'")]+)/g;
+
+function RichText({ children }: { children: string }) {
+  // First pass: split by markdown links [text](url)
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  const str = children;
+
+  // Collect all markdown links
+  const mdMatches: { index: number; length: number; label: string; url: string }[] = [];
+  let m: RegExpExecArray | null;
+  const mdRe = new RegExp(MARKDOWN_LINK_RE.source, "g");
+  while ((m = mdRe.exec(str)) !== null) {
+    mdMatches.push({ index: m.index, length: m[0].length, label: m[1], url: m[2] });
+  }
+
+  if (mdMatches.length === 0) {
+    // No markdown links — just auto-link raw URLs
+    return <>{autoLinkUrls(str)}</>;
+  }
+
+  for (const md of mdMatches) {
+    if (md.index > last) {
+      parts.push(...autoLinkUrls(str.slice(last, md.index)));
+    }
+    parts.push(
+      <a
+        key={`md-${md.index}`}
+        href={md.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors"
+      >
+        {md.label}
+      </a>
+    );
+    last = md.index + md.length;
+  }
+  if (last < str.length) {
+    parts.push(...autoLinkUrls(str.slice(last)));
+  }
+
+  return <>{parts}</>;
+}
+
+function autoLinkUrls(text: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  const re = new RegExp(URL_RE.source, "g");
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    parts.push(
+      <a
+        key={`url-${m.index}`}
+        href={m[0]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary hover:text-primary/80 underline underline-offset-2 break-all transition-colors"
+      >
+        {m[0]}
+      </a>
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
 
 interface ParsedSection {
   type: "OVERVIEW" | "FEATURES" | "DELIVERY" | "WARRANTY" | "COMPATIBILITY" | "RESELLER" | "IMPORTANT" | "SEO" | "HOW_IT_WORKS" | "TEXT";
