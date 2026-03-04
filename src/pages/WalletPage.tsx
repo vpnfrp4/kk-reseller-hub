@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Money, ResponsiveTable } from "@/components/shared";
+import PullToRefresh from "@/components/shared/PullToRefresh";
 import type { Column } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
 import { MmStatus } from "@/components/shared/MmLabel";
