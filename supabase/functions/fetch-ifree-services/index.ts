@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,32 +7,21 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-/** Parse an HTML table response from iFreeiCloud into service objects.
- *  The API returns rows like: <tr><th>131</th><th>Activation Check</th><th>$0.02</th><th><small>description...</small></th></tr>
- *  Note: <th> tags can contain nested HTML like <small>, <b>, <span> etc.
- */
+function stripHtml(s: string): string {
+  return s.replace(/<[^>]+>/g, "").trim();
+}
+
 function parseHtmlServiceTable(html: string): any[] {
   const services: any[] = [];
-
-  // More permissive regex: match <tr> containing 4 <th> cells, allowing any content inside cells
   const rowRegex = /<tr[^>]*>\s*<th[^>]*>([\s\S]*?)<\/th>\s*<th[^>]*>([\s\S]*?)<\/th>\s*<th[^>]*>([\s\S]*?)<\/th>\s*<th[^>]*>([\s\S]*?)<\/th>\s*<\/tr>/gi;
   let match;
-
   while ((match = rowRegex.exec(html)) !== null) {
-    // Strip HTML tags from each cell
-    const stripHtml = (s: string) => s.replace(/<[^>]+>/g, "").trim();
-    
     const idRaw = stripHtml(match[1]);
     const nameRaw = stripHtml(match[2]);
     const priceRaw = stripHtml(match[3]).replace(/^\$/, "");
     const descRaw = stripHtml(match[4]);
-
-    // Skip header row (ID, Name, Price, About)
     if (idRaw.toLowerCase() === "id" || nameRaw.toLowerCase() === "name") continue;
-    
-    // Validate ID is a number
     if (!idRaw || !/^\d+$/.test(idRaw)) continue;
-
     services.push({
       id: idRaw,
       name: nameRaw || `Service ${idRaw}`,
@@ -39,8 +29,108 @@ function parseHtmlServiceTable(html: string): any[] {
       description: descRaw || undefined,
     });
   }
-
   return services;
+}
+
+function getSupabaseAdmin() {
+  return createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+  );
+}
+
+async function writeCache(services: any[]) {
+  try {
+    const sb = getSupabaseAdmin();
+    const rows = services.map((s) => ({
+      id: String(s.id),
+      name: s.name || "",
+      price: s.price ?? null,
+      description: s.description ?? null,
+      cached_at: new Date().toISOString(),
+    }));
+    // Upsert all services; delete stale ones
+    const { error } = await sb
+      .from("ifree_services_cache")
+      .upsert(rows, { onConflict: "id" });
+    if (error) console.error("Cache write error:", error.message);
+    else console.log(`Cached ${rows.length} services`);
+  } catch (e) {
+    console.error("Cache write exception:", e.message);
+  }
+}
+
+async function readCache(): Promise<any[] | null> {
+  try {
+    const sb = getSupabaseAdmin();
+    const { data, error } = await sb
+      .from("ifree_services_cache")
+      .select("id, name, price, description, cached_at")
+      .order("id");
+    if (error || !data || data.length === 0) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchFromApi(API_KEY: string): Promise<any[] | null> {
+  const attempts = [
+    { key: API_KEY, accountinfo: "servicelist" },
+    { key: API_KEY, services: "list" },
+    { key: API_KEY, action: "services" },
+    { key: API_KEY, servicelist: "1" },
+  ];
+
+  for (const params of attempts) {
+    try {
+      const body = new URLSearchParams(params);
+      const response = await fetch("https://api.ifreeicloud.co.uk", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+      });
+      const text = await response.text();
+      const paramKey = Object.keys(params).filter((k) => k !== "key").join(",");
+      console.log(`iFree attempt (${paramKey}) len=${text.length}`);
+
+      if (text.includes("<title>iFreeiCloud API | Dashboard</title>") && !text.includes('"response"')) continue;
+
+      if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
+        const parsed = JSON.parse(text);
+        if (parsed.error || parsed.success === false) continue;
+
+        // HTML table inside JSON response field
+        if (parsed.response && typeof parsed.response === "string" && parsed.response.includes("<t")) {
+          const htmlServices = parseHtmlServiceTable(parsed.response);
+          if (htmlServices.length > 0) return htmlServices;
+        }
+
+        // Standard JSON array
+        let services: any[] = [];
+        if (Array.isArray(parsed)) services = parsed;
+        else if (Array.isArray(parsed.services)) services = parsed.services;
+        else if (Array.isArray(parsed.response)) services = parsed.response;
+
+        if (services.length > 0) {
+          return services.map((s: any) => ({
+            id: String(s.id ?? s.service_id ?? s.ID ?? ""),
+            name: s.name ?? s.service_name ?? s.Name ?? "",
+            price: s.price ?? s.credit ?? s.Price ?? undefined,
+            description: s.description ?? s.Description ?? undefined,
+          }));
+        }
+      }
+
+      if (text.includes("<table") && text.includes("<tr>")) {
+        const htmlServices = parseHtmlServiceTable(text);
+        if (htmlServices.length > 0) return htmlServices;
+      }
+    } catch (e) {
+      console.error(`Attempt failed:`, e.message);
+    }
+  }
+  return null;
 }
 
 serve(async (req) => {
@@ -53,153 +143,45 @@ serve(async (req) => {
     if (!API_KEY) {
       return new Response(
         JSON.stringify({ error: "API key not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // Try multiple parameter combinations to get the service list
-    // Based on logs, `accountinfo=servicelist` works and returns JSON with HTML table
-    const attempts = [
-      { key: API_KEY, accountinfo: "servicelist" },
-      { key: API_KEY, services: "list" },
-      { key: API_KEY, action: "services" },
-      { key: API_KEY, servicelist: "1" },
-    ];
+    // Try live API first
+    const liveServices = await fetchFromApi(API_KEY);
 
-    for (const params of attempts) {
-      try {
-        const body = new URLSearchParams(params);
-        const response = await fetch("https://api.ifreeicloud.co.uk", {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body,
-        });
-
-        const text = await response.text();
-        const paramKey = Object.keys(params).filter(k => k !== 'key').join(',');
-        console.log(`iFree attempt (${paramKey}) response length: ${text.length}, starts with: ${text.substring(0, 30)}`);
-
-        // Skip if we got a dashboard HTML page (not an API response)
-        if (text.includes("<title>iFreeiCloud API | Dashboard</title>") && !text.includes('"response"') && !text.includes('"success"')) {
-          console.log("Got dashboard HTML page, skipping...");
-          continue;
-        }
-
-        // Try JSON parse
-        if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
-          const parsed = JSON.parse(text);
-
-          // Check for error response
-          if (parsed.error || parsed.success === false) {
-            console.log("Provider returned error:", parsed.error || parsed.message);
-            continue;
-          }
-
-          // iFreeiCloud returns: { success: true, response: "<table>...</table>" }
-          if (parsed.response && typeof parsed.response === "string" && parsed.response.includes("<t")) {
-            console.log("Found HTML content in JSON response field, parsing HTML table...");
-            const htmlServices = parseHtmlServiceTable(parsed.response);
-            console.log(`Parsed ${htmlServices.length} services from HTML table`);
-            
-            if (htmlServices.length > 0) {
-              return new Response(JSON.stringify({ 
-                services: htmlServices, 
-                source: "api",
-                total: htmlServices.length,
-              }), {
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-              });
-            } else {
-              console.log("HTML table parse returned 0 services, trying raw HTML regex fallback...");
-              // Fallback: try a simpler regex on the raw HTML
-              const simpleServices: any[] = [];
-              const simpleRegex = />(\d{1,4})<\/th>\s*<th[^>]*>([^<]+)</gi;
-              let sm;
-              const responseHtml = parsed.response;
-              while ((sm = simpleRegex.exec(responseHtml)) !== null) {
-                const sid = sm[1].trim();
-                const sname = sm[2].trim();
-                if (sid && sname && sname.toLowerCase() !== 'name') {
-                  // Try to find price after this match
-                  const priceMatch = responseHtml.substring(sm.index + sm[0].length).match(/<th[^>]*>\$?([\d.]+)/i);
-                  simpleServices.push({
-                    id: sid,
-                    name: sname,
-                    price: priceMatch ? priceMatch[1] : undefined,
-                  });
-                }
-              }
-              if (simpleServices.length > 0) {
-                console.log(`Simple regex found ${simpleServices.length} services`);
-                return new Response(JSON.stringify({ 
-                  services: simpleServices, 
-                  source: "api-simple-parse",
-                  total: simpleServices.length,
-                }), {
-                  headers: { ...corsHeaders, "Content-Type": "application/json" },
-                });
-              }
-            }
-          }
-
-          // Standard JSON array/object response
-          let services: any[] = [];
-          if (Array.isArray(parsed)) {
-            services = parsed;
-          } else if (parsed.services && Array.isArray(parsed.services)) {
-            services = parsed.services;
-          } else if (parsed.response && Array.isArray(parsed.response)) {
-            services = parsed.response;
-          } else if (typeof parsed === "object" && !parsed.error) {
-            const values = Object.values(parsed);
-            if (values.length > 0 && typeof values[0] === "object") {
-              services = values as any[];
-            }
-          }
-
-          if (services.length > 0) {
-            const normalized = services.map((s: any) => ({
-              id: String(s.id ?? s.service_id ?? s.ID ?? ""),
-              name: s.name ?? s.service_name ?? s.Name ?? "",
-              price: s.price ?? s.credit ?? s.Price ?? undefined,
-              time: s.time ?? s.processing_time ?? s.Time ?? undefined,
-              description: s.description ?? s.Description ?? undefined,
-            }));
-
-            return new Response(JSON.stringify({ services: normalized, source: "api-json" }), {
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
-        }
-
-        // Maybe the response itself is an HTML table
-        if (text.includes("<table") && text.includes("<tr>")) {
-          const htmlServices = parseHtmlServiceTable(text);
-          if (htmlServices.length > 0) {
-            return new Response(JSON.stringify({ services: htmlServices, source: "html-direct" }), {
-              headers: { ...corsHeaders, "Content-Type": "application/json" },
-            });
-          }
-        }
-      } catch (e) {
-        console.error(`Attempt failed (${Object.keys(params).filter(k => k !== 'key').join(',')})`, e.message);
-        continue;
-      }
+    if (liveServices && liveServices.length > 0) {
+      // Write to cache in background
+      writeCache(liveServices);
+      return new Response(
+        JSON.stringify({ services: liveServices, source: "api", total: liveServices.length }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
-    // Fallback: return an error suggesting refresh
-    console.log("All API attempts failed to parse services");
-    return new Response(JSON.stringify({ 
-      error: "Could not fetch live service list from provider. The API may be temporarily unavailable. Please try again in a few minutes.",
-      services: [],
-      source: "error",
-    }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    // Fallback to cached services
+    console.log("API failed, trying cache...");
+    const cached = await readCache();
+    if (cached && cached.length > 0) {
+      console.log(`Returning ${cached.length} cached services`);
+      return new Response(
+        JSON.stringify({ services: cached, source: "cache", total: cached.length }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    return new Response(
+      JSON.stringify({
+        error: "Could not fetch services. API unavailable and no cached data.",
+        services: [],
+        source: "error",
+      }),
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+    );
   } catch (err) {
     return new Response(
       JSON.stringify({ error: err.message || "Unknown error" }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
 });
