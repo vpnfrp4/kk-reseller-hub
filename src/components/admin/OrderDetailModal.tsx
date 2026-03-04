@@ -224,6 +224,49 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
     }
   };
 
+  const handleRefund = async () => {
+    setRefunding(true);
+    try {
+      const { error: refundError } = await supabase.rpc("atomic_refund", {
+        p_user_id: order.user_id,
+        p_amount: order.price,
+      });
+      if (refundError) throw new Error(refundError.message);
+
+      const { data, error } = await supabase.functions.invoke("update-order-status", {
+        body: {
+          order_id: order.id,
+          status: "cancelled",
+          admin_notes: (order.admin_notes ? order.admin_notes + "\n" : "") + `Refunded ${order.price.toLocaleString()} MMK on ${new Date().toLocaleString()}`,
+        },
+      });
+      if (error) throw new Error(error.message);
+      if (data && !data.success) throw new Error(data.error || "Failed to cancel order");
+
+      await supabase.from("wallet_transactions").insert({
+        user_id: order.user_id,
+        type: "topup",
+        amount: order.price,
+        status: "approved",
+        description: `Refund for order ${order.order_code}`,
+      });
+
+      toast.success(`Refunded ${order.price.toLocaleString()} MMK & order cancelled`);
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+      onStatusUpdated?.();
+      setRefundConfirmOpen(false);
+      onOpenChange(false);
+    } catch (err: any) {
+      toast.error(err.message || "Refund failed");
+    } finally {
+      setRefunding(false);
+    }
+  };
+
+  const isRefundable = !["cancelled", "delivered", "completed"].includes(order.status) || ["delivered", "completed"].includes(order.status);
+  // Allow refund for any non-cancelled order
+  const canRefund = order.status !== "cancelled";
+
   const FULFILLMENT_MODE_LABELS: Record<string, { label: string; icon: any; color: string }> = {
     instant: { label: "Instant Stock Delivery", icon: Zap, color: "bg-success/10 text-success" },
     custom_username: { label: "Custom Username", icon: UserIcon, color: "bg-primary/10 text-primary" },
