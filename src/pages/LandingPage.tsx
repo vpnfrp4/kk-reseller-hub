@@ -14,6 +14,10 @@ import {
   ShieldCheck,
   TrendingDown,
   Languages,
+  Clock,
+  Globe,
+  Headphones,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -81,6 +85,29 @@ const categories = [
     title: "Digital Subscriptions",
     desc: "Secure digital account provisioning for controlled reseller distribution.",
     link: "/login",
+  },
+];
+
+const features = [
+  {
+    icon: Clock,
+    title: "Instant Delivery",
+    desc: "Most services are fulfilled automatically in seconds. No manual processing delays.",
+  },
+  {
+    icon: Globe,
+    title: "Global Coverage",
+    desc: "Support for 200+ carriers and networks worldwide. Unlock any device, any country.",
+  },
+  {
+    icon: Headphones,
+    title: "24/7 Support",
+    desc: "Dedicated support team via Telegram and Viber. We're always here to help.",
+  },
+  {
+    icon: CreditCard,
+    title: "Flexible Payments",
+    desc: "KBZPay, WavePay, CB Pay, bank transfer and more. Top up your wallet in minutes.",
   },
 ];
 
@@ -179,16 +206,21 @@ export default function LandingPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  /* Theme-aware color tokens used inline */
-  const goldRgb = "212, 175, 55";
-
   return (
-    <>
+    <div className="min-h-screen w-full" style={{ overflow: "visible" }}>
       <FaqJsonLd />
       <OrgWebsiteJsonLd />
 
-      {/* ─── NAV ─── */}
-      <header className="sticky top-0 z-50 border-b border-border/40 dark:border-[rgba(57,255,20,0.08)] bg-background/90 backdrop-blur-xl">
+      {/* ─── STICKY NAV with glassmorphism ─── */}
+      <header
+        className="sticky top-0 z-50 border-b transition-all duration-300"
+        style={{
+          borderColor: scrollY > 20 ? "rgba(57,255,20,0.1)" : "rgba(255,255,255,0.04)",
+          background: scrollY > 20 ? "rgba(6,6,8,0.85)" : "rgba(6,6,8,0.6)",
+          backdropFilter: "blur(20px) saturate(1.4)",
+          WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+        }}
+      >
         <div className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-4">
           <Link to="/" className="flex items-center gap-2.5">
             <img src={kkLogo} alt="KKTech" className="h-8 w-8 rounded-lg neon-logo-glow" />
@@ -198,6 +230,7 @@ export default function LandingPage() {
           </Link>
           <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
             <a href="#services" className="transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Services</a>
+            <a href="#features" className="transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Features</a>
             <a href="#faq" className="transition-colors hover:text-foreground dark:hover:text-[#39FF14]">FAQ</a>
             <Link to="/tools/imei-check" className="transition-colors hover:text-foreground dark:hover:text-[#39FF14]">IMEI Check</Link>
           </nav>
@@ -218,8 +251,7 @@ export default function LandingPage() {
             </Button>
             <Button
               size="sm"
-              className="text-sm px-5 font-semibold bg-[#39FF14] dark:bg-[#39FF14] text-[#060608] hover:bg-[#39FF14]/90 neon-glow-btn light:bg-[#15803d] light:text-white"
-              style={{}}
+              className="text-sm px-5 font-semibold landing-cta-btn neon-glow-btn"
               asChild
             >
               <Link to="/login">Get Started</Link>
@@ -228,9 +260,9 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main>
+      <main className="w-full" style={{ overflow: "visible" }}>
         {/* ═══════════ HERO — PREMIUM APPLE SERVICES ═══════════ */}
-        <section className="relative overflow-hidden landing-hero-bg">
+        <section className="relative landing-hero-bg" style={{ overflow: "visible" }}>
           {/* Subtle grid */}
           <div className="absolute inset-0 circuit-grid opacity-40" />
 
@@ -257,38 +289,38 @@ export default function LandingPage() {
             <div className="absolute top-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent animate-[shimmerLine_4s_ease-in-out_infinite_0.5s]" />
           </div>
 
-          <div className="relative mx-auto max-w-[1120px] px-6 pt-24 pb-20 md:pt-36 md:pb-32">
+          <div className="relative mx-auto max-w-[1120px] px-6 pt-20 pb-20 sm:pt-28 sm:pb-28 md:pt-36 md:pb-32">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-8 items-center">
               {/* ─── LEFT: Text ─── */}
-              <ScrollReveal className="text-center md:text-left">
-                <p className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-primary/60">
+              <ScrollReveal className="text-center md:text-left relative z-10">
+                <p className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/70">
                   Trusted by Resellers & Technicians
                 </p>
-                <h1 className="text-[2rem] font-extrabold leading-[1.08] tracking-tight text-foreground sm:text-[2.8rem] lg:text-[3.4rem]">
-                  Premium{" "}
+                <h1 className="text-[2.2rem] font-black leading-[1.05] tracking-tight sm:text-[3rem] lg:text-[3.8rem]" style={{ letterSpacing: "-0.02em" }}>
+                  <span className="text-white">Premium</span>{" "}
                   <span className="gold-shimmer">Apple Device</span>
                   <br />
-                  Solutions
+                  <span className="text-white">Solutions</span>
                 </h1>
-                <p className="mt-5 text-base sm:text-lg font-medium text-muted-foreground tracking-wide">
+                <p className="mt-6 text-base sm:text-lg font-medium text-white/50 tracking-wide">
                   Unlock&ensp;•&ensp;iCloud&ensp;•&ensp;IMEI&ensp;•&ensp;Repair Services
                 </p>
 
                 {/* CTA Buttons */}
-                <div className="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
+                <div className="mt-10 flex flex-wrap gap-4 justify-center md:justify-start">
                   <Button
                     size="lg"
-                    className="btn-glow text-sm px-7"
+                    className="h-12 px-8 text-sm font-bold landing-cta-btn neon-glow-btn transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
                     asChild
                   >
                     <Link to="/login">
-                      Get Started <ArrowRight className="w-4 h-4 ml-1" />
+                      Get Started <ArrowRight className="w-4 h-4 ml-1.5" />
                     </Link>
                   </Button>
                   <Button
                     variant="outline"
                     size="lg"
-                    className="btn-glass text-sm px-7"
+                    className="h-12 px-8 text-sm font-semibold border-white/15 text-white/70 hover:text-white hover:border-[#39FF14]/40 hover:bg-[#39FF14]/5 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
                     asChild
                   >
                     <a href="#services">View Services</a>
@@ -297,8 +329,8 @@ export default function LandingPage() {
               </ScrollReveal>
 
               {/* ─── RIGHT: iPhone Mockup ─── */}
-              <ScrollReveal delay={200} className="flex justify-center md:justify-end">
-                <div className="w-[280px] sm:w-[320px] lg:w-[360px]">
+              <ScrollReveal delay={200} className="flex justify-center md:justify-end relative z-0">
+                <div className="w-[220px] sm:w-[280px] md:w-[300px] lg:w-[340px] max-sm:opacity-80">
                   <HeroIphoneMockup />
                 </div>
               </ScrollReveal>
@@ -307,7 +339,7 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ WHY CHOOSE KKTECH ═══════════ */}
-        <section className="relative border-y border-border/40 dark:border-[rgba(57,255,20,0.08)] landing-section-bg py-[100px] max-sm:py-16">
+        <section className="relative border-y border-border/40 dark:border-[rgba(57,255,20,0.08)] landing-section-bg py-20 sm:py-28">
           <div className="absolute inset-0 circuit-grid opacity-50" />
 
           <div className="relative mx-auto max-w-[1120px] px-6">
@@ -376,8 +408,42 @@ export default function LandingPage() {
         {/* ═══════════ PROVIDER LOGOS ═══════════ */}
         <ProviderLogosCarousel />
 
+        {/* ═══════════ FEATURES SECTION ═══════════ */}
+        <section id="features" className="relative landing-section-bg py-20 sm:py-28">
+          <div className="absolute inset-0 circuit-grid opacity-20" />
+          <div className="relative mx-auto max-w-[1120px] px-6">
+            <ScrollReveal>
+              <div className="text-center">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60">
+                  Platform
+                </p>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                  Built for <span className="neon-text">Professionals</span>
+                </h2>
+                <p className="mt-3 text-base text-muted-foreground max-w-lg mx-auto">
+                  Everything you need to run a successful reseller business, all in one platform.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
+              {features.map((feat, i) => (
+                <ScrollReveal key={feat.title} delay={i * 80}>
+                  <div className="group relative neon-card p-6 text-center transition-all hover:border-[#39FF14]/30">
+                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#39FF14]/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:bg-[#39FF14]/[0.15]">
+                      <feat.icon className="h-5 w-5 text-[#39FF14]" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground mb-2">{feat.title}</h3>
+                    <p className="text-xs leading-relaxed text-muted-foreground">{feat.desc}</p>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* ═══════════ SERVICES ═══════════ */}
-        <section id="services" className="relative landing-section-bg py-[120px] max-sm:py-20">
+        <section id="services" className="relative landing-section-bg py-20 sm:py-28 border-t border-border/40 dark:border-[rgba(57,255,20,0.08)]">
           <div className="absolute inset-0 circuit-grid opacity-30" />
           <div className="relative mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
@@ -418,7 +484,7 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ FAQ ═══════════ */}
-        <section id="faq" className="relative border-t border-border/40 dark:border-[rgba(57,255,20,0.08)] landing-section-bg py-[120px] max-sm:py-20">
+        <section id="faq" className="relative border-t border-border/40 dark:border-[rgba(57,255,20,0.08)] landing-section-bg py-20 sm:py-28">
           <div className="absolute inset-0 circuit-grid opacity-20" />
           <div className="relative mx-auto max-w-[800px] px-6">
             <ScrollReveal>
@@ -453,7 +519,7 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ CTA BANNER ═══════════ */}
-        <section className="landing-section-bg py-[100px] max-sm:py-16">
+        <section className="landing-section-bg py-20 sm:py-28">
           <div className="mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
               <div className="relative overflow-hidden rounded-3xl border border-border/40 dark:border-[rgba(57,255,20,0.15)] bg-card/60 dark:bg-[rgba(17,17,22,0.6)] backdrop-blur-xl px-8 py-16 text-center sm:px-16 sm:py-20">
@@ -472,7 +538,7 @@ export default function LandingPage() {
                   <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
                     <Button
                       size="lg"
-                      className="h-12 px-10 text-sm font-semibold landing-cta-btn neon-glow-btn"
+                      className="h-12 px-10 text-sm font-semibold landing-cta-btn neon-glow-btn transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
                       asChild
                     >
                       <Link to="/login">Create Free Account</Link>
@@ -480,7 +546,7 @@ export default function LandingPage() {
                     <Button
                       variant="outline"
                       size="lg"
-                      className="h-12 px-10 text-sm font-semibold border-border/40 dark:border-[rgba(57,255,20,0.2)] landing-outline-btn"
+                      className="h-12 px-10 text-sm font-semibold border-border/40 dark:border-[rgba(57,255,20,0.2)] landing-outline-btn transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
                       asChild
                     >
                       <Link to="/tools/imei-check" className="inline-flex items-center gap-2">
@@ -611,6 +677,6 @@ export default function LandingPage() {
           {contactOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
         </button>
       </div>
-    </>
+    </div>
   );
 }
