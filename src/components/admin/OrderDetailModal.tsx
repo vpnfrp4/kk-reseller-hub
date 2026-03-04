@@ -7,7 +7,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { KeyRound, Wallet, ShoppingCart, User, Calendar, Copy, Check, Zap, Clock, Smartphone, UserIcon, CheckCircle2, Loader2, FileText, StickyNote, Save, Sparkles, Eye, SendHorizonal, LayoutTemplate } from "lucide-react";
+  import { KeyRound, Wallet, ShoppingCart, User, Calendar, Copy, Check, Zap, Clock, Smartphone, UserIcon, CheckCircle2, Loader2, FileText, StickyNote, Save, Sparkles, Eye, SendHorizonal, LayoutTemplate, Undo2 } from "lucide-react";
+import ConfirmModal from "@/components/shared/ConfirmModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -74,6 +75,8 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
   const [savingNotes, setSavingNotes] = useState(false);
   const [showResultPreview, setShowResultPreview] = useState(false);
   const [savingResult, setSavingResult] = useState(false);
+  const [refundConfirmOpen, setRefundConfirmOpen] = useState(false);
+  const [refunding, setRefunding] = useState(false);
 
   // Initialize when order changes
   if (order && order.id !== notesInitialized) {
@@ -220,6 +223,49 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
       setUpdating(false);
     }
   };
+
+  const handleRefund = async () => {
+    setRefunding(true);
+    try {
+      const { error: refundError } = await supabase.rpc("atomic_refund", {
+        p_user_id: order.user_id,
+        p_amount: order.price,
+      });
+      if (refundError) throw new Error(refundError.message);
+
+      const { data, error } = await supabase.functions.invoke("update-order-status", {
+        body: {
+          order_id: order.id,
+          status: "cancelled",
+          admin_notes: (order.admin_notes ? order.admin_notes + "\n" : "") + `Refunded ${order.price.toLocaleString()} MMK on ${new Date().toLocaleString()}`,
+        },
+      });
+      if (error) throw new Error(error.message);
+      if (data && !data.success) throw new Error(data.error || "Failed to cancel order");
+
+      await supabase.from("wallet_transactions").insert({
+        user_id: order.user_id,
+        type: "topup",
+        amount: order.price,
+        status: "approved",
+        description: `Refund for order ${order.order_code}`,
+      });
+
+      toast.success(`Refunded ${order.price.toLocaleString()} MMK & order cancelled`);
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+      onStatusUpdated?.();
+      setRefundConfirmOpen(false);
+      onOpenChange(false);
+    } catch (err: any) {
+      toast.error(err.message || "Refund failed");
+    } finally {
+      setRefunding(false);
+    }
+  };
+
+  const isRefundable = !["cancelled", "delivered", "completed"].includes(order.status) || ["delivered", "completed"].includes(order.status);
+  // Allow refund for any non-cancelled order
+  const canRefund = order.status !== "cancelled";
 
   const FULFILLMENT_MODE_LABELS: Record<string, { label: string; icon: any; color: string }> = {
     instant: { label: "Instant Stock Delivery", icon: Zap, color: "bg-success/10 text-success" },
@@ -532,6 +578,18 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
                   {isImeiOrder ? "Complete & Deliver" : "Fulfill & Deliver"}
                 </Button>
               )}
+
+              {/* Refund Button */}
+              {canRefund && (
+                <Button
+                  variant="destructive"
+                  className="flex-1 gap-2 text-sm"
+                  onClick={() => setRefundConfirmOpen(true)}
+                >
+                  <Undo2 className="w-4 h-4" />
+                  Refund & Cancel
+                </Button>
+              )}
             </div>
           </div>
 
@@ -591,6 +649,18 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
           </div>
         </div>
       </DialogContent>
+
+      {/* Refund Confirmation Modal */}
+      <ConfirmModal
+        open={refundConfirmOpen}
+        onOpenChange={setRefundConfirmOpen}
+        title="Refund & Cancel Order"
+        description={`This will refund ${order.price.toLocaleString()} MMK to the customer's wallet and cancel order ${order.order_code}. This action cannot be undone.`}
+        confirmLabel="Refund & Cancel"
+        destructive
+        loading={refunding}
+        onConfirm={handleRefund}
+      />
     </Dialog>
   );
 }
