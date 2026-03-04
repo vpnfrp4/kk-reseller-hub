@@ -28,7 +28,15 @@ export default function Money({
   const { currency, convert } = useCurrency();
 
   const displayCurrency = currencyOverride || currency;
-  const displayAmount = currencyOverride || raw ? amount : convert(amount);
+  // Guard: ensure amount is a valid number
+  const safeAmount = typeof amount === "number" && !isNaN(amount) ? amount : 0;
+  // Fix operator precedence: parenthesize the ternary condition
+  const displayAmount = (currencyOverride || raw) ? safeAmount : convert(safeAmount);
+
+  const formatted =
+    displayCurrency === "USD"
+      ? displayAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      : displayAmount.toLocaleString();
 
   return (
     <span
@@ -40,17 +48,16 @@ export default function Money({
       )}
     >
       <span className={cn("font-bold", muted && "font-normal")}>
-        {displayCurrency === "USD"
-          ? displayAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-          : (displayAmount ?? 0).toLocaleString()
-        }
+        {displayCurrency === "USD" && "$"}{formatted}
       </span>
-      <span className={cn(
-        "font-normal text-muted-foreground",
-        compact ? "text-[10px]" : "text-xs"
-      )}>
-        {displayCurrency}
-      </span>
+      {displayCurrency !== "USD" && (
+        <span className={cn(
+          "font-normal text-muted-foreground",
+          compact ? "text-[10px]" : "text-xs"
+        )}>
+          {displayCurrency}
+        </span>
+      )}
     </span>
   );
 }

@@ -93,7 +93,8 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
 
   const formatAmount = useCallback(
     (mmkAmount: number): string => {
-      const converted = convert(mmkAmount);
+      const safe = typeof mmkAmount === "number" && !isNaN(mmkAmount) ? mmkAmount : 0;
+      const converted = convert(safe);
       if (currency === "USD") {
         return `$${converted.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
       }
