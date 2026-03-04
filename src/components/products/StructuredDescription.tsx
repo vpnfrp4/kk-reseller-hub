@@ -224,7 +224,7 @@ function ResellerBlock({ lines }: { lines: string[] }) {
         {lines.map((line, i) => (
           <li key={i} className="flex items-start gap-2.5">
             <span className="shrink-0 mt-1 w-1 h-3 rounded-sm bg-primary/30" />
-            <span className="text-xs text-muted-foreground leading-relaxed">{line}</span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
           </li>
         ))}
       </ul>
