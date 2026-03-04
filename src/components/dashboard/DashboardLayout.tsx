@@ -39,7 +39,8 @@ const navItems = [
   { label: "Home", icon: Home, path: "/dashboard" },
   { label: "Place Order", icon: ShoppingCart, path: "/dashboard/place-order" },
   { label: "Orders", icon: Receipt, path: "/dashboard/orders" },
-  { label: "Services", icon: Wrench, path: "/dashboard/products" },
+  { label: "Services", icon: Wrench, path: "/dashboard/services" },
+  { label: "Catalog", icon: Code, path: "/dashboard/products" },
   { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
   { label: "Account", icon: User, path: "/dashboard/settings" },
 ];
