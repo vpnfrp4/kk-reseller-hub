@@ -31,13 +31,14 @@ export function MmStatus({ status, className = "" }: { status: string; className
   const map: Record<string, { mm: string; en: string; style: string }> = {
     delivered: { mm: "ပြီးမြောက်", en: "Delivered", style: "badge-delivered" },
     pending: { mm: "စောင့်ဆိုင်းနေ", en: "Pending", style: "badge-pending" },
-    pending_creation: { mm: "ပြင်ဆင်နေ", en: "Preparing", style: "bg-primary/10 text-primary" },
-    pending_review: { mm: "စစ်ဆေးနေ", en: "Review", style: "badge-pending" },
-    processing: { mm: "လုပ်ဆောင်နေ", en: "Processing", style: "bg-warning/15 text-warning" },
-    completed: { mm: "ပြီးဆုံး", en: "Completed", style: "badge-delivered" },
-    approved: { mm: "အတည်ပြုပြီး", en: "Approved", style: "badge-delivered" },
-    rejected: { mm: "ငြင်းပယ်", en: "Rejected", style: "badge-cancelled" },
+    pending_creation: { mm: "ပြင်ဆင်နေ", en: "Preparing", style: "badge-pending" },
+    pending_review: { mm: "စစ်ဆေးနေ", en: "Review", style: "badge-review" },
+    processing: { mm: "လုပ်ဆောင်နေ", en: "Processing", style: "badge-processing" },
+    completed: { mm: "ပြီးဆုံး", en: "Completed", style: "badge-completed" },
+    approved: { mm: "အတည်ပြုပြီး", en: "Approved", style: "badge-approved" },
+    rejected: { mm: "ငြင်းပယ်", en: "Rejected", style: "badge-rejected" },
     cancelled: { mm: "ပယ်ဖျက်", en: "Cancelled", style: "badge-cancelled" },
+    api_pending: { mm: "API စောင့်နေ", en: "API Pending", style: "badge-api-pending" },
   };
   const s = map[status] || { mm: status, en: status, style: "bg-muted text-muted-foreground" };
   return (
