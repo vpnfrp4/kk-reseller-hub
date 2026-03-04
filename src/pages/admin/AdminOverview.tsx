@@ -160,9 +160,11 @@ export default function AdminOverview() {
           }
         }
       })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "wallet_transactions" }, (payload: any) => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "wallet_transactions" }, (payload: any) => {
         queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
-        if (initialized.current && payload.new?.type === "topup") {
+        queryClient.invalidateQueries({ queryKey: ["admin-pending-topups-list"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-topup-chart"] });
+        if (initialized.current && payload.eventType === "INSERT" && payload.new?.type === "topup") {
           const msg = `New top-up request: ${Number(payload.new.amount).toLocaleString()} MMK`;
           toast.info(msg);
           notifyEvent("New Top-up Request", msg, "info");
