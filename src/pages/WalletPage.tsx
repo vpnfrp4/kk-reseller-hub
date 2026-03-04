@@ -38,6 +38,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
+import QRCode from "@/components/shared/QRCode";
 
 const PRESET_AMOUNTS = [10000, 30000, 50000, 100000];
 const MIN_AMOUNT = 5000;
@@ -149,6 +150,18 @@ export default function WalletPage() {
     e.preventDefault();
     if (!topupAmount || !screenshot || !user?.id || parsedAmount < MIN_AMOUNT || !activeMethod) return;
     if (isBinance && !binanceTxId.trim()) return;
+
+    // Duplicate TX ID check for Binance
+    if (isBinance && binanceTxId.trim()) {
+      const { data: existingTx } = await supabase.from("wallet_transactions").select("id")
+        .eq("user_id", user.id).eq("type", "topup")
+        .ilike("description", `%TxID: ${binanceTxId.trim()}%`).limit(1);
+      if (existingTx && existingTx.length > 0) {
+        toast({ title: "Duplicate Transaction", description: "This Transaction ID has already been submitted.", variant: "destructive" });
+        return;
+      }
+    }
+
     setSubmissionState("uploading");
     try {
       const fileExt = screenshot.name.split(".").pop();
@@ -175,20 +188,36 @@ export default function WalletPage() {
     if (!verifyTxId.trim() || !user?.id) return;
     setVerifying(true);
     try {
+      // Search by TX ID in description
       const { data: matchedTx } = await supabase.from("wallet_transactions").select("*")
-        .eq("user_id", user.id).eq("status", "pending").eq("type", "topup")
+        .eq("user_id", user.id).eq("type", "topup")
         .ilike("description", `%${verifyTxId.trim()}%`).limit(1);
+
       if (matchedTx && matchedTx.length > 0) {
-        toast({ title: "✅ Transaction Found", description: `Your top-up of ${matchedTx[0].amount.toLocaleString()} MMK is pending admin approval.` });
-      } else {
-        const { data: matchById } = await supabase.from("wallet_transactions").select("*")
-          .eq("user_id", user.id).eq("type", "topup").eq("id", verifyTxId.trim()).limit(1);
-        if (matchById && matchById.length > 0) {
-          toast({ title: "✅ Transaction Found", description: `Status: ${matchById[0].status}. Amount: ${matchById[0].amount.toLocaleString()} MMK` });
-        } else {
-          toast({ title: "❌ Not Found", description: "No matching transaction found.", variant: "destructive" });
+        const tx = matchedTx[0];
+        if (tx.status === "approved") {
+          toast({ title: "✅ Payment Verified", description: `${tx.amount.toLocaleString()} MMK was credited to your wallet.` });
+          navigate(`/dashboard/topup-status/${tx.id}`);
+        } else if (tx.status === "pending") {
+          toast({ title: "⏳ Pending Approval", description: `Your top-up of ${tx.amount.toLocaleString()} MMK is awaiting admin verification.` });
+          navigate(`/dashboard/topup-status/${tx.id}`);
+        } else if (tx.status === "rejected") {
+          toast({ title: "❌ Payment Rejected", description: `Your top-up of ${tx.amount.toLocaleString()} MMK was not approved.`, variant: "destructive" });
         }
+        return;
       }
+
+      // Search by transaction UUID
+      const { data: matchById } = await supabase.from("wallet_transactions").select("*")
+        .eq("user_id", user.id).eq("type", "topup").eq("id", verifyTxId.trim()).limit(1);
+      if (matchById && matchById.length > 0) {
+        const tx = matchById[0];
+        toast({ title: tx.status === "approved" ? "✅ Approved" : tx.status === "pending" ? "⏳ Pending" : "❌ Rejected", description: `Amount: ${tx.amount.toLocaleString()} MMK` });
+        navigate(`/dashboard/topup-status/${tx.id}`);
+        return;
+      }
+
+      toast({ title: "❌ Not Found", description: "No matching transaction found. Please check the ID.", variant: "destructive" });
     } catch { toast({ title: "Error", description: "Verification failed.", variant: "destructive" }); }
     finally { setVerifying(false); }
   };
@@ -482,16 +511,36 @@ export default function WalletPage() {
                     <div className="p-6 space-y-5">
                       {isBinance ? (
                         <>
-                          <DetailField label="Binance UID" value={activeMethod.binance_uid} onCopy={() => handleCopy(activeMethod.binance_uid, "Binance UID")} copied={copiedId === activeMethod.binance_uid} large />
-                          <div className="flex gap-6">
-                            <DetailField label="Network" value={activeMethod.network} />
-                            <DetailField label="Currency" value={activeMethod.accepted_currency} />
+                          <div className="flex flex-col sm:flex-row gap-5">
+                            <div className="flex-1 space-y-5">
+                              <DetailField label="Binance UID" value={activeMethod.binance_uid} onCopy={() => handleCopy(activeMethod.binance_uid, "Binance UID")} copied={copiedId === activeMethod.binance_uid} large />
+                              <div className="flex gap-6">
+                                <DetailField label="Network" value={activeMethod.network} />
+                                <DetailField label="Currency" value={activeMethod.accepted_currency} />
+                              </div>
+                            </div>
+                            {/* QR Code for Binance UID */}
+                            <div className="flex flex-col items-center gap-2 shrink-0">
+                              <QRCode value={activeMethod.binance_uid || ""} size={120} />
+                              <span className="text-[9px] text-muted-foreground/50 uppercase tracking-wider font-medium">Scan to pay</span>
+                            </div>
                           </div>
                         </>
                       ) : (
                         <>
-                          <DetailField label="Account Name" value={activeMethod.name} />
-                          <DetailField label="Phone Number" value={activeMethod.phone} onCopy={() => handleCopy(activeMethod.phone, "Phone")} copied={copiedId === activeMethod.phone} large />
+                          <div className="flex flex-col sm:flex-row gap-5">
+                            <div className="flex-1 space-y-5">
+                              <DetailField label="Account Name" value={activeMethod.name} />
+                              <DetailField label="Phone Number" value={activeMethod.phone} onCopy={() => handleCopy(activeMethod.phone, "Phone")} copied={copiedId === activeMethod.phone} large />
+                            </div>
+                            {/* QR Code for phone number */}
+                            {activeMethod.phone && (
+                              <div className="flex flex-col items-center gap-2 shrink-0">
+                                <QRCode value={activeMethod.phone} size={120} />
+                                <span className="text-[9px] text-muted-foreground/50 uppercase tracking-wider font-medium">Scan to pay</span>
+                              </div>
+                            )}
+                          </div>
                         </>
                       )}
                     </div>
