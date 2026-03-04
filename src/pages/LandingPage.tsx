@@ -2,9 +2,6 @@ import { useState, useRef, useEffect, forwardRef, CSSProperties, ReactNode } fro
 import { SITE_URL } from "@/lib/utils";
 import { Link } from "react-router-dom";
 import {
-  Smartphone,
-  Wrench,
-  Monitor,
   ArrowRight,
   MessageCircle,
   Send,
@@ -12,17 +9,28 @@ import {
   X,
   Zap,
   ShieldCheck,
-  TrendingDown,
-  Languages,
+  Shield,
   Clock,
   Globe,
   Headphones,
   CreditCard,
+  Cloud,
+  Smartphone,
+  Lock,
+  Search,
+  Code,
+  Wrench,
+  UserPlus,
+  Wallet,
+  MousePointerClick,
+  CheckCircle2,
+  Languages,
+  BarChart3,
+  Activity,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useLang } from "@/contexts/LangContext";
-import ProviderLogosCarousel from "@/components/landing/ProviderLogosCarousel";
 import HeroIphoneMockup from "@/components/landing/HeroIphoneMockup";
 import kkLogo from "@/assets/kkremote-logo.png";
 import {
@@ -31,6 +39,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { useCountUpOnView } from "@/hooks/use-count-up";
 
 /* ───────── SCROLL REVEAL ───────── */
 const ScrollReveal = forwardRef<HTMLDivElement, { children: ReactNode; delay?: number; className?: string }>(
@@ -66,68 +75,49 @@ const ScrollReveal = forwardRef<HTMLDivElement, { children: ReactNode; delay?: n
 );
 ScrollReveal.displayName = "ScrollReveal";
 
+/* ───────── ANIMATED STAT ───────── */
+function AnimatedStat({ target, suffix, label }: { target: number; suffix: string; label: string }) {
+  const { display, ref } = useCountUpOnView(target, 1200);
+  return (
+    <div ref={ref} className="text-center">
+      <p className="text-3xl sm:text-4xl font-black tracking-tight text-foreground">
+        {display.toLocaleString()}{suffix}
+      </p>
+      <p className="mt-1.5 text-xs sm:text-sm font-medium text-muted-foreground">{label}</p>
+    </div>
+  );
+}
+
 /* ───────── DATA ───────── */
-const categories = [
-  {
-    icon: Smartphone,
-    title: "IMEI Unlock",
-    desc: "Direct access to global unlock services with structured provider routing.",
-    link: "/services/imei-unlock",
-  },
-  {
-    icon: Wrench,
-    title: "Hardware & Repair Tools",
-    desc: "Professional activation and licensing solutions for repair technicians.",
-    link: "/login",
-  },
-  {
-    icon: Monitor,
-    title: "Digital Subscriptions",
-    desc: "Secure digital account provisioning for controlled reseller distribution.",
-    link: "/login",
-  },
+const services = [
+  { icon: Cloud, title: "iCloud Removal", desc: "Remove iCloud activation lock from any Apple device securely and permanently.", color: "text-sky-400" },
+  { icon: Search, title: "IMEI Check", desc: "Instant carrier, warranty, and blacklist status checks for any device worldwide.", color: "text-emerald-400" },
+  { icon: Lock, title: "Carrier Unlock", desc: "Unlock devices from any carrier globally. Support for 200+ networks.", color: "text-amber-400" },
+  { icon: Shield, title: "Apple ID Services", desc: "Professional Apple ID and activation solutions for technicians.", color: "text-violet-400" },
+  { icon: Code, title: "API Services", desc: "RESTful API access for bulk operations and automated service integration.", color: "text-rose-400" },
 ];
 
-const features = [
-  {
-    icon: Clock,
-    title: "Instant Delivery",
-    desc: "Most services are fulfilled automatically in seconds. No manual processing delays.",
-  },
-  {
-    icon: Globe,
-    title: "Global Coverage",
-    desc: "Support for 200+ carriers and networks worldwide. Unlock any device, any country.",
-  },
-  {
-    icon: Headphones,
-    title: "24/7 Support",
-    desc: "Dedicated support team via Telegram and Viber. We're always here to help.",
-  },
-  {
-    icon: CreditCard,
-    title: "Flexible Payments",
-    desc: "KBZPay, WavePay, CB Pay, bank transfer and more. Top up your wallet in minutes.",
-  },
+const platformFeatures = [
+  { icon: Zap, title: "Instant Delivery", desc: "Most services fulfilled automatically in seconds." },
+  { icon: ShieldCheck, title: "Secure Payments", desc: "Encrypted wallet system with fraud protection." },
+  { icon: Activity, title: "Real-time Tracking", desc: "Live order status updates and notifications." },
+  { icon: Code, title: "API Integration", desc: "Full REST API for automated bulk operations." },
+  { icon: Wrench, title: "Professional Tools", desc: "Built for technicians and resellers at scale." },
+  { icon: Globe, title: "Global Coverage", desc: "200+ carriers across 120+ countries supported." },
+];
+
+const steps = [
+  { icon: UserPlus, step: "01", title: "Create Account", desc: "Sign up in seconds. No minimums required." },
+  { icon: Wallet, step: "02", title: "Add Balance", desc: "Top up via KBZPay, WavePay, or bank transfer." },
+  { icon: MousePointerClick, step: "03", title: "Select Service", desc: "Browse and order from our service catalog." },
+  { icon: CheckCircle2, step: "04", title: "Get Results", desc: "Receive results instantly or within hours." },
 ];
 
 const faqs = [
-  {
-    q: "How long does IMEI unlock take?",
-    a: "Many services are instant. Carrier-dependent iPhone unlocks typically take 1–5 business days.",
-  },
-  {
-    q: "How do I become a reseller?",
-    a: "Register for free, top up your wallet, and start ordering at wholesale prices. No minimums.",
-  },
-  {
-    q: "What payment methods do you accept?",
-    a: "KBZPay, WavePay, CB Pay, AYA Pay, and direct bank transfers. Top-ups approved within 5–15 minutes.",
-  },
-  {
-    q: "Is it safe and secure?",
-    a: "All transactions use our secure wallet system with fraud protection. Every order generates a verifiable receipt.",
-  },
+  { q: "How long does IMEI unlock take?", a: "Many services are instant. Carrier-dependent iPhone unlocks typically take 1–5 business days." },
+  { q: "How do I become a reseller?", a: "Register for free, top up your wallet, and start ordering at wholesale prices. No minimums." },
+  { q: "What payment methods do you accept?", a: "KBZPay, WavePay, CB Pay, AYA Pay, and direct bank transfers. Top-ups approved within 5–15 minutes." },
+  { q: "Is it safe and secure?", a: "All transactions use our secure wallet system with fraud protection. Every order generates a verifiable receipt." },
 ];
 
 /* ───────── JSON-LD ───────── */
@@ -151,12 +141,8 @@ function OrgWebsiteJsonLd() {
     name: "KKTech",
     url: SITE_URL,
     logo: `${SITE_URL}/pwa-512x512.png`,
-    description: "Myanmar's #1 digital unlock and GSM services platform. IMEI unlock, GSM tools, and digital subscriptions for resellers.",
-    contactPoint: {
-      "@type": "ContactPoint",
-      contactType: "customer support",
-      url: "https://t.me/kkremote",
-    },
+    description: "Premium Apple device services platform. IMEI unlock, iCloud removal, and digital services for resellers and technicians.",
+    contactPoint: { "@type": "ContactPoint", contactType: "customer support", url: "https://t.me/kkremote" },
     sameAs: ["https://t.me/kkremote", "https://t.me/KKTechDeals"],
   };
   const website = {
@@ -170,30 +156,16 @@ function OrgWebsiteJsonLd() {
       "query-input": "required name=search_term_string",
     },
   };
-  const siteNav = {
-    "@context": "https://schema.org",
-    "@type": "SiteNavigationElement",
-    name: ["Services", "IMEI Unlock", "FAQ", "IMEI Check", "Blog", "Login"],
-    url: [
-      `${SITE_URL}/#services`,
-      `${SITE_URL}/services/imei-unlock`,
-      `${SITE_URL}/#faq`,
-      `${SITE_URL}/tools/imei-check`,
-      `${SITE_URL}/blog`,
-      `${SITE_URL}/login`,
-    ],
-  };
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(org) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(website) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(siteNav) }} />
     </>
   );
 }
 
 /* ═══════════════════════════════════════════════════════
-   LANDING PAGE — NEON GREEN & DARK GLASS (theme-aware)
+   LANDING PAGE — PREMIUM SAAS
    ═══════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [contactOpen, setContactOpen] = useState(false);
@@ -211,49 +183,38 @@ export default function LandingPage() {
       <FaqJsonLd />
       <OrgWebsiteJsonLd />
 
-      {/* ─── STICKY NAV with glassmorphism ─── */}
+      {/* ─── STICKY NAV ─── */}
       <header
         className="sticky top-0 z-50 border-b transition-all duration-300"
         style={{
-          borderColor: scrollY > 20 ? "rgba(57,255,20,0.1)" : "rgba(255,255,255,0.04)",
-          background: scrollY > 20 ? "rgba(6,6,8,0.85)" : "rgba(6,6,8,0.6)",
+          borderColor: scrollY > 20 ? "hsl(var(--border) / 0.5)" : "transparent",
+          background: scrollY > 20 ? "hsl(var(--background) / 0.85)" : "hsl(var(--background) / 0.6)",
           backdropFilter: "blur(20px) saturate(1.4)",
           WebkitBackdropFilter: "blur(20px) saturate(1.4)",
         }}
       >
         <div className="mx-auto flex max-w-[1120px] items-center justify-between px-6 py-4">
           <Link to="/" className="flex items-center gap-2.5">
-            <img src={kkLogo} alt="KKTech" className="h-8 w-8 rounded-lg neon-logo-glow" />
+            <img src={kkLogo} alt="KKTech" className="h-8 w-8 rounded-lg" />
             <span className="text-xl font-extrabold tracking-tight text-foreground">
-              KK<span className="neon-text">Tech</span>
+              KK<span className="text-primary">Tech</span>
             </span>
           </Link>
           <nav className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
-            <a href="#services" className="transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Services</a>
-            <a href="#features" className="transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Features</a>
-            <a href="#faq" className="transition-colors hover:text-foreground dark:hover:text-[#39FF14]">FAQ</a>
-            <Link to="/tools/imei-check" className="transition-colors hover:text-foreground dark:hover:text-[#39FF14]">IMEI Check</Link>
+            <a href="#services" className="transition-colors hover:text-foreground">Services</a>
+            <a href="#features" className="transition-colors hover:text-foreground">Features</a>
+            <a href="#how-it-works" className="transition-colors hover:text-foreground">How It Works</a>
+            <a href="#faq" className="transition-colors hover:text-foreground">FAQ</a>
           </nav>
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleLang}
-              className="h-9 w-9 text-muted-foreground hover:text-foreground"
-              aria-label="Toggle language"
-            >
+            <Button variant="ghost" size="icon" onClick={toggleLang} className="h-9 w-9 text-muted-foreground hover:text-foreground" aria-label="Toggle language">
               <Languages className="h-4 w-4" />
-              <span className="sr-only">{lang === "mm" ? "Switch to English" : "မြန်မာဘာသာ"}</span>
             </Button>
             <ThemeToggle />
-            <Button variant="ghost" size="sm" className="text-sm font-medium hover:text-foreground dark:hover:text-[#39FF14]" asChild>
+            <Button variant="ghost" size="sm" className="text-sm font-medium" asChild>
               <Link to="/login">Log In</Link>
             </Button>
-            <Button
-              size="sm"
-              className="text-sm px-5 font-semibold landing-cta-btn neon-glow-btn"
-              asChild
-            >
+            <Button size="sm" className="text-sm px-5 font-semibold" asChild>
               <Link to="/login">Get Started</Link>
             </Button>
           </div>
@@ -261,74 +222,55 @@ export default function LandingPage() {
       </header>
 
       <main className="w-full" style={{ overflow: "visible" }}>
-        {/* ═══════════ HERO — PREMIUM APPLE SERVICES ═══════════ */}
-        <section className="relative landing-hero-bg" style={{ overflow: "visible" }}>
-          {/* Subtle grid */}
-          <div className="absolute inset-0 circuit-grid opacity-40" />
 
-          {/* Warm gold radial glow — behind left text */}
-          <div
-            className="pointer-events-none absolute inset-0 will-change-transform"
-            style={{
-              background: `radial-gradient(800px circle at 25% 45%, rgba(212,175,55,0.06), transparent 55%)`,
-              transform: `translateY(${scrollY * 0.2}px)`,
-            }}
-          />
-          {/* Secondary glow — behind phone on right */}
-          <div
-            className="pointer-events-none absolute inset-0 will-change-transform hidden md:block"
-            style={{
-              background: `radial-gradient(600px circle at 75% 50%, rgba(212,175,55,0.04), transparent 50%)`,
-              transform: `translateY(${scrollY * 0.15}px)`,
-            }}
-          />
+        {/* ═══════════ HERO ═══════════ */}
+        <section className="relative overflow-hidden">
+          {/* Grid background */}
+          <div className="absolute inset-0 opacity-[0.04]" style={{
+            backgroundImage: "linear-gradient(hsl(var(--foreground) / 0.15) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground) / 0.15) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }} />
+          {/* Glow */}
+          <div className="pointer-events-none absolute inset-0" style={{
+            background: "radial-gradient(800px circle at 30% 40%, hsl(var(--primary) / 0.08), transparent 60%)",
+          }} />
+          <div className="pointer-events-none absolute inset-0 hidden md:block" style={{
+            background: "radial-gradient(600px circle at 75% 50%, hsl(var(--primary) / 0.05), transparent 50%)",
+          }} />
 
-          {/* Subtle horizontal shimmer lines */}
-          <div className="absolute inset-0 overflow-hidden opacity-[0.03]">
-            <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary to-transparent animate-[shimmerLine_3s_ease-in-out_infinite]" />
-            <div className="absolute top-1/3 left-0 right-0 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent animate-[shimmerLine_4s_ease-in-out_infinite_0.5s]" />
-          </div>
-
-          <div className="relative mx-auto max-w-[1120px] px-6 pt-20 pb-20 sm:pt-28 sm:pb-28 md:pt-36 md:pb-32">
+          <div className="relative mx-auto max-w-[1120px] px-6 pt-20 pb-16 sm:pt-28 sm:pb-24 md:pt-36 md:pb-32">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-8 items-center">
-              {/* ─── LEFT: Text ─── */}
+              {/* LEFT */}
               <ScrollReveal className="text-center md:text-left relative z-10">
-                <p className="mb-5 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/70">
-                  Trusted by Resellers & Technicians
-                </p>
-                <h1 className="text-[2.2rem] font-black leading-[1.05] tracking-tight sm:text-[3rem] lg:text-[3.8rem]" style={{ letterSpacing: "-0.02em" }}>
-                  <span className="text-white">Premium</span>{" "}
-                  <span className="gold-shimmer">Apple Device</span>
+                <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 backdrop-blur-sm px-4 py-1.5 mb-6">
+                  <ShieldCheck className="h-3.5 w-3.5 text-success" />
+                  <span className="text-xs font-semibold text-muted-foreground">Trusted by technicians and resellers worldwide</span>
+                </div>
+
+                <h1 className="text-[2.2rem] font-black leading-[1.08] tracking-tight sm:text-[3rem] lg:text-[3.6rem]">
+                  <span className="text-foreground">Premium</span>{" "}
+                  <span className="text-primary">Apple Device</span>
                   <br />
-                  <span className="text-white">Solutions</span>
+                  <span className="text-foreground">Solutions</span>
                 </h1>
-                <p className="mt-6 text-base sm:text-lg font-medium text-white/50 tracking-wide">
+
+                <p className="mt-5 text-base sm:text-lg font-medium text-muted-foreground tracking-wide">
                   Unlock&ensp;•&ensp;iCloud&ensp;•&ensp;IMEI&ensp;•&ensp;Repair Services
                 </p>
 
-                {/* CTA Buttons */}
-                <div className="mt-10 flex flex-wrap gap-4 justify-center md:justify-start">
-                  <Button
-                    size="lg"
-                    className="h-12 px-8 text-sm font-bold landing-cta-btn neon-glow-btn transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
-                    asChild
-                  >
+                <div className="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
+                  <Button size="lg" className="h-12 px-8 text-sm font-bold" asChild>
                     <Link to="/login">
                       Get Started <ArrowRight className="w-4 h-4 ml-1.5" />
                     </Link>
                   </Button>
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="h-12 px-8 text-sm font-semibold border-white/15 text-white/70 hover:text-white hover:border-[#39FF14]/40 hover:bg-[#39FF14]/5 transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
-                    asChild
-                  >
-                    <a href="#services">View Services</a>
+                  <Button variant="outline" size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
+                    <Link to="/tools/imei-check">Check IMEI</Link>
                   </Button>
                 </div>
               </ScrollReveal>
 
-              {/* ─── RIGHT: iPhone Mockup ─── */}
+              {/* RIGHT */}
               <ScrollReveal delay={200} className="flex justify-center md:justify-end relative z-0">
                 <div className="w-[220px] sm:w-[280px] md:w-[300px] lg:w-[340px] max-sm:opacity-80">
                   <HeroIphoneMockup />
@@ -338,145 +280,122 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ═══════════ WHY CHOOSE KKTECH ═══════════ */}
-        <section className="relative border-y border-border/40 dark:border-[rgba(57,255,20,0.08)] landing-section-bg py-20 sm:py-28">
-          <div className="absolute inset-0 circuit-grid opacity-50" />
-
-          <div className="relative mx-auto max-w-[1120px] px-6">
+        {/* ═══════════ TRUST STATS ═══════════ */}
+        <section className="border-y border-border/50 bg-card/30 backdrop-blur-sm">
+          <div className="mx-auto max-w-[1120px] px-6 py-14 sm:py-16">
             <ScrollReveal>
-              <div className="text-center">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60 dark:text-[#39FF14]/60 light-neon-label">
-                  Why Us
-                </p>
-                <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  Why Choose <span className="neon-text">KKTech</span>?
-                </h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
+                <AnimatedStat target={1200} suffix="+" label="Technicians" />
+                <AnimatedStat target={30000} suffix="+" label="Orders Completed" />
+                <AnimatedStat target={98} suffix="%" label="Success Rate" />
+                <AnimatedStat target={24} suffix="/7" label="Support Available" />
               </div>
             </ScrollReveal>
-
-            <div className="mt-14 grid gap-6 sm:grid-cols-3">
-              {[
-                {
-                  icon: Zap,
-                  title: "Fast & Automated",
-                  desc: "24/7 instant delivery for all digital services. No waiting, no delays.",
-                },
-                {
-                  icon: TrendingDown,
-                  title: "Best Market Rates",
-                  desc: "Competitive pricing for resellers and individuals. Maximize your margins.",
-                },
-                {
-                  icon: ShieldCheck,
-                  title: "Secure Payments",
-                  desc: "Reliable and transparent transaction system with fraud protection.",
-                },
-              ].map((card, i) => (
-                <ScrollReveal key={card.title} delay={i * 100}>
-                  <div className="group neon-card flex flex-col items-center gap-5 p-8 sm:p-10 text-center">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#39FF14]/[0.08] dark:bg-[#39FF14]/[0.08] light-neon-icon-bg transition-all duration-300 group-hover:scale-110 group-hover:bg-[#39FF14]/[0.15] dark:group-hover:bg-[#39FF14]/[0.15]">
-                      <card.icon className="h-6 w-6 text-[#39FF14] dark:text-[#39FF14] light-neon-icon" />
-                    </div>
-                    <div>
-                      <h3 className="text-base font-semibold text-foreground">{card.title}</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{card.desc}</p>
-                    </div>
-                  </div>
-                </ScrollReveal>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* ═══════════ TRUST STRIP ═══════════ */}
-        <section className="border-b border-border/40 dark:border-[rgba(57,255,20,0.08)] landing-section-bg">
-          <div className="mx-auto max-w-[1120px] px-6 py-8">
-            <ScrollReveal>
-              <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-sm text-muted-foreground">
-                <span className="font-semibold text-foreground">Fast Processing</span>
-                <span className="text-[#39FF14]/30 dark:text-[#39FF14]/30 light-neon-dot">•</span>
-                <span className="font-semibold text-foreground">Verified Providers</span>
-                <span className="text-[#39FF14]/30 dark:text-[#39FF14]/30 light-neon-dot">•</span>
-                <span className="font-semibold text-foreground">Transparent Pricing</span>
-                <span className="text-[#39FF14]/30 dark:text-[#39FF14]/30 light-neon-dot">•</span>
-                <span className="font-semibold text-foreground">Reliable Delivery</span>
-              </div>
-            </ScrollReveal>
-          </div>
-        </section>
-
-        {/* ═══════════ PROVIDER LOGOS ═══════════ */}
-        <ProviderLogosCarousel />
-
-        {/* ═══════════ FEATURES SECTION ═══════════ */}
-        <section id="features" className="relative landing-section-bg py-20 sm:py-28">
-          <div className="absolute inset-0 circuit-grid opacity-20" />
-          <div className="relative mx-auto max-w-[1120px] px-6">
-            <ScrollReveal>
-              <div className="text-center">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60">
-                  Platform
-                </p>
-                <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  Built for <span className="neon-text">Professionals</span>
-                </h2>
-                <p className="mt-3 text-base text-muted-foreground max-w-lg mx-auto">
-                  Everything you need to run a successful reseller business, all in one platform.
-                </p>
-              </div>
-            </ScrollReveal>
-
-            <div className="mt-16 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-              {features.map((feat, i) => (
-                <ScrollReveal key={feat.title} delay={i * 80}>
-                  <div className="group relative neon-card p-6 text-center transition-all hover:border-[#39FF14]/30">
-                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-[#39FF14]/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:bg-[#39FF14]/[0.15]">
-                      <feat.icon className="h-5 w-5 text-[#39FF14]" />
-                    </div>
-                    <h3 className="text-sm font-semibold text-foreground mb-2">{feat.title}</h3>
-                    <p className="text-xs leading-relaxed text-muted-foreground">{feat.desc}</p>
-                  </div>
-                </ScrollReveal>
-              ))}
-            </div>
           </div>
         </section>
 
         {/* ═══════════ SERVICES ═══════════ */}
-        <section id="services" className="relative landing-section-bg py-20 sm:py-28 border-t border-border/40 dark:border-[rgba(57,255,20,0.08)]">
-          <div className="absolute inset-0 circuit-grid opacity-30" />
+        <section id="services" className="relative py-20 sm:py-28">
+          <div className="absolute inset-0 opacity-[0.02]" style={{
+            backgroundImage: "linear-gradient(hsl(var(--foreground) / 0.1) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground) / 0.1) 1px, transparent 1px)",
+            backgroundSize: "60px 60px",
+          }} />
           <div className="relative mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
               <div className="text-center">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60 dark:text-[#39FF14]/60 light-neon-label">
-                  Services
-                </p>
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/60">Services</p>
                 <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                  Structured for Scale
+                  Everything You Need
                 </h2>
-                <p className="mt-3 text-base text-muted-foreground">
-                  Three categories. One controlled environment.
+                <p className="mt-3 text-base text-muted-foreground max-w-lg mx-auto">
+                  Professional Apple device services for technicians and resellers.
                 </p>
               </div>
             </ScrollReveal>
 
-            <div className="mt-16 grid gap-6 sm:grid-cols-3">
-              {categories.map((cat, i) => (
-                <ScrollReveal key={cat.title} delay={i * 100}>
-                  <Link
-                    to={cat.link}
-                    className="group neon-card flex flex-col gap-5 p-8 sm:p-10"
-                  >
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#39FF14]/[0.08] dark:bg-[#39FF14]/[0.08] light-neon-icon-bg transition-all duration-300 group-hover:scale-110 group-hover:rotate-[-6deg] group-hover:bg-[#39FF14]/[0.15] dark:group-hover:bg-[#39FF14]/[0.15]">
-                      <cat.icon className="h-5 w-5 text-[#39FF14] dark:text-[#39FF14] light-neon-icon transition-transform duration-300 group-hover:scale-110" />
+            <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {services.map((s, i) => (
+                <ScrollReveal key={s.title} delay={i * 80}>
+                  <div className="group relative rounded-2xl border border-border/60 bg-card/70 backdrop-blur-sm p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5">
+                    <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/[0.08] transition-transform duration-300 group-hover:scale-110`}>
+                      <s.icon className={`h-5 w-5 ${s.color}`} />
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground mb-2">{s.title}</h3>
+                    <p className="text-xs leading-relaxed text-muted-foreground">{s.desc}</p>
+                    <Link
+                      to="/login"
+                      className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-primary opacity-0 translate-y-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-y-0"
+                    >
+                      Order Now <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════ PLATFORM FEATURES ═══════════ */}
+        <section id="features" className="relative border-y border-border/40 py-20 sm:py-28 bg-card/20">
+          <div className="pointer-events-none absolute inset-0" style={{
+            background: "radial-gradient(800px circle at 50% 0%, hsl(var(--primary) / 0.04), transparent 60%)",
+          }} />
+          <div className="relative mx-auto max-w-[1120px] px-6">
+            <ScrollReveal>
+              <div className="text-center">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/60">Platform</p>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                  Why KKTech Platform
+                </h2>
+                <p className="mt-3 text-base text-muted-foreground max-w-lg mx-auto">
+                  Built for professionals who demand speed, security, and scale.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {platformFeatures.map((feat, i) => (
+                <ScrollReveal key={feat.title} delay={i * 70}>
+                  <div className="group flex items-start gap-4 rounded-xl border border-border/40 bg-card/60 backdrop-blur-sm p-5 transition-all duration-300 hover:border-primary/25 hover:bg-card/80">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/[0.12]">
+                      <feat.icon className="h-4.5 w-4.5 text-primary" />
                     </div>
                     <div>
-                      <h3 className="text-base font-semibold text-foreground">{cat.title}</h3>
-                      <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                        {cat.desc}
-                      </p>
+                      <h3 className="text-sm font-semibold text-foreground">{feat.title}</h3>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{feat.desc}</p>
                     </div>
-                  </Link>
+                  </div>
+                </ScrollReveal>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════ HOW IT WORKS ═══════════ */}
+        <section id="how-it-works" className="relative py-20 sm:py-28">
+          <div className="mx-auto max-w-[1120px] px-6">
+            <ScrollReveal>
+              <div className="text-center">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/60">Process</p>
+                <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                  How It Works
+                </h2>
+              </div>
+            </ScrollReveal>
+
+            <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+              {steps.map((s, i) => (
+                <ScrollReveal key={s.step} delay={i * 100}>
+                  <div className="relative text-center rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-6 pt-8">
+                    <span className="absolute -top-3.5 left-1/2 -translate-x-1/2 inline-flex items-center justify-center h-7 w-7 rounded-full bg-primary text-primary-foreground text-xs font-bold">
+                      {i + 1}
+                    </span>
+                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08]">
+                      <s.icon className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-foreground mb-1.5">{s.title}</h3>
+                    <p className="text-xs leading-relaxed text-muted-foreground">{s.desc}</p>
+                  </div>
                 </ScrollReveal>
               ))}
             </div>
@@ -484,13 +403,10 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ FAQ ═══════════ */}
-        <section id="faq" className="relative border-t border-border/40 dark:border-[rgba(57,255,20,0.08)] landing-section-bg py-20 sm:py-28">
-          <div className="absolute inset-0 circuit-grid opacity-20" />
+        <section id="faq" className="relative border-t border-border/40 py-20 sm:py-28 bg-card/20">
           <div className="relative mx-auto max-w-[800px] px-6">
             <ScrollReveal>
-              <p className="mb-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60 dark:text-[#39FF14]/60 light-neon-label">
-                Support
-              </p>
+              <p className="mb-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-primary/60">Support</p>
               <h2 className="mb-4 text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 Frequently Asked Questions
               </h2>
@@ -503,7 +419,7 @@ export default function LandingPage() {
                 <ScrollReveal key={i} delay={i * 50}>
                   <AccordionItem
                     value={`faq-${i}`}
-                    className="rounded-2xl border border-border/40 dark:border-[rgba(57,255,20,0.1)] bg-card/70 dark:bg-[rgba(17,17,22,0.7)] backdrop-blur-sm px-6 transition-colors hover:border-border dark:hover:border-[rgba(57,255,20,0.25)]"
+                    className="rounded-2xl border border-border/50 bg-card/70 backdrop-blur-sm px-6 transition-colors hover:border-border"
                   >
                     <AccordionTrigger className="text-left text-sm font-semibold text-foreground hover:no-underline py-5">
                       {f.q}
@@ -518,40 +434,29 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ═══════════ CTA BANNER ═══════════ */}
-        <section className="landing-section-bg py-20 sm:py-28">
+        {/* ═══════════ FINAL CTA ═══════════ */}
+        <section className="py-20 sm:py-28">
           <div className="mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
-              <div className="relative overflow-hidden rounded-3xl border border-border/40 dark:border-[rgba(57,255,20,0.15)] bg-card/60 dark:bg-[rgba(17,17,22,0.6)] backdrop-blur-xl px-8 py-16 text-center sm:px-16 sm:py-20">
-                {/* Glow */}
-                <div className="pointer-events-none absolute inset-0 rounded-3xl dark:bg-[radial-gradient(600px_circle_at_50%_40%,rgba(57,255,20,0.06),transparent_60%)] bg-[radial-gradient(600px_circle_at_50%_40%,rgba(21,128,61,0.04),transparent_60%)]" />
+              <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-card/60 backdrop-blur-xl px-8 py-16 text-center sm:px-16 sm:py-20">
+                <div className="pointer-events-none absolute inset-0 rounded-3xl" style={{
+                  background: "radial-gradient(600px circle at 50% 40%, hsl(var(--primary) / 0.06), transparent 60%)",
+                }} />
                 <div className="relative">
-                  <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-[#39FF14]/60 dark:text-[#39FF14]/60 light-neon-label">
-                    Start Today
-                  </p>
                   <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
-                    Ready to Scale Your Business?
+                    Start unlocking devices today
                   </h2>
                   <p className="mx-auto mt-4 max-w-md text-sm text-muted-foreground sm:text-base">
-                    Join verified resellers already using KKTech for reliable digital service fulfillment.
+                    Join thousands of technicians and resellers using KKTech for reliable Apple device services.
                   </p>
                   <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                    <Button
-                      size="lg"
-                      className="h-12 px-10 text-sm font-semibold landing-cta-btn neon-glow-btn transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
-                      asChild
-                    >
-                      <Link to="/login">Create Free Account</Link>
+                    <Button size="lg" className="h-12 px-10 text-sm font-semibold" asChild>
+                      <Link to="/login">Create Account</Link>
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="h-12 px-10 text-sm font-semibold border-border/40 dark:border-[rgba(57,255,20,0.2)] landing-outline-btn transition-all duration-300 hover:scale-[1.03] active:scale-[0.98]"
-                      asChild
-                    >
-                      <Link to="/tools/imei-check" className="inline-flex items-center gap-2">
-                        Try IMEI Checker <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
+                    <Button variant="outline" size="lg" className="h-12 px-10 text-sm font-semibold" asChild>
+                      <a href="#services" className="inline-flex items-center gap-2">
+                        View Services <ArrowRight className="h-3.5 w-3.5" />
+                      </a>
                     </Button>
                   </div>
                 </div>
@@ -560,87 +465,57 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ═══════════ SEO CONTENT (sr-only) ═══════════ */}
+        {/* SEO */}
         <section className="sr-only" aria-hidden="false">
-          <h2>KKTech — Professional Digital Service Infrastructure for Resellers</h2>
-          <p>
-            KKTech is a controlled digital service infrastructure for professional resellers.
-            Access IMEI unlock services, GSM tools, and digital accounts through a secure,
-            structured environment with transparent pricing and reliable delivery.
-          </p>
+          <h2>KKTech — Premium Apple Device Services Platform</h2>
+          <p>KKTech provides premium Apple device services including iCloud removal, IMEI checks, carrier unlock, and repair solutions for technicians and resellers worldwide.</p>
         </section>
       </main>
 
       {/* ═══════════ FOOTER ═══════════ */}
-      <footer className="border-t border-border/40 dark:border-[rgba(57,255,20,0.08)] landing-footer-bg">
+      <footer className="border-t border-border/40">
         <div className="mx-auto max-w-[1120px] px-6 pt-16 pb-8">
           <div className="grid gap-12 sm:grid-cols-4">
             <div className="sm:col-span-2">
               <span className="flex items-center gap-2.5">
-                <img src={kkLogo} alt="KKTech" className="h-7 w-7 rounded-lg neon-logo-glow" />
+                <img src={kkLogo} alt="KKTech" className="h-7 w-7 rounded-lg" />
                 <span className="text-xl font-extrabold text-foreground">
-                  KK<span className="neon-text">Tech</span>
+                  KK<span className="text-primary">Tech</span>
                 </span>
               </span>
               <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
-                Controlled digital service infrastructure for professional resellers. Fast processing, transparent pricing, reliable delivery.
+                Premium Apple device services platform for professional technicians and resellers. Fast processing, transparent pricing, reliable delivery.
               </p>
               <div className="mt-6 flex gap-3">
-                <a
-                  href="https://t.me/kkremote"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/40 dark:border-[rgba(57,255,20,0.15)] text-muted-foreground transition-all hover:border-border dark:hover:border-[rgba(57,255,20,0.4)] hover:text-foreground dark:hover:text-[#39FF14]"
-                  aria-label="Telegram"
-                >
+                <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary" aria-label="Telegram">
                   <Send className="h-4 w-4" />
                 </a>
-                <a
-                  href="viber://chat?number=%2B959787313137"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/40 dark:border-[rgba(57,255,20,0.15)] text-muted-foreground transition-all hover:border-border dark:hover:border-[rgba(57,255,20,0.4)] hover:text-foreground dark:hover:text-[#39FF14]"
-                  aria-label="Viber"
-                >
+                <a href="viber://chat?number=%2B959787313137" target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary" aria-label="Viber">
                   <Phone className="h-4 w-4" />
                 </a>
-                <a
-                  href="https://t.me/KKTechDeals"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex h-9 w-9 items-center justify-center rounded-full border border-border/40 dark:border-[rgba(57,255,20,0.15)] text-muted-foreground transition-all hover:border-border dark:hover:border-[rgba(57,255,20,0.4)] hover:text-foreground dark:hover:text-[#39FF14]"
-                  aria-label="Telegram Channel"
-                >
+                <a href="https://t.me/KKTechDeals" target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary" aria-label="Channel">
                   <MessageCircle className="h-4 w-4" />
                 </a>
               </div>
             </div>
             <div className="flex flex-col gap-3 text-sm">
-              <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                Quick Links
-              </span>
-              <a href="#services" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Services</a>
-              <a href="#faq" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">FAQ</a>
-              <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Free IMEI Checker</Link>
-              <Link to="/blog" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Blog</Link>
-              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Reseller Login</Link>
+              <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Quick Links</span>
+              <a href="#services" className="text-muted-foreground transition-colors hover:text-foreground">Services</a>
+              <a href="#faq" className="text-muted-foreground transition-colors hover:text-foreground">FAQ</a>
+              <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-foreground">Free IMEI Checker</Link>
+              <Link to="/blog" className="text-muted-foreground transition-colors hover:text-foreground">Blog</Link>
+              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground">Reseller Login</Link>
             </div>
             <div className="flex flex-col gap-3 text-sm">
-              <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">
-                Policies
-              </span>
-              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Terms & Conditions</Link>
-              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Privacy Policy</Link>
-              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground dark:hover:text-[#39FF14]">Refund Policy</Link>
+              <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Policies</span>
+              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground">Terms & Conditions</Link>
+              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground">Privacy Policy</Link>
+              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground">Refund Policy</Link>
             </div>
           </div>
-          <div className="mt-12 flex flex-col items-center gap-3 border-t border-border/20 dark:border-[rgba(57,255,20,0.06)] pt-8 sm:flex-row sm:justify-between">
-            <p className="text-xs text-muted-foreground/60">
-              © {new Date().getFullYear()} KKTech. All rights reserved.
-            </p>
-            <p className="text-xs text-muted-foreground/40">
-              Built for resellers, by resellers.
-            </p>
+          <div className="mt-12 flex flex-col items-center gap-3 border-t border-border/20 pt-8 sm:flex-row sm:justify-between">
+            <p className="text-xs text-muted-foreground/60">© {new Date().getFullYear()} KKTech. All rights reserved.</p>
+            <p className="text-xs text-muted-foreground/40">Built for resellers, by resellers.</p>
           </div>
         </div>
       </footer>
@@ -649,29 +524,17 @@ export default function LandingPage() {
       <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-2">
         {contactOpen && (
           <div className="mb-1 flex flex-col gap-2 animate-fade-in">
-            <a
-              href="https://t.me/kkremote"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-full border border-border/40 dark:border-[rgba(57,255,20,0.15)] bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-accent/5"
-            >
-              <Send className="h-4 w-4 text-[hsl(200_80%_50%)]" />
-              Telegram
+            <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full border border-border/50 bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-accent/5">
+              <Send className="h-4 w-4 text-sky-400" /> Telegram
             </a>
-            <a
-              href="viber://chat?number=%2B959787313137"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-full border border-border/40 dark:border-[rgba(57,255,20,0.15)] bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-accent/5"
-            >
-              <Phone className="h-4 w-4 text-[hsl(270_60%_55%)]" />
-              Viber
+            <a href="viber://chat?number=%2B959787313137" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full border border-border/50 bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-accent/5">
+              <Phone className="h-4 w-4 text-violet-400" /> Viber
             </a>
           </div>
         )}
         <button
           onClick={() => setContactOpen(!contactOpen)}
-          className="flex h-14 w-14 items-center justify-center rounded-full landing-cta-btn shadow-lg neon-glow-btn transition-transform active:scale-95"
+          className="flex h-14 w-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition-transform active:scale-95"
           aria-label="Contact support"
         >
           {contactOpen ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
