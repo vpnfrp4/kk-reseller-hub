@@ -6,43 +6,6 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-async function tryFetchServices(apiKey: string): Promise<{ data: any; success: boolean }> {
-  // Try multiple known parameter combinations for the service list endpoint
-  const attempts = [
-    { key: apiKey, accountinfo: "servicelist" },
-    { key: apiKey, action: "services" },
-    { key: apiKey, servicelist: "1" },
-    { key: apiKey, list: "services" },
-  ];
-
-  for (const params of attempts) {
-    try {
-      const body = new URLSearchParams(params);
-
-      const response = await fetch("https://api.ifreeicloud.co.uk", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body,
-      });
-
-      const text = await response.text();
-      
-      // Only accept JSON responses
-      if (text.trim().startsWith("{") || text.trim().startsWith("[")) {
-        const data = JSON.parse(text);
-        // Check if it looks like a service list (not just an error or balance)
-        if (Array.isArray(data) || (data.success && data.response) || data.services) {
-          return { data, success: true };
-        }
-      }
-    } catch {
-      // Continue to next attempt
-    }
-  }
-
-  return { data: null, success: false };
-}
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -57,16 +20,114 @@ serve(async (req) => {
       );
     }
 
-    const result = await tryFetchServices(API_KEY);
+    // The ifreeicloud API service list endpoint
+    // Documented at https://api.ifreeicloud.co.uk/services/1000
+    const body = new URLSearchParams({
+      key: API_KEY,
+      services: "list",
+    });
 
-    if (result.success) {
-      return new Response(JSON.stringify(result.data), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    const response = await fetch("https://api.ifreeicloud.co.uk", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
+    });
+
+    const text = await response.text();
+    console.log("iFree services raw response:", text.substring(0, 500));
+
+    let parsed: any = null;
+    try {
+      parsed = JSON.parse(text);
+    } catch {
+      // Not JSON, try alternative endpoints
     }
 
-    // If no endpoint worked, return the hardcoded fallback list
-    // These are the known instant services from the ifreeicloud panel
+    // If first attempt returned valid service data, use it
+    if (parsed && !parsed.error) {
+      // Handle various response shapes
+      let services: any[] = [];
+
+      if (Array.isArray(parsed)) {
+        services = parsed;
+      } else if (parsed.services && Array.isArray(parsed.services)) {
+        services = parsed.services;
+      } else if (parsed.response && Array.isArray(parsed.response)) {
+        services = parsed.response;
+      } else if (typeof parsed === "object" && !parsed.error) {
+        // Could be an object keyed by service ID
+        const values = Object.values(parsed);
+        if (values.length > 0 && typeof values[0] === "object") {
+          services = values as any[];
+        }
+      }
+
+      if (services.length > 0) {
+        const normalized = services.map((s: any) => ({
+          id: String(s.id ?? s.service_id ?? s.ID ?? ""),
+          name: s.name ?? s.service_name ?? s.Name ?? "",
+          price: s.price ?? s.credit ?? s.Price ?? undefined,
+          time: s.time ?? s.processing_time ?? s.Time ?? undefined,
+          description: s.description ?? s.Description ?? undefined,
+        }));
+
+        return new Response(JSON.stringify({ services: normalized, source: "api" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // Try alternative parameter combinations
+    const altAttempts = [
+      { key: API_KEY, accountinfo: "servicelist" },
+      { key: API_KEY, action: "services" },
+      { key: API_KEY, servicelist: "1" },
+    ];
+
+    for (const params of altAttempts) {
+      try {
+        const altBody = new URLSearchParams(params);
+        const altResponse = await fetch("https://api.ifreeicloud.co.uk", {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: altBody,
+        });
+
+        const altText = await altResponse.text();
+        console.log("iFree alt attempt raw:", altText.substring(0, 300));
+
+        if (altText.trim().startsWith("{") || altText.trim().startsWith("[")) {
+          const altData = JSON.parse(altText);
+          let altServices: any[] = [];
+
+          if (Array.isArray(altData)) {
+            altServices = altData;
+          } else if (altData.services && Array.isArray(altData.services)) {
+            altServices = altData.services;
+          } else if (altData.response && Array.isArray(altData.response)) {
+            altServices = altData.response;
+          }
+
+          if (altServices.length > 0) {
+            const normalized = altServices.map((s: any) => ({
+              id: String(s.id ?? s.service_id ?? ""),
+              name: s.name ?? s.service_name ?? "",
+              price: s.price ?? s.credit ?? undefined,
+              time: s.time ?? s.processing_time ?? undefined,
+              description: s.description ?? undefined,
+            }));
+
+            return new Response(JSON.stringify({ services: normalized, source: "api-alt" }), {
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
+            });
+          }
+        }
+      } catch {
+        continue;
+      }
+    }
+
+    // Fallback: return hardcoded list from the ifreeicloud panel
     const fallbackServices = [
       { id: "0", name: "Apple - Model + Colour Check (IMEI)", price: "Free" },
       { id: "1", name: "iPhone - Carrier / SIM Lock Check", price: "0.06" },
