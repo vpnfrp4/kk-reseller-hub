@@ -805,31 +805,38 @@
 }
 
 /* ─── Global Scroll & Touch ─── */
-html {
+html, body {
   height: auto !important;
   min-height: 100dvh;
+  overflow-x: hidden !important;
   overflow-y: auto !important;
-  overflow-x: hidden;
   max-width: 100vw;
   -webkit-text-size-adjust: 100%;
-  touch-action: pan-y pan-x;
+  touch-action: manipulation;
   scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
-body {
-  height: auto !important;
-  min-height: 100dvh;
+/* Prevent ANY scroll locks from modals/dialogs on mobile */
+html[style*="overflow: hidden"],
+body[style*="overflow: hidden"] {
   overflow-y: auto !important;
-  overflow-x: hidden;
-  max-width: 100vw;
-  touch-action: pan-y pan-x;
+}
+
+@media (max-width: 1023px) {
+  html, body {
+    overflow-y: auto !important;
+    position: static !important;
+    height: auto !important;
+  }
 }
 
 #root {
   min-height: 100dvh;
-  height: auto;
+  height: auto !important;
   max-width: 100vw;
   overflow-x: hidden;
+  overflow-y: visible;
 }
 
 main, [data-scroll-area] {
