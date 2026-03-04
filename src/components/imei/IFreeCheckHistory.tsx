@@ -1,7 +1,6 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useCallback } from "react";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
 import {
   History,
   CheckCircle2,
@@ -9,6 +8,7 @@ import {
   Copy,
   ChevronDown,
   ChevronUp,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -24,26 +24,43 @@ interface IFreeCheck {
   created_at: string;
 }
 
+const PAGE_SIZE = 10;
+
 export default function IFreeCheckHistory() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const { data: checks = [], isLoading } = useQuery({
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ["ifree-check-history"],
-    queryFn: async () => {
+    queryFn: async ({ pageParam = 0 }) => {
+      const from = pageParam * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
       const { data, error } = await supabase
         .from("ifree_checks")
         .select("*")
         .order("created_at", { ascending: false })
-        .limit(20);
+        .range(from, to);
       if (error) throw error;
       return (data ?? []) as IFreeCheck[];
     },
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < PAGE_SIZE) return undefined;
+      return allPages.length;
+    },
+    initialPageParam: 0,
   });
 
-  const copyText = (text: string) => {
+  const checks = data?.pages.flat() ?? [];
+
+  const copyText = useCallback((text: string) => {
     navigator.clipboard.writeText(text);
     toast.success("Copied!");
-  };
+  }, []);
 
   if (isLoading) {
     return (
@@ -78,7 +95,7 @@ export default function IFreeCheckHistory() {
         <div className="flex-1">
           <h2 className="text-sm font-bold text-foreground">Check History</h2>
           <p className="text-[10px] text-muted-foreground">
-            Your last {checks.length} IMEI lookups
+            {checks.length} IMEI lookups{hasNextPage ? "+" : ""}
           </p>
         </div>
       </div>
@@ -148,6 +165,23 @@ export default function IFreeCheckHistory() {
           );
         })}
       </div>
+
+      {/* Load More */}
+      {hasNextPage && (
+        <div className="px-5 py-3 border-t border-border">
+          <button
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+            className="flex items-center justify-center gap-1.5 w-full py-2 rounded-[var(--radius-btn)] border border-border bg-secondary/50 hover:bg-secondary text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
+          >
+            {isFetchingNextPage ? (
+              <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading...</>
+            ) : (
+              "Load older checks"
+            )}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
