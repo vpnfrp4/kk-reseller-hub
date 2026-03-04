@@ -143,10 +143,21 @@ export default function AdminOverview() {
   useEffect(() => {
     const channel = supabase
       .channel("admin-overview-realtime")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, (payload: any) => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload: any) => {
         queryClient.invalidateQueries({ queryKey: ["admin-recent-orders"] });
         queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
         queryClient.invalidateQueries({ queryKey: ["admin-cred-per-product"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-pending-orders-list"] });
+        if (initialized.current) {
+          const event = payload.eventType;
+          if (event === "INSERT") {
+            const msg = `New order: ${payload.new?.product_name || "Unknown"}`;
+            toast.info(msg);
+            notifyEvent("New Order", msg, "info");
+          } else if (event === "UPDATE" && payload.old?.status !== payload.new?.status) {
+            const msg = `Order ${payload.new?.order_code || ""} → ${payload.new?.status}`;
+            toast.info(msg);
+          }
         if (initialized.current) {
           const msg = `New order: ${payload.new?.product_name || "Unknown"}`;
           toast.info(msg);
