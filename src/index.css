@@ -769,7 +769,10 @@
   /* ─── Floating Support Button ─── */
   .floating-support {
     position: fixed;
-    bottom: 24px;
+    bottom: 80px;
+    @media (min-width: 1024px) {
+      bottom: 24px;
+    }
     right: 24px;
     z-index: 50;
     width: 56px;
