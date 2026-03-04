@@ -44,6 +44,7 @@ interface IFreeService {
   id: string;
   name: string;
   price?: string;
+  selling_price?: number;
   time?: string;
   description?: string;
 }
@@ -102,6 +103,7 @@ export default function IFreeImeiCheck() {
           id: String(s.id ?? ""),
           name: sanitizeName(s.name ?? ""),
           price: s.price ?? undefined,
+          selling_price: s.selling_price ? Number(s.selling_price) : undefined,
           time: s.time ?? undefined,
           description: s.description ?? undefined,
         }));
@@ -170,14 +172,11 @@ export default function IFreeImeiCheck() {
     setResult(null);
 
     try {
-      const sellPrice = selectedService?.price ? Number(selectedService.price) : 0;
-
       const { data, error } = await supabase.functions.invoke("check-ifree", {
         body: {
           imei: cleanImei,
           serviceId: String(serviceId).trim(),
           serviceName: selectedService?.name || "",
-          servicePrice: sellPrice,
         },
       });
       if (error) throw new Error(error.message);
@@ -308,7 +307,7 @@ export default function IFreeImeiCheck() {
                     {servicesLoading
                       ? "Loading services..."
                       : selectedService
-                      ? `${selectedService.name}${selectedService.price ? ` — $${selectedService.price}` : ""}`
+                      ? `${selectedService.name}${selectedService.selling_price ? ` — ${selectedService.selling_price.toLocaleString()} MMK` : ""}`
                       : "Search & select a service..."}
                   </span>
                   <ChevronsUpDown className="w-4 h-4 shrink-0 ml-2 opacity-40" />
@@ -337,9 +336,9 @@ export default function IFreeImeiCheck() {
                             )}
                           />
                           <span className="flex-1 truncate">{s.name}</span>
-                          {s.price && (
-                            <span className="ml-2 text-xs text-muted-foreground font-mono">${s.price}</span>
-                          )}
+                          {s.selling_price && s.selling_price > 0 ? (
+                            <span className="ml-2 text-xs text-muted-foreground font-mono">{s.selling_price.toLocaleString()} MMK</span>
+                          ) : null}
                         </CommandItem>
                       ))}
                     </CommandGroup>

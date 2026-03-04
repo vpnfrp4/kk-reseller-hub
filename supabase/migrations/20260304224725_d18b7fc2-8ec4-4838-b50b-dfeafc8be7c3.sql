@@ -1,0 +1,1 @@
+ALTER TABLE public.ifree_services_cache ADD COLUMN IF NOT EXISTS markup_price numeric DEFAULT 0;
