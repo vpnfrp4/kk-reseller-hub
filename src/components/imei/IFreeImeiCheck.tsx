@@ -149,9 +149,15 @@ export default function IFreeImeiCheck() {
   };
 
   const parsedResponse = useMemo(() => {
-    if (!result?.response) return [];
+    if (!result) return [];
+    // SickW beta format: result has direct key-value fields (not a `response` string)
+    if (!result.response && !result.error && typeof result === "object") {
+      const beta = parseSickwBetaResult(result as Record<string, unknown>);
+      if (beta.length > 0) return beta;
+    }
+    if (!result.response) return [];
     return parseIfreeResponse(result.response);
-  }, [result?.response]);
+  }, [result]);
 
   return (
     <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
