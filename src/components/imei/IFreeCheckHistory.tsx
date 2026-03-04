@@ -136,20 +136,46 @@ export default function IFreeCheckHistory() {
 
               {isExpanded && (
                 <div className="px-5 pb-4 space-y-2">
-                  {check.response_text && (
-                    <div className="relative rounded-[var(--radius-btn)] bg-secondary/50 border border-border p-3">
-                      <button
-                        onClick={() => copyText(check.response_text!)}
-                        className="absolute top-2 right-2 p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-                        title="Copy"
-                      >
-                        <Copy className="w-3 h-3" />
-                      </button>
-                      <pre className="text-[11px] font-mono text-foreground whitespace-pre-wrap break-all leading-relaxed pr-6">
-                        {check.response_text}
-                      </pre>
-                    </div>
-                  )}
+                  {check.response_text && (() => {
+                    const pairs = parseIfreeResponse(check.response_text);
+                    return (
+                      <div className="relative rounded-[var(--radius-btn)] bg-secondary/50 border border-border overflow-hidden">
+                        <button
+                          onClick={() => copyText(cleanIfreeResponse(check.response_text!))}
+                          className="absolute top-2 right-2 p-1 rounded hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors z-10"
+                          title="Copy"
+                        >
+                          <Copy className="w-3 h-3" />
+                        </button>
+                        {pairs.length > 0 ? (
+                          <div className="divide-y divide-border">
+                            {pairs.map((pair, i) =>
+                              pair.key ? (
+                                <div key={i} className="flex items-start px-3 py-2 gap-2 pr-8">
+                                  <span className="text-[10px] font-semibold text-muted-foreground whitespace-nowrap min-w-[80px]">
+                                    {pair.key}
+                                  </span>
+                                  <span className="text-[11px] font-mono text-foreground break-all">
+                                    {pair.value}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div key={i} className="px-3 py-2 pr-8">
+                                  <span className="text-[11px] font-mono text-foreground break-all">
+                                    {pair.value}
+                                  </span>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        ) : (
+                          <pre className="text-[11px] font-mono text-foreground whitespace-pre-wrap break-all leading-relaxed p-3 pr-8">
+                            {cleanIfreeResponse(check.response_text)}
+                          </pre>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {check.error_message && (
                     <div className="rounded-[var(--radius-btn)] bg-destructive/8 border border-destructive/15 px-3 py-2">
                       <p className="text-[11px] text-destructive">{check.error_message}</p>
