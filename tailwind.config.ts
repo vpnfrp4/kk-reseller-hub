@@ -15,7 +15,7 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Lato',
+  				'Inter',
   				'ui-sans-serif',
   				'system-ui',
   				'-apple-system',
@@ -28,7 +28,7 @@ export default {
   				'sans-serif'
   			],
   			mono: [
-  				'Fira Code',
+  				'Space Mono',
   				'ui-monospace',
   				'SFMono-Regular',
   				'Menlo',
@@ -45,7 +45,7 @@ export default {
   				'sans-serif'
   			],
   			serif: [
-  				'EB Garamond',
+  				'Lora',
   				'ui-serif',
   				'Georgia',
   				'Cambria',
@@ -55,52 +55,52 @@ export default {
   			]
   		},
   		spacing: {
-  			'micro': '4px',
-  			'tight': '8px',
-  			'compact': '12px',
-  			'default': '16px',
-  			'card': '24px',
-  			'section': '32px',
-  			'page': '48px',
-  			'hero': '64px'
+  			micro: '4px',
+  			tight: '8px',
+  			compact: '12px',
+  			default: '16px',
+  			card: '24px',
+  			section: '32px',
+  			page: '48px',
+  			hero: '64px'
   		},
   		fontSize: {
-  			'h1': [
+  			h1: [
   				'26px',
   				{
   					lineHeight: '1.2',
   					fontWeight: '600'
   				}
   			],
-  			'h2': [
+  			h2: [
   				'20px',
   				{
   					lineHeight: '1.3',
   					fontWeight: '600'
   				}
   			],
-  			'h3': [
+  			h3: [
   				'16px',
   				{
   					lineHeight: '1.3',
   					fontWeight: '600'
   				}
   			],
-  			'body': [
+  			body: [
   				'14px',
   				{
   					lineHeight: '1.6',
   					fontWeight: '400'
   				}
   			],
-  			'caption': [
+  			caption: [
   				'12px',
   				{
   					lineHeight: '1.4',
   					fontWeight: '400'
   				}
   			],
-  			'overline': [
+  			overline: [
   				'10px',
   				{
   					lineHeight: '1.4',
