@@ -41,6 +41,7 @@ const navItems = [
   { label: "Settings", icon: Settings, path: "/admin/settings", accent: "text-muted-foreground" },
   { label: "Profit", icon: TrendingUp, path: "/admin/profit", accent: "text-lime-400" },
   { label: "Monitoring", icon: Activity, path: "/admin/monitoring", accent: "text-rose-400" },
+  { label: "IMEI Services", icon: Database, path: "/admin/imei-services", accent: "text-cyan-400" },
   { label: "Blog", icon: FileText, path: "/admin/blog", accent: "text-teal-400" },
 ];
 
@@ -147,7 +148,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="admin-theme h-screen flex bg-background overflow-hidden">
+    <div className="admin-theme min-h-[100dvh] lg:h-screen flex flex-col lg:flex-row bg-background lg:overflow-hidden">
       {/* Mobile overlay */}
       <div
         className={cn(
@@ -263,7 +264,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto" data-scroll-area>{children}</main>
+        <main className="flex-1 p-4 lg:p-8 overflow-y-auto" data-scroll-area style={{ WebkitOverflowScrolling: 'touch' as any }}>{children}</main>
 
         <footer className="border-t border-border px-4 lg:px-8 py-4 text-center">
           <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200">

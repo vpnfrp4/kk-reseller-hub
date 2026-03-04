@@ -259,24 +259,36 @@ export type Database = {
       ifree_services_cache: {
         Row: {
           cached_at: string
+          custom_name: string | null
           description: string | null
           id: string
+          is_enabled: boolean | null
           name: string
           price: string | null
+          selling_price: number | null
+          service_group: string | null
         }
         Insert: {
           cached_at?: string
+          custom_name?: string | null
           description?: string | null
           id: string
+          is_enabled?: boolean | null
           name?: string
           price?: string | null
+          selling_price?: number | null
+          service_group?: string | null
         }
         Update: {
           cached_at?: string
+          custom_name?: string | null
           description?: string | null
           id?: string
+          is_enabled?: boolean | null
           name?: string
           price?: string | null
+          selling_price?: number | null
+          service_group?: string | null
         }
         Relationships: []
       }
