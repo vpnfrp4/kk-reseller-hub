@@ -1278,69 +1278,161 @@ export default function AdminProducts() {
                       </button>
                     ))}
                   </div>
-                  <div className="relative">
-                    <Textarea value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; manualOverrides.current.add("description"); }} placeholder="Enter service name and click Auto-Build or the ✨ button to generate with AI" className={`bg-muted/50 border-border resize-none text-xs font-mono transition-all duration-500 pr-16 ${autoFilledFields.has("description") ? "ring-1 ring-primary/40" : ""} ${aiGenerating ? "opacity-50" : ""}`} rows={descMode === "ultra-short" ? 6 : 10} maxLength={3000} disabled={aiGenerating} />
-                    {/* Floating action buttons */}
-                    <div className="absolute top-2 right-2 flex flex-col gap-1">
+
+                  {/* Markdown Toolbar */}
+                  <div className="flex items-center gap-0.5 rounded-lg border border-border bg-muted/30 p-1 flex-wrap">
+                    {[
+                      { label: "B", md: "**", title: "Bold", className: "font-bold" },
+                      { label: "I", md: "*", title: "Italic", className: "italic" },
+                      { label: "~S~", md: "~~", title: "Strikethrough", className: "line-through text-[9px]" },
+                      { label: "</>", md: "`", title: "Inline code", className: "font-mono text-[9px]" },
+                    ].map((btn) => (
                       <button
+                        key={btn.title}
                         type="button"
-                        onClick={() => handleGenerateDescription(true)}
-                        disabled={aiGenerating || !form.name.trim()}
-                        className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
-                        title={form.description.trim() ? "Regenerate with AI" : "Generate with AI"}
+                        title={btn.title}
+                        className={`px-2 py-1 rounded text-[11px] hover:bg-muted text-muted-foreground hover:text-foreground transition-colors ${btn.className}`}
+                        onClick={() => {
+                          const ta = document.getElementById("desc-editor") as HTMLTextAreaElement;
+                          if (!ta) return;
+                          const start = ta.selectionStart;
+                          const end = ta.selectionEnd;
+                          const val = form.description;
+                          const selected = val.substring(start, end);
+                          const wrapped = `${btn.md}${selected || "text"}${btn.md}`;
+                          const next = val.substring(0, start) + wrapped + val.substring(end);
+                          setForm((prev) => ({ ...prev, description: next }));
+                          descManuallyEdited.current = true;
+                          manualOverrides.current.add("description");
+                          setTimeout(() => { ta.focus(); ta.setSelectionRange(start + btn.md.length, start + btn.md.length + (selected || "text").length); }, 0);
+                        }}
                       >
-                        {aiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        {btn.label}
                       </button>
-                      {form.description.trim() && (
-                        <button
-                          type="button"
-                          onClick={() => { navigator.clipboard.writeText(form.description); toast.success("Description copied"); }}
-                          className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border transition-all"
-                          title="Copy to clipboard"
-                        >
-                          <Copy className="w-4 h-4" />
-                        </button>
-                      )}
+                    ))}
+                    <div className="w-px h-4 bg-border mx-0.5" />
+                    <button
+                      type="button" title="Heading"
+                      className="px-2 py-1 rounded text-[11px] font-bold hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => {
+                        const ta = document.getElementById("desc-editor") as HTMLTextAreaElement;
+                        if (!ta) return;
+                        const start = ta.selectionStart;
+                        const val = form.description;
+                        const lineStart = val.lastIndexOf("\n", start - 1) + 1;
+                        const next = val.substring(0, lineStart) + "## " + val.substring(lineStart);
+                        setForm((prev) => ({ ...prev, description: next }));
+                        descManuallyEdited.current = true;
+                      }}
+                    >H2</button>
+                    <button
+                      type="button" title="Bullet list"
+                      className="px-2 py-1 rounded text-[11px] hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => {
+                        const ta = document.getElementById("desc-editor") as HTMLTextAreaElement;
+                        if (!ta) return;
+                        const start = ta.selectionStart;
+                        const val = form.description;
+                        const lineStart = val.lastIndexOf("\n", start - 1) + 1;
+                        const next = val.substring(0, lineStart) + "- " + val.substring(lineStart);
+                        setForm((prev) => ({ ...prev, description: next }));
+                        descManuallyEdited.current = true;
+                      }}
+                    >• List</button>
+                    <button
+                      type="button" title="Insert link"
+                      className="px-2 py-1 rounded text-[11px] hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                      onClick={() => {
+                        const ta = document.getElementById("desc-editor") as HTMLTextAreaElement;
+                        if (!ta) return;
+                        const start = ta.selectionStart;
+                        const end = ta.selectionEnd;
+                        const val = form.description;
+                        const selected = val.substring(start, end);
+                        const linkMd = `[${selected || "link text"}](https://example.com)`;
+                        const next = val.substring(0, start) + linkMd + val.substring(end);
+                        setForm((prev) => ({ ...prev, description: next }));
+                        descManuallyEdited.current = true;
+                      }}
+                    >🔗</button>
+                    <div className="ml-auto flex items-center gap-1">
                       <button
                         type="button"
-                        onClick={async () => { try { const text = await navigator.clipboard.readText(); if (text) { setForm((prev) => ({ ...prev, description: prev.description ? prev.description + "\n" + text : text })); descManuallyEdited.current = true; toast.success("Pasted from clipboard"); } else { toast.error("Clipboard is empty"); } } catch { toast.error("Clipboard access denied"); } }}
-                        className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border transition-all"
-                        title="Paste from clipboard"
+                        onClick={() => setShowDescPreview((v) => !v)}
+                        className={`flex items-center gap-1 px-2 py-1 rounded text-[10px] font-medium transition-colors ${showDescPreview ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-muted"}`}
                       >
-                        <ClipboardPaste className="w-4 h-4" />
+                        {showDescPreview ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                        {showDescPreview ? "Hide" : "Preview"}
                       </button>
                     </div>
-                    {aiGenerating && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md">
-                        <div className="flex items-center gap-2 text-xs font-medium text-primary">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          AI generating description…
+                  </div>
+
+                  {/* Editor + Preview split */}
+                  <div className={`grid gap-3 ${showDescPreview ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}>
+                    {/* Editor pane */}
+                    <div className="relative">
+                      <Textarea id="desc-editor" value={form.description} onChange={(e) => { setForm({ ...form, description: e.target.value }); descManuallyEdited.current = true; manualOverrides.current.add("description"); }} placeholder="Write markdown — **bold**, *italic*, [links](url), - bullet lists" className={`bg-muted/50 border-border resize-none text-xs font-mono transition-all duration-500 pr-16 ${autoFilledFields.has("description") ? "ring-1 ring-primary/40" : ""} ${aiGenerating ? "opacity-50" : ""}`} rows={showDescPreview ? 14 : (descMode === "ultra-short" ? 6 : 10)} maxLength={3000} disabled={aiGenerating} />
+                      {/* Floating action buttons */}
+                      <div className="absolute top-2 right-2 flex flex-col gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleGenerateDescription(true)}
+                          disabled={aiGenerating || !form.name.trim()}
+                          className="p-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                          title={form.description.trim() ? "Regenerate with AI" : "Generate with AI"}
+                        >
+                          {aiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                        </button>
+                        {form.description.trim() && (
+                          <button
+                            type="button"
+                            onClick={() => { navigator.clipboard.writeText(form.description); toast.success("Description copied"); }}
+                            className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border transition-all"
+                            title="Copy to clipboard"
+                          >
+                            <Copy className="w-4 h-4" />
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={async () => { try { const text = await navigator.clipboard.readText(); if (text) { setForm((prev) => ({ ...prev, description: prev.description ? prev.description + "\n" + text : text })); descManuallyEdited.current = true; toast.success("Pasted from clipboard"); } else { toast.error("Clipboard is empty"); } } catch { toast.error("Clipboard access denied"); } }}
+                          className="p-1.5 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border transition-all"
+                          title="Paste from clipboard"
+                        >
+                          <ClipboardPaste className="w-4 h-4" />
+                        </button>
+                      </div>
+                      {aiGenerating && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-background/60 rounded-md">
+                          <div className="flex items-center gap-2 text-xs font-medium text-primary">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            AI generating description…
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Preview pane */}
+                    {showDescPreview && (
+                      <div className="rounded-lg border border-border bg-background/50 overflow-hidden flex flex-col">
+                        <div className="px-3 py-1.5 border-b border-border bg-muted/30 flex items-center gap-1.5">
+                          <Eye className="w-3 h-3 text-muted-foreground" />
+                          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Live Preview</span>
+                        </div>
+                        <div className="p-2 overflow-y-auto max-h-[340px] flex-1">
+                          {form.description.trim() ? (
+                            <StructuredDescription description={form.description} />
+                          ) : (
+                            <div className="flex items-center justify-center h-full min-h-[100px]">
+                              <p className="text-[11px] text-muted-foreground/50">Start typing to see a live preview</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center justify-between">
-                    <p className="text-[10px] text-muted-foreground">{form.description.length}/3000 — {descMode === "ultra-short" ? "5-line compressed" : descMode === "standard" ? "7-section structured" : "SEO-optimized extended"} · {aiGenerating ? "AI powered" : "Template + AI"}</p>
-                    <button
-                      type="button"
-                      onClick={() => setShowDescPreview((v) => !v)}
-                      className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showDescPreview ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                      {showDescPreview ? "Hide Preview" : "Live Preview"}
-                    </button>
-                  </div>
-                  {/* ── Live Description Preview ── */}
-                  {showDescPreview && form.description.trim() && (
-                    <div className="rounded-lg border border-border bg-background/50 p-1 max-h-[300px] overflow-y-auto">
-                      <StructuredDescription description={form.description} />
-                    </div>
-                  )}
-                  {showDescPreview && !form.description.trim() && (
-                    <div className="rounded-lg border border-dashed border-border bg-muted/20 p-6 flex items-center justify-center">
-                      <p className="text-[11px] text-muted-foreground/50">Enter a description or click AI Magic to see a live preview</p>
-                    </div>
-                  )}
+
+                  <p className="text-[10px] text-muted-foreground">{form.description.length}/3000 — Supports **bold**, *italic*, [links](url), `code`, ~~strikethrough~~ · {aiGenerating ? "AI powered" : "Template + AI"}</p>
                 </div>
 
                 {/* ── IMEI Auto-Configured Banner ── */}
