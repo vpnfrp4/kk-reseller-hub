@@ -1,76 +1,62 @@
 import React from "react";
+import Linkify from "linkify-react";
 import { cn } from "@/lib/utils";
 
-/* ─── Inline Rich Text (links + markdown links) ─── */
+/* ─── Linkify options ─── */
+
+const LINKIFY_OPTIONS = {
+  className: "text-primary hover:text-primary/80 underline underline-offset-2 break-all transition-colors font-medium",
+  target: "_blank",
+  rel: "noopener noreferrer",
+};
+
+/* ─── Markdown [text](url) → <a> pre-processor ─── */
 
 const MARKDOWN_LINK_RE = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-const URL_RE = /(https?:\/\/[^\s<>,;'")]+)/g;
 
 function RichText({ children }: { children: string }) {
-  // First pass: split by markdown links [text](url)
+  const str = children;
   const parts: React.ReactNode[] = [];
   let last = 0;
-  const str = children;
-
-  // Collect all markdown links
-  const mdMatches: { index: number; length: number; label: string; url: string }[] = [];
   let m: RegExpExecArray | null;
-  const mdRe = new RegExp(MARKDOWN_LINK_RE.source, "g");
-  while ((m = mdRe.exec(str)) !== null) {
-    mdMatches.push({ index: m.index, length: m[0].length, label: m[1], url: m[2] });
-  }
+  const re = new RegExp(MARKDOWN_LINK_RE.source, "g");
 
-  if (mdMatches.length === 0) {
-    // No markdown links — just auto-link raw URLs
-    return <>{autoLinkUrls(str)}</>;
-  }
-
-  for (const md of mdMatches) {
-    if (md.index > last) {
-      parts.push(...autoLinkUrls(str.slice(last, md.index)));
+  while ((m = re.exec(str)) !== null) {
+    if (m.index > last) {
+      parts.push(
+        <Linkify key={`t-${m.index}`} options={LINKIFY_OPTIONS}>
+          {str.slice(last, m.index)}
+        </Linkify>
+      );
     }
     parts.push(
       <a
-        key={`md-${md.index}`}
-        href={md.url}
+        key={`md-${m.index}`}
+        href={m[2]}
         target="_blank"
         rel="noopener noreferrer"
         className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors"
       >
-        {md.label}
-      </a>
-    );
-    last = md.index + md.length;
-  }
-  if (last < str.length) {
-    parts.push(...autoLinkUrls(str.slice(last)));
-  }
-
-  return <>{parts}</>;
-}
-
-function autoLinkUrls(text: string): React.ReactNode[] {
-  const parts: React.ReactNode[] = [];
-  let last = 0;
-  const re = new RegExp(URL_RE.source, "g");
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text)) !== null) {
-    if (m.index > last) parts.push(text.slice(last, m.index));
-    parts.push(
-      <a
-        key={`url-${m.index}`}
-        href={m[0]}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="text-primary hover:text-primary/80 underline underline-offset-2 break-all transition-colors"
-      >
-        {m[0]}
+        {m[1]}
       </a>
     );
     last = m.index + m[0].length;
   }
-  if (last < text.length) parts.push(text.slice(last));
-  return parts;
+
+  if (parts.length === 0) {
+    // No markdown links — just use Linkify for raw URLs
+    return <Linkify options={LINKIFY_OPTIONS}>{str}</Linkify>;
+  }
+
+  if (last < str.length) {
+    parts.push(
+      <Linkify key={`t-end`} options={LINKIFY_OPTIONS}>
+        {str.slice(last)}
+      </Linkify>
+    );
+  }
+
+  return <>{parts}</>;
 }
 
 interface ParsedSection {
