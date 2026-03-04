@@ -260,6 +260,7 @@ export default function DashboardHome() {
         )}
       </div>
 
+      </PullToRefresh>
     </PageContainer>
   );
 }
