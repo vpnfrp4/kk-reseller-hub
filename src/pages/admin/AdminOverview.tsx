@@ -158,10 +158,6 @@ export default function AdminOverview() {
             const msg = `Order ${payload.new?.order_code || ""} → ${payload.new?.status}`;
             toast.info(msg);
           }
-        if (initialized.current) {
-          const msg = `New order: ${payload.new?.product_name || "Unknown"}`;
-          toast.info(msg);
-          notifyEvent("New Order", msg, "info");
         }
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "wallet_transactions" }, (payload: any) => {
