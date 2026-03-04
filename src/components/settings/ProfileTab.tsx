@@ -237,37 +237,69 @@ export default function ProfileTab() {
             <Send className="w-4 h-4 text-[hsl(200,80%,50%)]" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-foreground">Connect Telegram</h3>
+            <h3 className="text-sm font-semibold text-foreground">Telegram Bot Integration</h3>
             <p className="text-[11px] text-muted-foreground">
-              Receive order updates and manage your account via Telegram bot
+              Manage orders and receive real-time notifications via Telegram
             </p>
           </div>
-          {isLinked && (
+          {isLinked ? (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
               <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
               <span className="text-[11px] font-medium text-primary">Connected</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/20 border border-border/20">
+              <span className="w-2 h-2 rounded-full bg-muted-foreground/40" />
+              <span className="text-[11px] font-medium text-muted-foreground">Not Connected</span>
             </div>
           )}
         </div>
 
         {isLinked ? (
           <div className="space-y-compact">
-            <div className="flex items-center gap-compact p-3 rounded-lg bg-muted/20 border border-border/20">
-              <Send className="w-4 h-4 text-muted-foreground shrink-0" />
+            {/* Connection Status Card */}
+            <div className="flex items-center gap-compact p-3 rounded-lg bg-primary/5 border border-primary/10">
+              <div className="w-10 h-10 rounded-xl bg-[hsl(200,80%,50%)]/10 flex items-center justify-center shrink-0">
+                <Send className="w-5 h-5 text-[hsl(200,80%,50%)]" />
+              </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-foreground">Chat ID: <span className="font-mono text-muted-foreground">{telegramChatId}</span></p>
-                <p className="text-[10px] text-muted-foreground">You'll receive order status updates via @{BOT_USERNAME}</p>
+                <p className="text-sm font-medium text-foreground">@{BOT_USERNAME}</p>
+                <p className="text-[10px] text-muted-foreground font-mono">Chat ID: {telegramChatId}</p>
               </div>
             </div>
-            <div className="text-[11px] text-muted-foreground space-y-1">
-              <p className="font-medium">📋 Available Bot Commands:</p>
-              <div className="grid grid-cols-2 gap-1 pl-2">
-                <span className="font-mono text-primary/80">/balance</span><span>— Wallet balance</span>
-                <span className="font-mono text-primary/80">/orders</span><span>— Last 5 orders</span>
-                <span className="font-mono text-primary/80">/status [ID]</span><span>— Order status</span>
-                <span className="font-mono text-primary/80">/unlink</span><span>— Disconnect</span>
+
+            {/* What You'll Receive */}
+            <div className="p-3 rounded-lg bg-muted/10 border border-border/10 space-y-2">
+              <p className="text-[11px] font-semibold text-foreground">🔔 Auto Notifications:</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+                <span>📦 Order placed</span>
+                <span>🔄 Order processing</span>
+                <span>✅ Order completed</span>
+                <span>❌ Order rejected</span>
+                <span>💰 Top-up approved</span>
+                <span>⚠️ Balance alerts</span>
               </div>
             </div>
+
+            {/* Bot Commands Reference */}
+            <div className="p-3 rounded-lg bg-muted/10 border border-border/10 space-y-2">
+              <p className="text-[11px] font-semibold text-foreground">📋 Bot Commands:</p>
+              <div className="grid gap-1.5">
+                {[
+                  { cmd: "/balance", desc: "Check wallet balance (MMK & USD)" },
+                  { cmd: "/orders", desc: "View your last 5 orders" },
+                  { cmd: "/status [ID]", desc: "Check specific order status" },
+                  { cmd: "/help", desc: "Show all available commands" },
+                  { cmd: "/unlink", desc: "Disconnect Telegram" },
+                ].map((item) => (
+                  <div key={item.cmd} className="flex items-center gap-2">
+                    <code className="text-[11px] font-mono text-primary/80 bg-primary/5 px-1.5 py-0.5 rounded min-w-[90px]">{item.cmd}</code>
+                    <span className="text-[10px] text-muted-foreground">{item.desc}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <Button
               variant="ghost"
               size="sm"
@@ -281,6 +313,18 @@ export default function ProfileTab() {
           </div>
         ) : (
           <div className="space-y-compact">
+            {/* Benefits */}
+            <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 space-y-2">
+              <p className="text-[11px] font-semibold text-foreground">✨ Why Connect Telegram?</p>
+              <div className="grid gap-1 text-[11px] text-muted-foreground">
+                <span>📦 Instant order status notifications</span>
+                <span>💰 Wallet top-up alerts with new balance</span>
+                <span>🔍 Check order status directly from Telegram</span>
+                <span>💵 Quick balance checks without opening the app</span>
+              </div>
+            </div>
+
+            {/* Steps */}
             <div className="p-3 rounded-lg bg-muted/10 border border-border/20 space-y-2">
               <p className="text-xs text-muted-foreground">
                 <b>Step 1:</b> Click "Generate Link" below to create your unique connection link.

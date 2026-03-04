@@ -7,7 +7,7 @@ const corsHeaders = {
 };
 
 interface TelegramPayload {
-  type: "order" | "topup" | "status_update" | "test" | "custom";
+  type: "order" | "topup" | "status_update" | "test" | "custom" | "order_placed" | "balance_update";
   chat_id?: string;
   // order fields
   order_id?: string;
@@ -24,6 +24,8 @@ interface TelegramPayload {
   transaction_id?: string;
   // status update fields
   status?: string;
+  // balance update fields
+  new_balance?: number;
   // custom
   message?: string;
 }
@@ -39,6 +41,21 @@ function buildOrderMessage(p: TelegramPayload): string {
     `📋 <b>Type:</b> ${(p.product_type || "digital").toUpperCase()}`,
     `━━━━━━━━━━━━━━━━━━`,
     `🔗 <a href="https://kk-reseller-hub.lovable.app/admin/orders">Manage Order</a>`,
+  ].join("\n");
+}
+
+function buildOrderPlacedMessage(p: TelegramPayload): string {
+  return [
+    `📦 <b>Order Placed Successfully!</b>`,
+    `━━━━━━━━━━━━━━━━━━`,
+    `📦 <b>Service:</b> ${p.product_name || "N/A"}`,
+    `🆔 <b>Order ID:</b> <code>${p.order_code || "N/A"}</code>`,
+    `💰 <b>Price:</b> ${Number(p.price || 0).toLocaleString()} MMK`,
+    `📋 <b>Type:</b> ${(p.product_type || "digital").toUpperCase()}`,
+    `📊 <b>Status:</b> ${(p.status || "PROCESSING").toUpperCase()}`,
+    `━━━━━━━━━━━━━━━━━━`,
+    `⏳ We'll notify you when your order is updated.`,
+    `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/orders">Track Order</a>`,
   ].join("\n");
 }
 
@@ -60,23 +77,56 @@ function buildTopupMessage(p: TelegramPayload): string {
 }
 
 function buildStatusMessage(p: TelegramPayload): string {
-  const emoji = p.status === "completed" || p.status === "delivered" ? "✅" : "⏳";
+  const statusEmojis: Record<string, string> = {
+    completed: "✅", delivered: "✅",
+    processing: "🔄",
+    rejected: "❌",
+    cancelled: "🚫",
+    pending: "⏳",
+  };
+  const emoji = statusEmojis[p.status || ""] || "📋";
+  const statusText = (p.status || "").toUpperCase();
+
+  const lines = [
+    `${emoji} <b>Order ${statusText}</b>`,
+    `━━━━━━━━━━━━━━━━━━`,
+    `📦 <b>Service:</b> ${p.product_name || "N/A"}`,
+    `🆔 <b>Order ID:</b> <code>${p.order_code || p.order_id?.slice(0, 8) || "N/A"}</code>`,
+    `📊 <b>Status:</b> ${statusText}`,
+  ];
+
+  if (p.status === "completed" || p.status === "delivered") {
+    lines.push("");
+    lines.push("🎉 Your order has been fulfilled!");
+    lines.push(`Use <code>/status ${p.order_code || ""}</code> to view the result.`);
+  } else if (p.status === "rejected") {
+    lines.push("");
+    lines.push("Please contact support for more information.");
+  } else if (p.status === "processing") {
+    lines.push(`⏱ <b>Est. Time:</b> ⏳ Processing...`);
+  }
+
+  lines.push(`━━━━━━━━━━━━━━━━━━`);
+  lines.push(`🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/orders">View Orders</a>`);
+  return lines.join("\n");
+}
+
+function buildBalanceUpdateMessage(p: TelegramPayload): string {
   return [
-    `${emoji} <b>Order Status Updated</b>`,
+    `💰 <b>Balance Updated</b>`,
     `━━━━━━━━━━━━━━━━━━`,
-    `📦 <b>Product:</b> ${p.product_name || "N/A"}`,
-    `🆔 <b>Order:</b> #${p.order_code || p.order_id?.slice(0, 8) || "N/A"}`,
-    `📊 <b>Status:</b> ${(p.status || "").toUpperCase()}`,
+    `💵 <b>Amount:</b> ${Number(p.amount || 0).toLocaleString()} MMK`,
+    `📊 <b>New Balance:</b> ${Number(p.new_balance || 0).toLocaleString()} MMK`,
     `━━━━━━━━━━━━━━━━━━`,
-    `🔗 <a href="https://kk-reseller-hub.lovable.app/orders">View Orders</a>`,
+    `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">View Wallet</a>`,
   ].join("\n");
 }
 
 function buildTestMessage(): string {
   return [
-    `🤖 <b>Telegram Bot Connected!</b>`,
+    `🤖 <b>KKTech Bot Connected!</b>`,
     `━━━━━━━━━━━━━━━━━━`,
-    `✅ Your KKREMOTER Telegram notifications are working correctly.`,
+    `✅ Telegram notifications are working correctly.`,
     `📅 <b>Time:</b> ${new Date().toISOString()}`,
     `━━━━━━━━━━━━━━━━━━`,
   ].join("\n");
@@ -125,12 +175,20 @@ Deno.serve(async (req) => {
       case "order":
         message = buildOrderMessage(payload);
         break;
+      case "order_placed":
+        targetChatId = payload.chat_id || adminChatId;
+        message = buildOrderPlacedMessage(payload);
+        break;
       case "topup":
         message = buildTopupMessage(payload);
         break;
       case "status_update":
         targetChatId = payload.chat_id || adminChatId;
         message = buildStatusMessage(payload);
+        break;
+      case "balance_update":
+        targetChatId = payload.chat_id || adminChatId;
+        message = buildBalanceUpdateMessage(payload);
         break;
       case "test":
         message = buildTestMessage();

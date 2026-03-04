@@ -32,7 +32,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify user identity via getClaims
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -52,7 +51,6 @@ Deno.serve(async (req) => {
 
     const userId = claimsData.claims.sub;
 
-    // Check admin role
     const serviceClient = createClient(supabaseUrl, serviceRoleKey);
     const { data: roleData } = await serviceClient
       .from("user_roles")
@@ -71,7 +69,6 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { order_id, status, credentials, result, admin_notes } = body;
 
-    // Validate order_id
     if (!order_id || typeof order_id !== "string") {
       return new Response(
         JSON.stringify({ success: false, error: "Missing or invalid order_id" }),
@@ -79,7 +76,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validate status
     if (!status || !VALID_STATUSES.includes(status)) {
       return new Response(
         JSON.stringify({
@@ -93,7 +89,7 @@ Deno.serve(async (req) => {
     // Verify order exists
     const { data: order, error: orderError } = await serviceClient
       .from("orders")
-      .select("id, user_id, product_name, product_type, status")
+      .select("id, user_id, product_name, product_type, status, order_code, price")
       .eq("id", order_id)
       .maybeSingle();
 
@@ -119,7 +115,6 @@ Deno.serve(async (req) => {
       updatePayload.completed_at = new Date().toISOString();
     }
 
-    // Perform update
     const { error: updateError } = await serviceClient
       .from("orders")
       .update(updatePayload)
@@ -132,9 +127,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Send notification to reseller for terminal statuses
-    const isTerminal = ["completed", "delivered", "rejected", "cancelled"].includes(status);
-    if (isTerminal) {
+    // Send notifications for all meaningful status changes
+    const shouldNotify = ["completed", "delivered", "rejected", "cancelled", "processing"].includes(status);
+    const prevStatus = order.status;
+
+    if (shouldNotify && status !== prevStatus) {
       const isImei = order.product_type === "imei";
       let notifTitle = "";
       let notifBody = "";
@@ -148,6 +145,9 @@ Deno.serve(async (req) => {
       } else if (status === "cancelled") {
         notifTitle = "🚫 Order Cancelled";
         notifBody = `Your order for ${order.product_name} has been cancelled.`;
+      } else if (status === "processing") {
+        notifTitle = "🔄 Order Processing";
+        notifBody = `Your order for ${order.product_name} is now being processed.`;
       }
 
       if (notifTitle) {
@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
           link: "/orders",
         });
 
-        // Send Telegram notification if user has telegram_chat_id
+        // Send Telegram notification to user
         try {
           const { data: userProfile } = await serviceClient
             .from("profiles")
@@ -179,13 +179,14 @@ Deno.serve(async (req) => {
                 type: "status_update",
                 chat_id: userProfile.telegram_chat_id,
                 order_id: order.id,
+                order_code: order.order_code,
                 product_name: order.product_name,
                 status,
+                price: order.price,
               }),
             });
           }
         } catch (tgErr) {
-          // Telegram is best-effort, don't fail the request
           console.error("Telegram notification failed:", tgErr);
         }
       }

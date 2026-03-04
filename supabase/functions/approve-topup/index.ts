@@ -137,19 +137,29 @@ Deno.serve(async (req) => {
     try {
       const { data: userProfile } = await serviceClient
         .from("profiles")
-        .select("telegram_chat_id, name, email")
+        .select("telegram_chat_id, name, email, balance")
         .eq("user_id", tx.user_id)
         .maybeSingle();
 
       if (userProfile?.telegram_chat_id) {
         const emoji = action === "approve" ? "✅" : "❌";
-        const tgMessage = [
-          `${emoji} <b>Top-Up ${action === "approve" ? "Approved" : "Rejected"}!</b>`,
+        const newBalance = Number(userProfile.balance || 0);
+        const tgMessage = action === "approve" ? [
+          `${emoji} <b>Wallet Top-up Approved!</b>`,
+          "━━━━━━━━━━━━━━━━━━",
+          `💰 <b>Amount:</b> ${Number(tx.amount).toLocaleString()} MMK`,
+          `💵 <b>New Balance:</b> ${newBalance.toLocaleString()} MMK`,
+          `🏦 <b>Method:</b> ${tx.method || "N/A"}`,
+          "━━━━━━━━━━━━━━━━━━",
+          `🎉 Your funds are ready to use!`,
+          `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">View Wallet</a>`,
+        ].join("\n") : [
+          `${emoji} <b>Top-Up Rejected</b>`,
           "━━━━━━━━━━━━━━━━━━",
           `💰 <b>Amount:</b> ${Number(tx.amount).toLocaleString()} MMK`,
           `🏦 <b>Method:</b> ${tx.method || "N/A"}`,
-          `📊 <b>Status:</b> ${newStatus.toUpperCase()}`,
           "━━━━━━━━━━━━━━━━━━",
+          `Please verify your payment details and try again.`,
           `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">View Wallet</a>`,
         ].join("\n");
 

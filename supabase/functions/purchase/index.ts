@@ -362,11 +362,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ═══ TELEGRAM ADMIN NOTIFICATION ═══
+    // ═══ TELEGRAM NOTIFICATIONS ═══
     try {
       const { data: buyerProfile } = await serviceClient
         .from("profiles")
-        .select("name, email")
+        .select("name, email, telegram_chat_id")
         .eq("user_id", userId)
         .maybeSingle();
 
@@ -377,15 +377,27 @@ Deno.serve(async (req) => {
         .maybeSingle();
 
       const telegramUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-telegram`;
+      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+      const tgHeaders = {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${anonKey}`,
+      };
+
+      // Fetch the order_code for the notification
+      const { data: orderRow } = await serviceClient
+        .from("orders")
+        .select("order_code")
+        .eq("id", data.order_id)
+        .maybeSingle();
+
+      // 1. Admin notification
       await fetch(telegramUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}`,
-        },
+        headers: tgHeaders,
         body: JSON.stringify({
           type: "order",
           order_id: data.order_id,
+          order_code: orderRow?.order_code,
           product_name: `#${productInfo?.display_id || ''} ${data.product_name}`,
           price: data.price,
           user_email: buyerProfile?.email,
@@ -393,8 +405,25 @@ Deno.serve(async (req) => {
           product_type: data.product_type,
         }),
       });
+
+      // 2. User notification (order placed) — only if user has Telegram linked
+      if (buyerProfile?.telegram_chat_id) {
+        await fetch(telegramUrl, {
+          method: "POST",
+          headers: tgHeaders,
+          body: JSON.stringify({
+            type: "order_placed",
+            chat_id: buyerProfile.telegram_chat_id,
+            order_code: orderRow?.order_code,
+            product_name: data.product_name,
+            price: data.price,
+            product_type: data.product_type,
+            status: data.product_type === "digital" ? "delivered" : "pending",
+          }),
+        });
+      }
     } catch (tgErr) {
-      console.error("Telegram admin notification failed:", tgErr);
+      console.error("Telegram notification failed:", tgErr);
     }
 
     return new Response(JSON.stringify(data), {
