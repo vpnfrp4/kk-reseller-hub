@@ -27,7 +27,6 @@ export class ErrorBoundary extends Component<Props, State> {
 
     // Log to Supabase for tracking (fire-and-forget)
     try {
-      const { supabase } = require("@/integrations/supabase/client");
       supabase.from("api_logs").insert({
         action: "client_error",
         log_type: "error_boundary",
@@ -36,7 +35,7 @@ export class ErrorBoundary extends Component<Props, State> {
         success: false,
       }).then(() => {});
     } catch {
-      // silently fail if supabase not available
+      // silently fail
     }
   }
 
