@@ -1,10 +1,11 @@
 import { AlertTriangle, RefreshCw, Home, Copy, MessageCircle, Clock, Hash } from "lucide-react";
 import { useState, useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 export default function ErrorPage() {
-  const location = useLocation();
-  const errorState = location.state as { message?: string; stack?: string; timestamp?: number } | null;
+  const [searchParams] = useSearchParams();
+  const errorMessage = searchParams.get("message") || undefined;
+  const errorTimestamp = searchParams.get("timestamp") ? Number(searchParams.get("timestamp")) : Date.now();
   const [copied, setCopied] = useState(false);
 
   const errorId = useMemo(() => {
