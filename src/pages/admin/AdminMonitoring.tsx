@@ -279,9 +279,16 @@ export default function AdminMonitoring() {
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="errors">Failed Orders</TabsTrigger>
           <TabsTrigger value="api-errors">API Errors</TabsTrigger>
+          <TabsTrigger value="client-errors" className="gap-1.5">
+            <Smartphone className="w-3.5 h-3.5" />
+            Client Errors
+            {clientErrors.length > 0 && (
+              <Badge variant="destructive" className="ml-1 text-[10px] px-1.5 py-0">{clientErrors.length}</Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="health">Provider Health</TabsTrigger>
           <TabsTrigger value="logs">All Logs</TabsTrigger>
           <TabsTrigger value="ifree" className="gap-1.5">
