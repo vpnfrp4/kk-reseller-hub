@@ -137,7 +137,7 @@ function AppRoutes() {
       <Route path="/dashboard/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet/topup-status" element={<WalletTopupRedirect />} />
       <Route path="/dashboard/topup-status/:id" element={<ProtectedRoute><TopUpStatusPage /></ProtectedRoute>} />
-      <Route path="/dashboard/services" element={<ProtectedRoute><ServicesShowcasePage /></ProtectedRoute>} />
+      <Route path="/dashboard/tools" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
       <Route path="/dashboard/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
       <Route path="/dashboard/products/:id" element={<ProtectedRoute><ProductDetailPage /></ProtectedRoute>} />
       <Route path="/dashboard/order/:id" element={<ProtectedRoute><OrderFlowPage /></ProtectedRoute>} />

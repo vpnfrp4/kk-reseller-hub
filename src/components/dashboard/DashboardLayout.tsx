@@ -19,7 +19,6 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Bell,
-  Code,
   Settings,
   Wrench,
 } from "lucide-react";
@@ -36,12 +35,11 @@ import kkLogo from "@/assets/kkremote-logo.png";
 
 /* ── Sidebar nav items ── */
 const navItems = [
-  { label: "Home", icon: Home, path: "/dashboard" },
+  { label: "Dashboard", icon: Home, path: "/dashboard" },
   { label: "Place Order", icon: ShoppingCart, path: "/dashboard/place-order" },
   { label: "Orders", icon: Receipt, path: "/dashboard/orders" },
-  { label: "Services", icon: Wrench, path: "/dashboard/services" },
-  { label: "Catalog", icon: Code, path: "/dashboard/products" },
   { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
+  { label: "Tools", icon: Wrench, path: "/dashboard/tools" },
   { label: "Account", icon: User, path: "/dashboard/settings" },
 ];
 
@@ -202,40 +200,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <span>Admin Panel</span>
                 </Link>
               )
-            )}
-
-            {/* User profile */}
-            {!collapsed && (
-              <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-secondary/30">
-                <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0 overflow-hidden">
-                  {profile?.avatar_url ? (
-                    <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    profile?.name?.charAt(0)?.toUpperCase() || "R"
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-foreground truncate leading-tight">{profile?.name || "Reseller"}</p>
-                  <p className="text-[11px] text-muted-foreground truncate leading-tight mt-0.5">{profile?.email}</p>
-                </div>
-              </div>
-            )}
-
-            {collapsed && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex justify-center py-2 cursor-default">
-                    <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0 overflow-hidden">
-                      {profile?.avatar_url ? (
-                        <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        profile?.name?.charAt(0)?.toUpperCase() || "R"
-                      )}
-                    </div>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="text-xs">{profile?.name || "Reseller"}</TooltipContent>
-              </Tooltip>
             )}
 
             {collapsed ? (
