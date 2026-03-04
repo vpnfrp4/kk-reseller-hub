@@ -288,11 +288,11 @@ export default function OrderDetailPage() {
     order?.status || "",
   );
 
-  // For IMEI completed orders, show result; otherwise show credentials
+  // Show result if available (any type), otherwise credentials
   const deliveryContent = useMemo(() => {
-    if (isImei && order?.result) return order.result;
+    if (order?.result) return order.result;
     return order?.credentials || "";
-  }, [order, isImei]);
+  }, [order]);
 
   // Parse delivery content into lines
   const credentialLines = useMemo(() => {
