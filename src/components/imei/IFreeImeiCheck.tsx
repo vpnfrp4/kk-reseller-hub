@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { parseIfreeResponse, cleanIfreeResponse, parseSickwBetaResult } from "@/lib/ifree-response-parser";
 import { sanitizeName } from "@/lib/sanitize-name";
+import ImeiResultCard from "./ImeiResultCard";
 import {
   Smartphone,
   Search,
@@ -52,6 +53,7 @@ interface IFreeResult {
   charge_error?: string;
   required?: number;
   current_balance?: number;
+  order_id?: string;
   [key: string]: unknown;
 }
 
@@ -183,10 +185,11 @@ export default function IFreeImeiCheck() {
       // If balance was charged, refresh profile data instantly
       if (res.charged && res.charged > 0) {
         toast.success(`Charged ${res.charged.toLocaleString()} MMK for IMEI check`);
-        // Invalidate all profile-related queries to refresh balance everywhere
         queryClient.invalidateQueries({ queryKey: ["profile"] });
         queryClient.invalidateQueries({ queryKey: ["userProfile"] });
         queryClient.invalidateQueries({ queryKey: ["wallet"] });
+        queryClient.invalidateQueries({ queryKey: ["orders"] });
+        queryClient.invalidateQueries({ queryKey: ["ifree-check-history"] });
       }
 
       if (res.charge_error) {
@@ -459,51 +462,13 @@ export default function IFreeImeiCheck() {
             </>
           ) : (
             <>
-              {result.response && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-                      <span className="text-[11px] uppercase tracking-wider font-bold text-muted-foreground">Response</span>
-                    </div>
-                    <button
-                      onClick={copyResult}
-                      className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-                      title="Copy response"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                  <div className="rounded-[var(--radius-btn)] bg-secondary/50 border border-border overflow-hidden">
-                    {parsedResponse.length > 0 ? (
-                      <div className="divide-y divide-border">
-                        {parsedResponse.map((pair, i) =>
-                          pair.key ? (
-                            <div key={i} className="flex items-start px-4 py-2.5 gap-3">
-                              <span className="text-[11px] font-semibold text-muted-foreground whitespace-nowrap min-w-[100px]">
-                                {pair.key}
-                              </span>
-                              <span className="text-xs font-mono text-foreground break-all">
-                                {pair.value}
-                              </span>
-                            </div>
-                          ) : (
-                            <div key={i} className="px-4 py-2.5">
-                              <span className="text-xs font-mono text-foreground break-all">
-                                {pair.value}
-                              </span>
-                            </div>
-                          )
-                        )}
-                      </div>
-                    ) : (
-                      <pre className="text-xs font-mono text-foreground whitespace-pre-wrap break-all leading-relaxed p-4">
-                        {cleanIfreeResponse(result.response)}
-                      </pre>
-                    )}
-                  </div>
-                </div>
-              )}
+              <ImeiResultCard
+                result={result as Record<string, unknown>}
+                imei={imei}
+                serviceName={selectedService?.name || "Unknown Service"}
+                orderId={result.order_id}
+                charged={result.charged}
+              />
 
               {result.account_balance !== undefined && (
                 <div className="flex items-center gap-2 rounded-[var(--radius-btn)] bg-primary/5 border border-primary/15 px-4 py-3">
@@ -513,15 +478,7 @@ export default function IFreeImeiCheck() {
                 </div>
               )}
 
-              {!result.response && parsedResponse.length === 0 && !result.error && (result as any).status !== "error" && (
-                <div className="rounded-[var(--radius-btn)] bg-secondary/50 border border-border p-4">
-                  <pre className="text-xs font-mono text-foreground whitespace-pre-wrap break-all leading-relaxed">
-                    {JSON.stringify(result, null, 2)}
-                  </pre>
-                </div>
-              )}
-
-              {/* Re-check button for successful results */}
+              {/* Re-check button */}
               <button
                 onClick={handleCheck}
                 disabled={loading}

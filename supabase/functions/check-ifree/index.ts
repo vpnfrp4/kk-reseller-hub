@@ -37,6 +37,16 @@ function enrichError(data: any) {
   if (!data.error_code) data.error_code = "PROVIDER_ERROR";
 }
 
+/** Generate a simple random alphanumeric string */
+function randomAlnum(len: number): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  let result = "";
+  for (let i = 0; i < len; i++) {
+    result += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return result;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -148,7 +158,8 @@ serve(async (req) => {
 
     const isSuccess = data.success === true && !data.error;
 
-    // ── Deduct balance on success ──
+    // ── Deduct balance & create order on success ──
+    let orderId: string | null = null;
     if (isSuccess && sellPrice > 0) {
       try {
         // Atomic deduction
@@ -157,7 +168,37 @@ serve(async (req) => {
           p_amount: -sellPrice,
         });
 
-        // Log wallet transaction
+        // Generate order code
+        const now = new Date();
+        const yymm = String(now.getFullYear()).slice(2) + String(now.getMonth() + 1).padStart(2, "0");
+        const orderCode = `ORD-${yymm}-${randomAlnum(4)}-IMEI`;
+
+        // Create order in orders table
+        const { data: orderData, error: orderErr } = await supabaseAdmin
+          .from("orders")
+          .insert({
+            user_id: user.id,
+            product_name: `IMEI Check: ${serviceName || "Service #" + cleanServiceId}`,
+            product_type: "imei",
+            credentials: `IMEI: ${cleanImei}`,
+            imei_number: cleanImei,
+            price: sellPrice,
+            status: "delivered",
+            fulfillment_mode: "instant",
+            order_code: orderCode,
+            result: data.response || JSON.stringify(data),
+            completed_at: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+
+        if (orderErr) {
+          console.error("Order creation failed:", orderErr.message);
+        } else {
+          orderId = orderData.id;
+        }
+
+        // Log wallet transaction with order reference
         await supabaseAdmin.from("wallet_transactions").insert({
           user_id: user.id,
           type: "purchase",
@@ -167,10 +208,10 @@ serve(async (req) => {
         });
 
         data.charged = sellPrice;
-        console.log(`Charged ${sellPrice} MMK to user ${user.id}`);
+        data.order_id = orderId;
+        console.log(`Charged ${sellPrice} MMK to user ${user.id}, order ${orderId}`);
       } catch (chargeErr: any) {
         console.error("Balance deduction failed:", chargeErr.message);
-        // Don't fail the whole request — user still gets results but log the issue
         data.charge_error = "Balance deduction failed. Please contact support.";
       }
     }
