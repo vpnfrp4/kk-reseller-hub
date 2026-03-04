@@ -31,6 +31,7 @@ import { MmStatus } from "@/components/shared/MmLabel";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const PRESET_AMOUNTS = [10000, 30000, 50000, 100000];
 const MIN_AMOUNT = 5000;
