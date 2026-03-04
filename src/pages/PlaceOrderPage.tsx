@@ -334,11 +334,11 @@ export default function PlaceOrderPage() {
                       onClick={() => handleSelectProduct(p.id)}
                       className="w-full text-left px-5 py-3 flex items-center justify-between border-b border-border/50 hover:bg-secondary/40 transition-colors duration-150"
                     >
-                      <span className="text-[13px] text-secondary-foreground truncate leading-snug">
-                        <span className="font-mono text-primary/70 font-bold mr-1.5">#{p.display_id}</span>
+                      <span className="text-[13px] text-foreground font-medium truncate leading-snug">
+                        <span className="font-mono text-primary font-bold mr-1.5">#{p.display_id}</span>
                         {p.name}
                       </span>
-                      <span className="font-mono text-xs font-bold text-foreground/70 tabular-nums shrink-0 ml-3">
+                      <span className="font-mono text-xs font-bold text-foreground tabular-nums shrink-0 ml-3">
                         <Money amount={p.wholesale_price} compact />
                       </span>
                     </button>
