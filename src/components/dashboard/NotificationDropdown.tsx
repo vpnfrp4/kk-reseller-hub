@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -34,6 +34,11 @@ interface Notif {
   link?: string | null;
 }
 
+interface GroupedNotif extends Notif {
+  count: number;
+  groupedIds: string[];
+}
+
 const iconMap: Record<NType, typeof Bell> = {
   success: Package,
   info: Wallet,
@@ -62,6 +67,35 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
+/** Group identical notifications (same title+type within 5 min window) */
+function groupNotifications(notifications: Notif[]): GroupedNotif[] {
+  const groups: GroupedNotif[] = [];
+  const WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
+  for (const n of notifications) {
+    const existing = groups.find(
+      (g) =>
+        g.title === n.title &&
+        g.type === n.type &&
+        Math.abs(new Date(g.created_at).getTime() - new Date(n.created_at).getTime()) < WINDOW_MS
+    );
+
+    if (existing) {
+      existing.count += 1;
+      existing.groupedIds.push(n.id);
+      if (!n.is_read) existing.is_read = false;
+      // Keep the most recent timestamp
+      if (new Date(n.created_at) > new Date(existing.created_at)) {
+        existing.created_at = n.created_at;
+      }
+    } else {
+      groups.push({ ...n, count: 1, groupedIds: [n.id] });
+    }
+  }
+
+  return groups;
+}
+
 export default function NotificationDropdown() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -76,12 +110,15 @@ export default function NotificationDropdown() {
         .select("id, title, body, type, is_read, created_at, link")
         .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
-        .limit(20);
+        .limit(50);
       return (data || []) as Notif[];
     },
     enabled: !!user,
     refetchInterval: 30000,
   });
+
+  // Deduplicate and group
+  const grouped = useMemo(() => groupNotifications(notifications), [notifications]);
 
   // Realtime subscription
   useEffect(() => {
@@ -108,15 +145,16 @@ export default function NotificationDropdown() {
     };
   }, [user, queryClient]);
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const unreadCount = grouped.filter((n) => !n.is_read).length;
 
   const handleClick = useCallback(
-    async (n: Notif) => {
+    async (n: GroupedNotif) => {
       if (!n.is_read) {
+        // Mark all grouped notifications as read
         await supabase
           .from("notifications")
           .update({ is_read: true })
-          .eq("id", n.id);
+          .in("id", n.groupedIds);
         queryClient.invalidateQueries({ queryKey: ["notif-dropdown"] });
         queryClient.invalidateQueries({ queryKey: ["notifications-unread-count"] });
         queryClient.invalidateQueries({ queryKey: ["notifications"] });
@@ -193,7 +231,7 @@ export default function NotificationDropdown() {
                 </div>
               ))}
             </div>
-          ) : notifications.length === 0 ? (
+          ) : grouped.length === 0 ? (
             <div className="py-12 text-center">
               <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mx-auto mb-3">
                 <Bell className="w-5 h-5 text-muted-foreground/30" />
@@ -201,7 +239,7 @@ export default function NotificationDropdown() {
               <p className="text-sm font-medium text-muted-foreground">No notifications yet</p>
             </div>
           ) : (
-            notifications.map((n) => {
+            grouped.slice(0, 20).map((n) => {
               const Icon = iconMap[n.type] || Info;
               const color = colorMap[n.type] || "text-muted-foreground";
 
@@ -228,19 +266,28 @@ export default function NotificationDropdown() {
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <p
-                      className={cn(
-                        "text-[13px] leading-snug truncate",
-                        !n.is_read
-                          ? "font-semibold text-foreground"
-                          : "font-medium text-muted-foreground"
+                    <div className="flex items-center gap-2">
+                      <p
+                        className={cn(
+                          "text-[13px] leading-snug truncate",
+                          !n.is_read
+                            ? "font-semibold text-foreground"
+                            : "font-medium text-muted-foreground"
+                        )}
+                      >
+                        {n.title}
+                      </p>
+                      {n.count > 1 && (
+                        <span className="shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-muted text-[10px] font-bold text-muted-foreground px-1">
+                          ×{n.count}
+                        </span>
                       )}
-                    >
-                      {n.title}
-                    </p>
+                    </div>
                     {n.body && (
                       <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
-                        {n.body}
+                        {n.count > 1
+                          ? `${n.body} (and ${n.count - 1} more)`
+                          : n.body}
                       </p>
                     )}
                     <p className="text-[10px] text-muted-foreground/60 mt-1 font-mono">
@@ -259,7 +306,7 @@ export default function NotificationDropdown() {
         </div>
 
         {/* Footer */}
-        {notifications.length > 0 && (
+        {grouped.length > 0 && (
           <div className="border-t border-border">
             <button
               onClick={() => {
