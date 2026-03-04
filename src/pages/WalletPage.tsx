@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Money, ResponsiveTable } from "@/components/shared";
+import PullToRefresh from "@/components/shared/PullToRefresh";
 import type { Column } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
 import { MmStatus } from "@/components/shared/MmLabel";
@@ -203,6 +204,7 @@ export default function WalletPage() {
   ];
 
   return (
+    <PullToRefresh onRefresh={async () => { await Promise.all([refetchTransactions(), queryClient.invalidateQueries({ queryKey: ["payment-methods"] })]); }}>
     <div className="space-y-6">
       {/* ═══ HEADER ═══ */}
       <div className="flex items-center justify-between">
@@ -520,6 +522,7 @@ export default function WalletPage() {
         )}
       </AnimatePresence>
     </div>
+    </PullToRefresh>
   );
 }
 

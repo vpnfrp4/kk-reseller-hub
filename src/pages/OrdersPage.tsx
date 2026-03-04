@@ -16,6 +16,7 @@ import { playNotificationSound } from "@/lib/notification-sound";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { DataCard, Money, ResponsiveTable } from "@/components/shared";
+import PullToRefresh from "@/components/shared/PullToRefresh";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Column } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
@@ -281,6 +282,7 @@ export default function OrdersPage() {
   ) : undefined;
 
   return (
+    <PullToRefresh onRefresh={async () => { await Promise.all([queryClient.invalidateQueries({ queryKey: ["orders"] }), queryClient.invalidateQueries({ queryKey: ["orders-count"] })]); }}>
     <div className="space-y-[var(--space-section)]">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
@@ -435,5 +437,6 @@ export default function OrdersPage() {
         )}
       </div>
     </div>
+    </PullToRefresh>
   );
 }
