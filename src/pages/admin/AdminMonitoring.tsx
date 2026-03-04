@@ -263,6 +263,19 @@ export default function AdminMonitoring() {
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-destructive/10 flex items-center justify-center">
+                <Smartphone className="w-4 h-4 text-destructive" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{clientErrors.length}</p>
+                <p className="text-xs text-muted-foreground">Client Errors</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
