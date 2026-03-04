@@ -29,6 +29,7 @@ import { PageContainer } from "@/components/shared";
 import Confetti from "@/components/Confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import IFreeImeiCheck from "@/components/imei/IFreeImeiCheck";
+import IFreeCheckHistory from "@/components/imei/IFreeCheckHistory";
 
 interface PurchaseResult {
   order_id: string;
@@ -245,7 +246,10 @@ export default function PlaceOrderPage() {
       </div>
 
       {activeTab === "ifree" ? (
-        <IFreeImeiCheck />
+        <div className="space-y-6">
+          <IFreeImeiCheck />
+          <IFreeCheckHistory />
+        </div>
       ) : (
       <AnimatePresence mode="wait">
         {/* ═══════════════════════════════════════════
