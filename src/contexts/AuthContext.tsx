@@ -92,7 +92,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const newData = payload.new as Profile;
           setProfile((prev) => {
             if (!prev) return newData;
-            // Detect balance increase → approved top-up
+            // Balance increase detected — show toast only (notification is created server-side by approve-topup)
             if (newData.balance > prev.balance) {
               const added = newData.balance - prev.balance;
               notifyEvent(
@@ -101,15 +101,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 "success",
                 "topupApproved"
               );
-              // Persist notification to database
-              supabase.from("notifications").insert({
-                user_id: newData.user_id,
-                title: "Top-Up Approved",
-                body: `${added.toLocaleString()} MMK has been added to your wallet.`,
-                type: "success",
-              }).then(() => {});
+              // Do NOT insert notification here — the approve-topup edge function already does it
             }
-            // Detect low balance after a purchase (balance decreased)
+            // Detect low balance after a purchase — toast only, DB insert handled by use-realtime-notifications
             if (newData.balance < prev.balance) {
               const prefs = getNotificationPrefs();
               if (prefs.lowBalance && newData.balance > 0 && newData.balance <= prefs.lowBalanceThreshold) {
@@ -119,12 +113,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   "error",
                   "lowBalance"
                 );
-                supabase.from("notifications").insert({
-                  user_id: newData.user_id,
-                  title: "Low Balance Warning",
-                  body: `Your balance is ${newData.balance.toLocaleString()} MMK, below your ${prefs.lowBalanceThreshold.toLocaleString()} MMK threshold.`,
-                  type: "warning",
-                }).then(() => {});
               }
             }
             return { ...prev, ...newData };
