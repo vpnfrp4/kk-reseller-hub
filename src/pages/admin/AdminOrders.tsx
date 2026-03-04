@@ -335,9 +335,9 @@ export default function AdminOrders() {
       )}
 
       {/* Table */}
-      <DataCard noPadding className="animate-fade-in" footer={paginationFooter}>
-        <div className="overflow-x-auto">
-          <table className="premium-table">
+      <DataCard noPadding className="animate-fade-in overflow-hidden" footer={paginationFooter}>
+        <div className="overflow-x-auto -mx-px">
+          <table className="premium-table min-w-[800px]">
             <thead>
               <tr>
                 <th className="w-10 pl-4">
