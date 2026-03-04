@@ -271,16 +271,15 @@ export default function PlaceOrderPage() {
 
   return (
     <PageContainer maxWidth="max-w-5xl">
-      {/* ═══ HEADER CARD — matches dashboard glass cards ═══ */}
-      <div className="rounded-[var(--radius-card)] border border-border bg-card p-5 sm:p-6 mb-5" style={{ boxShadow: "var(--shadow-card)" }}>
+      <div className="page-header-card mb-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="w-11 h-11 rounded-[var(--radius-card)] bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/10 flex items-center justify-center">
+            <div className="page-header-icon">
               <ShoppingCart className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">Place Order</h1>
-              <p className="text-xs text-muted-foreground mt-0.5">Search and order services quickly</p>
+              <h1>Place Order</h1>
+              <p className="page-header-subtitle">Search and order services quickly</p>
             </div>
           </div>
 

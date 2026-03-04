@@ -102,19 +102,24 @@ export default function DashboardHome() {
           queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] }),
         ]);
       }}>
-        <div className="space-y-8">
+        <div className="space-y-6">
           <PwaInstallBanner />
 
-          {/* ═══ HERO WELCOME ═══ */}
-          <div className="animate-fade-in">
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
-              Welcome back, <span className="text-primary">{profile?.name || "Reseller"}</span>
-            </h1>
-            <p className="text-sm text-muted-foreground mt-1">Here's your business overview</p>
+          {/* ═══ PAGE HEADER CARD — unified with Place Order / Orders ═══ */}
+          <div className="page-header-card animate-fade-in">
+            <div className="flex items-center gap-3.5">
+              <div className="page-header-icon">
+                <TrendingUp className="w-5 h-5 text-primary" />
+              </div>
+              <div>
+                <h1>Welcome back, <span className="text-primary">{profile?.name || "Reseller"}</span></h1>
+                <p className="page-header-subtitle">Here's your business overview</p>
+              </div>
+            </div>
           </div>
 
           {/* ═══ 4 PREMIUM STAT CARDS ═══ */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
             {/* Wallet Balance */}
             <div className="stat-card hover-lift group opacity-0 animate-stagger-in" style={{ animationDelay: "0s" }}>
               <div className="flex items-center gap-3 mb-4">
