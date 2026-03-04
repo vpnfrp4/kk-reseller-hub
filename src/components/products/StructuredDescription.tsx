@@ -37,7 +37,7 @@ function RichText({ children }: { children: string }) {
         href={m[2]}
         target="_blank"
         rel="noopener noreferrer"
-        className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors"
+        className={LINK_CLASSES}
       >
         {m[1]}
       </a>
