@@ -328,10 +328,33 @@ export default function IFreeImeiCheck() {
                       <Copy className="w-3.5 h-3.5" />
                     </button>
                   </div>
-                  <div className="rounded-[var(--radius-btn)] bg-secondary/50 border border-border p-4">
-                    <pre className="text-xs font-mono text-foreground whitespace-pre-wrap break-all leading-relaxed">
-                      {result.response}
-                    </pre>
+                  <div className="rounded-[var(--radius-btn)] bg-secondary/50 border border-border overflow-hidden">
+                    {parsedResponse.length > 0 ? (
+                      <div className="divide-y divide-border">
+                        {parsedResponse.map((pair, i) =>
+                          pair.key ? (
+                            <div key={i} className="flex items-start px-4 py-2.5 gap-3">
+                              <span className="text-[11px] font-semibold text-muted-foreground whitespace-nowrap min-w-[100px]">
+                                {pair.key}
+                              </span>
+                              <span className="text-xs font-mono text-foreground break-all">
+                                {pair.value}
+                              </span>
+                            </div>
+                          ) : (
+                            <div key={i} className="px-4 py-2.5">
+                              <span className="text-xs font-mono text-foreground break-all">
+                                {pair.value}
+                              </span>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    ) : (
+                      <pre className="text-xs font-mono text-foreground whitespace-pre-wrap break-all leading-relaxed p-4">
+                        {cleanIfreeResponse(result.response)}
+                      </pre>
+                    )}
                   </div>
                 </div>
               )}
