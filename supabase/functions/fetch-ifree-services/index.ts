@@ -11,7 +11,6 @@ function stripHtml(s: string): string {
   return s.replace(/<[^>]+>/g, "").trim();
 }
 
-/** Remove HTML entities and emoji characters from service names */
 function sanitizeName(raw: string): string {
   if (!raw) return raw;
   let cleaned = raw
@@ -57,19 +56,58 @@ function getSupabaseAdmin() {
 async function writeCache(services: any[]) {
   try {
     const sb = getSupabaseAdmin();
-    const rows = services.map((s) => ({
-      id: String(s.id),
-      name: s.name || "",
-      price: s.price ?? null,
-      description: s.description ?? null,
-      cached_at: new Date().toISOString(),
-    }));
-    // Upsert all services; delete stale ones
+
+    // First, fetch existing markup_price and selling_price to preserve them
+    const { data: existingRows } = await sb
+      .from("ifree_services_cache")
+      .select("id, markup_price, selling_price");
+
+    const existingMap = new Map<string, { markup_price: number; selling_price: number }>();
+    if (existingRows) {
+      for (const row of existingRows) {
+        existingMap.set(row.id, {
+          markup_price: row.markup_price ?? 0,
+          selling_price: row.selling_price ?? 0,
+        });
+      }
+    }
+
+    // Fetch USD rate for selling price calculation
+    const { data: rateSetting } = await sb
+      .from("system_settings")
+      .select("value")
+      .eq("key", "usd_mmk_rate")
+      .single();
+    const usdRate = rateSetting?.value?.rate ? Number(rateSetting.value.rate) : 4200;
+
+    const rows = services.map((s) => {
+      const existing = existingMap.get(String(s.id));
+      const providerPriceUsd = s.price ? Number(s.price) : 0;
+      const markupPriceUsd = existing?.markup_price ?? 0;
+
+      // Selling price = (provider_price + markup_price) * usd_rate in MMK
+      const sellingPriceMmk = markupPriceUsd > 0
+        ? Math.ceil((providerPriceUsd + markupPriceUsd) * usdRate)
+        : (existing?.selling_price ?? 0);
+
+      return {
+        id: String(s.id),
+        name: s.name || "",
+        price: s.price ?? null,
+        description: s.description ?? null,
+        cached_at: new Date().toISOString(),
+        // Preserve existing markup — never overwrite
+        markup_price: markupPriceUsd,
+        // Recalculate selling price if markup is set
+        selling_price: sellingPriceMmk,
+      };
+    });
+
     const { error } = await sb
       .from("ifree_services_cache")
       .upsert(rows, { onConflict: "id" });
     if (error) console.error("Cache write error:", error.message);
-    else console.log(`Cached ${rows.length} services`);
+    else console.log(`Cached ${rows.length} services (markup preserved)`);
   } catch (e) {
     console.error("Cache write exception:", e.message);
   }
@@ -80,7 +118,7 @@ async function readCache(): Promise<any[] | null> {
     const sb = getSupabaseAdmin();
     const { data, error } = await sb
       .from("ifree_services_cache")
-      .select("id, name, price, description, cached_at")
+      .select("id, name, price, description, cached_at, selling_price, markup_price")
       .order("id");
     if (error || !data || data.length === 0) return null;
     return data;
@@ -115,13 +153,11 @@ async function fetchFromApi(API_KEY: string): Promise<any[] | null> {
         const parsed = JSON.parse(text);
         if (parsed.error || parsed.success === false) continue;
 
-        // HTML table inside JSON response field
         if (parsed.response && typeof parsed.response === "string" && parsed.response.includes("<t")) {
           const htmlServices = parseHtmlServiceTable(parsed.response);
           if (htmlServices.length > 0) return htmlServices;
         }
 
-        // Standard JSON array
         let services: any[] = [];
         if (Array.isArray(parsed)) services = parsed;
         else if (Array.isArray(parsed.services)) services = parsed.services;
@@ -162,19 +198,38 @@ serve(async (req) => {
       );
     }
 
-    // Try live API first
     const liveServices = await fetchFromApi(API_KEY);
 
     if (liveServices && liveServices.length > 0) {
-      // Write to cache in background
+      // Enrich live services with cached selling prices before returning
+      const sb = getSupabaseAdmin();
+      const { data: cachedRows } = await sb
+        .from("ifree_services_cache")
+        .select("id, selling_price, markup_price, is_enabled, custom_name");
+      const cacheMap = new Map<string, any>();
+      if (cachedRows) {
+        for (const row of cachedRows) cacheMap.set(row.id, row);
+      }
+
+      const enriched = liveServices.map((s: any) => {
+        const cached = cacheMap.get(String(s.id));
+        return {
+          ...s,
+          selling_price: cached?.selling_price ?? 0,
+          markup_price: cached?.markup_price ?? 0,
+          is_enabled: cached?.is_enabled ?? true,
+          custom_name: cached?.custom_name ?? null,
+        };
+      });
+
+      // Write to cache in background (preserves markup)
       writeCache(liveServices);
       return new Response(
-        JSON.stringify({ services: liveServices, source: "api", total: liveServices.length }),
+        JSON.stringify({ services: enriched, source: "api", total: enriched.length }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    // Fallback to cached services
     console.log("API failed, trying cache...");
     const cached = await readCache();
     if (cached && cached.length > 0) {

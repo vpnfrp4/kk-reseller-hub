@@ -37,7 +37,6 @@ function enrichError(data: any) {
   if (!data.error_code) data.error_code = "PROVIDER_ERROR";
 }
 
-/** Generate a simple random alphanumeric string */
 function randomAlnum(len: number): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let result = "";
@@ -51,7 +50,7 @@ serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { imei, serviceId, serviceName, servicePrice } = await req.json();
+    const { imei, serviceId, serviceName } = await req.json();
     const API_KEY = Deno.env.get("IFREE_API_KEY");
 
     if (!API_KEY) return jsonResponse({
@@ -65,7 +64,6 @@ serve(async (req) => {
 
     const cleanServiceId = String(serviceId).trim();
 
-    // ── Auth check ──
     const authHeader = req.headers.get("Authorization");
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return jsonResponse({
@@ -84,11 +82,9 @@ serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    // Use getClaims for faster auth validation
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsError } = await supabaseUser.auth.getClaims(token);
     if (claimsError || !claimsData?.claims) {
-      // Fallback to getUser if getClaims isn't available
       const { data: { user } } = await supabaseUser.auth.getUser(token);
       if (!user) {
         return jsonResponse({
@@ -96,12 +92,11 @@ serve(async (req) => {
           error_code: "AUTH_REQUIRED",
         });
       }
-      // Continue with user.id
-      return await processCheck(req, supabaseUser, supabaseAdmin, user.id, cleanImei, cleanServiceId, serviceName, servicePrice, API_KEY);
+      return await processCheck(supabaseAdmin, user.id, cleanImei, cleanServiceId, serviceName, API_KEY);
     }
 
     const userId = claimsData.claims.sub as string;
-    return await processCheck(req, supabaseUser, supabaseAdmin, userId, cleanImei, cleanServiceId, serviceName, servicePrice, API_KEY);
+    return await processCheck(supabaseAdmin, userId, cleanImei, cleanServiceId, serviceName, API_KEY);
   } catch (err: any) {
     console.error("check-ifree error:", err);
     return jsonResponse({ error: err.message || "Unknown error", error_code: "INTERNAL_ERROR" });
@@ -109,35 +104,33 @@ serve(async (req) => {
 });
 
 async function processCheck(
-  _req: Request,
-  supabaseUser: any,
   supabaseAdmin: any,
   userId: string,
   cleanImei: string,
   cleanServiceId: string,
   serviceName: string,
-  servicePrice: any,
   API_KEY: string,
 ) {
-  // Determine sell price (MMK) — from servicePrice param or cache
+  // ── Get selling price from cache (admin-defined) ──
   let sellPrice = 0;
-  if (servicePrice && Number(servicePrice) > 0) {
-    sellPrice = Math.ceil(Number(servicePrice));
-  } else {
-    const { data: cached } = await supabaseAdmin
-      .from("ifree_services_cache")
-      .select("price")
-      .eq("id", cleanServiceId)
+  const { data: cached } = await supabaseAdmin
+    .from("ifree_services_cache")
+    .select("selling_price, price, markup_price")
+    .eq("id", cleanServiceId)
+    .single();
+
+  if (cached?.selling_price && cached.selling_price > 0) {
+    // Use admin-defined selling price (already in MMK)
+    sellPrice = Math.ceil(Number(cached.selling_price));
+  } else if (cached?.price) {
+    // Fallback: convert provider USD price to MMK if no selling price set
+    const { data: rateSetting } = await supabaseAdmin
+      .from("system_settings")
+      .select("value")
+      .eq("key", "usd_mmk_rate")
       .single();
-    if (cached?.price) {
-      const { data: rateSetting } = await supabaseAdmin
-        .from("system_settings")
-        .select("value")
-        .eq("key", "usd_mmk_rate")
-        .single();
-      const usdRate = rateSetting?.value?.rate ? Number(rateSetting.value.rate) : 4200;
-      sellPrice = Math.ceil(Number(cached.price) * usdRate);
-    }
+    const usdRate = rateSetting?.value?.rate ? Number(rateSetting.value.rate) : 4200;
+    sellPrice = Math.ceil(Number(cached.price) * usdRate);
   }
 
   // Balance pre-check
@@ -185,7 +178,6 @@ async function processCheck(
     }
   }
 
-  // Normalize response
   if (data && typeof data === "object") {
     if (data.success === true && !data.response && !data.error) {
       data.status = "processing";

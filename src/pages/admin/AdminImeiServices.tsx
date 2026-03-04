@@ -4,8 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { sanitizeName } from "@/lib/sanitize-name";
 import { toast } from "sonner";
 import {
-  Search, RefreshCw, Save, X, Edit2, Settings2, Eye, EyeOff,
-  ChevronDown, Filter, Loader2, Database,
+  Search, RefreshCw, Save, X, Edit2, Database, DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,7 +12,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
-import { PageContainer } from "@/components/shared";
 
 interface IfreeService {
   id: string;
@@ -23,6 +21,7 @@ interface IfreeService {
   cached_at: string;
   custom_name: string | null;
   selling_price: number | null;
+  markup_price: number | null;
   is_enabled: boolean;
   service_group: string | null;
 }
@@ -38,7 +37,20 @@ export default function AdminImeiServices() {
   const [editData, setEditData] = useState<Partial<IfreeService>>({});
   const [syncing, setSyncing] = useState(false);
 
-  // Fetch services
+  // Fetch USD rate for preview calculations
+  const { data: usdRate } = useQuery({
+    queryKey: ["usd-rate"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("system_settings")
+        .select("value")
+        .eq("key", "usd_mmk_rate")
+        .single();
+      return (data?.value as any)?.rate ? Number((data.value as any).rate) : 4200;
+    },
+  });
+  const rate = usdRate || 4200;
+
   const { data: services, isLoading } = useQuery({
     queryKey: ["admin-ifree-services"],
     queryFn: async () => {
@@ -51,9 +63,8 @@ export default function AdminImeiServices() {
     },
   });
 
-  // Update service mutation
   const updateMutation = useMutation({
-    mutationFn: async (updates: { id: string; custom_name?: string; selling_price?: number; is_enabled?: boolean; service_group?: string }) => {
+    mutationFn: async (updates: { id: string; custom_name?: string; selling_price?: number; markup_price?: number; is_enabled?: boolean; service_group?: string }) => {
       const { id, ...fields } = updates;
       const { error } = await supabase
         .from("ifree_services_cache")
@@ -70,12 +81,10 @@ export default function AdminImeiServices() {
     onError: (e: any) => toast.error(e.message),
   });
 
-  // Toggle enabled
   const toggleEnabled = (service: IfreeService) => {
     updateMutation.mutate({ id: service.id, is_enabled: !service.is_enabled });
   };
 
-  // Sync from API
   const handleSync = async () => {
     setSyncing(true);
     try {
@@ -83,7 +92,7 @@ export default function AdminImeiServices() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       queryClient.invalidateQueries({ queryKey: ["admin-ifree-services"] });
-      toast.success(`Synced ${data?.total || 0} services from API`);
+      toast.success(`Synced ${data?.total || 0} services (markup preserved)`);
     } catch (e: any) {
       toast.error(e.message || "Sync failed");
     } finally {
@@ -91,27 +100,36 @@ export default function AdminImeiServices() {
     }
   };
 
-  // Start editing
   const startEdit = (service: IfreeService) => {
     setEditingId(service.id);
     setEditData({
       custom_name: service.custom_name || "",
-      selling_price: service.selling_price || 0,
+      markup_price: service.markup_price || 0,
       service_group: service.service_group || "General",
     });
   };
 
+  // Calculate selling price from provider + markup
+  const calcSellingPrice = (providerPrice: string | null, markupUsd: number): number => {
+    const provider = providerPrice ? Number(providerPrice) : 0;
+    return Math.ceil((provider + markupUsd) * rate);
+  };
+
   const saveEdit = () => {
     if (!editingId) return;
+    const service = services?.find((s) => s.id === editingId);
+    const markupUsd = editData.markup_price || 0;
+    const sellingMmk = calcSellingPrice(service?.price || null, markupUsd);
+
     updateMutation.mutate({
       id: editingId,
       custom_name: editData.custom_name || undefined,
-      selling_price: editData.selling_price || 0,
+      markup_price: markupUsd,
+      selling_price: sellingMmk,
       service_group: editData.service_group || "General",
     });
   };
 
-  // Filtered data
   const filtered = (services || []).filter((s) => {
     const displayName = s.custom_name || sanitizeName(s.name);
     const matchSearch = !search || displayName.toLowerCase().includes(search.toLowerCase()) || s.id.includes(search);
@@ -203,6 +221,7 @@ export default function AdminImeiServices() {
                 <Skeleton className="h-4 flex-1" />
                 <Skeleton className="h-4 w-20" />
                 <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-4 w-20" />
                 <Skeleton className="h-4 w-24" />
                 <Skeleton className="h-8 w-16" />
               </div>
@@ -225,10 +244,10 @@ export default function AdminImeiServices() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border/20">
-                    {["ID", "Service Name", "API Price", "Sell Price", "Group", "Status", "Actions"].map((h) => (
+                    {["ID", "Service Name", "Provider $", "Markup $", "Sell Price", "Group", "Status", "Actions"].map((h) => (
                       <th key={h} className={cn(
                         "text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-3 text-left",
-                        (h === "API Price" || h === "Sell Price") && "text-right",
+                        (h === "Provider $" || h === "Markup $" || h === "Sell Price") && "text-right",
                         h === "Status" && "text-center",
                         h === "Actions" && "text-right",
                       )}>
@@ -241,6 +260,9 @@ export default function AdminImeiServices() {
                   {filtered.map((s) => {
                     const isEditing = editingId === s.id;
                     const displayName = s.custom_name || sanitizeName(s.name);
+                    const editMarkup = editData.markup_price || 0;
+                    const previewSell = isEditing ? calcSellingPrice(s.price, editMarkup) : (s.selling_price || 0);
+
                     return (
                       <tr
                         key={s.id}
@@ -266,24 +288,42 @@ export default function AdminImeiServices() {
                             <span className="text-sm font-medium text-foreground">{displayName}</span>
                           )}
                         </td>
+                        {/* Provider Price (read-only) */}
                         <td className="px-4 py-3 text-right">
                           <span className="text-xs text-muted-foreground font-mono">
                             {s.price ? `$${s.price}` : "—"}
                           </span>
                         </td>
+                        {/* Markup (editable) */}
                         <td className="px-4 py-3 text-right">
                           {isEditing ? (
-                            <Input
-                              type="number"
-                              value={editData.selling_price || ""}
-                              onChange={(e) => setEditData((d) => ({ ...d, selling_price: Number(e.target.value) }))}
-                              placeholder="0"
-                              className="h-8 text-sm bg-muted/30 border-border/40 w-24 ml-auto text-right"
-                            />
+                            <div className="flex items-center gap-1 justify-end">
+                              <span className="text-xs text-muted-foreground">$</span>
+                              <Input
+                                type="number"
+                                step="0.01"
+                                min="0"
+                                value={editData.markup_price || ""}
+                                onChange={(e) => setEditData((d) => ({ ...d, markup_price: Number(e.target.value) }))}
+                                placeholder="0.00"
+                                className="h-8 text-sm bg-muted/30 border-border/40 w-20 text-right"
+                              />
+                            </div>
                           ) : (
-                            <span className={cn("text-sm font-mono", s.selling_price && s.selling_price > 0 ? "text-success font-semibold" : "text-muted-foreground")}>
-                              {s.selling_price && s.selling_price > 0 ? `${s.selling_price.toLocaleString()} MMK` : "—"}
+                            <span className={cn("text-xs font-mono", (s.markup_price ?? 0) > 0 ? "text-primary font-semibold" : "text-muted-foreground")}>
+                              {(s.markup_price ?? 0) > 0 ? `$${Number(s.markup_price).toFixed(2)}` : "—"}
                             </span>
+                          )}
+                        </td>
+                        {/* Selling Price (auto-calculated) */}
+                        <td className="px-4 py-3 text-right">
+                          <span className={cn("text-sm font-mono", previewSell > 0 ? "text-success font-semibold" : "text-muted-foreground")}>
+                            {previewSell > 0 ? `${previewSell.toLocaleString()} MMK` : "—"}
+                          </span>
+                          {isEditing && previewSell > 0 && (
+                            <div className="text-[10px] text-muted-foreground/60 mt-0.5">
+                              auto-calculated
+                            </div>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -344,6 +384,9 @@ export default function AdminImeiServices() {
               {filtered.map((s) => {
                 const isEditing = editingId === s.id;
                 const displayName = s.custom_name || sanitizeName(s.name);
+                const editMarkup = editData.markup_price || 0;
+                const previewSell = isEditing ? calcSellingPrice(s.price, editMarkup) : (s.selling_price || 0);
+
                 return (
                   <div
                     key={s.id}
@@ -374,21 +417,36 @@ export default function AdminImeiServices() {
                       />
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs">
-                      <span className="text-muted-foreground">API: {s.price ? `$${s.price}` : "—"}</span>
-                      {isEditing ? (
-                        <Input
-                          type="number"
-                          value={editData.selling_price || ""}
-                          onChange={(e) => setEditData((d) => ({ ...d, selling_price: Number(e.target.value) }))}
-                          placeholder="Sell price"
-                          className="h-7 text-xs w-24"
-                        />
-                      ) : (
-                        <span className={cn("font-mono", s.selling_price && s.selling_price > 0 ? "text-success font-semibold" : "text-muted-foreground")}>
-                          Sell: {s.selling_price && s.selling_price > 0 ? `${s.selling_price.toLocaleString()} MMK` : "—"}
+                    {/* Pricing row */}
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <span className="text-[10px] text-muted-foreground/60 block">Provider</span>
+                        <span className="font-mono text-muted-foreground">{s.price ? `$${s.price}` : "—"}</span>
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-muted-foreground/60 block">Markup</span>
+                        {isEditing ? (
+                          <Input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={editData.markup_price || ""}
+                            onChange={(e) => setEditData((d) => ({ ...d, markup_price: Number(e.target.value) }))}
+                            placeholder="$0.00"
+                            className="h-7 text-xs w-20"
+                          />
+                        ) : (
+                          <span className={cn("font-mono", (s.markup_price ?? 0) > 0 ? "text-primary font-semibold" : "text-muted-foreground")}>
+                            {(s.markup_price ?? 0) > 0 ? `$${Number(s.markup_price).toFixed(2)}` : "—"}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-muted-foreground/60 block">Sell Price</span>
+                        <span className={cn("font-mono", previewSell > 0 ? "text-success font-semibold" : "text-muted-foreground")}>
+                          {previewSell > 0 ? `${previewSell.toLocaleString()}` : "—"}
                         </span>
-                      )}
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between">

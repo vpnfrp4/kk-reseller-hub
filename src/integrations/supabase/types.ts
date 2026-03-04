@@ -263,6 +263,7 @@ export type Database = {
           description: string | null
           id: string
           is_enabled: boolean | null
+          markup_price: number | null
           name: string
           price: string | null
           selling_price: number | null
@@ -274,6 +275,7 @@ export type Database = {
           description?: string | null
           id: string
           is_enabled?: boolean | null
+          markup_price?: number | null
           name?: string
           price?: string | null
           selling_price?: number | null
@@ -285,6 +287,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_enabled?: boolean | null
+          markup_price?: number | null
           name?: string
           price?: string | null
           selling_price?: number | null
