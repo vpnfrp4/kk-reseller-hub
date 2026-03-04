@@ -157,31 +157,31 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
     }
     setSavingResult(true);
     try {
-      const updatePayload: Record<string, unknown> = {};
+      // Auto-complete: if order is still pending, mark as completed/delivered
+      const shouldAutoComplete = isPending;
+      const newStatus = isImeiOrder ? "completed" : "delivered";
+
+      const payload: Record<string, unknown> = {
+        order_id: order.id,
+        status: shouldAutoComplete ? newStatus : order.status,
+      };
       if (credentialsInput.trim()) {
-        updatePayload.credentials = credentialsInput.trim();
+        payload.credentials = credentialsInput.trim();
       }
       if (resultInput.trim()) {
-        updatePayload.result = resultInput.trim();
+        payload.result = resultInput.trim();
       }
 
-      const { error } = await supabase
-        .from("orders")
-        .update(updatePayload)
-        .eq("id", order.id);
-
-      if (error) throw error;
-
-      // Notify the customer
-      await supabase.from("notifications").insert({
-        user_id: order.user_id,
-        title: "📦 New Result Available",
-        body: `Your order for ${order.product_name} has been updated with new results. Check your order details.`,
-        type: "order",
-        link: `/dashboard/orders/${order.id}`,
+      const { data, error } = await supabase.functions.invoke("update-order-status", {
+        body: payload,
       });
+      if (error) throw new Error(error.message);
+      if (data && !data.success) throw new Error(data.error || "Update failed");
 
-      toast.success("Result saved & customer notified");
+      const msg = shouldAutoComplete
+        ? `Result saved & order ${newStatus} ✓`
+        : "Result saved & customer notified";
+      toast.success(msg);
       queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
       onStatusUpdated?.();
     } catch (err: any) {
