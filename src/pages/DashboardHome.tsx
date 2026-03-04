@@ -62,7 +62,7 @@ export default function DashboardHome() {
   }, [queryClient, refreshProfile, l]);
 
   // Orders for history
-  const { data: orders } = useQuery({
+  const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ["dashboard-orders"],
     queryFn: async () => {
       const { data } = await supabase.from("orders").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(20);
