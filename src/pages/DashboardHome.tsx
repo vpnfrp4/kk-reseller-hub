@@ -95,7 +95,7 @@ export default function DashboardHome() {
           queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] }),
         ]);
       }}>
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           <PwaInstallBanner />
 
           {/* USER PROFILE CARD */}
@@ -134,29 +134,27 @@ export default function DashboardHome() {
 
               {/* Balance Section */}
               <div className="p-5 sm:p-6">
-                <div className="relative overflow-hidden rounded-[var(--radius-card)] border border-primary/15 p-6 flex items-center justify-between gap-4"
-                  style={{
-                    background: "linear-gradient(135deg, hsl(217 91% 50% / 0.08), hsl(222 20% 14% / 0.6), hsl(45 100% 51% / 0.05))",
-                  }}
-                >
-                  <div className="min-w-0 relative z-10">
+                <div className="balance-card flex items-center justify-between gap-4">
+                  <div className="min-w-0">
                     <p className="text-[11px] uppercase tracking-[0.15em] font-medium text-muted-foreground mb-2">
                       ACCOUNT BALANCE
                     </p>
                     <p className="text-3xl sm:text-4xl font-extrabold font-mono tabular-nums tracking-tight gold-shimmer">
                       {displayBalance.toLocaleString()}
                     </p>
-                    <p className="text-[11px] text-muted-foreground/60 mt-1">MMK</p>
+                    <p className="text-[11px] text-muted-foreground/50 mt-1">MMK</p>
                   </div>
                   <button
                     onClick={() => navigate("/dashboard/wallet")}
-                    className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-[var(--radius-btn)] font-semibold text-sm transition-all shrink-0 relative z-10 bg-primary text-primary-foreground hover:brightness-110 shadow-lg"
+                    className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-[var(--radius-btn)] font-semibold text-sm transition-all shrink-0"
+                    style={{
+                      background: "linear-gradient(135deg, #FFC107, #FFD54F)",
+                      color: "#0B0E14",
+                    }}
                   >
                     <Plus className="w-4 h-4" />
                     Add Fund
                   </button>
-                  {/* Gradient orb decoration */}
-                  <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-primary/10 blur-2xl pointer-events-none" />
                 </div>
               </div>
 

@@ -72,7 +72,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="h-screen flex bg-background overflow-hidden">
       {/* Mobile overlay */}
       <div
         className={cn(
@@ -257,7 +257,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <header className="h-14 border-b border-border/50 flex items-center justify-between px-3 lg:px-8 sticky top-0 z-30 bg-card/80 backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <button
@@ -302,7 +302,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8" data-scroll-area>
+        <main className="flex-1 p-4 lg:p-8 overflow-y-auto" data-scroll-area>
           <AnimatePresence mode="wait">
             <PageTransition key={location.pathname}>
               {children}
