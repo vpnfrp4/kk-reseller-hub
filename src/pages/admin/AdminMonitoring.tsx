@@ -71,6 +71,20 @@ export default function AdminMonitoring() {
     },
   });
 
+  // Client-side errors (from ErrorBoundary)
+  const { data: clientErrors = [], isLoading: loadingClientErrors, refetch: refetchClientErrors } = useQuery({
+    queryKey: ["admin-client-errors"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("api_logs")
+        .select("*")
+        .eq("log_type", "error_boundary")
+        .order("created_at", { ascending: false })
+        .limit(50);
+      return data || [];
+    },
+  });
+
   // Provider health
   const { data: providerHealth = [], isLoading: loadingHealth, refetch: refetchHealth } = useQuery({
     queryKey: ["admin-provider-health"],
@@ -164,6 +178,7 @@ export default function AdminMonitoring() {
     refetchLogs();
     refetchHealth();
     refetchIfree();
+    refetchClientErrors();
   };
 
   const statusBadge = (status: string) => {
@@ -193,7 +208,7 @@ export default function AdminMonitoring() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-4 pb-3 px-4">
             <div className="flex items-center gap-3">
@@ -248,12 +263,32 @@ export default function AdminMonitoring() {
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="pt-4 pb-3 px-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-destructive/10 flex items-center justify-center">
+                <Smartphone className="w-4 h-4 text-destructive" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{clientErrors.length}</p>
+                <p className="text-xs text-muted-foreground">Client Errors</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="errors">Failed Orders</TabsTrigger>
           <TabsTrigger value="api-errors">API Errors</TabsTrigger>
+          <TabsTrigger value="client-errors" className="gap-1.5">
+            <Smartphone className="w-3.5 h-3.5" />
+            Client Errors
+            {clientErrors.length > 0 && (
+              <Badge variant="destructive" className="ml-1 text-[10px] px-1.5 py-0">{clientErrors.length}</Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="health">Provider Health</TabsTrigger>
           <TabsTrigger value="logs">All Logs</TabsTrigger>
           <TabsTrigger value="ifree" className="gap-1.5">
@@ -471,6 +506,49 @@ export default function AdminMonitoring() {
               <p className="text-xs text-muted-foreground">
                 Showing {filteredIfreeChecks.length} of {ifreeChecks.length} checks
               </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Client Errors (ErrorBoundary) */}
+        <TabsContent value="client-errors">
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Page URL</TableHead>
+                    <TableHead>Error Message</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loadingClientErrors ? (
+                    <TableRow><TableCell colSpan={3} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+                  ) : clientErrors.length === 0 ? (
+                    <TableRow><TableCell colSpan={3} className="text-center py-8 text-muted-foreground">No client errors 🎉</TableCell></TableRow>
+                  ) : clientErrors.map((err: any) => (
+                    <TableRow key={err.id}>
+                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                        {format(new Date(err.created_at), "MMM dd HH:mm:ss")}
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate font-mono text-xs">
+                        {err.request_url || "—"}
+                      </TableCell>
+                      <TableCell>
+                        <details className="cursor-pointer">
+                          <summary className="text-xs text-destructive truncate max-w-[400px]">
+                            {err.error_message?.split("\n")[0] || "Unknown error"}
+                          </summary>
+                          <pre className="text-[10px] text-muted-foreground mt-2 whitespace-pre-wrap break-all max-h-40 overflow-auto bg-secondary/30 rounded p-2">
+                            {err.error_message}
+                          </pre>
+                        </details>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
             </CardContent>
           </Card>
         </TabsContent>
