@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PrefetchLink from "@/components/PrefetchLink";
@@ -20,7 +20,6 @@ import {
   ChevronsRight,
   Bell,
   Settings,
-  Wrench,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CurrencyToggle from "@/components/shared/CurrencyToggle";
@@ -34,12 +33,10 @@ import FloatingSupport from "@/components/shared/FloatingSupport";
 import kkLogo from "@/assets/kkremote-logo.png";
 
 /* ── Sidebar nav items ── */
-const navItems = [
+const baseNavItems = [
   { label: "Dashboard", icon: Home, path: "/dashboard" },
   { label: "Place Order", icon: ShoppingCart, path: "/dashboard/place-order" },
   { label: "Orders", icon: Receipt, path: "/dashboard/orders" },
-  { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
-  { label: "Tools", icon: Wrench, path: "/dashboard/tools" },
   { label: "Account", icon: User, path: "/dashboard/settings" },
 ];
 
@@ -60,6 +57,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { lang, toggle: toggleLang } = useLang();
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Build nav items — Wallet only shows if user has balance
+  const navItems = useMemo(() => {
+    const items = [...baseNavItems];
+    const balance = profile?.balance || 0;
+    if (balance > 0) {
+      // Insert Wallet before Account
+      const accountIdx = items.findIndex(i => i.path === "/dashboard/settings");
+      items.splice(accountIdx, 0, { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" });
+    }
+    return items;
+  }, [profile?.balance]);
 
   useEffect(() => {
     const handler = () => navigate("/dashboard/wallet");
