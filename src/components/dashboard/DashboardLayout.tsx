@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PrefetchLink from "@/components/PrefetchLink";
 import { AnimatePresence } from "framer-motion";
@@ -13,20 +12,14 @@ import {
   Receipt,
   User,
   LogOut,
-  Menu,
   ArrowLeftRight,
   Wallet,
   ChevronsLeft,
   ChevronsRight,
-  Bell,
-  Settings,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import CurrencyToggle from "@/components/shared/CurrencyToggle";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { useLang } from "@/contexts/LangContext";
 import { cn } from "@/lib/utils";
-import ThemeToggle from "@/components/ThemeToggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import FloatingSupport from "@/components/shared/FloatingSupport";
@@ -55,7 +48,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     });
   };
   const { user, profile, logout } = useAuth();
-  const { lang, toggle: toggleLang } = useLang();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -256,25 +248,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
-            {/* Language toggle — hide on very small screens */}
-            <button
-              onClick={toggleLang}
-              className="hidden sm:flex items-center h-8 rounded-lg border border-border bg-secondary/60 text-[11px] font-bold uppercase tracking-wider overflow-hidden transition-all duration-200"
-            >
-              <span className={cn("px-2 py-1.5 transition-all duration-300", lang === "en" ? "bg-primary/15 text-primary" : "text-muted-foreground")}>
-                EN
-              </span>
-              <span className={cn("px-2 py-1.5 transition-all duration-300", lang === "mm" ? "bg-primary/15 text-primary" : "text-muted-foreground")}>
-                MM
-              </span>
-            </button>
-
-            <CurrencyToggle />
-
-            <div className="hidden sm:block">
-              <ThemeToggle />
-            </div>
-
             <WalletChip profile={profile} />
 
             <NotificationDropdown />
