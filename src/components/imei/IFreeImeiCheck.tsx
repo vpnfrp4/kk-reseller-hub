@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { parseIfreeResponse, cleanIfreeResponse, parseSickwBetaResult } from "@/lib/ifree-response-parser";
 import { sanitizeName } from "@/lib/sanitize-name";
@@ -14,12 +13,16 @@ import {
   CheckCircle2,
   AlertTriangle,
   Wallet,
-  Copy,
   RefreshCw,
   ChevronsUpDown,
   Check,
   RotateCcw,
   ListRestart,
+  Wifi,
+  WifiOff,
+  Clock,
+  Hash,
+  Shield,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -35,6 +38,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface IFreeService {
   id: string;
@@ -166,7 +170,6 @@ export default function IFreeImeiCheck() {
     setResult(null);
 
     try {
-      // Pass the sell price so the edge function can charge the user
       const sellPrice = selectedService?.price ? Number(selectedService.price) : 0;
 
       const { data, error } = await supabase.functions.invoke("check-ifree", {
@@ -182,7 +185,6 @@ export default function IFreeImeiCheck() {
       const res = data as IFreeResult;
       setResult(res);
 
-      // If balance was charged, refresh profile data instantly
       if (res.charged && res.charged > 0) {
         toast.success(`Charged ${res.charged.toLocaleString()} MMK for IMEI check`);
         queryClient.invalidateQueries({ queryKey: ["profile"] });
@@ -200,13 +202,6 @@ export default function IFreeImeiCheck() {
       setResult({ error: err.message || "Check failed" });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const copyResult = () => {
-    if (result?.response) {
-      navigator.clipboard.writeText(cleanIfreeResponse(result.response));
-      toast.success("Response copied!");
     }
   };
 
@@ -238,261 +233,332 @@ export default function IFreeImeiCheck() {
     return "Check Failed";
   };
 
+  const imeiDigits = imei.replace(/\D/g, "");
+  const isImeiComplete = imeiDigits.length === 15;
+
   return (
-    <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-      {/* Header */}
-      <div className="px-5 py-3.5 border-b border-border flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-          <Smartphone className="w-4 h-4 text-primary" />
+    <div className="space-y-6">
+      {/* ═══ PAGE HEADER CARD ═══ */}
+      <div className="page-header-card">
+        <div className="flex items-center gap-4">
+          <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_20px_-4px_hsl(var(--primary)/0.3)]">
+            <Shield className="w-5 h-5 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">IMEI Check</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Lookup device information using IMEI services</p>
+          </div>
         </div>
-        <div className="flex-1">
-          <h2 className="text-sm font-bold text-foreground">iFreeICloud Check</h2>
-          <p className="text-[10px] text-muted-foreground">
-            IMEI lookup via ifreeicloud API
-            {servicesSource === "fallback" && (
-              <span className="ml-1 text-warning">(cached list)</span>
-            )}
-          </p>
-        </div>
-        <button
-          onClick={fetchServices}
-          disabled={servicesLoading}
-          className="p-1.5 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"
-          title="Refresh services from provider"
-        >
-          <RefreshCw className={cn("w-3.5 h-3.5", servicesLoading && "animate-spin")} />
-        </button>
       </div>
 
-      {/* Form */}
-      <div className="px-5 py-5 space-y-4">
-        {/* Service Selection */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Service <span className="text-destructive">*</span>
-          </label>
-          <Popover open={serviceOpen} onOpenChange={setServiceOpen}>
-            <PopoverTrigger asChild>
-              <button
-                disabled={servicesLoading}
-                className={cn(
-                  "flex items-center justify-between w-full h-10 rounded-[var(--radius-input)] bg-secondary/50 border border-border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 disabled:opacity-50 transition-colors",
-                  selectedService ? "text-foreground" : "text-muted-foreground"
+      {/* ═══ MAIN FORM CARD ═══ */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
+        className="rounded-[var(--radius-card)] border border-border/50 bg-card overflow-hidden transition-all duration-300 hover:border-border/80 hover:shadow-[0_0_40px_-12px_hsl(var(--primary)/0.08)]"
+        style={{ boxShadow: "var(--shadow-card)" }}
+      >
+        {/* Card Header */}
+        <div className="px-5 sm:px-6 py-4 border-b border-border/50 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center">
+              <Smartphone className="w-4 h-4 text-primary" />
+            </div>
+            <div>
+              <h2 className="text-sm font-bold text-foreground">iFreeICloud Check</h2>
+              <p className="text-[10px] text-muted-foreground/60">
+                IMEI lookup via ifreeicloud API
+                {servicesSource === "fallback" && (
+                  <span className="ml-1 text-warning">(cached list)</span>
                 )}
-              >
-                <span className="truncate">
-                  {servicesLoading
-                    ? "Loading services..."
-                    : selectedService
-                    ? `${selectedService.name}${selectedService.price ? ` — $${selectedService.price}` : ""}`
-                    : "Search & select a service..."}
-                </span>
-                <ChevronsUpDown className="w-3.5 h-3.5 shrink-0 ml-2 opacity-50" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Search services..." />
-                <CommandList>
-                  <CommandEmpty>No service found.</CommandEmpty>
-                  <CommandGroup>
-                    {services.map((s) => (
-                      <CommandItem
-                        key={s.id}
-                        value={s.name}
-                        onSelect={() => {
-                          setServiceId(s.id);
-                          setResult(null);
-                          setServiceOpen(false);
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-3.5 w-3.5",
-                            serviceId === s.id ? "opacity-100" : "opacity-0"
-                          )}
-                        />
-                        <span className="flex-1 truncate">{s.name}</span>
-                        {s.price && (
-                          <span className="ml-2 text-xs text-muted-foreground font-mono">${s.price}</span>
-                        )}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-          {services.length > 0 && (
-            <p className="text-[10px] text-muted-foreground/50 flex items-center gap-1 flex-wrap">
-              <span>{services.length} services available</span>
-              {servicesSource && servicesSource !== "unknown" && (
-                <span>· {servicesSource === "cache" ? "cached" : "live"}</span>
-              )}
-              {lastSynced && (
-                <span>· synced {formatTimeAgo(lastSynced)}</span>
-              )}
-            </p>
-          )}
-        </div>
-
-        {/* IMEI Input */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            IMEI Number <span className="text-destructive">*</span>
-          </label>
-          <Input
-            type="text"
-            value={imei}
-            onChange={(e) => {
-              const v = e.target.value.replace(/\D/g, "").slice(0, 15);
-              setImei(v);
-              setResult(null);
-            }}
-            placeholder="Enter 15-digit IMEI number"
-            className="bg-secondary/50 border-border font-mono text-sm rounded-[var(--radius-input)]"
-            maxLength={15}
-          />
-          <p className={cn(
-            "text-[10px]",
-            imei.length === 15 ? "text-success" : "text-muted-foreground/50"
-          )}>
-            {imei.length}/15 digits
-            {imei.length === 15 && " ✓"}
-          </p>
-        </div>
-
-        {/* Submit */}
-        <Button
-          onClick={handleCheck}
-          disabled={loading || !imei.trim() || !serviceId}
-          className={cn(
-            "w-full h-11 font-bold text-sm gap-2 rounded-[var(--radius-btn)]",
-            "bg-primary hover:bg-primary/90 text-primary-foreground",
-            "shadow-[0_0_20px_hsl(var(--primary)/0.25)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)]",
-            "transition-all duration-300"
-          )}
-        >
-          {loading ? (
-            <><Loader2 className="w-4 h-4 animate-spin" /> Checking...</>
-          ) : (
-            <><Search className="w-4 h-4" /> Check IMEI</>
-          )}
-        </Button>
-      </div>
-
-      {/* Loading Skeleton */}
-      {loading && (
-        <div className="border-t border-border px-5 py-5 space-y-4 animate-pulse">
-          <div className="flex items-center gap-2">
-            <div className="w-3.5 h-3.5 rounded-full bg-primary/20" />
-            <div className="h-3 w-20 rounded bg-muted-foreground/15" />
+              </p>
+            </div>
           </div>
-          <div className="rounded-[var(--radius-btn)] bg-secondary/50 border border-border p-4 space-y-2.5">
-            <div className="h-3 w-full rounded bg-muted-foreground/15" />
-            <div className="h-3 w-4/5 rounded bg-muted-foreground/15" />
-            <div className="h-3 w-3/5 rounded bg-muted-foreground/15" />
-            <div className="h-3 w-2/3 rounded bg-muted-foreground/15" />
-          </div>
+          <button
+            onClick={fetchServices}
+            disabled={servicesLoading}
+            className="p-2 rounded-xl hover:bg-secondary/80 text-muted-foreground hover:text-foreground transition-all duration-200 hover:shadow-sm"
+            title="Refresh services from provider"
+          >
+            <RefreshCw className={cn("w-4 h-4", servicesLoading && "animate-spin")} />
+          </button>
         </div>
-      )}
 
-      {/* Result */}
-      {result && !loading && (
-        <div className="border-t border-border px-5 py-5 space-y-4">
-          {/* Processing state: success but empty/pending */}
-          {(result as any).status === "processing" ? (
-            <>
-              <div className="flex items-start gap-2.5 rounded-[var(--radius-btn)] bg-primary/5 border border-primary/15 p-4">
-                <Loader2 className="w-4 h-4 text-primary shrink-0 mt-0.5 animate-spin" />
-                <div className="flex-1">
-                  <p className="text-xs font-bold text-primary">Processing</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {result.response || "Your request is being processed by the provider. Please check back shortly."}
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={handleCheck}
-                disabled={loading}
-                className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-[var(--radius-btn)] border border-primary/30 bg-primary/5 hover:bg-primary/10 text-xs font-semibold text-primary transition-colors"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                Check Again
-              </button>
-            </>
-          ) : (result.error || (result as any).status === "error" || result.response === "") ? (
-            <>
-              <div className="flex items-start gap-2.5 rounded-[var(--radius-btn)] bg-destructive/8 border border-destructive/15 p-4">
-                {getErrorIcon()}
-                <div className="flex-1">
-                  <p className="text-xs font-bold text-destructive">{getErrorTitle()}</p>
-                  <p className="text-xs text-destructive/80 mt-0.5">
-                    {result.error || "The service returned an error. Please verify the IMEI and service selection, then try again."}
-                  </p>
-                  {result.error_code && (
-                    <p className="text-[10px] text-destructive/50 mt-1 font-mono">Code: {result.error_code}</p>
-                  )}
-                </div>
-              </div>
-
-              {/* Contextual action buttons for specific errors */}
-              <div className="flex gap-2">
+        {/* Form Body */}
+        <div className="px-5 sm:px-6 py-6 space-y-5">
+          {/* ── Service Selection ── */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+              Service <span className="text-destructive">*</span>
+            </label>
+            <Popover open={serviceOpen} onOpenChange={setServiceOpen}>
+              <PopoverTrigger asChild>
                 <button
-                  onClick={handleCheck}
-                  disabled={loading}
-                  className="flex items-center justify-center gap-1.5 flex-1 py-2.5 rounded-[var(--radius-btn)] border border-border bg-secondary/50 hover:bg-secondary text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+                  disabled={servicesLoading}
+                  className={cn(
+                    "flex items-center justify-between w-full min-h-[48px] sm:min-h-[44px] rounded-2xl bg-secondary/30 border border-border/50 px-4 text-sm",
+                    "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40",
+                    "disabled:opacity-50 transition-all duration-200",
+                    "hover:bg-secondary/50 hover:border-border",
+                    selectedService ? "text-foreground" : "text-muted-foreground"
+                  )}
                 >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  Retry Check
+                  <span className="truncate text-left">
+                    {servicesLoading
+                      ? "Loading services..."
+                      : selectedService
+                      ? `${selectedService.name}${selectedService.price ? ` — $${selectedService.price}` : ""}`
+                      : "Search & select a service..."}
+                  </span>
+                  <ChevronsUpDown className="w-4 h-4 shrink-0 ml-2 opacity-40" />
                 </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search services..." />
+                  <CommandList>
+                    <CommandEmpty>No service found.</CommandEmpty>
+                    <CommandGroup>
+                      {services.map((s) => (
+                        <CommandItem
+                          key={s.id}
+                          value={s.name}
+                          onSelect={() => {
+                            setServiceId(s.id);
+                            setResult(null);
+                            setServiceOpen(false);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-3.5 w-3.5",
+                              serviceId === s.id ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          <span className="flex-1 truncate">{s.name}</span>
+                          {s.price && (
+                            <span className="ml-2 text-xs text-muted-foreground font-mono">${s.price}</span>
+                          )}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
 
-                {(isServiceError || result.error_code === "PROVIDER_ERROR") && (
-                  <button
-                    onClick={() => {
-                      setServiceId("");
-                      setResult(null);
-                      fetchServices();
-                    }}
-                    className="flex items-center justify-center gap-1.5 flex-1 py-2.5 rounded-[var(--radius-btn)] border border-primary/30 bg-primary/5 hover:bg-primary/10 text-xs font-semibold text-primary transition-colors"
-                  >
-                    <ListRestart className="w-3.5 h-3.5" />
-                    Refresh Services
-                  </button>
+            {/* Service status indicators */}
+            {services.length > 0 && (
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
+                  <Hash className="w-3 h-3" />
+                  {services.length} services available
+                </span>
+                {servicesSource && servicesSource !== "unknown" && (
+                  <span className="inline-flex items-center gap-1.5 text-[10px]">
+                    {servicesSource === "cache" || servicesSource === "fallback" ? (
+                      <WifiOff className="w-3 h-3 text-warning" />
+                    ) : (
+                      <Wifi className="w-3 h-3 text-success" />
+                    )}
+                    <span className={servicesSource === "cache" || servicesSource === "fallback" ? "text-warning" : "text-success"}>
+                      {servicesSource === "cache" || servicesSource === "fallback" ? "Cached" : "Live API connection"}
+                    </span>
+                  </span>
+                )}
+                {lastSynced && (
+                  <span className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground/50">
+                    <Clock className="w-3 h-3" />
+                    Synced {formatTimeAgo(lastSynced)}
+                  </span>
                 )}
               </div>
-            </>
-          ) : (
-            <>
-              <ImeiResultCard
-                result={result as Record<string, unknown>}
-                imei={imei}
-                serviceName={selectedService?.name || "Unknown Service"}
-                orderId={result.order_id}
-                charged={result.charged}
+            )}
+          </div>
+
+          {/* ── IMEI Input ── */}
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              IMEI Number <span className="text-destructive">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                value={imei}
+                onChange={(e) => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 15);
+                  setImei(v);
+                  setResult(null);
+                }}
+                placeholder="Enter 15-digit IMEI number"
+                className={cn(
+                  "w-full min-h-[48px] sm:min-h-[44px] rounded-2xl bg-secondary/30 border border-border/50 px-4 pr-20",
+                  "font-mono text-sm text-foreground placeholder:text-muted-foreground/40",
+                  "focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40",
+                  "transition-all duration-200 hover:bg-secondary/50 hover:border-border",
+                  isImeiComplete && "border-success/40 focus:ring-success/30"
+                )}
+                maxLength={15}
               />
+              <div className={cn(
+                "absolute right-4 top-1/2 -translate-y-1/2 text-[11px] font-mono font-bold tabular-nums transition-colors duration-200",
+                isImeiComplete ? "text-success" : "text-muted-foreground/40"
+              )}>
+                {imeiDigits.length} / 15
+              </div>
+            </div>
+            <p className="text-[10px] text-muted-foreground/50">
+              Dial <span className="font-mono font-bold text-muted-foreground">*#06#</span> on any phone to find its IMEI
+            </p>
+          </div>
 
-              {result.account_balance !== undefined && (
-                <div className="flex items-center gap-2 rounded-[var(--radius-btn)] bg-primary/5 border border-primary/15 px-4 py-3">
-                  <Wallet className="w-4 h-4 text-primary" />
-                  <span className="text-xs text-muted-foreground">API Balance:</span>
-                  <span className="text-sm font-bold font-mono text-foreground">{result.account_balance}</span>
-                </div>
-              )}
-
-              {/* Re-check button */}
-              <button
-                onClick={handleCheck}
-                disabled={loading}
-                className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-[var(--radius-btn)] border border-border bg-secondary/50 hover:bg-secondary text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                Re-check IMEI
-              </button>
-            </>
-          )}
+          {/* ── Submit Button ── */}
+          <Button
+            onClick={handleCheck}
+            disabled={loading || !imei.trim() || !serviceId}
+            className={cn(
+              "w-full min-h-[48px] sm:min-h-[44px] font-bold text-sm gap-2.5 rounded-2xl",
+              "bg-gradient-to-r from-primary to-primary/80 text-primary-foreground",
+              "shadow-[0_0_24px_-4px_hsl(var(--primary)/0.3)]",
+              "hover:shadow-[0_0_36px_-4px_hsl(var(--primary)/0.5)] hover:brightness-110",
+              "transition-all duration-300 active:scale-[0.98]"
+            )}
+          >
+            {loading ? (
+              <><Loader2 className="w-4 h-4 animate-spin" /> Checking...</>
+            ) : (
+              <><Search className="w-4 h-4" /> Check IMEI</>
+            )}
+          </Button>
         </div>
-      )}
+
+        {/* ═══ Loading Skeleton ═══ */}
+        <AnimatePresence>
+          {loading && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="border-t border-border/50 px-5 sm:px-6 py-6 space-y-4"
+            >
+              <div className="flex items-center gap-2 animate-pulse">
+                <div className="w-4 h-4 rounded-full bg-primary/20" />
+                <div className="h-3 w-24 rounded-lg bg-muted-foreground/15" />
+              </div>
+              <div className="rounded-2xl bg-secondary/30 border border-border/30 p-5 space-y-3 animate-pulse">
+                <div className="h-3 w-full rounded-lg bg-muted-foreground/10" />
+                <div className="h-3 w-4/5 rounded-lg bg-muted-foreground/10" />
+                <div className="h-3 w-3/5 rounded-lg bg-muted-foreground/10" />
+                <div className="h-3 w-2/3 rounded-lg bg-muted-foreground/10" />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ═══ Result ═══ */}
+        <AnimatePresence>
+          {result && !loading && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.3 }}
+              className="border-t border-border/50 px-5 sm:px-6 py-6 space-y-4"
+            >
+              {/* Processing state */}
+              {(result as any).status === "processing" ? (
+                <>
+                  <div className="flex items-start gap-3 rounded-2xl bg-primary/5 border border-primary/15 p-4">
+                    <Loader2 className="w-4 h-4 text-primary shrink-0 mt-0.5 animate-spin" />
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-primary">Processing</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {result.response || "Your request is being processed by the provider. Please check back shortly."}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleCheck}
+                    disabled={loading}
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-primary/30 bg-primary/5 hover:bg-primary/10 text-xs font-bold text-primary transition-all duration-200"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Check Again
+                  </button>
+                </>
+              ) : (result.error || (result as any).status === "error" || result.response === "") ? (
+                <>
+                  <div className="flex items-start gap-3 rounded-2xl bg-destructive/8 border border-destructive/15 p-4">
+                    {getErrorIcon()}
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-destructive">{getErrorTitle()}</p>
+                      <p className="text-xs text-destructive/80 mt-0.5">
+                        {result.error || "The service returned an error. Please verify the IMEI and service selection, then try again."}
+                      </p>
+                      {result.error_code && (
+                        <p className="text-[10px] text-destructive/50 mt-1.5 font-mono">Code: {result.error_code}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleCheck}
+                      disabled={loading}
+                      className="flex items-center justify-center gap-2 flex-1 py-3 rounded-2xl border border-border bg-secondary/50 hover:bg-secondary text-xs font-bold text-muted-foreground hover:text-foreground transition-all duration-200"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      Retry Check
+                    </button>
+
+                    {(isServiceError || result.error_code === "PROVIDER_ERROR") && (
+                      <button
+                        onClick={() => {
+                          setServiceId("");
+                          setResult(null);
+                          fetchServices();
+                        }}
+                        className="flex items-center justify-center gap-2 flex-1 py-3 rounded-2xl border border-primary/30 bg-primary/5 hover:bg-primary/10 text-xs font-bold text-primary transition-all duration-200"
+                      >
+                        <ListRestart className="w-3.5 h-3.5" />
+                        Refresh Services
+                      </button>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <ImeiResultCard
+                    result={result as Record<string, unknown>}
+                    imei={imei}
+                    serviceName={selectedService?.name || "Unknown Service"}
+                    orderId={result.order_id}
+                    charged={result.charged}
+                  />
+
+                  {result.account_balance !== undefined && (
+                    <div className="flex items-center gap-3 rounded-2xl bg-primary/5 border border-primary/15 px-4 py-3">
+                      <Wallet className="w-4 h-4 text-primary" />
+                      <span className="text-xs text-muted-foreground">API Balance:</span>
+                      <span className="text-sm font-bold font-mono text-foreground">{result.account_balance}</span>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleCheck}
+                    disabled={loading}
+                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-border bg-secondary/50 hover:bg-secondary text-xs font-bold text-muted-foreground hover:text-foreground transition-all duration-200"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Re-check IMEI
+                  </button>
+                </>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </div>
   );
 }
