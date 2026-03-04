@@ -52,6 +52,7 @@ const AdminProviders = lazy(() => import("./pages/admin/AdminProviders"));
 const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const AdminProfitDashboard = lazy(() => import("./pages/admin/AdminProfitDashboard"));
 const AdminMonitoring = lazy(() => import("./pages/admin/AdminMonitoring"));
+const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 
 function PageLoader() {
   return (
