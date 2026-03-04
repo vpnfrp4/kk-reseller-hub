@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,9 +15,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { CheckCircle2, XCircle, Clock, Image as ImageIcon } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+} from "@/components/ui/dialog";
+import { CheckCircle2, XCircle, Clock, Image as ImageIcon, Settings2, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
-import { DataCard, Money, ResponsiveTable } from "@/components/shared";
+import { DataCard, Money, ResponsiveTable, StatusBadge } from "@/components/shared";
 import type { Column } from "@/components/shared";
 
 interface TopupTransaction {
@@ -30,10 +37,63 @@ interface TopupTransaction {
   reseller_email?: string;
 }
 
+/* ─── Screenshot Thumbnail ─── */
+function ScreenshotThumb({ path, onClick }: { path: string; onClick: () => void }) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    supabase.storage.from("payment-screenshots").createSignedUrl(path, 600).then(({ data }) => {
+      if (!cancelled && data?.signedUrl) setUrl(data.signedUrl);
+    });
+    return () => { cancelled = true; };
+  }, [path]);
+
+  if (!url) {
+    return (
+      <div className="w-14 h-14 rounded-lg bg-muted/30 border border-border/50 flex items-center justify-center shrink-0 animate-pulse">
+        <ImageIcon className="w-4 h-4 text-muted-foreground/40" />
+      </div>
+    );
+  }
+
+  return (
+    <button onClick={onClick} className="relative w-14 h-14 rounded-lg border border-border/50 overflow-hidden shrink-0 group hover:ring-2 hover:ring-primary/40 transition-all">
+      <img src={url} alt="Payment screenshot" className="w-full h-full object-cover" />
+      <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <ExternalLink className="w-4 h-4 text-foreground" />
+      </div>
+    </button>
+  );
+}
+
+/* ─── Auto-Approve Settings ─── */
+const AUTO_APPROVE_KEY = "admin-auto-approve-topups";
+const AUTO_APPROVE_THRESHOLD_KEY = "admin-auto-approve-threshold";
+
+function getAutoApprove(): boolean {
+  try { return localStorage.getItem(AUTO_APPROVE_KEY) === "true"; } catch { return false; }
+}
+function getAutoApproveThreshold(): number {
+  try { return Number(localStorage.getItem(AUTO_APPROVE_THRESHOLD_KEY)) || 50000; } catch { return 50000; }
+}
+
 export default function AdminTopups() {
   const queryClient = useQueryClient();
   const [processing, setProcessing] = useState<string | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<{ txId: string; action: "approve" | "reject"; name: string; amount: number } | null>(null);
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+
+  // Auto-approve settings
+  const [autoApprove, setAutoApprove] = useState(getAutoApprove);
+  const [autoThreshold, setAutoThreshold] = useState(getAutoApproveThreshold);
+
+  useEffect(() => {
+    localStorage.setItem(AUTO_APPROVE_KEY, String(autoApprove));
+  }, [autoApprove]);
+  useEffect(() => {
+    localStorage.setItem(AUTO_APPROVE_THRESHOLD_KEY, String(autoThreshold));
+  }, [autoThreshold]);
 
   useEffect(() => {
     const channel = supabase
@@ -103,10 +163,10 @@ export default function AdminTopups() {
     }
   };
 
-  const viewScreenshot = async (path: string) => {
+  const openScreenshot = async (path: string) => {
     const { data } = await supabase.storage.from("payment-screenshots").createSignedUrl(path, 300);
     if (data?.signedUrl) {
-      window.open(data.signedUrl, "_blank");
+      setLightboxUrl(data.signedUrl);
     } else {
       toast.error("Could not load screenshot");
     }
@@ -147,20 +207,45 @@ export default function AdminTopups() {
       key: "status",
       label: "Status",
       align: "center" as const,
-      render: (row) => (
-        <span className={`text-[11px] px-2.5 py-1 rounded-full ${row.status === "approved" ? "badge-delivered" : "badge-cancelled"}`}>
-          {row.status}
-        </span>
-      ),
+      render: (row) => <StatusBadge status={row.status} />,
     },
   ];
 
   return (
     <div className="space-y-section">
-      <div className="animate-fade-in">
-        <h1 className="text-h1 text-foreground">Wallet Top-ups</h1>
-        <p className="text-caption text-muted-foreground">Review and approve reseller top-up requests</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-tight animate-fade-in">
+        <div>
+          <h1 className="text-h1 text-foreground">Wallet Top-ups</h1>
+          <p className="text-caption text-muted-foreground">Review and approve reseller top-up requests</p>
+        </div>
       </div>
+
+      {/* Settings Card */}
+      <DataCard className="animate-fade-in" actions={<Settings2 className="w-4 h-4 text-muted-foreground" />}>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-default">
+          <div className="flex items-center gap-compact">
+            <Switch checked={autoApprove} onCheckedChange={setAutoApprove} />
+            <div>
+              <Label className="text-sm font-medium text-foreground">Auto-Approve Top-ups</Label>
+              <p className="text-[11px] text-muted-foreground mt-micro">
+                Automatically approve requests below the threshold
+              </p>
+            </div>
+          </div>
+          {autoApprove && (
+            <div className="flex items-center gap-compact">
+              <Label className="text-xs text-muted-foreground whitespace-nowrap">Max Amount:</Label>
+              <Input
+                type="number"
+                value={autoThreshold}
+                onChange={(e) => setAutoThreshold(Number(e.target.value) || 0)}
+                className="w-32 h-8 text-sm"
+              />
+              <span className="text-xs text-muted-foreground">MMK</span>
+            </div>
+          )}
+        </div>
+      </DataCard>
 
       {/* Pending */}
       <DataCard
@@ -176,26 +261,29 @@ export default function AdminTopups() {
           <div className="space-y-compact">
             {pending.map((tx) => (
               <div key={tx.id} className="glass-card p-default flex flex-col sm:flex-row sm:items-center justify-between gap-default">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">
-                    {tx.reseller_name}{" "}
-                    <span className="text-muted-foreground font-normal">({tx.reseller_email})</span>
-                  </p>
-                  <div className="flex items-center gap-default mt-micro text-xs text-muted-foreground">
-                    <span className="font-mono font-semibold text-foreground text-base">
-                      +<Money amount={tx.amount} className="inline text-base" />
-                    </span>
-                    <span>via {tx.method}</span>
-                    <span>{new Date(tx.created_at).toLocaleDateString()}</span>
+                <div className="flex gap-compact flex-1 min-w-0">
+                  {/* Inline screenshot thumbnail */}
+                  {tx.screenshot_url && (
+                    <ScreenshotThumb path={tx.screenshot_url} onClick={() => openScreenshot(tx.screenshot_url!)} />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">
+                      {tx.reseller_name}{" "}
+                      <span className="text-muted-foreground font-normal text-xs">({tx.reseller_email})</span>
+                    </p>
+                    <div className="flex flex-wrap items-center gap-compact mt-micro text-xs text-muted-foreground">
+                      <span className="font-mono font-semibold text-foreground text-base">
+                        +<Money amount={tx.amount} className="inline text-base" />
+                      </span>
+                      <span>via {tx.method}</span>
+                      <span>{new Date(tx.created_at).toLocaleDateString()}</span>
+                      {autoApprove && tx.amount <= autoThreshold && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full badge-completed">Auto-eligible</span>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-tight">
-                  {tx.screenshot_url && (
-                    <Button variant="outline" size="sm" onClick={() => viewScreenshot(tx.screenshot_url!)} className="gap-1 text-xs">
-                      <ImageIcon className="w-3 h-3" />
-                      Screenshot
-                    </Button>
-                  )}
+                <div className="flex items-center gap-tight shrink-0">
                   <Button
                     size="sm"
                     onClick={() => setConfirmDialog({ txId: tx.id, action: "approve", name: tx.reseller_name || "Unknown", amount: tx.amount })}
@@ -231,6 +319,15 @@ export default function AdminTopups() {
           emptyMessage="No processed transactions"
         />
       </DataCard>
+
+      {/* Screenshot Lightbox */}
+      <Dialog open={!!lightboxUrl} onOpenChange={(open) => !open && setLightboxUrl(null)}>
+        <DialogContent className="bg-card border-border max-w-lg p-2">
+          {lightboxUrl && (
+            <img src={lightboxUrl} alt="Payment screenshot" className="w-full rounded-lg" />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Confirmation Dialog */}
       <AlertDialog open={!!confirmDialog} onOpenChange={(open) => !open && setConfirmDialog(null)}>
