@@ -352,6 +352,8 @@ export default function AdminOrders() {
                 <th>Type</th>
                 <th>User</th>
                 <th className="text-right">Price</th>
+                <th className="text-right">Cost</th>
+                <th className="text-right">Profit</th>
                 <th className="text-center">Status</th>
                 <th>Date</th>
                 <th className="text-center">Actions</th>
@@ -360,13 +362,13 @@ export default function AdminOrders() {
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={9} className="p-8 text-center">
-                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-                  </td>
-                </tr>
-              ) : paginatedOrders.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="p-8 text-center text-sm text-muted-foreground">
+                    <td colSpan={11} className="p-8 text-center">
+                     <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                   </td>
+                 </tr>
+               ) : paginatedOrders.length === 0 ? (
+                 <tr>
+                   <td colSpan={11} className="p-8 text-center text-sm text-muted-foreground">
                     No orders found
                   </td>
                 </tr>
@@ -401,9 +403,19 @@ export default function AdminOrders() {
                       <p className="text-xs text-muted-foreground">{o.profile?.email || "Unknown"}</p>
                     </td>
                     <td className="p-default text-right">
-                      <Money amount={o.price} />
-                    </td>
-                    <td className="p-default text-center">{statusBadge(o.status)}</td>
+                       <Money amount={o.price} />
+                     </td>
+                     <td className="p-default text-right">
+                       {o.provider_cost ? <Money amount={o.provider_cost} /> : <span className="text-muted-foreground text-xs">—</span>}
+                     </td>
+                     <td className="p-default text-right">
+                       {o.profit_amount ? (
+                         <span className={o.profit_amount > 0 ? "text-success font-medium" : "text-destructive font-medium"}>
+                           <Money amount={o.profit_amount} />
+                         </span>
+                       ) : <span className="text-muted-foreground text-xs">—</span>}
+                     </td>
+                     <td className="p-default text-center">{statusBadge(o.status)}</td>
                     <td className="p-default text-sm text-muted-foreground">
                       {new Date(o.created_at).toLocaleDateString()}
                     </td>
