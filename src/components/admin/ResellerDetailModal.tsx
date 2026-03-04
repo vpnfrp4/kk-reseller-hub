@@ -204,23 +204,7 @@ export default function ResellerDetailModal({ reseller, open, onOpenChange }: Re
     queryClient.invalidateQueries({ queryKey: ["admin-reseller-transactions", reseller.user_id] });
   };
 
-  const statusBadgeFn = (status: string) => {
-    const styles: Record<string, string> = {
-      delivered: "bg-success/10 text-success",
-      completed: "bg-success/10 text-success",
-      pending: "bg-warning/10 text-warning",
-      pending_review: "bg-warning/10 text-warning",
-      api_pending: "bg-sky-500/10 text-sky-400",
-      cancelled: "bg-destructive/10 text-destructive",
-      rejected: "bg-destructive/10 text-destructive",
-      approved: "bg-success/10 text-success",
-    };
-    return (
-      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${styles[status] || "bg-muted text-muted-foreground"}`}>
-        {status}
-      </span>
-    );
-  };
+  const statusBadgeFn = (status: string) => <StatusBadge status={status} />;
 
   const tierObj = tiers?.find((t: any) => t.name.toLowerCase() === currentTier);
 
