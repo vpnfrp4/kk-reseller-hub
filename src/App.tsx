@@ -3,6 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from "react-router-dom";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { LangProvider } from "@/contexts/LangContext";
@@ -154,23 +155,27 @@ const App = () => {
   const handleSplashFinished = useCallback(() => setSplashDone(true), []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <LangProvider>
-          {!splashDone && <SplashScreen onFinished={handleSplashFinished} />}
-          <Toaster />
-          <Sonner />
-          <PwaUpdatePrompt />
-          <BrowserRouter>
-            <AuthProvider>
-              <CurrencyProvider>
-                <AppRoutes />
-              </CurrencyProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </LangProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <LangProvider>
+            {!splashDone && <SplashScreen onFinished={handleSplashFinished} />}
+            <Toaster />
+            <Sonner />
+            <PwaUpdatePrompt />
+            <BrowserRouter>
+              <AuthProvider>
+                <CurrencyProvider>
+                  <ErrorBoundary>
+                    <AppRoutes />
+                  </ErrorBoundary>
+                </CurrencyProvider>
+              </AuthProvider>
+            </BrowserRouter>
+          </LangProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

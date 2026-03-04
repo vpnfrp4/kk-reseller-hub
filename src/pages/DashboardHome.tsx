@@ -62,7 +62,7 @@ export default function DashboardHome() {
   }, [queryClient, refreshProfile, l]);
 
   // Orders for history
-  const { data: orders } = useQuery({
+  const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ["dashboard-orders"],
     queryFn: async () => {
       const { data } = await supabase.from("orders").select("*").eq("user_id", user!.id).order("created_at", { ascending: false }).limit(20);
@@ -157,7 +157,23 @@ export default function DashboardHome() {
         </div>
 
         {/* Table Body */}
-        {filteredOrders.length === 0 ? (
+        {ordersLoading ? (
+          <div className="space-y-0 divide-y divide-border/30">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="px-6 py-4 animate-pulse">
+                <div className="grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-4">
+                  <div className="h-4 w-20 bg-muted-foreground/10 rounded" />
+                  <div className="h-4 w-32 bg-muted-foreground/10 rounded" />
+                  <div className="h-4 w-16 bg-muted-foreground/10 rounded hidden md:block" />
+                  <div className="h-4 w-20 bg-muted-foreground/10 rounded ml-auto" />
+                  <div className="h-4 w-24 bg-muted-foreground/10 rounded hidden md:block" />
+                  <div className="h-5 w-16 bg-muted-foreground/10 rounded-full mx-auto hidden md:block" />
+                  <div className="h-4 w-10 bg-muted-foreground/10 rounded mx-auto hidden md:block" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Receipt className="w-12 h-12 mb-3 opacity-40" />
             <p className="text-sm">No orders found</p>
@@ -167,10 +183,10 @@ export default function DashboardHome() {
             {filteredOrders.map((order: any) => (
               <div
                 key={order.id}
-                className="grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-4 px-6 py-4 hover:bg-secondary/20 transition-colors cursor-pointer"
+                className="grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-4 px-4 md:px-6 py-3 md:py-4 hover:bg-secondary/20 transition-colors cursor-pointer"
                 onClick={() => navigate(`/dashboard/orders/${order.id}`)}
               >
-                <span className="font-mono text-xs text-primary font-medium">
+                <span className="font-mono text-xs text-primary font-medium truncate">
                   {order.order_code}
                 </span>
                 <span className="text-sm text-foreground truncate col-span-1">
@@ -187,6 +203,11 @@ export default function DashboardHome() {
                 </span>
                 <span className="text-center hidden md:block">
                   <MmStatus status={order.status} />
+                </span>
+                {/* Mobile: show status + date inline */}
+                <span className="md:hidden flex items-center gap-2">
+                  <MmStatus status={order.status} />
+                  <span className="text-[10px] text-muted-foreground">{format(new Date(order.created_at), "MMM dd")}</span>
                 </span>
                 <span className="text-center hidden md:block">
                   <Link
