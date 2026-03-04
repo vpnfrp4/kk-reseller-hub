@@ -1012,31 +1012,65 @@ export default function AdminProducts() {
   };
 
   return (
-    <div className="space-y-section">
-      <div className="flex items-center justify-between animate-fade-in">
+    <div className="space-y-6">
+      {/* ── Header ── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in">
         <div>
-          <h1 className="text-h1 text-foreground">Products</h1>
-          <p className="text-caption text-muted-foreground">
-            Manage all products · {(products || []).length} total · {filteredProducts.length} filtered
+          <h1 className="text-h1 text-foreground flex items-center gap-2.5">
+            <Package className="w-6 h-6 text-primary" />
+            Products
+          </h1>
+          <p className="text-caption text-muted-foreground mt-1">
+            {(products || []).length} total · {filteredProducts.length} showing
             {totalPages > 1 && ` · Page ${currentPage}/${totalPages}`}
           </p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={bulkRefreshing}
-            onClick={handleBulkRefreshDescriptions}
-            className="gap-1.5 text-xs"
-          >
-            {bulkRefreshing ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-            {bulkRefreshing ? `Cleaning ${bulkRefreshProgress.current}/${bulkRefreshProgress.total}…` : "Clean All Emojis"}
-          </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-1.5 text-xs h-9">
+                <Wrench className="w-3.5 h-3.5" /> Tools
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem onClick={handleBulkRefreshDescriptions} disabled={bulkRefreshing}>
+                {bulkRefreshing ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <RefreshCw className="w-3.5 h-3.5 mr-2" />}
+                {bulkRefreshing ? `Cleaning ${bulkRefreshProgress.current}/${bulkRefreshProgress.total}…` : "Clean All Emojis"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setBulkPriceOpen(true)}>
+                <Percent className="w-3.5 h-3.5 mr-2" /> Adjust Prices
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={async () => {
+                if (!products || !confirm("Reset product order to alphabetical?")) return;
+                const previousOrder = products.map((p: any) => ({ id: p.id, sort_order: p.sort_order }));
+                const sorted = [...products].sort((a: any, b: any) => a.name.localeCompare(b.name));
+                const updated = sorted.map((p: any, i: number) => ({ ...p, sort_order: i }));
+                queryClient.setQueryData(["admin-products"], updated);
+                for (const p of updated) { await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id); }
+                queryClient.invalidateQueries({ queryKey: ["products"] });
+                const DURATION = 10000;
+                toast.custom((id) => (
+                  <UndoToast id={id} duration={DURATION} message={`Order reset — ${updated.length} products reordered`}
+                    onUndo={async () => {
+                      toast.dismiss(id);
+                      for (const p of previousOrder) { await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id); }
+                      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+                      queryClient.invalidateQueries({ queryKey: ["products"] });
+                      toast.success("Order restored");
+                    }} />
+                ), { duration: DURATION });
+              }}>
+                <RotateCcw className="w-3.5 h-3.5 mr-2" /> Reset Order
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <BulkTierDialog />
           <BulkImageUpload products={(products || []).map((p: any) => ({ id: p.id, name: p.name, icon: p.icon, image_url: p.image_url }))} />
           <Dialog open={dialogOpen} onOpenChange={(v) => { if (!v) { handleDialogClose(); return; } setDialogOpen(v); initialFormRef.current = JSON.stringify(form); }}>
             <DialogTrigger asChild>
-              <Button className="btn-glow gap-2" onClick={() => { resetForm(); initialFormRef.current = JSON.stringify(defaultForm); }}><Plus className="w-4 h-4" />Add Product</Button>
+              <Button size="default" className="btn-glow gap-2 h-10 px-5 text-sm font-semibold shadow-md" onClick={() => { resetForm(); initialFormRef.current = JSON.stringify(defaultForm); }}>
+                <Plus className="w-4 h-4" />Add Product
+              </Button>
             </DialogTrigger>
             <DialogContent
               className="bg-card border-border max-w-lg max-h-[90vh] flex flex-col p-0"
