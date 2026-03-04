@@ -54,6 +54,15 @@ interface IFreeResult {
   [key: string]: unknown;
 }
 
+function formatTimeAgo(date: Date): string {
+  const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const mins = Math.floor(seconds / 60);
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  return `${hrs}h ago`;
+}
+
 export default function IFreeImeiCheck() {
   const queryClient = useQueryClient();
   const [imei, setImei] = useState("");
@@ -64,6 +73,7 @@ export default function IFreeImeiCheck() {
   const [servicesLoading, setServicesLoading] = useState(true);
   const [servicesSource, setServicesSource] = useState<string>("");
   const [serviceOpen, setServiceOpen] = useState(false);
+  const [lastSynced, setLastSynced] = useState<Date | null>(null);
 
   const selectedService = useMemo(
     () => services.find((s) => s.id === serviceId),
@@ -111,7 +121,8 @@ export default function IFreeImeiCheck() {
 
       if (parsed.length > 0) {
         setServices(parsed);
-        if (source === "fallback") {
+        setLastSynced(new Date());
+        if (source === "fallback" || source === "cache") {
           toast.info("Using cached service list. Live sync may be unavailable.", { duration: 4000 });
         } else {
           toast.success(`Loaded ${parsed.length} services from provider`, { duration: 2000 });
@@ -307,10 +318,13 @@ export default function IFreeImeiCheck() {
             </PopoverContent>
           </Popover>
           {services.length > 0 && (
-            <p className="text-[10px] text-muted-foreground/50">
-              {services.length} services available
+            <p className="text-[10px] text-muted-foreground/50 flex items-center gap-1 flex-wrap">
+              <span>{services.length} services available</span>
               {servicesSource && servicesSource !== "unknown" && (
-                <span className="ml-1">· source: {servicesSource}</span>
+                <span>· {servicesSource === "cache" ? "cached" : "live"}</span>
+              )}
+              {lastSynced && (
+                <span>· synced {formatTimeAgo(lastSynced)}</span>
               )}
             </p>
           )}
