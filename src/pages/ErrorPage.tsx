@@ -69,10 +69,10 @@ export default function ErrorPage() {
             <Clock className="w-3.5 h-3.5" />
             <span>{errorTime}</span>
           </div>
-          {errorState?.message && (
+          {errorMessage && (
             <div className="rounded-lg bg-destructive/5 border border-destructive/10 p-3">
               <p className="text-[11px] font-mono text-destructive/80 break-all leading-relaxed">
-                {errorState.message}
+                {errorMessage}
               </p>
             </div>
           )}
