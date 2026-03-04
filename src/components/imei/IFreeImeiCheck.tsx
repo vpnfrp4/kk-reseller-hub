@@ -128,7 +128,7 @@ export default function IFreeImeiCheck() {
 
     try {
       const { data, error } = await supabase.functions.invoke("check-ifree", {
-        body: { imei: imei.trim(), serviceId },
+        body: { imei: imei.trim(), serviceId, serviceName: selectedService?.name || "" },
       });
       if (error) throw new Error(error.message);
       setResult(data as IFreeResult);

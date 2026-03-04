@@ -217,6 +217,45 @@ export type Database = {
         }
         Relationships: []
       }
+      ifree_checks: {
+        Row: {
+          account_balance: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          imei: string
+          response_text: string | null
+          service_id: string
+          service_name: string
+          success: boolean
+          user_id: string
+        }
+        Insert: {
+          account_balance?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          imei: string
+          response_text?: string | null
+          service_id: string
+          service_name?: string
+          success?: boolean
+          user_id: string
+        }
+        Update: {
+          account_balance?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          imei?: string
+          response_text?: string | null
+          service_id?: string
+          service_name?: string
+          success?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       imei_brands: {
         Row: {
           created_at: string
