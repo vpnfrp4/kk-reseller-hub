@@ -16,6 +16,7 @@ import { playNotificationSound } from "@/lib/notification-sound";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { DataCard, Money, ResponsiveTable } from "@/components/shared";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Column } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
 import MmLabel, { MmStatus, MmInline } from "@/components/shared/MmLabel";
@@ -118,7 +119,7 @@ export default function OrdersPage() {
   const totalCount = countData || 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-  const { data: orders } = useQuery({
+  const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ["orders", page, ...filterKey],
     queryFn: async () => {
       const from = page * PAGE_SIZE;
@@ -392,18 +393,41 @@ export default function OrdersPage() {
 
       {/* Orders Table */}
       <div className="glass-card animate-fade-in overflow-hidden">
-        <ResponsiveTable
-          columns={columns}
-          data={orders || []}
-          keyExtractor={(row) => row.id}
-          emptyMessage={hasFilters ? l(t.orders.noMatch) : l(t.orders.noOrders)}
-          onRowClick={(row) => navigate(`/dashboard/orders/${row.id}`)}
-          rowClassName={(row) =>
-            highlightedIds.has(row.id)
-              ? "bg-primary/15 ring-1 ring-inset ring-primary/30"
-              : ""
-          }
-        />
+        {ordersLoading ? (
+          <div className="p-5 space-y-4">
+            {/* Header row skeleton */}
+            <div className="flex items-center gap-4 pb-3 border-b border-border/20">
+              {["w-16", "flex-1", "w-20", "w-24", "w-16", "w-20", "w-16"].map((w, i) => (
+                <Skeleton key={i} className={`h-3 ${w}`} />
+              ))}
+            </div>
+            {/* Row skeletons */}
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 flex-1" />
+                <Skeleton className="h-5 w-14 rounded-full" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-16" />
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <ResponsiveTable
+            columns={columns}
+            data={orders || []}
+            keyExtractor={(row) => row.id}
+            emptyMessage={hasFilters ? l(t.orders.noMatch) : l(t.orders.noOrders)}
+            onRowClick={(row) => navigate(`/dashboard/orders/${row.id}`)}
+            rowClassName={(row) =>
+              highlightedIds.has(row.id)
+                ? "bg-primary/15 ring-1 ring-inset ring-primary/30"
+                : ""
+            }
+          />
+        )}
         {paginationFooter && (
           <div className="border-t border-border/20 p-[var(--space-default)]">
             {paginationFooter}

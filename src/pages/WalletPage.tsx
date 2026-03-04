@@ -31,6 +31,7 @@ import { MmStatus } from "@/components/shared/MmLabel";
 import { cn } from "@/lib/utils";
 import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const PRESET_AMOUNTS = [10000, 30000, 50000, 100000];
 const MIN_AMOUNT = 5000;
@@ -61,7 +62,7 @@ export default function WalletPage() {
   const [verifyTxId, setVerifyTxId] = useState("");
   const [verifying, setVerifying] = useState(false);
 
-  const { data: transactions, refetch: refetchTransactions } = useQuery({
+  const { data: transactions, refetch: refetchTransactions, isLoading: txLoading } = useQuery({
     queryKey: ["wallet-transactions"],
     queryFn: async () => {
       const { data } = await supabase
@@ -71,7 +72,7 @@ export default function WalletPage() {
     },
   });
 
-  const { data: paymentMethods } = useQuery({
+  const { data: paymentMethods, isLoading: methodsLoading } = useQuery({
     queryKey: ["payment-methods"],
     queryFn: async () => {
       const { data } = await supabase
@@ -235,8 +236,14 @@ export default function WalletPage() {
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-[var(--radius-card)] bg-secondary border border-border">
             <Wallet className="w-4 h-4 text-primary" />
-            <span className="font-mono font-bold text-foreground tabular-nums">{(profile?.balance || 0).toLocaleString()}</span>
-            <span className="text-[10px] text-muted-foreground font-medium">MMK</span>
+            {!profile ? (
+              <Skeleton className="h-5 w-24" />
+            ) : (
+              <>
+                <span className="font-mono font-bold text-foreground tabular-nums">{(profile.balance || 0).toLocaleString()}</span>
+                <span className="text-[10px] text-muted-foreground font-medium">MMK</span>
+              </>
+            )}
           </div>
           {step !== "history" && (
             <button onClick={() => setStep("history")}
@@ -270,6 +277,17 @@ export default function WalletPage() {
             </div>
 
             {/* Payment Methods Grid */}
+            {methodsLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex flex-col items-center gap-3 p-5 rounded-[var(--radius-card)] border border-border/40 bg-card">
+                    <Skeleton className="w-10 h-10 rounded-full" />
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                ))}
+              </div>
+            ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {(paymentMethods || []).map((m: any) => (
                 <motion.button key={m.method_id} type="button"
@@ -283,6 +301,7 @@ export default function WalletPage() {
                 </motion.button>
               ))}
             </div>
+            )}
 
             {/* Pending Topups */}
             {pendingTopups.length > 0 && (
@@ -482,7 +501,20 @@ export default function WalletPage() {
                 <History className="w-4 h-4 text-primary" />
                 <h3 className="text-sm font-semibold text-foreground">Transaction History</h3>
               </div>
-              <ResponsiveTable columns={txColumns} data={transactions || []} keyExtractor={(row) => row.id} emptyMessage="No transactions yet" />
+              {txLoading ? (
+                <div className="p-5 space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 flex-1" />
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ResponsiveTable columns={txColumns} data={transactions || []} keyExtractor={(row) => row.id} emptyMessage="No transactions yet" />
+              )}
             </div>
           </motion.div>
         )}
