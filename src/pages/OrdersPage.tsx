@@ -16,6 +16,7 @@ import { playNotificationSound } from "@/lib/notification-sound";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { DataCard, Money, ResponsiveTable } from "@/components/shared";
+import PullToRefresh from "@/components/shared/PullToRefresh";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Column } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
