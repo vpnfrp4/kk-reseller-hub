@@ -119,7 +119,7 @@ export default function OrdersPage() {
   const totalCount = countData || 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
-  const { data: orders } = useQuery({
+  const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ["orders", page, ...filterKey],
     queryFn: async () => {
       const from = page * PAGE_SIZE;
