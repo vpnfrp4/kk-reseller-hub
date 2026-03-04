@@ -19,7 +19,7 @@ const Login = lazy(() => import("./pages/Login"));
 const DashboardHome = lazy(() => import("./pages/DashboardHome"));
 const WalletPage = lazy(() => import("./pages/WalletPage"));
 const ProductsPage = lazy(() => import("./pages/ProductsPage"));
-const ServicesShowcasePage = lazy(() => import("./pages/ServicesShowcasePage"));
+
 const OrdersPage = lazy(() => import("./pages/OrdersPage"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
 const ProductDetailPage = lazy(() => import("./pages/ProductDetailPage"));
@@ -137,7 +137,6 @@ function AppRoutes() {
       <Route path="/dashboard/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet/topup-status" element={<WalletTopupRedirect />} />
       <Route path="/dashboard/topup-status/:id" element={<ProtectedRoute><TopUpStatusPage /></ProtectedRoute>} />
-      <Route path="/dashboard/tools" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
       <Route path="/dashboard/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
       <Route path="/dashboard/products/:id" element={<ProtectedRoute><ProductDetailPage /></ProtectedRoute>} />
       <Route path="/dashboard/order/:id" element={<ProtectedRoute><OrderFlowPage /></ProtectedRoute>} />
