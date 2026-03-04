@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,8 +12,23 @@ import {
   Wallet,
   Copy,
   RefreshCw,
+  ChevronsUpDown,
+  Check,
 } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 
 interface IFreeService {
   id: string;
@@ -37,6 +52,12 @@ export default function IFreeImeiCheck() {
   const [result, setResult] = useState<IFreeResult | null>(null);
   const [services, setServices] = useState<IFreeService[]>([]);
   const [servicesLoading, setServicesLoading] = useState(true);
+  const [serviceOpen, setServiceOpen] = useState(false);
+
+  const selectedService = useMemo(
+    () => services.find((s) => s.id === serviceId),
+    [services, serviceId]
+  );
 
   const fetchServices = async () => {
     setServicesLoading(true);
@@ -154,21 +175,58 @@ export default function IFreeImeiCheck() {
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Service <span className="text-destructive">*</span>
           </label>
-          <select
-            value={serviceId}
-            onChange={(e) => { setServiceId(e.target.value); setResult(null); }}
-            disabled={servicesLoading}
-            className="w-full h-10 rounded-[var(--radius-input)] bg-secondary/50 border border-border px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 disabled:opacity-50"
-          >
-            <option value="">
-              {servicesLoading ? "Loading services..." : "Select a check service..."}
-            </option>
-            {services.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}{s.price ? ` — $${s.price}` : ""}
-              </option>
-            ))}
-          </select>
+          <Popover open={serviceOpen} onOpenChange={setServiceOpen}>
+            <PopoverTrigger asChild>
+              <button
+                disabled={servicesLoading}
+                className={cn(
+                  "flex items-center justify-between w-full h-10 rounded-[var(--radius-input)] bg-secondary/50 border border-border px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40 disabled:opacity-50 transition-colors",
+                  selectedService ? "text-foreground" : "text-muted-foreground"
+                )}
+              >
+                <span className="truncate">
+                  {servicesLoading
+                    ? "Loading services..."
+                    : selectedService
+                    ? `${selectedService.name}${selectedService.price ? ` — $${selectedService.price}` : ""}`
+                    : "Search & select a service..."}
+                </span>
+                <ChevronsUpDown className="w-3.5 h-3.5 shrink-0 ml-2 opacity-50" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search services..." />
+                <CommandList>
+                  <CommandEmpty>No service found.</CommandEmpty>
+                  <CommandGroup>
+                    {services.map((s) => (
+                      <CommandItem
+                        key={s.id}
+                        value={s.name}
+                        onSelect={() => {
+                          setServiceId(s.id);
+                          setResult(null);
+                          setServiceOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 h-3.5 w-3.5",
+                            serviceId === s.id ? "opacity-100" : "opacity-0"
+                          )}
+                        />
+                        <span className="flex-1 truncate">{s.name}</span>
+                        {s.price && (
+                          <span className="ml-2 text-xs text-muted-foreground font-mono">${s.price}</span>
+                        )}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
           {services.length > 0 && (
             <p className="text-[10px] text-muted-foreground/50">
               {services.length} services available
