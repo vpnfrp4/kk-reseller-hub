@@ -9,7 +9,7 @@ export default function ErrorPage() {
   const [copied, setCopied] = useState(false);
 
   const errorId = useMemo(() => {
-    const ts = (errorState?.timestamp || Date.now()).toString(36);
+    const ts = errorTimestamp.toString(36);
     const rand = Math.random().toString(36).slice(2, 6);
     return `ERR-${ts}-${rand}`.toUpperCase();
   }, [errorState?.timestamp]);
