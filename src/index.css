@@ -308,7 +308,7 @@
   /* ─── S-Tool Pro Cards ─── */
   .stool-card {
     background: hsl(var(--card));
-    border: 1px solid hsl(215 18% 18%);
+    border: 1px solid hsl(var(--border));
     border-radius: 12px;
     box-shadow: var(--shadow-card);
     overflow: hidden;
