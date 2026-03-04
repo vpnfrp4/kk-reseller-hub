@@ -1,64 +1,40 @@
 import React from "react";
-import Linkify from "linkify-react";
+import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 
-/* ─── Linkify options ─── */
+/* ─── Markdown renderer for description lines ─── */
 
 const LINK_CLASSES = "text-blue-400 hover:text-blue-300 no-underline hover:underline underline-offset-4 break-all transition-colors font-medium cursor-pointer";
 
-const LINKIFY_OPTIONS = {
-  className: LINK_CLASSES,
-  target: "_blank",
-  rel: "noopener noreferrer",
-};
-
-/* ─── Markdown [text](url) → <a> pre-processor ─── */
-
-const MARKDOWN_LINK_RE = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-
-function RichText({ children }: { children: string }) {
-  const str = children;
-  const parts: React.ReactNode[] = [];
-  let last = 0;
-  let m: RegExpExecArray | null;
-  const re = new RegExp(MARKDOWN_LINK_RE.source, "g");
-
-  while ((m = re.exec(str)) !== null) {
-    if (m.index > last) {
-      parts.push(
-        <Linkify key={`t-${m.index}`} options={LINKIFY_OPTIONS}>
-          {str.slice(last, m.index)}
-        </Linkify>
-      );
-    }
-    parts.push(
-      <a
-        key={`md-${m.index}`}
-        href={m[2]}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={LINK_CLASSES}
-      >
-        {m[1]}
-      </a>
-    );
-    last = m.index + m[0].length;
-  }
-
-  if (parts.length === 0) {
-    // No markdown links — just use Linkify for raw URLs
-    return <Linkify options={LINKIFY_OPTIONS}>{str}</Linkify>;
-  }
-
-  if (last < str.length) {
-    parts.push(
-      <Linkify key={`t-end`} options={LINKIFY_OPTIONS}>
-        {str.slice(last)}
-      </Linkify>
-    );
-  }
-
-  return <>{parts}</>;
+function MarkdownLine({ children, className }: { children: string; className?: string }) {
+  return (
+    <ReactMarkdown
+      components={{
+        // Links open in new tab with blue styling
+        a: ({ href, children: c }) => (
+          <a href={href} target="_blank" rel="noopener noreferrer" className={LINK_CLASSES}>
+            {c}
+          </a>
+        ),
+        // Bold
+        strong: ({ children: c }) => <strong className="font-semibold text-foreground/90">{c}</strong>,
+        // Italic
+        em: ({ children: c }) => <em className="italic">{c}</em>,
+        // Inline code
+        code: ({ children: c }) => (
+          <code className="rounded bg-muted px-1.5 py-0.5 text-[11px] font-mono text-foreground/80">{c}</code>
+        ),
+        // Render paragraphs inline (since each line is already wrapped)
+        p: ({ children: c }) => <span className={className}>{c}</span>,
+        // Flatten nested lists into the line
+        ul: ({ children: c }) => <span>{c}</span>,
+        ol: ({ children: c }) => <span>{c}</span>,
+        li: ({ children: c }) => <span>{c}</span>,
+      }}
+    >
+      {children}
+    </ReactMarkdown>
+  );
 }
 
 interface ParsedSection {
@@ -131,7 +107,7 @@ function OverviewBlock({ lines }: { lines: string[] }) {
   return (
     <div className="space-y-1.5">
       {lines.map((line, i) => (
-        <p key={i} className="text-xs text-muted-foreground/90 leading-relaxed"><RichText>{line}</RichText></p>
+        <div key={i} className="text-xs text-muted-foreground/90 leading-relaxed"><MarkdownLine>{line}</MarkdownLine></div>
       ))}
     </div>
   );
@@ -147,7 +123,7 @@ function FeaturesBlock({ lines }: { lines: string[] }) {
         {lines.map((line, i) => (
           <li key={i} className="flex items-start gap-2.5">
             <span className="shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/60" />
-            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></span>
           </li>
         ))}
       </ul>
@@ -164,7 +140,7 @@ function DeliveryBlock({ lines }: { lines: string[] }) {
       <div>
         <p className="text-[10px] uppercase tracking-[0.12em] font-semibold text-foreground/60 mb-0.5">Delivery Time</p>
         {lines.map((line, i) => (
-          <p key={i} className="text-xs text-muted-foreground"><RichText>{line}</RichText></p>
+          <div key={i} className="text-xs text-muted-foreground"><MarkdownLine>{line}</MarkdownLine></div>
         ))}
       </div>
     </div>
@@ -178,7 +154,7 @@ function WarrantyBlock({ lines }: { lines: string[] }) {
         Warranty / Guarantee
       </p>
       {lines.map((line, i) => (
-        <p key={i} className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></p>
+        <div key={i} className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></div>
       ))}
     </div>
   );
@@ -194,7 +170,7 @@ function CompatibilityBlock({ lines }: { lines: string[] }) {
         {lines.map((line, i) => (
           <div key={i} className="flex items-start gap-2.5">
             <span className="shrink-0 mt-1 w-4 h-[1px] bg-border" />
-            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></span>
           </div>
         ))}
       </div>
@@ -212,7 +188,7 @@ function ResellerBlock({ lines }: { lines: string[] }) {
         {lines.map((line, i) => (
           <li key={i} className="flex items-start gap-2.5">
             <span className="shrink-0 mt-1 w-1 h-3 rounded-sm bg-primary/30" />
-            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></span>
           </li>
         ))}
       </ul>
@@ -232,7 +208,7 @@ function ImportantBlock({ lines }: { lines: string[] }) {
           {lines.map((line, i) => (
             <li key={i} className="flex items-start gap-2">
               <span className="shrink-0 mt-1.5 w-1 h-1 rounded-full bg-amber-500/50" />
-              <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
+              <span className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></span>
             </li>
           ))}
         </ul>
@@ -253,7 +229,7 @@ function HowItWorksBlock({ lines }: { lines: string[] }) {
             <span className="shrink-0 flex items-center justify-center w-5 h-5 rounded-md bg-primary/10 text-primary text-[10px] font-bold tabular-nums mt-0.5">
               {i + 1}
             </span>
-            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></span>
           </li>
         ))}
       </ol>
@@ -265,7 +241,7 @@ function TextBlock({ lines }: { lines: string[] }) {
   return (
     <div className="space-y-1.5">
       {lines.map((line, i) => (
-        <p key={i} className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></p>
+        <div key={i} className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></div>
       ))}
     </div>
   );
