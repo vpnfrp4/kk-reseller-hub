@@ -256,6 +256,30 @@ export type Database = {
         }
         Relationships: []
       }
+      ifree_services_cache: {
+        Row: {
+          cached_at: string
+          description: string | null
+          id: string
+          name: string
+          price: string | null
+        }
+        Insert: {
+          cached_at?: string
+          description?: string | null
+          id: string
+          name?: string
+          price?: string | null
+        }
+        Update: {
+          cached_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          price?: string | null
+        }
+        Relationships: []
+      }
       imei_brands: {
         Row: {
           created_at: string

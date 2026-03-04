@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.check-ifree]
 verify_jwt = false
+
+[functions.fetch-ifree-services]
+verify_jwt = false
