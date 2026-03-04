@@ -147,7 +147,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="admin-theme min-h-screen flex bg-background">
+    <div className="admin-theme h-screen flex bg-background overflow-hidden">
       {/* Mobile overlay */}
       <div
         className={cn(
