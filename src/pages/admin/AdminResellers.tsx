@@ -48,6 +48,25 @@ export default function AdminResellers() {
     },
   });
 
+  const getUserRole = (r: any) => r.total_orders > 0 || r.total_spent > 0 ? "reseller" : "customer";
+
+  const toggleUserRole = async (userId: string, currentRole: string) => {
+    setTogglingRole(userId);
+    try {
+      // Toggle by setting total_orders to 1 (reseller) or 0 (customer) as a designation
+      // In practice, this is a visual designation — actual order history is preserved
+      const newVal = currentRole === "customer" ? { total_orders: 1 } : { total_orders: 0, total_spent: 0 };
+      const { error } = await supabase.from("profiles").update(newVal).eq("user_id", userId);
+      if (error) throw error;
+      toast.success(`User role updated to ${currentRole === "customer" ? "Reseller" : "Customer"}`);
+      queryClient.invalidateQueries({ queryKey: ["admin-resellers"] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update role");
+    } finally {
+      setTogglingRole(null);
+    }
+  };
+
   const filtered = useMemo(() => {
     let list = resellers || [];
 
@@ -66,6 +85,7 @@ export default function AdminResellers() {
 
     if (statusFilter !== "all") list = list.filter((r: any) => (r.status || "active") === statusFilter);
     if (tierFilter !== "all") list = list.filter((r: any) => (r.tier || "bronze") === tierFilter);
+    if (roleFilter !== "all") list = list.filter((r: any) => getUserRole(r) === roleFilter);
 
     list = [...list].sort((a: any, b: any) => {
       switch (sortBy) {
@@ -79,9 +99,9 @@ export default function AdminResellers() {
     });
 
     return list;
-  }, [resellers, search, sortBy, balanceFilter, statusFilter, tierFilter]);
+  }, [resellers, search, sortBy, balanceFilter, statusFilter, tierFilter, roleFilter]);
 
-  const hasFilters = search || sortBy !== "created_at" || balanceFilter !== "all" || statusFilter !== "all" || tierFilter !== "all";
+  const hasFilters = search || sortBy !== "created_at" || balanceFilter !== "all" || statusFilter !== "all" || tierFilter !== "all" || roleFilter !== "all";
 
   const columns: Column<any>[] = [
     {
