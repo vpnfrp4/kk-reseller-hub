@@ -27,7 +27,7 @@ export default function ErrorPage() {
   };
 
   const supportMessage = encodeURIComponent(
-    `Hi, I encountered an error on KKTech.\n\nError ID: ${errorId}\nTime: ${errorTime}\nPage: ${location.pathname}\n${errorState?.message ? `Details: ${errorState.message}` : ""}`
+    `Hi, I encountered an error on KKTech.\n\nError ID: ${errorId}\nTime: ${errorTime}\n${errorMessage ? `Details: ${errorMessage}` : ""}`
   );
 
   return (
