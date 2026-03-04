@@ -7,12 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { KeyRound, Wallet, ShoppingCart, User, Calendar, Copy, Check, Zap, Clock, Smartphone, UserIcon, CheckCircle2, Loader2, FileText, StickyNote, Save } from "lucide-react";
+import { KeyRound, Wallet, ShoppingCart, User, Calendar, Copy, Check, Zap, Clock, Smartphone, UserIcon, CheckCircle2, Loader2, FileText, StickyNote, Save, Sparkles, Eye, SendHorizonal, LayoutTemplate } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface OrderDetailModalProps {
   order: any;
@@ -37,6 +38,30 @@ function productTypeBadge(type: string | null) {
   );
 }
 
+/* ─── Quick templates ─── */
+const RESULT_TEMPLATES = [
+  {
+    label: "Login Info",
+    icon: "🔑",
+    text: "Username: \nPassword: ",
+  },
+  {
+    label: "Success",
+    icon: "✅",
+    text: "Your order has been completed successfully.\nCredentials have been delivered.",
+  },
+  {
+    label: "Instruction",
+    icon: "📋",
+    text: "Please follow these steps:\n1. \n2. \n3. ",
+  },
+  {
+    label: "Invalid",
+    icon: "❌",
+    text: "The information provided is incorrect. Please contact support for assistance.",
+  },
+];
+
 export default function OrderDetailModal({ order, open, onOpenChange, onStatusUpdated }: OrderDetailModalProps) {
   const queryClient = useQueryClient();
   const [copied, setCopied] = useState(false);
@@ -47,13 +72,16 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
   const [adminNotes, setAdminNotes] = useState("");
   const [notesInitialized, setNotesInitialized] = useState<string | null>(null);
   const [savingNotes, setSavingNotes] = useState(false);
+  const [showResultPreview, setShowResultPreview] = useState(false);
+  const [savingResult, setSavingResult] = useState(false);
 
-  // Initialize admin notes when order changes
+  // Initialize when order changes
   if (order && order.id !== notesInitialized) {
     setAdminNotes(order.admin_notes || "");
     setNotesInitialized(order.id);
     setResultInput("");
     setCredentialsInput("");
+    setShowResultPreview(false);
   }
 
   const { data: transactions } = useQuery({
@@ -82,6 +110,13 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
       return data;
     },
   });
+
+  // Preview lines for result — must be before early return
+  const previewLines = useMemo(() => {
+    const text = resultInput.trim();
+    if (!text) return [];
+    return text.split("\n").filter(Boolean);
+  }, [resultInput]);
 
   if (!order) return null;
 
@@ -112,6 +147,80 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
     }
   };
 
+  const handleSaveResult = async () => {
+    if (!resultInput.trim() && !credentialsInput.trim()) {
+      toast.error("Please enter credentials or result text");
+      return;
+    }
+    setSavingResult(true);
+    try {
+      const updatePayload: Record<string, unknown> = {};
+      if (credentialsInput.trim()) {
+        updatePayload.credentials = credentialsInput.trim();
+      }
+      if (resultInput.trim()) {
+        updatePayload.result = resultInput.trim();
+      }
+
+      const { error } = await supabase
+        .from("orders")
+        .update(updatePayload)
+        .eq("id", order.id);
+
+      if (error) throw error;
+
+      // Notify the customer
+      await supabase.from("notifications").insert({
+        user_id: order.user_id,
+        title: "📦 New Result Available",
+        body: `Your order for ${order.product_name} has been updated with new results. Check your order details.`,
+        type: "order",
+        link: `/dashboard/orders/${order.id}`,
+      });
+
+      toast.success("Result saved & customer notified");
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+      onStatusUpdated?.();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save result");
+    } finally {
+      setSavingResult(false);
+    }
+  };
+
+  const handleFulfillAndDeliver = async () => {
+    setUpdating(true);
+    try {
+      const isImeiOrder = (order.product_type || "digital") === "imei";
+      const newStatus = isImeiOrder ? "completed" : "delivered";
+      const payload: Record<string, unknown> = {
+        order_id: order.id,
+        status: newStatus,
+      };
+      if (credentialsInput.trim()) {
+        payload.credentials = credentialsInput.trim();
+      }
+      if (resultInput.trim()) {
+        payload.result = resultInput.trim();
+      }
+
+      const { data, error } = await supabase.functions.invoke("update-order-status", {
+        body: payload,
+      });
+      if (error) throw new Error(error.message);
+      if (data && !data.success) throw new Error(data.error || "Update failed");
+
+      toast.success(isImeiOrder ? "Order completed & customer notified" : "Order delivered & customer notified");
+      queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
+      onStatusUpdated?.();
+      onOpenChange(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update order");
+    } finally {
+      setUpdating(false);
+    }
+  };
+
   const FULFILLMENT_MODE_LABELS: Record<string, { label: string; icon: any; color: string }> = {
     instant: { label: "Instant Stock Delivery", icon: Zap, color: "bg-success/10 text-success" },
     custom_username: { label: "Custom Username", icon: UserIcon, color: "bg-primary/10 text-primary" },
@@ -127,18 +236,24 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
     : null;
 
   const statusBadge = (status: string) => <StatusBadge status={status} />;
-
   const isImeiOrder = (order.product_type || "digital") === "imei";
+  const isPending = ["pending_creation", "pending_review", "processing", "pending", "api_pending"].includes(order.status);
+  const currentCredentials = order.credentials || credential?.credentials || "";
+  const hasPendingPlaceholder = currentCredentials.includes("Pending") || currentCredentials === "" || currentCredentials === "N/A";
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto bg-card border-border">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-foreground">Order Details</DialogTitle>
+          <DialogTitle className="text-foreground flex items-center gap-2">
+            Order Details
+            <span className="text-xs font-mono text-muted-foreground font-normal">{order.order_code}</span>
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Order Info */}
+          {/* ═══ Order Info ═══ */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <ShoppingCart className="w-4 h-4" />
@@ -177,7 +292,7 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
             </div>
           </div>
 
-          {/* Fulfillment Info */}
+          {/* ═══ Fulfillment Info ═══ */}
           {(fulfillmentMode !== "instant" || customFieldsData) && (
             <div className="space-y-3 border-t border-border pt-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -206,7 +321,7 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
             </div>
           )}
 
-          {/* User Info */}
+          {/* ═══ Customer Info ═══ */}
           <div className="space-y-3 border-t border-border pt-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <User className="w-4 h-4" />
@@ -224,17 +339,22 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
             </div>
           </div>
 
-          {/* Credentials */}
+          {/* ═══ Current Credentials ═══ */}
           <div className="space-y-3 border-t border-border pt-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <KeyRound className="w-4 h-4" />
               <span className="font-medium text-foreground">Credentials</span>
             </div>
             <div className="relative">
-              <pre className="bg-muted/50 rounded-lg p-3 text-sm font-mono text-foreground whitespace-pre-wrap break-all border border-border">
-                {order.credentials || credential?.credentials || "N/A"}
+              <pre className={cn(
+                "rounded-lg p-3 text-sm font-mono whitespace-pre-wrap break-all border",
+                hasPendingPlaceholder
+                  ? "bg-warning/5 border-warning/20 text-warning"
+                  : "bg-muted/50 border-border text-foreground"
+              )}>
+                {currentCredentials || "N/A"}
               </pre>
-              {(order.credentials || credential?.credentials) && (
+              {currentCredentials && !hasPendingPlaceholder && (
                 <Button
                   size="icon"
                   variant="ghost"
@@ -259,15 +379,15 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
             )}
           </div>
 
-          {/* Result (for IMEI/manual orders) */}
+          {/* ═══ Existing Result ═══ */}
           {order.result && (
             <div className="space-y-3 border-t border-border pt-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <FileText className="w-4 h-4" />
-                <span className="font-medium text-foreground">Result</span>
+                <span className="font-medium text-foreground">Current Result</span>
               </div>
               <div className="relative">
-                <pre className="bg-muted/50 rounded-lg p-3 text-sm font-mono text-foreground whitespace-pre-wrap break-all border border-border">
+                <pre className="bg-success/5 rounded-lg p-3 text-sm font-mono text-foreground whitespace-pre-wrap break-all border border-success/20">
                   {order.result}
                 </pre>
                 <Button
@@ -282,7 +402,140 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
             </div>
           )}
 
-          {/* Admin Notes */}
+          {/* ═══════════════════════════════════════════════════════
+              MANUAL FULFILLMENT SUITE
+             ═══════════════════════════════════════════════════════ */}
+          <div className="space-y-4 border-t-2 border-primary/20 pt-5">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center w-6 h-6 rounded-md bg-primary/10">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+              </div>
+              <span className="text-sm font-semibold text-foreground">Manual Result Editor</span>
+              <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium ml-auto">
+                Fulfillment Suite
+              </span>
+            </div>
+
+            {/* Quick Templates */}
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <LayoutTemplate className="w-3.5 h-3.5" />
+                <span className="font-medium">Quick Templates</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {RESULT_TEMPLATES.map((tmpl) => (
+                  <button
+                    key={tmpl.label}
+                    onClick={() => {
+                      setResultInput((prev) => prev ? prev + "\n" + tmpl.text : tmpl.text);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 border border-border text-xs font-medium text-foreground transition-all duration-150 hover:scale-[1.02] active:scale-[0.98]"
+                  >
+                    <span>{tmpl.icon}</span>
+                    <span>{tmpl.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Credentials Input */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground">Credentials (replaces current)</p>
+              <Input
+                value={credentialsInput}
+                onChange={(e) => setCredentialsInput(e.target.value)}
+                placeholder="e.g. email@example.com:password123 or account details"
+                className="bg-muted/50 border-border text-sm font-mono"
+              />
+            </div>
+
+            {/* Result Textarea */}
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground">Result / Instructions for Customer</p>
+              <Textarea
+                value={resultInput}
+                onChange={(e) => setResultInput(e.target.value)}
+                placeholder="Type the result, unlock code, instructions, or any info to deliver to customer..."
+                className="bg-muted/50 border-border text-sm font-mono min-h-[100px] resize-y"
+              />
+            </div>
+
+            {/* Live Preview */}
+            {(resultInput.trim() || credentialsInput.trim()) && (
+              <div className="space-y-2">
+                <button
+                  onClick={() => setShowResultPreview(!showResultPreview)}
+                  className="flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  {showResultPreview ? "Hide Preview" : "Show Live Preview"}
+                </button>
+
+                {showResultPreview && (
+                  <div className="rounded-xl border-2 border-dashed border-primary/20 bg-primary/[0.02] p-4 space-y-3 animate-fade-in">
+                    <p className="text-[10px] uppercase tracking-wider font-bold text-primary/60">
+                      Customer View Preview
+                    </p>
+
+                    {credentialsInput.trim() && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Credentials</p>
+                        <pre className="bg-card rounded-lg p-3 text-sm font-mono text-foreground whitespace-pre-wrap break-all border border-border">
+                          {credentialsInput.trim()}
+                        </pre>
+                      </div>
+                    )}
+
+                    {resultInput.trim() && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground">Fulfillment Result</p>
+                        <div className="bg-card rounded-lg p-3 border border-border space-y-1">
+                          {previewLines.map((line, i) => {
+                            const emoji = line.match(/^[\p{Emoji_Presentation}\p{Emoji}\u200d]+/u)?.[0] || "";
+                            const text = emoji ? line.slice(emoji.length).trim() : line;
+                            return (
+                              <div key={i} className="flex items-start gap-2 text-sm">
+                                {emoji && <span className="text-base leading-5 shrink-0">{emoji}</span>}
+                                <span className="font-mono text-foreground">{text || line}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2 pt-1">
+              {/* Save without status change */}
+              <Button
+                variant="outline"
+                className="flex-1 gap-2 text-sm"
+                disabled={savingResult || (!resultInput.trim() && !credentialsInput.trim())}
+                onClick={handleSaveResult}
+              >
+                {savingResult ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                Save & Update Credentials
+              </Button>
+
+              {/* Fulfill & change status */}
+              {isPending && (
+                <Button
+                  className="flex-1 gap-2 text-sm"
+                  disabled={updating}
+                  onClick={handleFulfillAndDeliver}
+                >
+                  {updating ? <Loader2 className="w-4 h-4 animate-spin" /> : <SendHorizonal className="w-4 h-4" />}
+                  {isImeiOrder ? "Complete & Deliver" : "Fulfill & Deliver"}
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* ═══ Admin Notes ═══ */}
           <div className="space-y-3 border-t border-border pt-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <StickyNote className="w-4 h-4" />
@@ -306,7 +559,7 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
             </Button>
           </div>
 
-          {/* Transaction History */}
+          {/* ═══ Transaction History ═══ */}
           <div className="space-y-3 border-t border-border pt-4">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Wallet className="w-4 h-4" />
@@ -336,85 +589,6 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
               )}
             </div>
           </div>
-
-          {/* ═══ FULFILL ACTION ═══ */}
-          {(order.status === "pending_creation" || order.status === "pending_review" || order.status === "processing") && (
-            <div className="space-y-3 border-t border-border pt-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle2 className="w-4 h-4" />
-                <span className="font-medium text-foreground">Fulfill Order</span>
-              </div>
-
-              {/* Optional credentials input for manual fulfillment */}
-              {(!order.credentials || order.credentials === "") && (
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Credentials (optional — paste account details to deliver)</p>
-                  <Input
-                    value={credentialsInput}
-                    onChange={(e) => setCredentialsInput(e.target.value)}
-                    placeholder="e.g. username:password or account details"
-                    className="bg-muted/50 border-border text-sm font-mono"
-                  />
-                </div>
-              )}
-
-              {/* Optional result input for IMEI orders */}
-              {isImeiOrder && (
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Result (optional — paste IMEI unlock result)</p>
-                  <Textarea
-                    value={resultInput}
-                    onChange={(e) => setResultInput(e.target.value)}
-                    placeholder="e.g. Unlock code: 12345678 or unlock confirmation details"
-                    className="bg-muted/50 border-border text-sm font-mono min-h-[60px]"
-                  />
-                </div>
-              )}
-
-              <Button
-                className="w-full gap-2"
-                disabled={updating}
-                onClick={async () => {
-                  setUpdating(true);
-                  try {
-                    const newStatus = isImeiOrder ? "completed" : "delivered";
-                    const payload: Record<string, unknown> = {
-                      order_id: order.id,
-                      status: newStatus,
-                    };
-                    if (credentialsInput.trim()) {
-                      payload.credentials = credentialsInput.trim();
-                    }
-                    if (resultInput.trim()) {
-                      payload.result = resultInput.trim();
-                    }
-
-                    const { data, error } = await supabase.functions.invoke("update-order-status", {
-                      body: payload,
-                    });
-                    if (error) throw new Error(error.message);
-                    if (data && !data.success) throw new Error(data.error || "Update failed");
-
-                    toast.success(isImeiOrder ? "Order marked as completed" : "Order marked as delivered");
-                    queryClient.invalidateQueries({ queryKey: ["admin-all-orders"] });
-                    onStatusUpdated?.();
-                    onOpenChange(false);
-                  } catch (err: any) {
-                    toast.error(err.message || "Failed to update order");
-                  } finally {
-                    setUpdating(false);
-                  }
-                }}
-              >
-                {updating ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <CheckCircle2 className="w-4 h-4" />
-                )}
-                {isImeiOrder ? "Mark as Completed" : "Mark as Delivered"}
-              </Button>
-            </div>
-          )}
         </div>
       </DialogContent>
     </Dialog>
