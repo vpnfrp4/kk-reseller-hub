@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { StatusBadge } from "@/components/shared";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Dialog,
@@ -125,24 +126,7 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
     ? order.custom_fields_data
     : null;
 
-  const statusBadge = (status: string) => {
-    const styles: Record<string, string> = {
-      delivered: "bg-success/10 text-success",
-      pending: "bg-warning/10 text-warning",
-      pending_creation: "bg-primary/10 text-primary",
-      pending_review: "bg-warning/10 text-warning",
-      processing: "bg-warning/10 text-warning",
-      completed: "bg-success/10 text-success",
-      cancelled: "bg-destructive/10 text-destructive",
-      approved: "bg-success/10 text-success",
-      rejected: "bg-destructive/10 text-destructive",
-    };
-    return (
-      <span className={`text-[11px] px-2.5 py-1 rounded-full font-medium ${styles[status] || "bg-muted text-muted-foreground"}`}>
-        {status.replace("_", " ")}
-      </span>
-    );
-  };
+  const statusBadge = (status: string) => <StatusBadge status={status} />;
 
   const isImeiOrder = (order.product_type || "digital") === "imei";
 

@@ -20,11 +20,6 @@ const tierColors: Record<string, string> = {
   platinum: "bg-purple-400/15 text-purple-300 border-purple-400/20",
 };
 
-const statusStyles: Record<string, string> = {
-  active: "bg-success/10 text-success",
-  suspended: "bg-warning/10 text-warning",
-  blocked: "bg-destructive/10 text-destructive",
-};
 
 export default function AdminResellers() {
   const queryClient = useQueryClient();
@@ -48,17 +43,18 @@ export default function AdminResellers() {
     },
   });
 
-  const getUserRole = (r: any) => r.total_orders > 0 || r.total_spent > 0 ? "reseller" : "customer";
+  const getUserRole = (r: any) => r.designation || "customer";
 
   const toggleUserRole = async (userId: string, currentRole: string) => {
     setTogglingRole(userId);
     try {
-      // Toggle by setting total_orders to 1 (reseller) or 0 (customer) as a designation
-      // In practice, this is a visual designation — actual order history is preserved
-      const newVal = currentRole === "customer" ? { total_orders: 1 } : { total_orders: 0, total_spent: 0 };
-      const { error } = await supabase.from("profiles").update(newVal).eq("user_id", userId);
+      const newDesignation = currentRole === "customer" ? "reseller" : "customer";
+      const { error } = await supabase
+        .from("profiles")
+        .update({ designation: newDesignation } as any)
+        .eq("user_id", userId);
       if (error) throw error;
-      toast.success(`User role updated to ${currentRole === "customer" ? "Reseller" : "Customer"}`);
+      toast.success(`User role updated to ${newDesignation === "reseller" ? "Reseller" : "Customer"}`);
       queryClient.invalidateQueries({ queryKey: ["admin-resellers"] });
     } catch (err: any) {
       toast.error(err.message || "Failed to update role");

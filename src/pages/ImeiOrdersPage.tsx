@@ -33,7 +33,7 @@ const PAGE_SIZE = 20;
 
 const STATUS_CONFIG: Record<string, { label: string; class: string; icon: React.ElementType }> = {
   pending: { label: "Pending", class: "badge-pending", icon: Clock },
-  processing: { label: "Processing", class: "badge-expiring", icon: Loader2 },
+  processing: { label: "Processing", class: "badge-processing", icon: Loader2 },
   completed: { label: "Completed", class: "badge-delivered", icon: CheckCircle2 },
   rejected: { label: "Rejected", class: "badge-cancelled", icon: XCircle },
 };

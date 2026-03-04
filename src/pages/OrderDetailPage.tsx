@@ -64,13 +64,19 @@ function StatusBadge({ status }: { status: string }) {
   const isPending = ["pending", "pending_creation", "pending_review", "processing"].includes(status);
   const isFailed = ["rejected", "cancelled"].includes(status);
 
+  const badgeClass = isSuccess
+    ? "badge-delivered"
+    : isPending
+    ? "badge-pending"
+    : isFailed
+    ? "badge-rejected"
+    : "bg-muted text-muted-foreground font-semibold";
+
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold",
-        isSuccess && "bg-success/10 text-success",
-        isPending && "bg-warning/10 text-warning",
-        isFailed && "bg-destructive/10 text-destructive",
+        "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs",
+        badgeClass,
       )}
     >
       {isSuccess && <CheckCircle2 className="w-3 h-3" />}
