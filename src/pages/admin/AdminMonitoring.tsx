@@ -20,12 +20,15 @@ import {
   CheckCircle2,
   Server,
   TrendingDown,
+  Smartphone,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Money } from "@/components/shared";
+import { Input } from "@/components/ui/input";
 
 export default function AdminMonitoring() {
   const [tab, setTab] = useState("errors");
+  const [ifreeSearch, setIfreeSearch] = useState("");
 
   // Failed orders
   const { data: failedOrders = [], isLoading: loadingFailed, refetch: refetchFailed } = useQuery({
@@ -135,11 +138,32 @@ export default function AdminMonitoring() {
     },
   });
 
+  // iFree IMEI checks
+  const { data: ifreeChecks = [], isLoading: loadingIfree, refetch: refetchIfree } = useQuery({
+    queryKey: ["admin-ifree-checks"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("ifree_checks")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(100);
+      return (data as any[]) || [];
+    },
+  });
+
+  const filteredIfreeChecks = ifreeSearch
+    ? ifreeChecks.filter((c: any) =>
+        c.imei?.includes(ifreeSearch) ||
+        c.service_name?.toLowerCase().includes(ifreeSearch.toLowerCase())
+      )
+    : ifreeChecks;
+
   const handleRefresh = () => {
     refetchFailed();
     refetchErrors();
     refetchLogs();
     refetchHealth();
+    refetchIfree();
   };
 
   const statusBadge = (status: string) => {
@@ -232,6 +256,10 @@ export default function AdminMonitoring() {
           <TabsTrigger value="api-errors">API Errors</TabsTrigger>
           <TabsTrigger value="health">Provider Health</TabsTrigger>
           <TabsTrigger value="logs">All Logs</TabsTrigger>
+          <TabsTrigger value="ifree" className="gap-1.5">
+            <Smartphone className="w-3.5 h-3.5" />
+            iFree Checks
+          </TabsTrigger>
         </TabsList>
 
         {/* Failed Orders */}
@@ -384,6 +412,65 @@ export default function AdminMonitoring() {
                   ))}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* iFree IMEI Checks */}
+        <TabsContent value="ifree">
+          <Card>
+            <CardContent className="p-4 space-y-4">
+              <Input
+                placeholder="Search by IMEI or service name..."
+                value={ifreeSearch}
+                onChange={(e) => setIfreeSearch(e.target.value)}
+                className="max-w-sm"
+              />
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Time</TableHead>
+                      <TableHead>IMEI</TableHead>
+                      <TableHead>Service</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Balance</TableHead>
+                      <TableHead>Response / Error</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {loadingIfree ? (
+                      <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+                    ) : filteredIfreeChecks.length === 0 ? (
+                      <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No iFree checks yet</TableCell></TableRow>
+                    ) : filteredIfreeChecks.map((check: any) => (
+                      <TableRow key={check.id}>
+                        <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                          {format(new Date(check.created_at), "MMM d, HH:mm:ss")}
+                        </TableCell>
+                        <TableCell className="font-mono text-xs">{check.imei}</TableCell>
+                        <TableCell className="text-xs max-w-[200px] truncate">
+                          {check.service_name || `Service #${check.service_id}`}
+                        </TableCell>
+                        <TableCell>
+                          {check.success ? (
+                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          ) : (
+                            <XCircle className="w-4 h-4 text-destructive" />
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs font-mono">{check.account_balance || "—"}</TableCell>
+                        <TableCell className="max-w-[300px] truncate text-xs">
+                          {check.error_message || check.response_text?.slice(0, 120) || "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Showing {filteredIfreeChecks.length} of {ifreeChecks.length} checks
+              </p>
             </CardContent>
           </Card>
         </TabsContent>
