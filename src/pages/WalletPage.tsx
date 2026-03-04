@@ -71,7 +71,7 @@ export default function WalletPage() {
     },
   });
 
-  const { data: paymentMethods } = useQuery({
+  const { data: paymentMethods, isLoading: methodsLoading } = useQuery({
     queryKey: ["payment-methods"],
     queryFn: async () => {
       const { data } = await supabase
