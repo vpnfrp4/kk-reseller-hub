@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-import { parseIfreeResponse, cleanIfreeResponse } from "@/lib/ifree-response-parser";
+import { parseIfreeResponse, cleanIfreeResponse, parseSickwBetaResult } from "@/lib/ifree-response-parser";
 import {
   Smartphone,
   Search,
@@ -149,9 +149,15 @@ export default function IFreeImeiCheck() {
   };
 
   const parsedResponse = useMemo(() => {
-    if (!result?.response) return [];
+    if (!result) return [];
+    // SickW beta format: result has direct key-value fields (not a `response` string)
+    if (!result.response && !result.error && typeof result === "object") {
+      const beta = parseSickwBetaResult(result as Record<string, unknown>);
+      if (beta.length > 0) return beta;
+    }
+    if (!result.response) return [];
     return parseIfreeResponse(result.response);
-  }, [result?.response]);
+  }, [result]);
 
   return (
     <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
@@ -303,12 +309,14 @@ export default function IFreeImeiCheck() {
       {/* Result */}
       {result && !loading && (
         <div className="border-t border-border px-5 py-5 space-y-4">
-          {result.error ? (
+          {(result.error || (result as any).status === "error" || result.response === "") ? (
             <div className="flex items-start gap-2.5 rounded-[var(--radius-btn)] bg-destructive/8 border border-destructive/15 p-4">
               <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-bold text-destructive">Error</p>
-                <p className="text-xs text-destructive/80 mt-0.5">{result.error}</p>
+                <p className="text-xs font-bold text-destructive">Check Failed</p>
+                <p className="text-xs text-destructive/80 mt-0.5">
+                  {result.error || "The service returned an error. Please verify the IMEI and service selection, then try again."}
+                </p>
               </div>
             </div>
           ) : (
@@ -367,7 +375,7 @@ export default function IFreeImeiCheck() {
                 </div>
               )}
 
-              {!result.response && !result.error && (
+              {!result.response && parsedResponse.length === 0 && !result.error && (result as any).status !== "error" && (
                 <div className="rounded-[var(--radius-btn)] bg-secondary/50 border border-border p-4">
                   <pre className="text-xs font-mono text-foreground whitespace-pre-wrap break-all leading-relaxed">
                     {JSON.stringify(result, null, 2)}
