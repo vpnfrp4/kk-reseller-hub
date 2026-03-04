@@ -1187,6 +1187,15 @@ export type Database = {
       }
     }
     Functions: {
+      atomic_balance_add: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: undefined
+      }
+      atomic_refund: {
+        Args: { p_amount: number; p_user_id: string }
+        Returns: undefined
+      }
+      get_user_tier_discount: { Args: { p_user_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
