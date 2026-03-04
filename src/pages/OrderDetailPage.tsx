@@ -233,10 +233,12 @@ export default function OrderDetailPage() {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
         (payload) => {
-          const newStatus = (payload.new as any)?.status;
-          const oldStatus = (payload.old as any)?.status;
-          if (newStatus && newStatus !== oldStatus) {
-            toast.info(`Order status updated to "${newStatus.replace("_", " ")}"`);
+          const newData = payload.new as any;
+          const oldData = payload.old as any;
+          if (newData?.status && newData.status !== oldData?.status) {
+            toast.info(`Order status updated to "${newData.status.replace("_", " ")}"`);
+          } else if (newData?.result !== oldData?.result || newData?.credentials !== oldData?.credentials) {
+            toast.info("Order details have been updated");
           }
           queryClient.invalidateQueries({ queryKey: ["order-detail", id] });
         },
@@ -286,11 +288,11 @@ export default function OrderDetailPage() {
     order?.status || "",
   );
 
-  // For IMEI completed orders, show result; otherwise show credentials
+  // Show result if available (any type), otherwise credentials
   const deliveryContent = useMemo(() => {
-    if (isImei && order?.result) return order.result;
+    if (order?.result) return order.result;
     return order?.credentials || "";
-  }, [order, isImei]);
+  }, [order]);
 
   // Parse delivery content into lines
   const credentialLines = useMemo(() => {
@@ -604,14 +606,14 @@ export default function OrderDetailPage() {
 
           {/* ═══ 5. DELIVERY RESULT (if completed) ═══ */}
           {/* ═══ 5. STRUCTURED CREDENTIAL CARDS ═══ */}
-          {isDelivered &&
-            credentialLines.length > 0 &&
-            credentialLines[0] !== "Pending manual fulfillment" && (
+          {credentialLines.length > 0 &&
+            credentialLines[0] !== "Pending manual fulfillment" &&
+            credentialLines[0] !== "Pending API fulfillment" && (
               <GlassSection>
                 <CredentialCards
                   rawCredentials={deliveryContent}
                   isImei={isImei}
-                  completed={order.status === "completed"}
+                  completed={isDelivered}
                 />
               </GlassSection>
             )}
