@@ -606,14 +606,14 @@ export default function OrderDetailPage() {
 
           {/* ═══ 5. DELIVERY RESULT (if completed) ═══ */}
           {/* ═══ 5. STRUCTURED CREDENTIAL CARDS ═══ */}
-          {isDelivered &&
-            credentialLines.length > 0 &&
-            credentialLines[0] !== "Pending manual fulfillment" && (
+          {credentialLines.length > 0 &&
+            credentialLines[0] !== "Pending manual fulfillment" &&
+            credentialLines[0] !== "Pending API fulfillment" && (
               <GlassSection>
                 <CredentialCards
                   rawCredentials={deliveryContent}
                   isImei={isImei}
-                  completed={order.status === "completed"}
+                  completed={isDelivered}
                 />
               </GlassSection>
             )}
