@@ -7,48 +7,113 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+function jsonResponse(body: object, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+function enrichError(data: any) {
+  if (!data.error) return;
+  const lower = String(data.error).toLowerCase();
+
+  const patterns: [RegExp, string, string][] = [
+    [/service doesn|not exist|invalid service/i, "This service ID no longer exists at the provider. Please refresh the service list.", "SERVICE_NOT_FOUND"],
+    [/insufficient|balance|credit|not enough/i, "Insufficient API balance at the provider. Please contact admin.", "INSUFFICIENT_BALANCE"],
+    [/invalid.*(key|api)/i, "Invalid API key. Please verify the iFreeiCloud API key configuration.", "INVALID_API_KEY"],
+    [/invalid.*imei/i, "The provider rejected this IMEI number.", "INVALID_IMEI"],
+    [/maintenance|unavailable|down/i, "This service is under maintenance. Please try again later.", "MAINTENANCE"],
+    [/slow|queue|wait/i, "Service experiencing delays. Your request has been queued.", "SLOW_SERVICE"],
+  ];
+
+  for (const [re, msg, code] of patterns) {
+    if (re.test(lower)) {
+      data.error = msg;
+      data.error_code = code;
+      return;
+    }
   }
+  if (!data.error_code) data.error_code = "PROVIDER_ERROR";
+}
+
+serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { imei, serviceId, serviceName } = await req.json();
+    const { imei, serviceId, serviceName, servicePrice } = await req.json();
     const API_KEY = Deno.env.get("IFREE_API_KEY");
 
-    if (!API_KEY) {
-      return new Response(
-        JSON.stringify({ error: "API key not configured", error_code: "NO_API_KEY" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    if (!API_KEY) return jsonResponse({ error: "API key not configured", error_code: "NO_API_KEY" });
+    if (!imei || !serviceId) return jsonResponse({ error: "IMEI and Service ID are required", error_code: "MISSING_PARAMS" });
 
-    if (!imei || !serviceId) {
-      return new Response(
-        JSON.stringify({ error: "IMEI and Service ID are required", error_code: "MISSING_PARAMS" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // Clean IMEI: strip whitespace and non-digit chars
     const cleanImei = String(imei).replace(/\D/g, "").trim();
-    if (cleanImei.length !== 15) {
-      return new Response(
-        JSON.stringify({ error: "IMEI must be exactly 15 digits.", error_code: "INVALID_IMEI" }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    if (cleanImei.length !== 15) return jsonResponse({ error: "IMEI must be exactly 15 digits.", error_code: "INVALID_IMEI" });
 
     const cleanServiceId = String(serviceId).trim();
-    
-    const body = new URLSearchParams({
-      key: API_KEY,
-      imei: cleanImei,
-      service: cleanServiceId,
-    });
 
-    console.log("check-ifree request:", { imei: cleanImei, serviceId: cleanServiceId });
+    // ── Auth & balance pre-check ──
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) return jsonResponse({ error: "Authentication required", error_code: "AUTH_REQUIRED" });
 
+    const supabaseUser = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const supabaseAdmin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+
+    const { data: { user } } = await supabaseUser.auth.getUser(authHeader.replace("Bearer ", ""));
+    if (!user) return jsonResponse({ error: "Invalid session", error_code: "AUTH_REQUIRED" });
+
+    // Determine sell price (MMK) — from servicePrice param or cache
+    let sellPrice = 0;
+    if (servicePrice && Number(servicePrice) > 0) {
+      sellPrice = Math.ceil(Number(servicePrice));
+    } else {
+      // Try to get price from cache table
+      const { data: cached } = await supabaseAdmin
+        .from("ifree_services_cache")
+        .select("price")
+        .eq("id", cleanServiceId)
+        .single();
+      if (cached?.price) {
+        // cached price is in USD string, convert to MMK
+        const { data: rateSetting } = await supabaseAdmin
+          .from("system_settings")
+          .select("value")
+          .eq("key", "usd_mmk_rate")
+          .single();
+        const usdRate = rateSetting?.value?.rate ? Number(rateSetting.value.rate) : 4200;
+        sellPrice = Math.ceil(Number(cached.price) * usdRate);
+      }
+    }
+
+    // Balance pre-check
+    if (sellPrice > 0) {
+      const { data: profile } = await supabaseAdmin
+        .from("profiles")
+        .select("balance")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!profile || profile.balance < sellPrice) {
+        return jsonResponse({
+          error: `Insufficient balance. This check costs ${sellPrice.toLocaleString()} MMK. Please top up your wallet.`,
+          error_code: "USER_INSUFFICIENT_BALANCE",
+          required: sellPrice,
+          current_balance: profile?.balance ?? 0,
+        });
+      }
+    }
+
+    // ── Call iFreeiCloud API ──
+    console.log("check-ifree request:", { imei: cleanImei, serviceId: cleanServiceId, sellPrice });
+
+    const body = new URLSearchParams({ key: API_KEY, imei: cleanImei, service: cleanServiceId });
     const response = await fetch("https://api.ifreeicloud.co.uk", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -56,106 +121,78 @@ serve(async (req) => {
     });
 
     const rawText = await response.text();
-    console.log("check-ifree raw response (first 500):", rawText.substring(0, 500));
+    console.log("check-ifree raw (first 500):", rawText.substring(0, 500));
 
-    // Try to parse as JSON
     let data: any;
     try {
       data = JSON.parse(rawText);
     } catch {
-      // Not valid JSON — check if it's an HTML page
       if (rawText.trim().startsWith("<!") || rawText.includes("<html")) {
-        data = {
-          error: "Provider returned an HTML page instead of data. This usually means the API key is invalid or the session expired.",
-          error_code: "HTML_RESPONSE",
-        };
+        data = { error: "Provider returned HTML instead of data. API key may be invalid.", error_code: "HTML_RESPONSE" };
       } else {
-        data = {
-          error: `Unexpected response format from provider.`,
-          error_code: "INVALID_RESPONSE",
-          raw_preview: rawText.substring(0, 200),
-        };
+        data = { error: "Unexpected response format from provider.", error_code: "INVALID_RESPONSE", raw_preview: rawText.substring(0, 200) };
       }
     }
 
-    // Normalize the iFreeiCloud response format
+    // Normalize response
     if (data && typeof data === "object") {
-      // iFreeiCloud returns { success: true/false, response: "...", error: "...", account_balance: "..." }
-      
-      // Case: success is true but response is empty/null → "Processing"
       if (data.success === true && !data.response && !data.error) {
         data.status = "processing";
         data.response = "⏳ Your request is being processed. Please check back shortly.";
       }
-      
-      // Case: success is false with a message
       if (data.success === false && !data.error) {
-        data.error = data.message || data.msg || "The provider returned an error. Please try again.";
+        data.error = data.message || data.msg || "The provider returned an error.";
       }
+      enrichError(data);
+    }
 
-      // Enrich specific error messages
-      if (data.error) {
-        const errorLower = String(data.error).toLowerCase();
-        
-        if (errorLower.includes("service doesn") || errorLower.includes("not exist") || errorLower.includes("invalid service")) {
-          data.error = "This service ID no longer exists at the provider. Please refresh the service list and select a valid service.";
-          data.error_code = "SERVICE_NOT_FOUND";
-        } else if (errorLower.includes("insufficient") || errorLower.includes("balance") || errorLower.includes("credit") || errorLower.includes("not enough")) {
-          data.error = "Insufficient API balance at the provider. Please contact admin to top up the iFreeiCloud account.";
-          data.error_code = "INSUFFICIENT_BALANCE";
-        } else if (errorLower.includes("invalid") && (errorLower.includes("key") || errorLower.includes("api"))) {
-          data.error = "Invalid API key. Please verify the iFreeiCloud API key configuration.";
-          data.error_code = "INVALID_API_KEY";
-        } else if (errorLower.includes("invalid") && errorLower.includes("imei")) {
-          data.error = "The provider rejected this IMEI number. Please verify it is correct.";
-          data.error_code = "INVALID_IMEI";
-        } else if (errorLower.includes("maintenance") || errorLower.includes("unavailable") || errorLower.includes("down")) {
-          data.error = "This service is currently under maintenance. Please try again later.";
-          data.error_code = "MAINTENANCE";
-        } else if (errorLower.includes("slow") || errorLower.includes("queue") || errorLower.includes("wait")) {
-          data.error = "This service is experiencing delays. Your request has been queued — please check back in a few minutes.";
-          data.error_code = "SLOW_SERVICE";
-        } else if (!data.error_code) {
-          data.error_code = "PROVIDER_ERROR";
-        }
+    const isSuccess = data.success === true && !data.error;
+
+    // ── Deduct balance on success ──
+    if (isSuccess && sellPrice > 0) {
+      try {
+        // Atomic deduction
+        await supabaseAdmin.rpc("atomic_balance_add", {
+          p_user_id: user.id,
+          p_amount: -sellPrice,
+        });
+
+        // Log wallet transaction
+        await supabaseAdmin.from("wallet_transactions").insert({
+          user_id: user.id,
+          type: "purchase",
+          amount: sellPrice,
+          status: "approved",
+          description: `IMEI Check: ${serviceName || "Service #" + cleanServiceId}`,
+        });
+
+        data.charged = sellPrice;
+        console.log(`Charged ${sellPrice} MMK to user ${user.id}`);
+      } catch (chargeErr: any) {
+        console.error("Balance deduction failed:", chargeErr.message);
+        // Don't fail the whole request — user still gets results but log the issue
+        data.charge_error = "Balance deduction failed. Please contact support.";
       }
     }
 
-    // Log the check to database
+    // ── Log the check ──
     try {
-      const authHeader = req.headers.get("Authorization");
-      if (authHeader) {
-        const supabase = createClient(
-          Deno.env.get("SUPABASE_URL")!,
-          Deno.env.get("SUPABASE_ANON_KEY")!,
-          { global: { headers: { Authorization: authHeader } } }
-        );
-
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          await supabase.from("ifree_checks").insert({
-            user_id: user.id,
-            imei: cleanImei,
-            service_id: cleanServiceId,
-            service_name: serviceName || "",
-            response_text: data.response || null,
-            account_balance: data.account_balance != null ? String(data.account_balance) : null,
-            error_message: data.error || null,
-            success: data.success === true && !data.error,
-          });
-        }
-      }
-    } catch (logErr) {
-      console.error("Failed to log ifree check:", logErr);
+      await supabaseUser.from("ifree_checks").insert({
+        user_id: user.id,
+        imei: cleanImei,
+        service_id: cleanServiceId,
+        service_name: serviceName || "",
+        response_text: data.response || null,
+        account_balance: data.account_balance != null ? String(data.account_balance) : null,
+        error_message: data.error || null,
+        success: isSuccess,
+      });
+    } catch (logErr: any) {
+      console.error("Failed to log ifree check:", logErr.message);
     }
 
-    return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (err) {
-    return new Response(
-      JSON.stringify({ error: err.message || "Unknown error", error_code: "INTERNAL_ERROR" }),
-      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return jsonResponse(data);
+  } catch (err: any) {
+    return jsonResponse({ error: err.message || "Unknown error", error_code: "INTERNAL_ERROR" });
   }
 });
