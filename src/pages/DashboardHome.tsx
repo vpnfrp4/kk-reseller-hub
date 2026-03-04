@@ -23,6 +23,7 @@ import { MmStatus } from "@/components/shared/MmLabel";
 import PwaInstallBanner from "@/components/PwaInstallBanner";
 import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
+import PullToRefresh from "@/components/shared/PullToRefresh";
 
 export default function DashboardHome() {
   const { user, profile, refreshProfile } = useAuth();
