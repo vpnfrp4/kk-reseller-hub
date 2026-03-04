@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { sanitizeName } from "@/lib/sanitize-name";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -616,7 +617,7 @@ function SuccessModal({ result, credentialsList, onCopy, onClose, onNewOrder, na
           <p className="text-sm text-muted-foreground">Your order has been placed successfully</p>
         </div>
         <div className="space-y-2 bg-secondary/30 rounded-[var(--radius-btn)] p-4">
-          <DetailRow label="Product" value={result.product_name} />
+          <DetailRow label="Product" value={sanitizeName(result.product_name)} />
           <DetailRow label="Amount" value={<Money amount={result.price} />} />
           <DetailRow label="Order ID" value={result.order_id.slice(0, 8).toUpperCase()} mono />
           <DetailRow label="Status" value={<span className="bg-success/15 text-success px-2 py-0.5 rounded-full text-xs font-semibold">Processing</span>} />

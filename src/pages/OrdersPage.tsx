@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { sanitizeName } from "@/lib/sanitize-name";
 import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -228,6 +229,7 @@ export default function OrdersPage() {
       key: "product_name",
       label: l(t.orders.product),
       priority: true,
+      render: (row: any) => <span>{sanitizeName(row.product_name)}</span>,
     },
     {
       key: "product_type",

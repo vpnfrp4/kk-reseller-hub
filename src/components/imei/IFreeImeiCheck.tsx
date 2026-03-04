@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { parseIfreeResponse, cleanIfreeResponse, parseSickwBetaResult } from "@/lib/ifree-response-parser";
+import { sanitizeName } from "@/lib/sanitize-name";
 import {
   Smartphone,
   Search,
@@ -93,7 +94,7 @@ export default function IFreeImeiCheck() {
       if (data?.services && Array.isArray(data.services)) {
         parsed = data.services.map((s: any) => ({
           id: String(s.id ?? ""),
-          name: s.name ?? "",
+          name: sanitizeName(s.name ?? ""),
           price: s.price ?? undefined,
           time: s.time ?? undefined,
           description: s.description ?? undefined,
@@ -101,7 +102,7 @@ export default function IFreeImeiCheck() {
       } else if (Array.isArray(data)) {
         parsed = data.map((s: any) => ({
           id: String(s.id ?? s.service_id ?? ""),
-          name: s.name ?? s.service_name ?? "",
+          name: sanitizeName(s.name ?? s.service_name ?? ""),
           price: s.price ?? s.credit ?? undefined,
           time: s.time ?? s.processing_time ?? undefined,
           description: s.description ?? undefined,
@@ -111,7 +112,7 @@ export default function IFreeImeiCheck() {
         if (entries.length > 0 && typeof entries[0] === "object") {
           parsed = (entries as any[]).map((s: any) => ({
             id: String(s.id ?? s.service_id ?? ""),
-            name: s.name ?? s.service_name ?? "",
+            name: sanitizeName(s.name ?? s.service_name ?? ""),
             price: s.price ?? s.credit ?? undefined,
             time: s.time ?? undefined,
             description: s.description ?? undefined,

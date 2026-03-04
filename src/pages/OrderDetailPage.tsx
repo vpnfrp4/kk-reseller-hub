@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { sanitizeName } from "@/lib/sanitize-name";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -490,7 +491,7 @@ export default function OrderDetailPage() {
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
               <div className="space-y-2">
                 <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
-                  {order.product_name}
+                  {sanitizeName(order.product_name)}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3">
                   <StatusBadge status={order.status} />
@@ -544,7 +545,7 @@ export default function OrderDetailPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
               <DetailRow
                 label={l(t.orders.product)}
-                value={order.product_name}
+                value={sanitizeName(order.product_name)}
               />
               <DetailRow
                 label="Product Type"

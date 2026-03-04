@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo, type ReactNode } from "react";
+import { sanitizeName } from "@/lib/sanitize-name";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -2177,7 +2178,7 @@ export default function AdminProducts() {
                                     )}
                                   </div>
                                   <div className="min-w-0">
-                                    <span className="text-[13px] font-medium text-foreground block truncate max-w-[220px]">{p.name}</span>
+                                    <span className="text-[13px] font-medium text-foreground block truncate max-w-[220px]">{sanitizeName(p.name)}</span>
                                     {p.duration && <p className="text-[10px] text-muted-foreground/50 mt-0.5">{p.duration}</p>}
                                   </div>
                                 </div>
