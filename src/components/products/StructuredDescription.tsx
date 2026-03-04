@@ -4,8 +4,10 @@ import { cn } from "@/lib/utils";
 
 /* ─── Linkify options ─── */
 
+const LINK_CLASSES = "text-blue-400 hover:text-blue-300 no-underline hover:underline underline-offset-4 break-all transition-colors font-medium cursor-pointer";
+
 const LINKIFY_OPTIONS = {
-  className: "text-primary hover:text-primary/80 underline underline-offset-2 break-all transition-colors font-medium",
+  className: LINK_CLASSES,
   target: "_blank",
   rel: "noopener noreferrer",
 };
