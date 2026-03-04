@@ -273,8 +273,29 @@ export default function IFreeImeiCheck() {
         </Button>
       </div>
 
+      {/* Loading Skeleton */}
+      {loading && (
+        <div className="border-t border-border px-5 py-5 space-y-4 animate-pulse">
+          <div className="flex items-center gap-2">
+            <div className="w-3.5 h-3.5 rounded-full bg-primary/20" />
+            <div className="h-3 w-20 rounded bg-muted-foreground/15" />
+          </div>
+          <div className="rounded-[var(--radius-btn)] bg-secondary/50 border border-border p-4 space-y-2.5">
+            <div className="h-3 w-full rounded bg-muted-foreground/15" />
+            <div className="h-3 w-4/5 rounded bg-muted-foreground/15" />
+            <div className="h-3 w-3/5 rounded bg-muted-foreground/15" />
+            <div className="h-3 w-2/3 rounded bg-muted-foreground/15" />
+          </div>
+          <div className="flex items-center gap-2 rounded-[var(--radius-btn)] bg-primary/5 border border-primary/15 px-4 py-3">
+            <div className="w-4 h-4 rounded bg-primary/20" />
+            <div className="h-3 w-16 rounded bg-muted-foreground/15" />
+            <div className="h-4 w-12 rounded bg-muted-foreground/20" />
+          </div>
+        </div>
+      )}
+
       {/* Result */}
-      {result && (
+      {result && !loading && (
         <div className="border-t border-border px-5 py-5 space-y-4">
           {result.error ? (
             <div className="flex items-start gap-2.5 rounded-[var(--radius-btn)] bg-destructive/8 border border-destructive/15 p-4">
