@@ -222,7 +222,8 @@ export default function IFreeImeiCheck() {
 
   const isServiceError = result?.error_code === "SERVICE_NOT_FOUND";
   const isBalanceError = result?.error_code === "INSUFFICIENT_BALANCE" || result?.error_code === "USER_INSUFFICIENT_BALANCE";
-  const isApiKeyError = result?.error_code === "INVALID_API_KEY";
+  const isApiKeyError = result?.error_code === "INVALID_API_KEY" || result?.error_code === "NO_API_KEY";
+  const isAuthError = result?.error_code === "AUTH_REQUIRED";
 
   const getErrorIcon = () => {
     if (isBalanceError) return <Wallet className="w-4 h-4 text-destructive shrink-0 mt-0.5" />;
@@ -232,7 +233,8 @@ export default function IFreeImeiCheck() {
   const getErrorTitle = () => {
     if (isServiceError) return "Service Not Found";
     if (isBalanceError) return "Insufficient Balance";
-    if (isApiKeyError) return "API Key Error";
+    if (isApiKeyError) return "API Configuration Error";
+    if (isAuthError) return "Session Expired";
     return "Check Failed";
   };
 
