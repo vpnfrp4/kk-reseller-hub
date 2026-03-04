@@ -347,6 +347,16 @@ export default function IFreeImeiCheck() {
               )}
             </>
           )}
+
+          {/* Retry button */}
+          <button
+            onClick={handleCheck}
+            disabled={loading}
+            className="flex items-center justify-center gap-1.5 w-full py-2.5 rounded-[var(--radius-btn)] border border-border bg-secondary/50 hover:bg-secondary text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            Re-check IMEI
+          </button>
         </div>
       )}
     </div>
