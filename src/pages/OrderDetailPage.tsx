@@ -619,12 +619,33 @@ export default function OrderDetailPage() {
               </GlassSection>
             )}
 
-          {/* ═══ 5b. ADMIN NOTES (visible to user as fulfillment note) ═══ */}
-          {order.admin_notes && (
-            <GlassSection>
-              <FulfillmentNotesCard notes={order.admin_notes} completed={order.status === "completed"} />
-            </GlassSection>
-          )}
+          {/* ═══ 5b. USER-RELEVANT NOTES (filtered) ═══ */}
+          {(() => {
+            if (!order.admin_notes) return null;
+            // Only show user-relevant messages, filter out internal system logs
+            const userRelevantKeywords = [
+              "reject", "denied", "not supported", "unsupported", "failed",
+              "manual verification", "verification required", "refund",
+              "cancelled", "canceled", "invalid", "error", "issue",
+              "contact support", "re-submit", "resubmit",
+            ];
+            const lines = order.admin_notes.split("\n").filter((line: string) => {
+              const lower = line.trim().toLowerCase();
+              if (!lower) return false;
+              // Filter out internal system messages
+              if (lower.includes("tier discount") || lower.includes("margin") || lower.includes("provider cost") || lower.includes("profit")) return false;
+              if (lower.includes("system log") || lower.includes("internal")) return false;
+              // Keep if it matches user-relevant keywords
+              return userRelevantKeywords.some(kw => lower.includes(kw));
+            });
+            if (lines.length === 0) return null;
+            const filteredNotes = lines.join("\n");
+            return (
+              <GlassSection>
+                <FulfillmentNotesCard notes={filteredNotes} completed={order.status === "completed"} />
+              </GlassSection>
+            );
+          })()}
 
           {/* ═══ 5c. REVIEW SECTION ═══ */}
           {isDelivered && (
