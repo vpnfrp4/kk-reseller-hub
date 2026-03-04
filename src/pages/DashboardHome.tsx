@@ -183,10 +183,10 @@ export default function DashboardHome() {
             {filteredOrders.map((order: any) => (
               <div
                 key={order.id}
-                className="grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-4 px-6 py-4 hover:bg-secondary/20 transition-colors cursor-pointer"
+                className="grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-4 px-4 md:px-6 py-3 md:py-4 hover:bg-secondary/20 transition-colors cursor-pointer"
                 onClick={() => navigate(`/dashboard/orders/${order.id}`)}
               >
-                <span className="font-mono text-xs text-primary font-medium">
+                <span className="font-mono text-xs text-primary font-medium truncate">
                   {order.order_code}
                 </span>
                 <span className="text-sm text-foreground truncate col-span-1">
@@ -203,6 +203,11 @@ export default function DashboardHome() {
                 </span>
                 <span className="text-center hidden md:block">
                   <MmStatus status={order.status} />
+                </span>
+                {/* Mobile: show status + date inline */}
+                <span className="md:hidden flex items-center gap-2">
+                  <MmStatus status={order.status} />
+                  <span className="text-[10px] text-muted-foreground">{format(new Date(order.created_at), "MMM dd")}</span>
                 </span>
                 <span className="text-center hidden md:block">
                   <Link
