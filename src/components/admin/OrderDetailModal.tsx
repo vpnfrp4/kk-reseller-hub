@@ -241,12 +241,6 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
   const currentCredentials = order.credentials || credential?.credentials || "";
   const hasPendingPlaceholder = currentCredentials.includes("Pending") || currentCredentials === "" || currentCredentials === "N/A";
 
-  // Preview lines for result
-  const previewLines = useMemo(() => {
-    const text = resultInput.trim();
-    if (!text) return [];
-    return text.split("\n").filter(Boolean);
-  }, [resultInput]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
