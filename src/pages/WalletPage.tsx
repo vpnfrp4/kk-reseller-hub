@@ -61,7 +61,7 @@ export default function WalletPage() {
   const [verifyTxId, setVerifyTxId] = useState("");
   const [verifying, setVerifying] = useState(false);
 
-  const { data: transactions, refetch: refetchTransactions } = useQuery({
+  const { data: transactions, refetch: refetchTransactions, isLoading: txLoading } = useQuery({
     queryKey: ["wallet-transactions"],
     queryFn: async () => {
       const { data } = await supabase
