@@ -43,7 +43,7 @@ export default function AdminResellers() {
     },
   });
 
-  const getUserRole = (r: any) => r.total_orders > 0 || r.total_spent > 0 ? "reseller" : "customer";
+  const getUserRole = (r: any) => r.designation || "customer";
 
   const toggleUserRole = async (userId: string, currentRole: string) => {
     setTogglingRole(userId);
