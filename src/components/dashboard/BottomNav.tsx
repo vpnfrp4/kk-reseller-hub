@@ -27,10 +27,10 @@ export default function BottomNav() {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center justify-center flex-1 gap-0.5 text-[10px] font-medium transition-colors duration-200",
+                "flex flex-col items-center justify-center flex-1 gap-0.5 text-[10px] font-medium transition-all duration-200 active:scale-90 active:opacity-70",
                 active
                   ? "text-primary"
-                  : "text-muted-foreground active:text-foreground"
+                  : "text-muted-foreground"
               )}
             >
               <div className="relative">
