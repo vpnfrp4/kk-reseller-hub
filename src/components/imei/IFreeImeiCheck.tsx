@@ -309,12 +309,14 @@ export default function IFreeImeiCheck() {
       {/* Result */}
       {result && !loading && (
         <div className="border-t border-border px-5 py-5 space-y-4">
-          {result.error ? (
+          {(result.error || (result as any).status === "error" || result.response === "") ? (
             <div className="flex items-start gap-2.5 rounded-[var(--radius-btn)] bg-destructive/8 border border-destructive/15 p-4">
               <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
               <div>
-                <p className="text-xs font-bold text-destructive">Error</p>
-                <p className="text-xs text-destructive/80 mt-0.5">{result.error}</p>
+                <p className="text-xs font-bold text-destructive">Check Failed</p>
+                <p className="text-xs text-destructive/80 mt-0.5">
+                  {result.error || "The service returned an error. Please verify the IMEI and service selection, then try again."}
+                </p>
               </div>
             </div>
           ) : (
