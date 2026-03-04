@@ -107,7 +107,7 @@ function OverviewBlock({ lines }: { lines: string[] }) {
   return (
     <div className="space-y-1.5">
       {lines.map((line, i) => (
-        <p key={i} className="text-xs text-muted-foreground/90 leading-relaxed"><RichText>{line}</RichText></p>
+        <div key={i} className="text-xs text-muted-foreground/90 leading-relaxed"><MarkdownLine>{line}</MarkdownLine></div>
       ))}
     </div>
   );
@@ -123,7 +123,7 @@ function FeaturesBlock({ lines }: { lines: string[] }) {
         {lines.map((line, i) => (
           <li key={i} className="flex items-start gap-2.5">
             <span className="shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/60" />
-            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></span>
           </li>
         ))}
       </ul>
@@ -140,7 +140,7 @@ function DeliveryBlock({ lines }: { lines: string[] }) {
       <div>
         <p className="text-[10px] uppercase tracking-[0.12em] font-semibold text-foreground/60 mb-0.5">Delivery Time</p>
         {lines.map((line, i) => (
-          <p key={i} className="text-xs text-muted-foreground"><RichText>{line}</RichText></p>
+          <div key={i} className="text-xs text-muted-foreground"><MarkdownLine>{line}</MarkdownLine></div>
         ))}
       </div>
     </div>
@@ -154,7 +154,7 @@ function WarrantyBlock({ lines }: { lines: string[] }) {
         Warranty / Guarantee
       </p>
       {lines.map((line, i) => (
-        <p key={i} className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></p>
+        <div key={i} className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></div>
       ))}
     </div>
   );
@@ -170,7 +170,7 @@ function CompatibilityBlock({ lines }: { lines: string[] }) {
         {lines.map((line, i) => (
           <div key={i} className="flex items-start gap-2.5">
             <span className="shrink-0 mt-1 w-4 h-[1px] bg-border" />
-            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></span>
           </div>
         ))}
       </div>
@@ -188,7 +188,7 @@ function ResellerBlock({ lines }: { lines: string[] }) {
         {lines.map((line, i) => (
           <li key={i} className="flex items-start gap-2.5">
             <span className="shrink-0 mt-1 w-1 h-3 rounded-sm bg-primary/30" />
-            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></span>
           </li>
         ))}
       </ul>
@@ -208,7 +208,7 @@ function ImportantBlock({ lines }: { lines: string[] }) {
           {lines.map((line, i) => (
             <li key={i} className="flex items-start gap-2">
               <span className="shrink-0 mt-1.5 w-1 h-1 rounded-full bg-amber-500/50" />
-              <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
+              <span className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></span>
             </li>
           ))}
         </ul>
@@ -229,7 +229,7 @@ function HowItWorksBlock({ lines }: { lines: string[] }) {
             <span className="shrink-0 flex items-center justify-center w-5 h-5 rounded-md bg-primary/10 text-primary text-[10px] font-bold tabular-nums mt-0.5">
               {i + 1}
             </span>
-            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></span>
           </li>
         ))}
       </ol>
@@ -241,7 +241,7 @@ function TextBlock({ lines }: { lines: string[] }) {
   return (
     <div className="space-y-1.5">
       {lines.map((line, i) => (
-        <p key={i} className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></p>
+        <div key={i} className="text-xs text-muted-foreground leading-relaxed"><MarkdownLine>{line}</MarkdownLine></div>
       ))}
     </div>
   );
