@@ -578,6 +578,18 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
                   {isImeiOrder ? "Complete & Deliver" : "Fulfill & Deliver"}
                 </Button>
               )}
+
+              {/* Refund Button */}
+              {canRefund && (
+                <Button
+                  variant="destructive"
+                  className="flex-1 gap-2 text-sm"
+                  onClick={() => setRefundConfirmOpen(true)}
+                >
+                  <Undo2 className="w-4 h-4" />
+                  Refund & Cancel
+                </Button>
+              )}
             </div>
           </div>
 
@@ -637,6 +649,18 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
           </div>
         </div>
       </DialogContent>
+
+      {/* Refund Confirmation Modal */}
+      <ConfirmModal
+        open={refundConfirmOpen}
+        onOpenChange={setRefundConfirmOpen}
+        title="Refund & Cancel Order"
+        description={`This will refund ${order.price.toLocaleString()} MMK to the customer's wallet and cancel order ${order.order_code}. This action cannot be undone.`}
+        confirmLabel="Refund & Cancel"
+        destructive
+        loading={refunding}
+        onConfirm={handleRefund}
+      />
     </Dialog>
   );
 }
