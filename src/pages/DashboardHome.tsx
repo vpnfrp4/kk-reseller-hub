@@ -89,6 +89,12 @@ export default function DashboardHome() {
 
   return (
     <PageContainer>
+      <PullToRefresh onRefresh={async () => {
+        await Promise.all([
+          refreshProfile(),
+          queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] }),
+        ]);
+      }}>
       <PwaInstallBanner />
 
       {/* USER PROFILE CARD */}
