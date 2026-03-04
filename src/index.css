@@ -732,10 +732,22 @@
   }
 }
 
-/* ─── Mobile Scroll & Touch ─── */
-html, body {
+/* ─── Global Scroll & Touch (outside @layer for highest priority) ─── */
+html {
+  height: auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden;
   max-width: 100vw;
   -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
+  scroll-behavior: smooth;
+}
+
+body {
+  height: auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden;
+  max-width: 100vw;
   touch-action: manipulation;
 }
 
