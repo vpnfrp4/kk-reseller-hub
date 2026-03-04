@@ -28,6 +28,7 @@ import CurrencyToggle from "@/components/shared/CurrencyToggle";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { useLang } from "@/contexts/LangContext";
 import { cn } from "@/lib/utils";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import FloatingSupport from "@/components/shared/FloatingSupport";
@@ -298,6 +299,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
 
             <CurrencyToggle />
+
+            <ThemeToggle />
 
             <WalletChip profile={profile} />
 
