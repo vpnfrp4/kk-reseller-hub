@@ -147,7 +147,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   return (
-    <div className="admin-theme min-h-screen flex bg-background">
+    <div className="admin-theme h-screen flex bg-background overflow-hidden">
       {/* Mobile overlay */}
       <div
         className={cn(
@@ -241,7 +241,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Area */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <header className="h-14 border-b border-border flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 bg-card/80 backdrop-blur-xl admin-header">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors">
@@ -263,7 +263,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 overflow-auto">{children}</main>
+        <main className="flex-1 p-4 lg:p-8 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>{children}</main>
 
         <footer className="border-t border-border px-4 lg:px-8 py-4 text-center">
           <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200">
