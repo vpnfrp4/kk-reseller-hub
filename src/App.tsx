@@ -158,6 +158,7 @@ function AppRoutes() {
         <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
         <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
   );
 }
 
