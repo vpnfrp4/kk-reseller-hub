@@ -302,7 +302,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto" data-scroll-area>
+        <main className="flex-1 p-4 lg:p-8" data-scroll-area>
           <AnimatePresence mode="wait">
             <PageTransition key={location.pathname}>
               {children}
