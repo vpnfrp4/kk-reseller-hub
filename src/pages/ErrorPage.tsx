@@ -12,12 +12,12 @@ export default function ErrorPage() {
     const ts = errorTimestamp.toString(36);
     const rand = Math.random().toString(36).slice(2, 6);
     return `ERR-${ts}-${rand}`.toUpperCase();
-  }, [errorState?.timestamp]);
+  }, [errorTimestamp]);
 
   const errorTime = useMemo(() => {
-    const d = new Date(errorState?.timestamp || Date.now());
+    const d = new Date(errorTimestamp);
     return d.toLocaleString();
-  }, [errorState?.timestamp]);
+  }, [errorTimestamp]);
 
   const handleCopyId = () => {
     navigator.clipboard.writeText(errorId).then(() => {
