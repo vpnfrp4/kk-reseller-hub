@@ -509,6 +509,49 @@ export default function AdminMonitoring() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Client Errors (ErrorBoundary) */}
+        <TabsContent value="client-errors">
+          <Card>
+            <CardContent className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Time</TableHead>
+                    <TableHead>Page URL</TableHead>
+                    <TableHead>Error Message</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loadingClientErrors ? (
+                    <TableRow><TableCell colSpan={3} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
+                  ) : clientErrors.length === 0 ? (
+                    <TableRow><TableCell colSpan={3} className="text-center py-8 text-muted-foreground">No client errors 🎉</TableCell></TableRow>
+                  ) : clientErrors.map((err: any) => (
+                    <TableRow key={err.id}>
+                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                        {format(new Date(err.created_at), "MMM dd HH:mm:ss")}
+                      </TableCell>
+                      <TableCell className="max-w-[200px] truncate font-mono text-xs">
+                        {err.request_url || "—"}
+                      </TableCell>
+                      <TableCell>
+                        <details className="cursor-pointer">
+                          <summary className="text-xs text-destructive truncate max-w-[400px]">
+                            {err.error_message?.split("\n")[0] || "Unknown error"}
+                          </summary>
+                          <pre className="text-[10px] text-muted-foreground mt-2 whitespace-pre-wrap break-all max-h-40 overflow-auto bg-secondary/30 rounded p-2">
+                            {err.error_message}
+                          </pre>
+                        </details>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
