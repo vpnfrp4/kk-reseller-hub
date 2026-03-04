@@ -111,6 +111,13 @@ export default function OrderDetailModal({ order, open, onOpenChange, onStatusUp
     },
   });
 
+  // Preview lines for result — must be before early return
+  const previewLines = useMemo(() => {
+    const text = resultInput.trim();
+    if (!text) return [];
+    return text.split("\n").filter(Boolean);
+  }, [resultInput]);
+
   if (!order) return null;
 
   const copyCredentials = () => {
