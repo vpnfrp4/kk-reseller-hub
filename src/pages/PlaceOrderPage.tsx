@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { sanitizeName } from "@/lib/sanitize-name";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,12 +20,18 @@ import {
   ShieldAlert,
   ArrowLeft,
   Smartphone,
+  Apple,
+  Globe,
+  Monitor,
+  Link2,
+  Package,
+  ChevronRight,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Money } from "@/components/shared";
 import { PageContainer } from "@/components/shared";
-
 import Confetti from "@/components/Confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import IFreeImeiCheck from "@/components/imei/IFreeImeiCheck";
@@ -39,6 +45,28 @@ interface PurchaseResult {
   quantity?: number;
 }
 
+/* ═══ CATEGORY CONFIG ═══ */
+const CATEGORY_ICONS: Record<string, typeof Apple> = {
+  "Apple": Apple,
+  "Apple Unlock": Apple,
+  "Apple Services": Apple,
+  "IMEI": Smartphone,
+  "IMEI Checks": Smartphone,
+  "Android": Monitor,
+  "Android Unlock": Monitor,
+  "API": Link2,
+  "API Services": Link2,
+  "Subscriptions": Package,
+  "Repair": Globe,
+};
+
+function getCategoryIcon(name: string) {
+  for (const [key, Icon] of Object.entries(CATEGORY_ICONS)) {
+    if (name.toLowerCase().includes(key.toLowerCase())) return Icon;
+  }
+  return Package;
+}
+
 export default function PlaceOrderPage() {
   const { user, profile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
@@ -49,7 +77,6 @@ export default function PlaceOrderPage() {
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
   const [purchasing, setPurchasing] = useState(false);
   const [result, setResult] = useState<PurchaseResult | null>(null);
-  
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -108,7 +135,6 @@ export default function PlaceOrderPage() {
     },
   });
 
-  // Fetch reseller tier discount
   const { data: tierDiscount = 0 } = useQuery({
     queryKey: ["user-tier-discount", profile?.tier],
     queryFn: async () => {
@@ -127,10 +153,25 @@ export default function PlaceOrderPage() {
   const activeFields = customFields.filter((f: any) => f.linked_mode === defaultMode);
 
   const categories = useMemo(() => {
-    const cats = new Map<string, number>();
-    products.forEach((p: any) => cats.set(p.category || "Other", (cats.get(p.category || "Other") || 0) + 1));
-    return [{ name: "All", count: products.length }, ...Array.from(cats.entries()).sort((a, b) => a[0].localeCompare(b[0])).map(([name, count]) => ({ name, count }))];
+    const cats = new Map<string, { count: number; minPrice: number }>();
+    products.forEach((p: any) => {
+      const cat = p.category || "Other";
+      const existing = cats.get(cat);
+      if (existing) {
+        existing.count++;
+        existing.minPrice = Math.min(existing.minPrice, p.wholesale_price || 0);
+      } else {
+        cats.set(cat, { count: 1, minPrice: p.wholesale_price || 0 });
+      }
+    });
+    return Array.from(cats.entries())
+      .sort((a, b) => b[1].count - a[1].count)
+      .map(([name, info]) => ({ name, ...info }));
   }, [products]);
+
+  const allCategories = useMemo(() => {
+    return [{ name: "All", count: products.length }, ...categories.map(c => ({ name: c.name, count: c.count }))];
+  }, [categories, products.length]);
 
   const [activeCategory, setActiveCategory] = useState("All");
 
@@ -177,6 +218,11 @@ export default function PlaceOrderPage() {
     setResult(null);
   };
 
+  const handleCategoryClick = (catName: string) => {
+    setActiveCategory(catName);
+    setSearchQuery("");
+  };
+
   const handlePurchase = async () => {
     if (!selectedProduct || purchasing) return;
     for (const field of activeFields) {
@@ -220,42 +266,44 @@ export default function PlaceOrderPage() {
   const credentialsList = result?.credentials?.split("\n").filter(Boolean) || [];
 
   return (
-    <PageContainer maxWidth="max-w-4xl">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-9 h-9 rounded-[var(--radius-btn)] bg-primary/10 flex items-center justify-center">
-          <ShoppingCart className="w-5 h-5 text-primary" />
+    <PageContainer maxWidth="max-w-5xl">
+      {/* ═══ HEADER ═══ */}
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-[var(--radius-card)] bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center shadow-[0_0_20px_hsl(var(--primary)/0.2)]">
+            <ShoppingCart className="w-5 h-5 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Service Marketplace</h1>
+            <p className="text-xs text-muted-foreground">{products.length} services available</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Place Order</h1>
-          <p className="text-xs text-muted-foreground">Search and order services quickly</p>
-        </div>
-      </div>
 
-      {/* Tab Switcher */}
-      <div className="flex gap-1.5 mb-5 p-1 rounded-[var(--radius-btn)] bg-secondary/40 border border-border w-fit">
-        <button
-          onClick={() => setActiveTab("services")}
-          className={cn(
-            "flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-btn)] text-xs font-bold transition-all duration-200",
-            activeTab === "services"
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-          )}
-        >
-          <ShoppingCart className="w-3.5 h-3.5" /> Services
-        </button>
-        <button
-          onClick={() => setActiveTab("ifree")}
-          className={cn(
-            "flex items-center gap-1.5 px-4 py-2 rounded-[var(--radius-btn)] text-xs font-bold transition-all duration-200",
-            activeTab === "ifree"
-              ? "bg-primary text-primary-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-          )}
-        >
-          <Smartphone className="w-3.5 h-3.5" /> iFree IMEI Check
-        </button>
+        {/* Tab Switcher */}
+        <div className="flex gap-1 p-1 rounded-[var(--radius-btn)] bg-secondary/50 border border-border">
+          <button
+            onClick={() => setActiveTab("services")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-[calc(var(--radius-btn)-2px)] text-[11px] font-bold transition-all duration-200",
+              activeTab === "services"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <ShoppingCart className="w-3 h-3" /> Services
+          </button>
+          <button
+            onClick={() => setActiveTab("ifree")}
+            className={cn(
+              "flex items-center gap-1.5 px-3 py-1.5 rounded-[calc(var(--radius-btn)-2px)] text-[11px] font-bold transition-all duration-200",
+              activeTab === "ifree"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Smartphone className="w-3 h-3" /> IMEI
+          </button>
+        </div>
       </div>
 
       {activeTab === "ifree" ? (
@@ -267,22 +315,64 @@ export default function PlaceOrderPage() {
       <AnimatePresence mode="wait">
         {!selectedProduct ? (
           <motion.div
-            key="selection"
+            key="marketplace"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
+            className="space-y-5"
           >
+            {/* ═══ POPULAR CATEGORIES ═══ */}
+            {!searchQuery && activeCategory === "All" && (
+              <div>
+                <h2 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+                  <span className="w-1 h-4 rounded-full bg-primary" />
+                  Popular Categories
+                </h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
+                  {categories.slice(0, 5).map((cat, i) => {
+                    const Icon = getCategoryIcon(cat.name);
+                    return (
+                      <motion.button
+                        key={cat.name}
+                        initial={{ opacity: 0, y: 12 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05, duration: 0.2 }}
+                        onClick={() => handleCategoryClick(cat.name)}
+                        className={cn(
+                          "group relative text-left p-4 rounded-[var(--radius-card)] border border-border",
+                          "bg-card/80 backdrop-blur-sm",
+                          "hover:border-primary/40 hover:shadow-[0_0_20px_hsl(var(--primary)/0.08)]",
+                          "transition-all duration-300"
+                        )}
+                      >
+                        <div className="w-8 h-8 rounded-[var(--radius-btn)] bg-primary/10 flex items-center justify-center mb-2.5 group-hover:bg-primary/15 transition-colors">
+                          <Icon className="w-4 h-4 text-primary" />
+                        </div>
+                        <p className="text-[13px] font-bold text-foreground leading-tight truncate">{cat.name}</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">{cat.count} services</p>
+                        <p className="text-[10px] text-primary font-semibold mt-1">
+                          from <Money amount={cat.minPrice} compact className="text-primary" />
+                        </p>
+                        <ChevronRight className="absolute top-4 right-3 w-3.5 h-3.5 text-muted-foreground/30 group-hover:text-primary/50 transition-colors" />
+                      </motion.button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* ═══ SEARCH + FILTERS + LIST CARD ═══ */}
             <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-              {/* Search */}
-              <div className="px-5 py-3 border-b border-border">
+              {/* Search Bar */}
+              <div className="px-4 py-3 border-b border-border">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50 pointer-events-none" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 pointer-events-none" />
                   <Input
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by name or #ID..."
-                    className="pl-9 h-9 bg-secondary/50 border-border text-sm rounded-[var(--radius-input)]"
+                    placeholder="Search by service name or #ID..."
+                    className="pl-9 pr-9 h-10 bg-secondary/40 border-border text-sm rounded-[var(--radius-input)] placeholder:text-muted-foreground/40"
                   />
                   {searchQuery && (
                     <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 rounded text-muted-foreground/50 hover:text-foreground">
@@ -292,98 +382,133 @@ export default function PlaceOrderPage() {
                 </div>
               </div>
 
-              {/* Category Filter Tabs */}
-              <div className="px-5 py-2.5 border-b border-border flex gap-1.5 overflow-x-auto stool-scrollbar">
-                {categories.map((cat) => (
+              {/* Category Tabs */}
+              <div className="px-4 py-2.5 border-b border-border flex gap-1.5 overflow-x-auto stool-scrollbar">
+                {allCategories.map((cat) => (
                   <button
                     key={cat.name}
                     onClick={() => setActiveCategory(cat.name)}
                     className={cn(
-                      "shrink-0 px-3 py-1.5 text-[10px] font-bold rounded-[var(--radius-btn)] border transition-all duration-200",
+                      "shrink-0 px-3 py-1.5 text-[11px] font-bold rounded-full border transition-all duration-200",
                       activeCategory === cat.name
-                        ? "bg-primary text-primary-foreground border-primary"
+                        ? "bg-primary text-primary-foreground border-primary shadow-[0_0_12px_hsl(var(--primary)/0.2)]"
                         : "bg-secondary/30 text-muted-foreground border-border hover:border-primary/30 hover:text-foreground"
                     )}
                   >
                     {cat.name}
-                    <span className="ml-1 opacity-60 font-mono">{cat.count}</span>
+                    <span className="ml-1.5 opacity-50 font-mono text-[10px]">{cat.count}</span>
                   </button>
                 ))}
               </div>
 
-              {/* Count bar */}
-              <div className="px-5 py-2 border-b border-border/50 flex items-center justify-between">
+              {/* Results count */}
+              <div className="px-4 py-2 border-b border-border/50 flex items-center justify-between bg-secondary/10">
                 <span className="text-[11px] font-semibold text-muted-foreground/60">
                   {activeCategory === "All" ? "All Services" : activeCategory}
                 </span>
                 <span className="text-[10px] font-mono text-muted-foreground/40">{filteredProducts.length} results</span>
               </div>
 
-              {/* Service List */}
-              <div className="max-h-[70vh] overflow-y-auto stool-scrollbar divide-y divide-border/30" style={{ WebkitOverflowScrolling: 'touch' }}>
+              {/* ═══ SERVICE LIST ═══ */}
+              <div className="max-h-[65vh] overflow-y-auto stool-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {filteredProducts.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/40">
-                    <Search className="w-7 h-7 mb-2" />
-                    <p className="text-xs font-medium">No services found</p>
+                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground/30">
+                    <Search className="w-8 h-8 mb-3" />
+                    <p className="text-sm font-medium">No services found</p>
+                    <p className="text-xs mt-1">Try adjusting your search or filters</p>
                   </div>
                 ) : (
-                  filteredProducts.map((p: any) => {
-                    const isAuto = p.product_type === "api" || p.product_type === "digital";
-                    const isOutOfStock = p.product_type === "digital" && p.stock === 0;
-                    const pTime = p.processing_time || (isAuto ? "Instant" : "1-3 Days");
+                  <div className="p-2.5 space-y-1.5">
+                    {filteredProducts.map((p: any) => {
+                      const pType = p.product_type;
+                      const isAuto = pType === "api" || pType === "digital";
+                      const isOutOfStock = pType === "digital" && p.stock === 0;
+                      const pTime = p.processing_time || (isAuto ? "Instant" : "1–24 Hours");
 
-                    return (
-                      <button
-                        key={p.id}
-                        onClick={() => !isOutOfStock && handleSelectProduct(p.id)}
-                        disabled={isOutOfStock}
-                        className={cn(
-                          "w-full text-left px-5 py-3.5 flex items-center gap-4 transition-all duration-150",
-                          isOutOfStock
-                            ? "opacity-40 cursor-not-allowed"
-                            : "hover:bg-secondary/30 cursor-pointer"
-                        )}
-                      >
-                        {/* Service info */}
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[13px] text-foreground font-semibold truncate leading-snug">
-                            <span className="font-mono text-primary/70 font-bold mr-1.5 text-xs">#{p.display_id}</span>
-                            {p.name}
-                          </p>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            <span className={cn(
-                              "inline-flex items-center gap-1 text-[10px] font-bold",
-                              isAuto ? "text-success" : "text-warning"
-                            )}>
-                              {isAuto ? <Zap className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
-                              {pTime}
-                            </span>
-                            {isOutOfStock && (
-                              <span className="text-[10px] font-bold text-destructive">Out of Stock</span>
-                            )}
-                          </div>
-                        </div>
+                      // Badge config
+                      let badgeLabel = "Manual";
+                      let badgeClass = "bg-warning/10 text-warning border-warning/20";
+                      let BadgeIcon = Clock;
+                      if (pType === "digital") {
+                        badgeLabel = "Instant";
+                        badgeClass = "bg-success/10 text-success border-success/20";
+                        BadgeIcon = Zap;
+                      } else if (pType === "api") {
+                        badgeLabel = "API";
+                        badgeClass = "bg-primary/10 text-primary border-primary/20";
+                        BadgeIcon = Link2;
+                      }
 
-                        {/* Price + action */}
-                        <div className="shrink-0 flex items-center gap-3">
-                          <span className="text-sm font-bold font-mono tabular-nums text-foreground">
-                            <Money amount={p.wholesale_price} compact />
-                          </span>
-                          {!isOutOfStock && (
-                            <span className="text-[10px] font-bold text-primary-foreground bg-primary px-2.5 py-1 rounded-[var(--radius-btn)] whitespace-nowrap">
-                              Order
-                            </span>
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => !isOutOfStock && handleSelectProduct(p.id)}
+                          disabled={isOutOfStock}
+                          className={cn(
+                            "w-full text-left px-4 py-3.5 rounded-[var(--radius-card)] border transition-all duration-200 group",
+                            isOutOfStock
+                              ? "opacity-35 cursor-not-allowed border-border/50 bg-secondary/10"
+                              : "border-border/60 bg-secondary/5 hover:bg-secondary/20 hover:border-primary/30 hover:shadow-[0_0_16px_hsl(var(--primary)/0.06)] cursor-pointer"
                           )}
-                        </div>
-                      </button>
-                    );
-                  })
+                        >
+                          <div className="flex items-start gap-3">
+                            {/* Left: Info */}
+                            <div className="min-w-0 flex-1">
+                              {/* ID + Name */}
+                              <div className="flex items-start gap-2">
+                                <span className="shrink-0 font-mono text-[10px] font-bold text-primary/60 bg-primary/5 px-1.5 py-0.5 rounded mt-0.5">
+                                  #{p.display_id}
+                                </span>
+                                <p className="text-[13px] text-foreground font-semibold leading-snug line-clamp-2 break-words">
+                                  {sanitizeName(p.name)}
+                                </p>
+                              </div>
+
+                              {/* Badges row */}
+                              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                                <span className={cn(
+                                  "inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border",
+                                  badgeClass
+                                )}>
+                                  <BadgeIcon className="w-2.5 h-2.5" />
+                                  {badgeLabel}
+                                </span>
+                                <span className="text-[10px] text-muted-foreground/60 font-medium">
+                                  {pTime}
+                                </span>
+                                {isOutOfStock && (
+                                  <span className="text-[10px] font-bold text-destructive">Out of Stock</span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Right: Price + Action */}
+                            <div className="shrink-0 flex flex-col items-end gap-2">
+                              <span className="text-sm font-bold font-mono tabular-nums text-foreground">
+                                <Money amount={p.wholesale_price} compact />
+                              </span>
+                              {!isOutOfStock && (
+                                <span className={cn(
+                                  "inline-flex items-center gap-1 text-[10px] font-bold text-primary-foreground px-3 py-1 rounded-full",
+                                  "bg-gradient-to-r from-primary to-primary/80",
+                                  "shadow-[0_0_12px_hsl(var(--primary)/0.15)]",
+                                  "group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.3)] transition-shadow duration-300"
+                                )}>
+                                  Order <ArrowRight className="w-3 h-3" />
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
                 )}
               </div>
             </div>
           </motion.div>
         ) : (
-          /* ═══ MODE 2: DETAILS — service selected ═══ */
+          /* ═══ MODE 2: SERVICE DETAIL ═══ */
           <motion.div
             key={`detail-${selectedProduct.id}`}
             initial={{ opacity: 0, y: 10 }}
@@ -392,7 +517,6 @@ export default function PlaceOrderPage() {
             transition={{ duration: 0.22, ease: "easeOut" }}
             className="space-y-4"
           >
-            {/* Change Service button */}
             <button
               onClick={handleBack}
               className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-150"
@@ -401,7 +525,6 @@ export default function PlaceOrderPage() {
               <span className="font-medium">Change Service</span>
             </button>
 
-            {/* Service Detail Card */}
             <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
               {/* Header */}
               <div className="px-5 py-4 border-b border-border">
@@ -420,27 +543,26 @@ export default function PlaceOrderPage() {
                   </span>
                 </div>
 
-                {/* Badges */}
                 <div className="flex items-center gap-2 mt-3 flex-wrap">
                   <span className={cn(
-                    "inline-flex items-center gap-1 text-[10px] font-bold rounded-[var(--radius-btn)] px-2.5 py-1 border",
+                    "inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-1 border",
                     isInstant ? "bg-success/10 text-success border-success/20" : "bg-warning/10 text-warning border-warning/20"
                   )}>
                     {isInstant ? <Zap className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
                     {isInstant ? "Auto Instant" : "Manual"}
                   </span>
                   {selectedProduct.product_type === "digital" && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-[var(--radius-btn)] px-2.5 py-1 bg-primary/10 text-primary border border-primary/20">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-1 bg-primary/10 text-primary border border-primary/20">
                       <Zap className="w-3 h-3" /> AUTO-INSTANT
                     </span>
                   )}
                   {deliveryTime && deliveryTime !== "Instant" && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-[var(--radius-btn)] px-2.5 py-1 bg-ice/10 text-ice border border-ice/20">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-1 bg-ice/10 text-ice border border-ice/20">
                       <Clock className="w-3 h-3" /> {deliveryTime}
                     </span>
                   )}
                   {selectedProduct.description?.toLowerCase().includes("no refund") && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-[var(--radius-btn)] px-2.5 py-1 bg-destructive/10 text-destructive border border-destructive/20">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-1 bg-destructive/10 text-destructive border border-destructive/20">
                       <ShieldAlert className="w-3 h-3" /> NO REFUND
                     </span>
                   )}
@@ -501,7 +623,7 @@ export default function PlaceOrderPage() {
                 )}
 
                 {/* Price Summary */}
-                <div className="rounded-[var(--radius-btn)] bg-secondary/30 border border-border p-3.5 space-y-2">
+                <div className="rounded-[var(--radius-card)] bg-secondary/20 border border-border p-4 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">Total Price</span>
                     <span className="text-lg font-extrabold font-mono tabular-nums text-foreground">
@@ -529,7 +651,7 @@ export default function PlaceOrderPage() {
                   disabled={!selectedProduct || purchasing || hasInsufficientBalance}
                   className={cn(
                     "w-full h-12 font-bold text-sm gap-2 rounded-[var(--radius-btn)]",
-                    "bg-primary hover:bg-primary/90 text-primary-foreground",
+                    "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground",
                     "shadow-[0_0_20px_hsl(var(--primary)/0.25)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)]",
                     "transition-all duration-300",
                     hasInsufficientBalance && "opacity-40 shadow-none"
@@ -538,7 +660,7 @@ export default function PlaceOrderPage() {
                   {purchasing ? (
                     <><div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" /> Processing...</>
                   ) : (
-                    <><CheckCircle2 className="w-4 h-4" /> Place Order</>
+                    <><CheckCircle2 className="w-4 h-4" /> Place Order <ArrowRight className="w-4 h-4" /></>
                   )}
                 </Button>
               </div>
@@ -548,9 +670,7 @@ export default function PlaceOrderPage() {
       </AnimatePresence>
       )}
 
-      {/* Success Modal */}
       {result && <SuccessModal result={result} credentialsList={credentialsList} onCopy={copyCredentials} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
-      
     </PageContainer>
   );
 }
@@ -645,7 +765,7 @@ function SuccessModal({ result, credentialsList, onCopy, onClose, onNewOrder, na
           <h2 className="text-lg font-bold text-foreground">Order Successful!</h2>
           <p className="text-sm text-muted-foreground">Your order has been placed successfully</p>
         </div>
-        <div className="space-y-2 bg-secondary/30 rounded-[var(--radius-btn)] p-4">
+        <div className="space-y-2 bg-secondary/30 rounded-[var(--radius-card)] p-4">
           <DetailRow label="Product" value={sanitizeName(result.product_name)} />
           <DetailRow label="Amount" value={<Money amount={result.price} />} />
           <DetailRow label="Order ID" value={result.order_id.slice(0, 8).toUpperCase()} mono />
