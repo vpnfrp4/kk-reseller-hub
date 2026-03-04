@@ -208,7 +208,7 @@ export default function AdminMonitoring() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-4 pb-3 px-4">
             <div className="flex items-center gap-3">
