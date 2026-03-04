@@ -143,10 +143,15 @@ export default function IFreeImeiCheck() {
 
   const copyResult = () => {
     if (result?.response) {
-      navigator.clipboard.writeText(result.response);
+      navigator.clipboard.writeText(cleanIfreeResponse(result.response));
       toast.success("Response copied!");
     }
   };
+
+  const parsedResponse = useMemo(() => {
+    if (!result?.response) return [];
+    return parseIfreeResponse(result.response);
+  }, [result?.response]);
 
   return (
     <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
