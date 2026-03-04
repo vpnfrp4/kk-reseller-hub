@@ -72,7 +72,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="h-screen flex bg-background overflow-hidden">
+    <div className="min-h-screen flex bg-background">
       {/* Mobile overlay */}
       <div
         className={cn(
