@@ -91,6 +91,34 @@ export default function DashboardHome() {
       <PwaInstallBanner />
 
       {/* USER PROFILE CARD */}
+      {!profile ? (
+        <div className="glass-card overflow-hidden animate-fade-in">
+          <div className="p-6 border-b border-border/30">
+            <div className="h-5 w-32 rounded-md bg-muted/30 animate-pulse" />
+          </div>
+          <div className="p-6">
+            <div className="balance-card flex items-center justify-between">
+              <div className="space-y-3">
+                <div className="h-3 w-28 rounded bg-muted/20 animate-pulse" />
+                <div className="h-10 w-48 rounded-lg bg-muted/25 animate-pulse" />
+                <div className="h-3 w-12 rounded bg-muted/15 animate-pulse" />
+              </div>
+              <div className="h-10 w-28 rounded-[var(--radius-btn)] bg-muted/20 animate-pulse" />
+            </div>
+          </div>
+          <div className="px-6 pb-6 space-y-0">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between py-3.5 border-b border-border/10 last:border-0">
+                <div className="flex items-center gap-3">
+                  <div className="w-4 h-4 rounded bg-muted/20 animate-pulse" />
+                  <div className="h-3.5 w-20 rounded bg-muted/20 animate-pulse" />
+                </div>
+                <div className="h-3.5 w-36 rounded bg-muted/20 animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
       <div className="glass-card overflow-hidden animate-fade-in">
         <div className="p-6 border-b border-border/30">
           <h2 className="text-lg font-bold text-foreground">User Profile</h2>
@@ -129,6 +157,7 @@ export default function DashboardHome() {
           <ProfileRow icon={Calendar} label="Member Since" value={memberSince} />
         </div>
       </div>
+      )}
 
       {/* ORDER HISTORY */}
       <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.1s" }}>
