@@ -1,64 +1,40 @@
 import React from "react";
-import Linkify from "linkify-react";
+import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 
-/* ─── Linkify options ─── */
+/* ─── Markdown renderer for description lines ─── */
 
 const LINK_CLASSES = "text-blue-400 hover:text-blue-300 no-underline hover:underline underline-offset-4 break-all transition-colors font-medium cursor-pointer";
 
-const LINKIFY_OPTIONS = {
-  className: LINK_CLASSES,
-  target: "_blank",
-  rel: "noopener noreferrer",
-};
-
-/* ─── Markdown [text](url) → <a> pre-processor ─── */
-
-const MARKDOWN_LINK_RE = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
-
-function RichText({ children }: { children: string }) {
-  const str = children;
-  const parts: React.ReactNode[] = [];
-  let last = 0;
-  let m: RegExpExecArray | null;
-  const re = new RegExp(MARKDOWN_LINK_RE.source, "g");
-
-  while ((m = re.exec(str)) !== null) {
-    if (m.index > last) {
-      parts.push(
-        <Linkify key={`t-${m.index}`} options={LINKIFY_OPTIONS}>
-          {str.slice(last, m.index)}
-        </Linkify>
-      );
-    }
-    parts.push(
-      <a
-        key={`md-${m.index}`}
-        href={m[2]}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={LINK_CLASSES}
-      >
-        {m[1]}
-      </a>
-    );
-    last = m.index + m[0].length;
-  }
-
-  if (parts.length === 0) {
-    // No markdown links — just use Linkify for raw URLs
-    return <Linkify options={LINKIFY_OPTIONS}>{str}</Linkify>;
-  }
-
-  if (last < str.length) {
-    parts.push(
-      <Linkify key={`t-end`} options={LINKIFY_OPTIONS}>
-        {str.slice(last)}
-      </Linkify>
-    );
-  }
-
-  return <>{parts}</>;
+function MarkdownLine({ children, className }: { children: string; className?: string }) {
+  return (
+    <ReactMarkdown
+      components={{
+        // Links open in new tab with blue styling
+        a: ({ href, children: c }) => (
+          <a href={href} target="_blank" rel="noopener noreferrer" className={LINK_CLASSES}>
+            {c}
+          </a>
+        ),
+        // Bold
+        strong: ({ children: c }) => <strong className="font-semibold text-foreground/90">{c}</strong>,
+        // Italic
+        em: ({ children: c }) => <em className="italic">{c}</em>,
+        // Inline code
+        code: ({ children: c }) => (
+          <code className="rounded bg-muted px-1.5 py-0.5 text-[11px] font-mono text-foreground/80">{c}</code>
+        ),
+        // Render paragraphs inline (since each line is already wrapped)
+        p: ({ children: c }) => <span className={className}>{c}</span>,
+        // Flatten nested lists into the line
+        ul: ({ children: c }) => <span>{c}</span>,
+        ol: ({ children: c }) => <span>{c}</span>,
+        li: ({ children: c }) => <span>{c}</span>,
+      }}
+    >
+      {children}
+    </ReactMarkdown>
+  );
 }
 
 interface ParsedSection {
