@@ -266,6 +266,16 @@ export default function AdminResellers() {
             <SelectItem value="platinum">Platinum</SelectItem>
           </SelectContent>
         </Select>
+        <Select value={roleFilter} onValueChange={setRoleFilter}>
+          <SelectTrigger className="w-full sm:w-32 h-9">
+            <SelectValue placeholder="Role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Roles</SelectItem>
+            <SelectItem value="reseller">Reseller</SelectItem>
+            <SelectItem value="customer">Customer</SelectItem>
+          </SelectContent>
+        </Select>
         <Select value={balanceFilter} onValueChange={setBalanceFilter}>
           <SelectTrigger className="w-full sm:w-36 h-9">
             <SelectValue placeholder="Balance" />
@@ -290,7 +300,7 @@ export default function AdminResellers() {
           </SelectContent>
         </Select>
         {hasFilters && (
-          <Button variant="ghost" size="sm" className="h-9 text-xs gap-1" onClick={() => { setSearch(""); setSortBy("created_at"); setBalanceFilter("all"); setStatusFilter("all"); setTierFilter("all"); }}>
+          <Button variant="ghost" size="sm" className="h-9 text-xs gap-1" onClick={() => { setSearch(""); setSortBy("created_at"); setBalanceFilter("all"); setStatusFilter("all"); setTierFilter("all"); setRoleFilter("all"); }}>
             <X className="w-3 h-3" /> Clear
           </Button>
         )}
