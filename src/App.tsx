@@ -155,23 +155,27 @@ const App = () => {
   const handleSplashFinished = useCallback(() => setSplashDone(true), []);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <LangProvider>
-          {!splashDone && <SplashScreen onFinished={handleSplashFinished} />}
-          <Toaster />
-          <Sonner />
-          <PwaUpdatePrompt />
-          <BrowserRouter>
-            <AuthProvider>
-              <CurrencyProvider>
-                <AppRoutes />
-              </CurrencyProvider>
-            </AuthProvider>
-          </BrowserRouter>
-        </LangProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <LangProvider>
+            {!splashDone && <SplashScreen onFinished={handleSplashFinished} />}
+            <Toaster />
+            <Sonner />
+            <PwaUpdatePrompt />
+            <BrowserRouter>
+              <AuthProvider>
+                <CurrencyProvider>
+                  <ErrorBoundary>
+                    <AppRoutes />
+                  </ErrorBoundary>
+                </CurrencyProvider>
+              </AuthProvider>
+            </BrowserRouter>
+          </LangProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 
