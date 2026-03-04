@@ -301,6 +301,7 @@ export default function WalletPage() {
                 </motion.button>
               ))}
             </div>
+            )}
 
             {/* Pending Topups */}
             {pendingTopups.length > 0 && (
