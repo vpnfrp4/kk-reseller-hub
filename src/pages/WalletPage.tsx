@@ -204,6 +204,7 @@ export default function WalletPage() {
   ];
 
   return (
+    <PullToRefresh onRefresh={async () => { await Promise.all([refetchTransactions(), queryClient.invalidateQueries({ queryKey: ["payment-methods"] })]); }}>
     <div className="space-y-6">
       {/* ═══ HEADER ═══ */}
       <div className="flex items-center justify-between">
