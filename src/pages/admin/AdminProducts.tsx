@@ -1920,67 +1920,58 @@ export default function AdminProducts() {
       </div>
 
       {/* ── Search + Filters ── */}
-      <div className="space-y-3 animate-fade-in">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, ID, category, or code..."
-            className="pl-10 bg-muted/30 border-border h-10"
-          />
-        </div>
-        <div className="flex gap-2 items-center flex-wrap">
-          {dynamicCategories.map((cat) => (
-            <button key={cat} onClick={() => setActiveCategory(cat)}
-              className={`filter-pill ${activeCategory === cat ? "filter-pill-active" : "filter-pill-inactive"}`}>{cat}</button>
-          ))}
-          <div className="h-4 w-px bg-border mx-1" />
-          {["All", ...PRODUCT_TYPES.map((pt) => pt.value)].map((t) => (
-            <button key={t} onClick={() => setTypeFilter(t)}
-              className={`filter-pill ${typeFilter === t ? "filter-pill-active" : "filter-pill-inactive"}`}>
-              {t === "All" ? "All Types" : PRODUCT_TYPES.find((pt) => pt.value === t)?.label || t}
-            </button>
-          ))}
-          <div className="h-4 w-px bg-border mx-1" />
-          {["All", "Active", "Disabled"].map((v) => (
-            <button key={v} onClick={() => setVisibilityFilter(v)}
-              className={`filter-pill ${visibilityFilter === v ? "filter-pill-active" : "filter-pill-inactive"} ${v === "Disabled" && visibilityFilter === v ? "!bg-destructive !text-destructive-foreground" : ""}`}>
-              {v === "Active" && <Eye className="w-3 h-3 mr-1 inline" />}
-              {v === "Disabled" && <EyeOff className="w-3 h-3 mr-1 inline" />}
-              {v}
-            </button>
-          ))}
-          <div className="ml-auto flex gap-2">
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs"
-              onClick={() => setBulkPriceOpen(true)}>
-              <Percent className="w-3.5 h-3.5" /> Adjust Prices
-            </Button>
-            <Button variant="outline" size="sm" className="gap-1.5 text-xs"
-              onClick={async () => {
-                if (!products || !confirm("Reset product order to alphabetical?")) return;
-                const previousOrder = products.map((p: any) => ({ id: p.id, sort_order: p.sort_order }));
-                const sorted = [...products].sort((a: any, b: any) => a.name.localeCompare(b.name));
-                const updated = sorted.map((p: any, i: number) => ({ ...p, sort_order: i }));
-                queryClient.setQueryData(["admin-products"], updated);
-                for (const p of updated) { await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id); }
-                queryClient.invalidateQueries({ queryKey: ["products"] });
-                const DURATION = 10000;
-                toast.custom((id) => (
-                  <UndoToast id={id} duration={DURATION} message={`Order reset — ${updated.length} products reordered`}
-                    onUndo={async () => {
-                      toast.dismiss(id);
-                      for (const p of previousOrder) { await supabase.from("products").update({ sort_order: p.sort_order } as any).eq("id", p.id); }
-                      queryClient.invalidateQueries({ queryKey: ["admin-products"] });
-                      queryClient.invalidateQueries({ queryKey: ["products"] });
-                      toast.success("Order restored");
-                    }} />
-                ), { duration: DURATION });
-              }}>
-              <RotateCcw className="w-3.5 h-3.5" /> Reset Order
-            </Button>
+      <div className="animate-fade-in">
+        <DataCard className="!p-4">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="relative flex-1 min-w-0">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/50" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by name, ID, category, or code..."
+                className="pl-10 bg-muted/20 border-border/30 h-10"
+              />
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <Select value={activeCategory} onValueChange={setActiveCategory}>
+                <SelectTrigger className="w-[150px] bg-muted/20 border-border/30 h-10 text-xs">
+                  <Layers className="w-3.5 h-3.5 mr-1.5 text-muted-foreground/50" />
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {dynamicCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-[130px] bg-muted/20 border-border/30 h-10 text-xs">
+                  <SelectValue placeholder="Type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Types</SelectItem>
+                  {PRODUCT_TYPES.map((pt) => (
+                    <SelectItem key={pt.value} value={pt.value}>{pt.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={visibilityFilter} onValueChange={setVisibilityFilter}>
+                <SelectTrigger className="w-[130px] bg-muted/20 border-border/30 h-10 text-xs">
+                  <SelectValue placeholder="Visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="All">All Status</SelectItem>
+                  <SelectItem value="Active">
+                    <span className="flex items-center gap-1.5"><Eye className="w-3 h-3" /> Active</span>
+                  </SelectItem>
+                  <SelectItem value="Disabled">
+                    <span className="flex items-center gap-1.5"><EyeOff className="w-3 h-3" /> Disabled</span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-        </div>
+        </DataCard>
       </div>
 
       {/* ── Bulk Price Adjustment Dialog ── */}
