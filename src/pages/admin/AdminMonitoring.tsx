@@ -178,6 +178,7 @@ export default function AdminMonitoring() {
     refetchLogs();
     refetchHealth();
     refetchIfree();
+    refetchClientErrors();
   };
 
   const statusBadge = (status: string) => {
