@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { sanitizeName } from "@/lib/sanitize-name";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -1061,7 +1062,7 @@ export default function OrderFlowPage() {
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Product</span>
-              <span className="text-foreground text-right max-w-[60%] truncate">{result.product_name}</span>
+              <span className="text-foreground text-right max-w-[60%] truncate">{sanitizeName(result.product_name)}</span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Amount</span>

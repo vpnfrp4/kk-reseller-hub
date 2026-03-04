@@ -11,6 +11,21 @@ function stripHtml(s: string): string {
   return s.replace(/<[^>]+>/g, "").trim();
 }
 
+/** Remove HTML entities and emoji characters from service names */
+function sanitizeName(raw: string): string {
+  if (!raw) return raw;
+  let cleaned = raw
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex: string) => String.fromCodePoint(parseInt(hex, 16)))
+    .replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&[a-zA-Z0-9#]+;/g, "");
+  cleaned = cleaned.replace(
+    /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{FE00}-\u{FE0F}\u{200D}\u{20E3}\u{E0020}-\u{E007F}\u{1FA00}-\u{1FAFF}]/gu,
+    ""
+  );
+  return cleaned.replace(/\s{2,}/g, " ").trim();
+}
+
 function parseHtmlServiceTable(html: string): any[] {
   const services: any[] = [];
   const rowRegex = /<tr[^>]*>\s*<th[^>]*>([\s\S]*?)<\/th>\s*<th[^>]*>([\s\S]*?)<\/th>\s*<th[^>]*>([\s\S]*?)<\/th>\s*<th[^>]*>([\s\S]*?)<\/th>\s*<\/tr>/gi;
@@ -24,7 +39,7 @@ function parseHtmlServiceTable(html: string): any[] {
     if (!idRaw || !/^\d+$/.test(idRaw)) continue;
     services.push({
       id: idRaw,
-      name: nameRaw || `Service ${idRaw}`,
+      name: sanitizeName(nameRaw) || `Service ${idRaw}`,
       price: priceRaw || undefined,
       description: descRaw || undefined,
     });

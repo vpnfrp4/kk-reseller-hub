@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { sanitizeName } from "@/lib/sanitize-name";
 import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -389,7 +390,7 @@ export default function AdminOrders() {
                     </td>
                     <td className="p-default text-xs font-mono text-muted-foreground cursor-pointer hover:text-primary" onClick={() => setDetailOrder(o)}>{o.order_code || o.id.slice(0, 8)}</td>
                     <td className="p-default">
-                      <p className="text-sm font-medium text-foreground">{o.product_name}</p>
+                      <p className="text-sm font-medium text-foreground">{sanitizeName(o.product_name)}</p>
                       {o.imei_number && (
                         <p className="text-[11px] font-mono text-muted-foreground mt-0.5">IMEI: {o.imei_number}</p>
                       )}
