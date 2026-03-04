@@ -277,7 +277,7 @@ function TextBlock({ lines }: { lines: string[] }) {
   return (
     <div className="space-y-1.5">
       {lines.map((line, i) => (
-        <p key={i} className="text-xs text-muted-foreground leading-relaxed">{line}</p>
+        <p key={i} className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></p>
       ))}
     </div>
   );
