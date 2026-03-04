@@ -799,6 +799,9 @@
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
 }
 
 /* ─── Global Scroll & Touch ─── */
