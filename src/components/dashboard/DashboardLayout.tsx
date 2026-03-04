@@ -88,7 +88,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="min-h-screen lg:h-screen flex flex-col lg:flex-row bg-background lg:overflow-hidden">
+    <div className="min-h-[100dvh] lg:h-screen flex flex-col lg:flex-row bg-background lg:overflow-hidden">
       {/* Mobile overlay — only used for sidebar sheet on large screens; bottom nav replaces sidebar on mobile */}
       <div
         className={cn(
@@ -297,7 +297,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="h-14 shrink-0 lg:hidden" />
 
         <main
-          className="flex-1 p-3 sm:p-4 lg:p-8 pb-20 lg:pb-8 overflow-y-auto"
+          className="flex-1 p-3 sm:p-4 lg:p-8 pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-8 lg:overflow-y-auto"
           data-scroll-area
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
