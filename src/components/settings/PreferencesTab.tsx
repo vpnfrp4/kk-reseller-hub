@@ -1,13 +1,72 @@
+import { useEffect, useState, useCallback } from "react";
 import { useCurrency, type Currency } from "@/contexts/CurrencyContext";
+import { useLang } from "@/contexts/LangContext";
 import { cn } from "@/lib/utils";
-import { DollarSign, Coins, ArrowRightLeft } from "lucide-react";
+import {
+  Globe, DollarSign, Coins, ArrowRightLeft, Sun, Moon, Monitor,
+} from "lucide-react";
+
+function getInitialTheme(): "dark" | "light" {
+  try {
+    const stored = localStorage.getItem("theme");
+    if (stored === "light" || stored === "dark") return stored;
+  } catch {}
+  return "dark";
+}
 
 export default function PreferencesTab() {
   const { currency, setCurrency, rate } = useCurrency();
+  const { lang, toggle: toggleLang } = useLang();
+  const [theme, setTheme] = useState<"dark" | "light">(getInitialTheme);
+
+  const applyTheme = useCallback((t: "dark" | "light") => {
+    setTheme(t);
+    const root = document.documentElement;
+    if (t === "dark") {
+      root.classList.add("dark");
+      root.classList.remove("light");
+    } else {
+      root.classList.remove("dark");
+      root.classList.add("light");
+    }
+    localStorage.setItem("theme", t);
+  }, []);
 
   return (
     <div className="space-y-default">
-      {/* Currency Preference */}
+      {/* ── Language ── */}
+      <div className="glass-card p-card space-y-default">
+        <div className="flex items-center gap-compact">
+          <div className="w-8 h-8 rounded-btn bg-primary/10 flex items-center justify-center">
+            <Globe className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Language</h3>
+            <p className="text-[11px] text-muted-foreground">
+              Choose the display language for the interface
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-default">
+          <OptionCard
+            active={lang === "en"}
+            onClick={() => { if (lang !== "en") toggleLang(); }}
+            icon={<span className="text-base font-bold">EN</span>}
+            label="English"
+            sublabel="Default language"
+          />
+          <OptionCard
+            active={lang === "mm"}
+            onClick={() => { if (lang !== "mm") toggleLang(); }}
+            icon={<span className="text-base font-bold">MY</span>}
+            label="Myanmar"
+            sublabel="မြန်မာဘာသာ"
+          />
+        </div>
+      </div>
+
+      {/* ── Currency ── */}
       <div className="glass-card p-card space-y-default">
         <div className="flex items-center gap-compact">
           <div className="w-8 h-8 rounded-btn bg-primary/10 flex items-center justify-center">
@@ -21,29 +80,23 @@ export default function PreferencesTab() {
           </div>
         </div>
 
-        {/* Toggle */}
         <div className="flex items-center gap-default">
-          <CurrencyOption
+          <OptionCard
             active={currency === "MMK"}
             onClick={() => setCurrency("MMK")}
             icon={<Coins className="w-5 h-5" />}
             label="MMK"
             sublabel="Myanmar Kyat"
-            color="text-emerald-400"
-            bgColor="bg-emerald-500/10 border-emerald-500/20"
           />
-          <CurrencyOption
+          <OptionCard
             active={currency === "USD"}
             onClick={() => setCurrency("USD")}
             icon={<DollarSign className="w-5 h-5" />}
             label="USD"
             sublabel="US Dollar"
-            color="text-primary"
-            bgColor="bg-primary/10 border-primary/20"
           />
         </div>
 
-        {/* Rate info */}
         <div className="flex items-center gap-tight px-compact py-2.5 rounded-btn bg-secondary/50 border border-border/30">
           <ArrowRightLeft className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
           <span className="text-[11px] text-muted-foreground">
@@ -51,26 +104,54 @@ export default function PreferencesTab() {
           </span>
         </div>
       </div>
+
+      {/* ── Theme ── */}
+      <div className="glass-card p-card space-y-default">
+        <div className="flex items-center gap-compact">
+          <div className="w-8 h-8 rounded-btn bg-primary/10 flex items-center justify-center">
+            <Monitor className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Theme</h3>
+            <p className="text-[11px] text-muted-foreground">
+              Choose your preferred appearance
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-default">
+          <OptionCard
+            active={theme === "dark"}
+            onClick={() => applyTheme("dark")}
+            icon={<Moon className="w-5 h-5" />}
+            label="Dark Mode"
+            sublabel="Reduce eye strain"
+          />
+          <OptionCard
+            active={theme === "light"}
+            onClick={() => applyTheme("light")}
+            icon={<Sun className="w-5 h-5" />}
+            label="Light Mode"
+            sublabel="Bright appearance"
+          />
+        </div>
+      </div>
     </div>
   );
 }
 
-function CurrencyOption({
+function OptionCard({
   active,
   onClick,
   icon,
   label,
   sublabel,
-  color,
-  bgColor,
 }: {
   active: boolean;
   onClick: () => void;
   icon: React.ReactNode;
   label: string;
   sublabel: string;
-  color: string;
-  bgColor: string;
 }) {
   return (
     <button
@@ -78,14 +159,14 @@ function CurrencyOption({
       className={cn(
         "flex-1 flex items-center gap-compact p-compact rounded-card border-2 transition-all duration-300",
         active
-          ? cn(bgColor, "shadow-[0_0_20px_-6px_hsl(var(--primary)/0.2)]")
+          ? "bg-primary/10 border-primary/20 shadow-[0_0_20px_-6px_hsl(var(--primary)/0.2)]"
           : "border-border/30 bg-secondary/20 hover:bg-secondary/40"
       )}
     >
       <div
         className={cn(
           "w-10 h-10 rounded-btn flex items-center justify-center transition-colors",
-          active ? cn("bg-background/50", color) : "bg-secondary text-muted-foreground"
+          active ? "bg-background/50 text-primary" : "bg-secondary text-muted-foreground"
         )}
       >
         {icon}
