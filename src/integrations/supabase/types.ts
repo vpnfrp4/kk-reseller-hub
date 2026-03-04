@@ -922,6 +922,7 @@ export type Database = {
           created_at: string
           credit_limit: number
           currency_preference: string
+          designation: string
           email: string
           id: string
           is_verified: boolean
@@ -942,6 +943,7 @@ export type Database = {
           created_at?: string
           credit_limit?: number
           currency_preference?: string
+          designation?: string
           email?: string
           id?: string
           is_verified?: boolean
@@ -962,6 +964,7 @@ export type Database = {
           created_at?: string
           credit_limit?: number
           currency_preference?: string
+          designation?: string
           email?: string
           id?: string
           is_verified?: boolean
