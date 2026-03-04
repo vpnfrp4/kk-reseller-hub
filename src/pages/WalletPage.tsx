@@ -277,6 +277,17 @@ export default function WalletPage() {
             </div>
 
             {/* Payment Methods Grid */}
+            {methodsLoading ? (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex flex-col items-center gap-3 p-5 rounded-[var(--radius-card)] border border-border/40 bg-card">
+                    <Skeleton className="w-10 h-10 rounded-full" />
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-3 w-16" />
+                  </div>
+                ))}
+              </div>
+            ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
               {(paymentMethods || []).map((m: any) => (
                 <motion.button key={m.method_id} type="button"
