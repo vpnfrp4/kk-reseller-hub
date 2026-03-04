@@ -18,7 +18,6 @@ import {
   Search,
   Download,
   ShieldAlert,
-  Sparkles,
   ArrowLeft,
   Smartphone,
 } from "lucide-react";
@@ -220,33 +219,6 @@ export default function PlaceOrderPage() {
 
   const credentialsList = result?.credentials?.split("\n").filter(Boolean) || [];
 
-  // Service category cards for marketplace view
-  const serviceCategories = useMemo(() => {
-    const catMap = new Map<string, { count: number; minPrice: number; hasInstant: boolean }>();
-    products.forEach((p: any) => {
-      const cat = p.category || "Other";
-      const existing = catMap.get(cat);
-      const isAuto = p.product_type === "api" || p.product_type === "digital";
-      if (!existing) {
-        catMap.set(cat, { count: 1, minPrice: p.wholesale_price, hasInstant: isAuto });
-      } else {
-        existing.count++;
-        existing.minPrice = Math.min(existing.minPrice, p.wholesale_price);
-        if (isAuto) existing.hasInstant = true;
-      }
-    });
-    return catMap;
-  }, [products]);
-
-  const categoryIcons: Record<string, { icon: typeof ShoppingCart; color: string; bg: string }> = {
-    "Apple Services": { icon: Sparkles, color: "text-sky-400", bg: "bg-sky-500/10 border-sky-500/20" },
-    "IMEI Checks": { icon: Smartphone, color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20" },
-    "Unlock Services": { icon: ShieldAlert, color: "text-violet-400", bg: "bg-violet-500/10 border-violet-500/20" },
-    "API Services": { icon: Zap, color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20" },
-    "Repair Services": { icon: Download, color: "text-rose-400", bg: "bg-rose-500/10 border-rose-500/20" },
-  };
-  const defaultCatStyle = { icon: ShoppingCart, color: "text-primary", bg: "bg-primary/10 border-primary/20" };
-
   return (
     <PageContainer maxWidth="max-w-4xl">
       {/* Header */}
@@ -256,7 +228,7 @@ export default function PlaceOrderPage() {
         </div>
         <div>
           <h1 className="text-xl font-bold text-foreground">Place Order</h1>
-          <p className="text-xs text-muted-foreground">Browse services and place your order</p>
+          <p className="text-xs text-muted-foreground">Search and order services quickly</p>
         </div>
       </div>
 
@@ -293,9 +265,6 @@ export default function PlaceOrderPage() {
         </div>
       ) : (
       <AnimatePresence mode="wait">
-        {/* ═══════════════════════════════════════════
-            MODE 1: MARKETPLACE — no service chosen yet
-            ═══════════════════════════════════════════ */}
         {!selectedProduct ? (
           <motion.div
             key="selection"
@@ -303,55 +272,8 @@ export default function PlaceOrderPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.2 }}
-            className="space-y-5"
           >
-            {/* Category Cards Grid */}
-            {!searchQuery && activeCategory === "All" && (
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {Array.from(serviceCategories.entries()).map(([catName, catInfo]) => {
-                  const style = categoryIcons[catName] || defaultCatStyle;
-                  const CatIcon = style.icon;
-                  return (
-                    <button
-                      key={catName}
-                      onClick={() => setActiveCategory(catName)}
-                      className={cn(
-                        "group text-left rounded-2xl border border-border/20 bg-card/80 backdrop-blur-sm p-4",
-                        "transition-all duration-300 hover:border-border/40 hover:-translate-y-0.5",
-                        "hover:shadow-[0_8px_30px_-8px_rgba(0,0,0,0.3)]"
-                      )}
-                    >
-                      <div className={cn("w-9 h-9 rounded-xl border flex items-center justify-center mb-3 transition-transform duration-300 group-hover:scale-110", style.bg)}>
-                        <CatIcon className={cn("w-4.5 h-4.5", style.color)} strokeWidth={1.5} />
-                      </div>
-                      <h3 className="text-sm font-bold text-foreground leading-tight mb-1">{catName}</h3>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[10px] font-mono text-muted-foreground/60">{catInfo.count} services</span>
-                        {catInfo.hasInstant && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-success bg-success/10 px-1.5 py-0.5 rounded-full">
-                            <Zap className="w-2.5 h-2.5" /> Instant
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground/50 mt-1.5 font-mono">
-                        from <Money amount={catInfo.minPrice} compact />
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Service List Card */}
             <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-              {/* Card Header */}
-              <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
-                <h2 className="text-sm font-bold text-foreground">
-                  {activeCategory === "All" ? "All Services" : activeCategory}
-                </h2>
-                <span className="text-[10px] font-mono text-muted-foreground">{filteredProducts.length} available</span>
-              </div>
-
               {/* Search */}
               <div className="px-5 py-3 border-b border-border">
                 <div className="relative">
@@ -370,7 +292,7 @@ export default function PlaceOrderPage() {
                 </div>
               </div>
 
-              {/* Category Pills */}
+              {/* Category Filter Tabs */}
               <div className="px-5 py-2.5 border-b border-border flex gap-1.5 overflow-x-auto stool-scrollbar">
                 {categories.map((cat) => (
                   <button
@@ -389,8 +311,16 @@ export default function PlaceOrderPage() {
                 ))}
               </div>
 
-              {/* Service List — card style */}
-              <div className="max-h-[70vh] overflow-y-auto stool-scrollbar p-3 space-y-2" style={{ WebkitOverflowScrolling: 'touch' }}>
+              {/* Count bar */}
+              <div className="px-5 py-2 border-b border-border/50 flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-muted-foreground/60">
+                  {activeCategory === "All" ? "All Services" : activeCategory}
+                </span>
+                <span className="text-[10px] font-mono text-muted-foreground/40">{filteredProducts.length} results</span>
+              </div>
+
+              {/* Service List */}
+              <div className="max-h-[70vh] overflow-y-auto stool-scrollbar divide-y divide-border/30" style={{ WebkitOverflowScrolling: 'touch' }}>
                 {filteredProducts.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/40">
                     <Search className="w-7 h-7 mb-2" />
@@ -400,6 +330,7 @@ export default function PlaceOrderPage() {
                   filteredProducts.map((p: any) => {
                     const isAuto = p.product_type === "api" || p.product_type === "digital";
                     const isOutOfStock = p.product_type === "digital" && p.stock === 0;
+                    const pTime = p.processing_time || (isAuto ? "Instant" : "1-3 Days");
 
                     return (
                       <button
@@ -407,37 +338,42 @@ export default function PlaceOrderPage() {
                         onClick={() => !isOutOfStock && handleSelectProduct(p.id)}
                         disabled={isOutOfStock}
                         className={cn(
-                          "w-full text-left rounded-xl border border-border/30 bg-secondary/10 p-4",
-                          "flex items-center justify-between gap-4 transition-all duration-200",
+                          "w-full text-left px-5 py-3.5 flex items-center gap-4 transition-all duration-150",
                           isOutOfStock
                             ? "opacity-40 cursor-not-allowed"
-                            : "hover:bg-secondary/30 hover:border-border/50 cursor-pointer"
+                            : "hover:bg-secondary/30 cursor-pointer"
                         )}
                       >
+                        {/* Service info */}
                         <div className="min-w-0 flex-1">
                           <p className="text-[13px] text-foreground font-semibold truncate leading-snug">
-                            <span className="font-mono text-primary font-bold mr-1.5">#{p.display_id}</span>
+                            <span className="font-mono text-primary/70 font-bold mr-1.5 text-xs">#{p.display_id}</span>
                             {p.name}
                           </p>
-                          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          <div className="flex items-center gap-2 mt-1 flex-wrap">
                             <span className={cn(
-                              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
-                              isAuto ? "bg-success/15 text-success" : "bg-warning/15 text-warning"
+                              "inline-flex items-center gap-1 text-[10px] font-bold",
+                              isAuto ? "text-success" : "text-warning"
                             )}>
                               {isAuto ? <Zap className="w-2.5 h-2.5" /> : <Clock className="w-2.5 h-2.5" />}
-                              {isAuto ? "Instant" : "Manual"}
+                              {pTime}
                             </span>
                             {isOutOfStock && (
-                              <span className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold bg-destructive/15 text-destructive">Out of Stock</span>
+                              <span className="text-[10px] font-bold text-destructive">Out of Stock</span>
                             )}
                           </div>
                         </div>
 
-                        <div className="shrink-0 text-right">
-                          <span className="text-sm font-bold font-mono tabular-nums text-foreground block">
+                        {/* Price + action */}
+                        <div className="shrink-0 flex items-center gap-3">
+                          <span className="text-sm font-bold font-mono tabular-nums text-foreground">
                             <Money amount={p.wholesale_price} compact />
                           </span>
-                          <span className="text-[10px] text-primary font-semibold">Order →</span>
+                          {!isOutOfStock && (
+                            <span className="text-[10px] font-bold text-primary-foreground bg-primary px-2.5 py-1 rounded-[var(--radius-btn)] whitespace-nowrap">
+                              Order
+                            </span>
+                          )}
                         </div>
                       </button>
                     );
@@ -447,9 +383,7 @@ export default function PlaceOrderPage() {
             </div>
           </motion.div>
         ) : (
-          /* ═══════════════════════════════════════════
-             MODE 2: DETAILS — service selected
-             ═══════════════════════════════════════════ */
+          /* ═══ MODE 2: DETAILS — service selected ═══ */
           <motion.div
             key={`detail-${selectedProduct.id}`}
             initial={{ opacity: 0, y: 10 }}
@@ -467,7 +401,7 @@ export default function PlaceOrderPage() {
               <span className="font-medium">Change Service</span>
             </button>
 
-            {/* Service Detail Card — full width, main focus */}
+            {/* Service Detail Card */}
             <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
               {/* Header */}
               <div className="px-5 py-4 border-b border-border">
@@ -518,13 +452,12 @@ export default function PlaceOrderPage() {
                 <ServiceDescription product={selectedProduct} />
               </div>
 
-              {/* ─── Order Form (inside the same card) ─── */}
+              {/* Order Form */}
               <div className="px-5 py-5 space-y-4">
                 <h3 className="text-[11px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50">
                   Order Details
                 </h3>
 
-                {/* Custom Fields */}
                 {activeFields.length > 0 && (
                   <div className="space-y-3">
                     {activeFields.map((field: any) => (
@@ -614,8 +547,6 @@ export default function PlaceOrderPage() {
         )}
       </AnimatePresence>
       )}
-
-
 
       {/* Success Modal */}
       {result && <SuccessModal result={result} credentialsList={credentialsList} onCopy={copyCredentials} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
