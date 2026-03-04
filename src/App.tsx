@@ -115,6 +115,7 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/error" element={<ErrorPage />} />
       <Route path="/terms" element={<TermsPage />} />
       <Route path="/install" element={<InstallPage />} />
       <Route path="/tools/imei-check" element={<ImeiCheckPage />} />
