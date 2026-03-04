@@ -233,10 +233,12 @@ export default function OrderDetailPage() {
         "postgres_changes",
         { event: "UPDATE", schema: "public", table: "orders", filter: `id=eq.${id}` },
         (payload) => {
-          const newStatus = (payload.new as any)?.status;
-          const oldStatus = (payload.old as any)?.status;
-          if (newStatus && newStatus !== oldStatus) {
-            toast.info(`Order status updated to "${newStatus.replace("_", " ")}"`);
+          const newData = payload.new as any;
+          const oldData = payload.old as any;
+          if (newData?.status && newData.status !== oldData?.status) {
+            toast.info(`Order status updated to "${newData.status.replace("_", " ")}"`);
+          } else if (newData?.result !== oldData?.result || newData?.credentials !== oldData?.credentials) {
+            toast.info("Order details have been updated");
           }
           queryClient.invalidateQueries({ queryKey: ["order-detail", id] });
         },
