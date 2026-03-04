@@ -501,7 +501,20 @@ export default function WalletPage() {
                 <History className="w-4 h-4 text-primary" />
                 <h3 className="text-sm font-semibold text-foreground">Transaction History</h3>
               </div>
-              <ResponsiveTable columns={txColumns} data={transactions || []} keyExtractor={(row) => row.id} emptyMessage="No transactions yet" />
+              {txLoading ? (
+                <div className="p-5 space-y-3">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <div key={i} className="flex items-center gap-4">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-4 flex-1" />
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <ResponsiveTable columns={txColumns} data={transactions || []} keyExtractor={(row) => row.id} emptyMessage="No transactions yet" />
+              )}
             </div>
           </motion.div>
         )}
