@@ -157,7 +157,23 @@ export default function DashboardHome() {
         </div>
 
         {/* Table Body */}
-        {filteredOrders.length === 0 ? (
+        {ordersLoading ? (
+          <div className="space-y-0 divide-y divide-border/30">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <div key={i} className="px-6 py-4 animate-pulse">
+                <div className="grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-4">
+                  <div className="h-4 w-20 bg-muted-foreground/10 rounded" />
+                  <div className="h-4 w-32 bg-muted-foreground/10 rounded" />
+                  <div className="h-4 w-16 bg-muted-foreground/10 rounded hidden md:block" />
+                  <div className="h-4 w-20 bg-muted-foreground/10 rounded ml-auto" />
+                  <div className="h-4 w-24 bg-muted-foreground/10 rounded hidden md:block" />
+                  <div className="h-5 w-16 bg-muted-foreground/10 rounded-full mx-auto hidden md:block" />
+                  <div className="h-4 w-10 bg-muted-foreground/10 rounded mx-auto hidden md:block" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
             <Receipt className="w-12 h-12 mb-3 opacity-40" />
             <p className="text-sm">No orders found</p>
