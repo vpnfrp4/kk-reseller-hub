@@ -18,7 +18,7 @@ import { playNotificationSound } from "@/lib/notification-sound";
 
 import OrderDetailModal from "@/components/admin/OrderDetailModal";
 import ConfirmModal from "@/components/shared/ConfirmModal";
-import { DataCard, Money } from "@/components/shared";
+import { DataCard, Money, StatusBadge } from "@/components/shared";
 
 const STATUS_OPTIONS = ["all", "delivered", "pending", "pending_creation", "pending_review", "processing", "completed", "rejected", "cancelled"] as const;
 const TYPE_OPTIONS = ["all", "digital", "imei", "manual", "api"] as const;
