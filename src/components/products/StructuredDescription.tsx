@@ -1,4 +1,77 @@
+import React from "react";
 import { cn } from "@/lib/utils";
+
+/* ─── Inline Rich Text (links + markdown links) ─── */
+
+const MARKDOWN_LINK_RE = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+const URL_RE = /(https?:\/\/[^\s<>,;'")]+)/g;
+
+function RichText({ children }: { children: string }) {
+  // First pass: split by markdown links [text](url)
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  const str = children;
+
+  // Collect all markdown links
+  const mdMatches: { index: number; length: number; label: string; url: string }[] = [];
+  let m: RegExpExecArray | null;
+  const mdRe = new RegExp(MARKDOWN_LINK_RE.source, "g");
+  while ((m = mdRe.exec(str)) !== null) {
+    mdMatches.push({ index: m.index, length: m[0].length, label: m[1], url: m[2] });
+  }
+
+  if (mdMatches.length === 0) {
+    // No markdown links — just auto-link raw URLs
+    return <>{autoLinkUrls(str)}</>;
+  }
+
+  for (const md of mdMatches) {
+    if (md.index > last) {
+      parts.push(...autoLinkUrls(str.slice(last, md.index)));
+    }
+    parts.push(
+      <a
+        key={`md-${md.index}`}
+        href={md.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary hover:text-primary/80 underline underline-offset-2 font-medium transition-colors"
+      >
+        {md.label}
+      </a>
+    );
+    last = md.index + md.length;
+  }
+  if (last < str.length) {
+    parts.push(...autoLinkUrls(str.slice(last)));
+  }
+
+  return <>{parts}</>;
+}
+
+function autoLinkUrls(text: string): React.ReactNode[] {
+  const parts: React.ReactNode[] = [];
+  let last = 0;
+  const re = new RegExp(URL_RE.source, "g");
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    if (m.index > last) parts.push(text.slice(last, m.index));
+    parts.push(
+      <a
+        key={`url-${m.index}`}
+        href={m[0]}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-primary hover:text-primary/80 underline underline-offset-2 break-all transition-colors"
+      >
+        {m[0]}
+      </a>
+    );
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
 
 interface ParsedSection {
   type: "OVERVIEW" | "FEATURES" | "DELIVERY" | "WARRANTY" | "COMPATIBILITY" | "RESELLER" | "IMPORTANT" | "SEO" | "HOW_IT_WORKS" | "TEXT";
@@ -70,7 +143,7 @@ function OverviewBlock({ lines }: { lines: string[] }) {
   return (
     <div className="space-y-1.5">
       {lines.map((line, i) => (
-        <p key={i} className="text-xs text-muted-foreground/90 leading-relaxed">{line}</p>
+        <p key={i} className="text-xs text-muted-foreground/90 leading-relaxed"><RichText>{line}</RichText></p>
       ))}
     </div>
   );
@@ -86,7 +159,7 @@ function FeaturesBlock({ lines }: { lines: string[] }) {
         {lines.map((line, i) => (
           <li key={i} className="flex items-start gap-2.5">
             <span className="shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/60" />
-            <span className="text-xs text-muted-foreground leading-relaxed">{line}</span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
           </li>
         ))}
       </ul>
@@ -103,7 +176,7 @@ function DeliveryBlock({ lines }: { lines: string[] }) {
       <div>
         <p className="text-[10px] uppercase tracking-[0.12em] font-semibold text-foreground/60 mb-0.5">Delivery Time</p>
         {lines.map((line, i) => (
-          <p key={i} className="text-xs text-muted-foreground">{line}</p>
+          <p key={i} className="text-xs text-muted-foreground"><RichText>{line}</RichText></p>
         ))}
       </div>
     </div>
@@ -117,7 +190,7 @@ function WarrantyBlock({ lines }: { lines: string[] }) {
         Warranty / Guarantee
       </p>
       {lines.map((line, i) => (
-        <p key={i} className="text-xs text-muted-foreground leading-relaxed">{line}</p>
+        <p key={i} className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></p>
       ))}
     </div>
   );
@@ -133,7 +206,7 @@ function CompatibilityBlock({ lines }: { lines: string[] }) {
         {lines.map((line, i) => (
           <div key={i} className="flex items-start gap-2.5">
             <span className="shrink-0 mt-1 w-4 h-[1px] bg-border" />
-            <span className="text-xs text-muted-foreground leading-relaxed">{line}</span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
           </div>
         ))}
       </div>
@@ -151,7 +224,7 @@ function ResellerBlock({ lines }: { lines: string[] }) {
         {lines.map((line, i) => (
           <li key={i} className="flex items-start gap-2.5">
             <span className="shrink-0 mt-1 w-1 h-3 rounded-sm bg-primary/30" />
-            <span className="text-xs text-muted-foreground leading-relaxed">{line}</span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
           </li>
         ))}
       </ul>
@@ -171,7 +244,7 @@ function ImportantBlock({ lines }: { lines: string[] }) {
           {lines.map((line, i) => (
             <li key={i} className="flex items-start gap-2">
               <span className="shrink-0 mt-1.5 w-1 h-1 rounded-full bg-amber-500/50" />
-              <span className="text-xs text-muted-foreground leading-relaxed">{line}</span>
+              <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
             </li>
           ))}
         </ul>
@@ -192,7 +265,7 @@ function HowItWorksBlock({ lines }: { lines: string[] }) {
             <span className="shrink-0 flex items-center justify-center w-5 h-5 rounded-md bg-primary/10 text-primary text-[10px] font-bold tabular-nums mt-0.5">
               {i + 1}
             </span>
-            <span className="text-xs text-muted-foreground leading-relaxed">{line}</span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
           </li>
         ))}
       </ol>
@@ -204,7 +277,7 @@ function TextBlock({ lines }: { lines: string[] }) {
   return (
     <div className="space-y-1.5">
       {lines.map((line, i) => (
-        <p key={i} className="text-xs text-muted-foreground leading-relaxed">{line}</p>
+        <p key={i} className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></p>
       ))}
     </div>
   );
