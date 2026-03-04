@@ -263,7 +263,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>{children}</main>
+        <main className="flex-1 p-4 lg:p-8 overflow-y-auto" data-scroll-area>{children}</main>
 
         <footer className="border-t border-border px-4 lg:px-8 py-4 text-center">
           <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200">
