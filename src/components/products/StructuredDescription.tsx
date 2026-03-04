@@ -244,7 +244,7 @@ function ImportantBlock({ lines }: { lines: string[] }) {
           {lines.map((line, i) => (
             <li key={i} className="flex items-start gap-2">
               <span className="shrink-0 mt-1.5 w-1 h-1 rounded-full bg-amber-500/50" />
-              <span className="text-xs text-muted-foreground leading-relaxed">{line}</span>
+              <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
             </li>
           ))}
         </ul>
