@@ -285,19 +285,25 @@ export default function OrdersPage() {
 
   return (
     <PullToRefresh onRefresh={async () => { await Promise.all([queryClient.invalidateQueries({ queryKey: ["orders"] }), queryClient.invalidateQueries({ queryKey: ["orders-count"] })]); }}>
-    <div className="space-y-[var(--space-section)]">
+    <div className="space-y-5">
       <Breadcrumb items={[
         { label: l(t.nav.dashboard), path: "/dashboard" },
         { label: l(t.nav.orders) },
       ]} />
 
-      <div className="animate-fade-in">
+      {/* ═══ PAGE HEADER CARD — unified with Dashboard / Place Order ═══ */}
+      <div className="page-header-card animate-fade-in">
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground mb-[var(--space-micro)]">
-              <MmLabel mm={t.orders.title.mm} en={t.orders.title.en} />
-            </p>
-            <p className="text-[11px] text-muted-foreground">{l(t.orders.subtitle)}</p>
+          <div className="flex items-center gap-3.5">
+            <div className="page-header-icon">
+              <Search className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h1>
+                <MmLabel mm={t.orders.title.mm} en={t.orders.title.en} />
+              </h1>
+              <p className="page-header-subtitle">{l(t.orders.subtitle)}</p>
+            </div>
           </div>
           <Button onClick={exportCSV} size="sm" className="gap-2 btn-glass">
             <Download className="w-4 h-4 text-primary" />
