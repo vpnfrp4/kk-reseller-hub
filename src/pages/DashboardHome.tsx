@@ -20,6 +20,7 @@ import { PageContainer, Money } from "@/components/shared";
 
 import { cn } from "@/lib/utils";
 import { t, useT } from "@/lib/i18n";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { MmStatus } from "@/components/shared/MmLabel";
 import PwaInstallBanner from "@/components/PwaInstallBanner";
 import { Input } from "@/components/ui/input";
@@ -72,8 +73,10 @@ export default function DashboardHome() {
     },
   });
 
+  const { convert, currency, symbol } = useCurrency();
   const balance = profile?.balance || 0;
-  const displayBalance = useCountUp(balance, 800);
+  const convertedBalance = convert(balance);
+  const displayBalance = useCountUp(convertedBalance, 800);
   const memberSince = user?.created_at ? format(new Date(user.created_at), "MMM dd, yyyy") : "—";
 
   // Filter orders
@@ -140,9 +143,8 @@ export default function DashboardHome() {
                       ACCOUNT BALANCE
                     </p>
                     <p className="text-3xl sm:text-4xl font-extrabold font-mono tabular-nums tracking-tight gold-shimmer">
-                      {displayBalance.toLocaleString()}
+                      <Money amount={displayBalance} raw className="text-3xl sm:text-4xl" />
                     </p>
-                    <p className="text-[11px] text-muted-foreground/50 mt-1">MMK</p>
                   </div>
                   <button
                     onClick={() => navigate("/dashboard/wallet")}

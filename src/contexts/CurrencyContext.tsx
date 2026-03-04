@@ -19,11 +19,16 @@ interface CurrencyContextType {
   symbol: string;
 }
 
+const CURRENCY_LS_KEY = "kktech-currency-pref";
+
 const CurrencyContext = createContext<CurrencyContextType | null>(null);
 
 export function CurrencyProvider({ children }: { children: ReactNode }) {
   const { user, profile } = useAuth();
-  const [currency, setCurrencyState] = useState<Currency>("MMK");
+  const [currency, setCurrencyState] = useState<Currency>(() => {
+    const saved = localStorage.getItem(CURRENCY_LS_KEY);
+    return saved === "USD" ? "USD" : "MMK";
+  });
 
   // Fetch exchange rate from system_settings
   const { data: rate = 5000 } = useQuery({
@@ -39,18 +44,20 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Load preference from profile
+  // Load preference from profile (overrides localStorage)
   useEffect(() => {
     if (profile && (profile as any).currency_preference) {
       const pref = (profile as any).currency_preference as Currency;
       if (pref === "USD" || pref === "MMK") {
         setCurrencyState(pref);
+        localStorage.setItem(CURRENCY_LS_KEY, pref);
       }
     }
   }, [profile]);
 
   const persistPreference = useCallback(
     async (c: Currency) => {
+      localStorage.setItem(CURRENCY_LS_KEY, c);
       if (!user) return;
       await supabase
         .from("profiles")
