@@ -20,7 +20,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Create a client with the user's token to get their identity
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_ANON_KEY")!,
@@ -38,7 +37,6 @@ Deno.serve(async (req) => {
 
     const adminId = user.id;
 
-    // Verify admin role using service client
     const serviceClient = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -65,7 +63,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Fetch transaction
+    // Fetch transaction — MUST be pending to proceed
     const { data: tx, error: txError } = await serviceClient
       .from("wallet_transactions")
       .select("*")
@@ -80,41 +78,45 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ── Atomically update transaction status FIRST to prevent double-processing ──
+    // Use a conditional update: only succeeds if status is still 'pending'
+    const newStatus = action === "approve" ? "approved" : "rejected";
+    const { data: updatedTx, error: statusError } = await serviceClient
+      .from("wallet_transactions")
+      .update({ status: newStatus })
+      .eq("id", transaction_id)
+      .eq("status", "pending") // Optimistic lock: only update if still pending
+      .select("id")
+      .single();
+
+    if (statusError || !updatedTx) {
+      // Another admin already processed this transaction
+      return new Response(JSON.stringify({ error: "Transaction already processed by another admin" }), {
+        status: 409,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "approve") {
-      // Get current balance
-      const { data: profile } = await serviceClient
-        .from("profiles")
-        .select("balance")
-        .eq("user_id", tx.user_id)
-        .single();
-
-      if (!profile) {
-        return new Response(JSON.stringify({ error: "User profile not found" }), {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-
-      // Credit user balance
-      const { error: updateError } = await serviceClient
-        .from("profiles")
-        .update({ balance: profile.balance + tx.amount })
-        .eq("user_id", tx.user_id);
+      // ── ATOMIC balance credit — no read-then-write race condition ──
+      const { error: updateError } = await serviceClient.rpc("atomic_balance_add", {
+        p_user_id: tx.user_id,
+        p_amount: tx.amount,
+      });
 
       if (updateError) {
-        return new Response(JSON.stringify({ error: "Failed to update balance" }), {
+        // Rollback transaction status on failure
+        await serviceClient
+          .from("wallet_transactions")
+          .update({ status: "pending" })
+          .eq("id", transaction_id);
+
+        return new Response(JSON.stringify({ error: "Failed to update balance: " + updateError.message }), {
           status: 500,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
-
-    // Update transaction status
-    const newStatus = action === "approve" ? "approved" : "rejected";
-    await serviceClient
-      .from("wallet_transactions")
-      .update({ status: newStatus })
-      .eq("id", transaction_id);
 
     // Send notification to user
     const notifTitle = action === "approve"

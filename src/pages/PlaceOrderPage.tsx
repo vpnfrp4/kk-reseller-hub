@@ -108,6 +108,17 @@ export default function PlaceOrderPage() {
     },
   });
 
+  // Fetch reseller tier discount
+  const { data: tierDiscount = 0 } = useQuery({
+    queryKey: ["user-tier-discount", profile?.tier],
+    queryFn: async () => {
+      if (!profile?.tier) return 0;
+      const { data } = await supabase.from("reseller_tiers").select("discount_percent").ilike("name", profile.tier).maybeSingle();
+      return Number(data?.discount_percent) || 0;
+    },
+    enabled: !!profile?.tier,
+  });
+
   // Derived
   const isApiProduct = (selectedProduct as any)?.product_type === "api";
   const defaultMode = selectedProduct
@@ -143,7 +154,9 @@ export default function PlaceOrderPage() {
 
   const apiQuantityField = isApiProduct ? activeFields.find((f: any) => f.field_type === "quantity") : null;
   const apiQuantity = apiQuantityField ? (parseInt(customFieldValues[apiQuantityField.field_name]) || 0) : 1;
-  const totalPrice = isApiProduct ? unitPrice * apiQuantity : unitPrice;
+  const baseTotal = isApiProduct ? unitPrice * apiQuantity : unitPrice;
+  const discountAmount = tierDiscount > 0 ? Math.floor(baseTotal * (tierDiscount / 100)) : 0;
+  const totalPrice = baseTotal - discountAmount;
   const balance = profile?.balance || 0;
   const hasInsufficientBalance = totalPrice > balance;
 

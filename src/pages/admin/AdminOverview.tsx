@@ -143,19 +143,28 @@ export default function AdminOverview() {
   useEffect(() => {
     const channel = supabase
       .channel("admin-overview-realtime")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "orders" }, (payload: any) => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "orders" }, (payload: any) => {
         queryClient.invalidateQueries({ queryKey: ["admin-recent-orders"] });
         queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
         queryClient.invalidateQueries({ queryKey: ["admin-cred-per-product"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-pending-orders-list"] });
         if (initialized.current) {
-          const msg = `New order: ${payload.new?.product_name || "Unknown"}`;
-          toast.info(msg);
-          notifyEvent("New Order", msg, "info");
+          const event = payload.eventType;
+          if (event === "INSERT") {
+            const msg = `New order: ${payload.new?.product_name || "Unknown"}`;
+            toast.info(msg);
+            notifyEvent("New Order", msg, "info");
+          } else if (event === "UPDATE" && payload.old?.status !== payload.new?.status) {
+            const msg = `Order ${payload.new?.order_code || ""} → ${payload.new?.status}`;
+            toast.info(msg);
+          }
         }
       })
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "wallet_transactions" }, (payload: any) => {
+      .on("postgres_changes", { event: "*", schema: "public", table: "wallet_transactions" }, (payload: any) => {
         queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
-        if (initialized.current && payload.new?.type === "topup") {
+        queryClient.invalidateQueries({ queryKey: ["admin-pending-topups-list"] });
+        queryClient.invalidateQueries({ queryKey: ["admin-topup-chart"] });
+        if (initialized.current && payload.eventType === "INSERT" && payload.new?.type === "topup") {
           const msg = `New top-up request: ${Number(payload.new.amount).toLocaleString()} MMK`;
           toast.info(msg);
           notifyEvent("New Top-up Request", msg, "info");

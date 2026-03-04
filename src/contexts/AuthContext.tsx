@@ -13,6 +13,8 @@ interface Profile {
   total_spent: number;
   total_orders: number;
   avatar_url: string | null;
+  tier: string;
+  designation: string;
 }
 
 interface AuthContextType {

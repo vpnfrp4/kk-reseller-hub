@@ -34,6 +34,45 @@ function sanitizeLink(raw: string | undefined): string {
   }
 }
 
+// ── Atomic refund helper ──
+async function atomicRefund(serviceClient: any, userId: string, amount: number, orderId: string, productName: string, reason: string, providerId?: string, serviceId?: string) {
+  // Use atomic DB function — no read-then-write race condition
+  await serviceClient.rpc("atomic_refund", {
+    p_user_id: userId,
+    p_amount: amount,
+  });
+
+  await serviceClient
+    .from("orders")
+    .update({
+      status: "failed",
+      admin_notes: `Auto-refunded. ${reason}`,
+    })
+    .eq("id", orderId);
+
+  await serviceClient
+    .from("wallet_transactions")
+    .insert({
+      user_id: userId,
+      type: "refund",
+      amount: amount,
+      status: "approved",
+      description: `Auto-refund: ${productName} (API failure)`,
+    });
+
+  // Log refund
+  await serviceClient.from("api_logs").insert({
+    order_id: orderId,
+    user_id: userId,
+    provider_id: providerId || null,
+    action: "refund",
+    service_id: serviceId || null,
+    success: true,
+    log_type: "refund",
+    response_body: { reason, amount },
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -154,6 +193,13 @@ Deno.serve(async (req) => {
         serviceMargin = svcData.margin_percent;
       }
     }
+
+    // ── Fetch reseller tier discount and apply ──
+    const { data: tierDiscount } = await serviceClient.rpc("get_user_tier_discount", {
+      p_user_id: userId,
+    });
+    const discount = Number(tierDiscount) || 0;
+
     const { data, error } = await serviceClient.rpc("process_purchase", {
       p_user_id: userId,
       p_product_id: product_id,
@@ -178,10 +224,43 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ── Apply tier discount: refund the discount amount back to user ──
+    if (discount > 0 && data.price > 0) {
+      const discountAmount = Math.floor(data.price * (discount / 100));
+      if (discountAmount > 0) {
+        await serviceClient.rpc("atomic_balance_add", {
+          p_user_id: userId,
+          p_amount: discountAmount,
+        });
+
+        // Log discount as a wallet transaction
+        await serviceClient.from("wallet_transactions").insert({
+          user_id: userId,
+          type: "discount",
+          amount: discountAmount,
+          status: "approved",
+          description: `Tier discount (${discount}%) on ${data.product_name}`,
+        });
+
+        // Update order profit to reflect discount
+        await serviceClient
+          .from("orders")
+          .update({
+            profit_amount: Math.max(0, (data.profit || 0) - discountAmount),
+            admin_notes: `Tier discount applied: ${discount}% (-${discountAmount} MMK)`,
+          })
+          .eq("id", data.order_id);
+
+        // Include discount info in response
+        data.discount_percent = discount;
+        data.discount_amount = discountAmount;
+        data.final_price = data.price - discountAmount;
+      }
+    }
+
     // ═══ API FULFILLMENT: Call provider API for api-type products ═══
     if (data.product_type === "api" && service_id) {
       try {
-        // Fetch product to get provider info
         const { data: product } = await serviceClient
           .from("products")
           .select("provider_id, api_service_id")
@@ -189,7 +268,6 @@ Deno.serve(async (req) => {
           .single();
 
         if (product?.provider_id) {
-          // Fetch provider API details
           const { data: provider } = await serviceClient
             .from("imei_providers")
             .select("api_url, api_key")
@@ -234,7 +312,6 @@ Deno.serve(async (req) => {
             });
 
             if (apiBody?.order) {
-              // Success: save external order ID and update status
               await serviceClient
                 .from("orders")
                 .update({
@@ -253,57 +330,9 @@ Deno.serve(async (req) => {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
               });
             } else {
-              // API failed: auto-refund
+              // API failed: atomic refund
               const errorMsg = apiBody?.error || "Provider API returned no order ID";
-              // API fulfillment failed — logged to api_logs
-
-              // Refund balance
-              const { data: profile } = await serviceClient
-                .from("profiles")
-                .select("balance, total_spent, total_orders")
-                .eq("user_id", userId)
-                .single();
-
-              if (profile) {
-                await serviceClient
-                  .from("profiles")
-                  .update({
-                    balance: profile.balance + data.price,
-                    total_spent: Math.max(0, profile.total_spent - data.price),
-                    total_orders: Math.max(0, profile.total_orders - 1),
-                  })
-                  .eq("user_id", userId);
-              }
-
-              await serviceClient
-                .from("orders")
-                .update({
-                  status: "failed",
-                  admin_notes: `Auto-refunded. API Error: ${errorMsg}`,
-                })
-                .eq("id", data.order_id);
-
-              await serviceClient
-                .from("wallet_transactions")
-                .insert({
-                  user_id: userId,
-                  type: "refund",
-                  amount: data.price,
-                  status: "approved",
-                  description: `Auto-refund: ${data.product_name} (API failure)`,
-                });
-
-              // Log refund
-              await serviceClient.from("api_logs").insert({
-                order_id: data.order_id,
-                user_id: userId,
-                provider_id: product.provider_id,
-                action: "refund",
-                service_id,
-                success: true,
-                log_type: "refund",
-                response_body: { reason: errorMsg, amount: data.price },
-              });
+              await atomicRefund(serviceClient, userId, data.price, data.order_id, data.product_name, `API Error: ${errorMsg}`, product.provider_id, service_id);
 
               return new Response(JSON.stringify({
                 ...data,
@@ -318,42 +347,8 @@ Deno.serve(async (req) => {
           }
         }
       } catch (apiErr) {
-        // API fulfillment error — logged to api_logs
-        // Auto-refund on any API error
-        const { data: profile } = await serviceClient
-          .from("profiles")
-          .select("balance, total_spent, total_orders")
-          .eq("user_id", userId)
-          .single();
-
-        if (profile) {
-          await serviceClient
-            .from("profiles")
-            .update({
-              balance: profile.balance + data.price,
-              total_spent: Math.max(0, profile.total_spent - data.price),
-              total_orders: Math.max(0, profile.total_orders - 1),
-            })
-            .eq("user_id", userId);
-        }
-
-        await serviceClient
-          .from("orders")
-          .update({
-            status: "failed",
-            admin_notes: `Auto-refunded. Error: ${apiErr instanceof Error ? apiErr.message : "Unknown"}`,
-          })
-          .eq("id", data.order_id);
-
-        await serviceClient
-          .from("wallet_transactions")
-          .insert({
-            user_id: userId,
-            type: "refund",
-            amount: data.price,
-            status: "approved",
-            description: `Auto-refund: ${data.product_name} (API error)`,
-          });
+        // Atomic refund on any API error
+        await atomicRefund(serviceClient, userId, data.price, data.order_id, data.product_name, `Error: ${apiErr instanceof Error ? apiErr.message : "Unknown"}`);
 
         return new Response(JSON.stringify({
           ...data,
