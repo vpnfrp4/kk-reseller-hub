@@ -375,7 +375,7 @@ export default function IFreeImeiCheck() {
                 </div>
               )}
 
-              {!result.response && !result.error && (
+              {!result.response && parsedResponse.length === 0 && !result.error && (result as any).status !== "error" && (
                 <div className="rounded-[var(--radius-btn)] bg-secondary/50 border border-border p-4">
                   <pre className="text-xs font-mono text-foreground whitespace-pre-wrap break-all leading-relaxed">
                     {JSON.stringify(result, null, 2)}
