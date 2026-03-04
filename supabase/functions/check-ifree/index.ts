@@ -30,14 +30,16 @@ serve(async (req) => {
       );
     }
 
-    const formData = new FormData();
-    formData.append("key", API_KEY);
-    formData.append("imei", imei);
-    formData.append("service", serviceId);
+    const body = new URLSearchParams({
+      key: API_KEY,
+      imei,
+      service: serviceId,
+    });
 
     const response = await fetch("https://api.ifreeicloud.co.uk", {
       method: "POST",
-      body: formData,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body,
     });
 
     const data = await response.json();

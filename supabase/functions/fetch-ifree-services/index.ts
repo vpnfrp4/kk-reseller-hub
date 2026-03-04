@@ -17,14 +17,12 @@ async function tryFetchServices(apiKey: string): Promise<{ data: any; success: b
 
   for (const params of attempts) {
     try {
-      const formData = new FormData();
-      for (const [k, v] of Object.entries(params)) {
-        formData.append(k, v);
-      }
+      const body = new URLSearchParams(params);
 
       const response = await fetch("https://api.ifreeicloud.co.uk", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
       });
 
       const text = await response.text();
