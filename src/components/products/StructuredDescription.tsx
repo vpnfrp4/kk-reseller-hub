@@ -206,7 +206,7 @@ function CompatibilityBlock({ lines }: { lines: string[] }) {
         {lines.map((line, i) => (
           <div key={i} className="flex items-start gap-2.5">
             <span className="shrink-0 mt-1 w-4 h-[1px] bg-border" />
-            <span className="text-xs text-muted-foreground leading-relaxed">{line}</span>
+            <span className="text-xs text-muted-foreground leading-relaxed"><RichText>{line}</RichText></span>
           </div>
         ))}
       </div>
