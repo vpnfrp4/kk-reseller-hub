@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { TrendingDown, AlertTriangle, Wallet } from "lucide-react";
+import { TrendingDown, AlertTriangle, Wallet, Smartphone, Tag } from "lucide-react";
 import { t, useT } from "@/lib/i18n";
 import {
   AlertDialog,
@@ -47,8 +47,47 @@ export default function PurchaseConfirmModal({
 
   const pt = product?.product_type || "digital";
   const hasStock = pt === "digital";
-  const allowQuantity = hasStock; // Only digital products support multi-quantity
+  const allowQuantity = hasStock;
   const maxQty = product ? (hasStock ? Math.min(product.stock, 100) : 1) : 1;
+
+  /** Parse long service names into structured parts */
+  const parsedName = useMemo(() => {
+    if (!product?.name) return null;
+    const name: string = product.name;
+
+    // Common patterns: "Service - Devices - Type" or "Service | Details"
+    const separators = /\s*[-–|/]\s*/;
+    const parts = name.split(separators).map((s: string) => s.trim()).filter(Boolean);
+
+    // Device keywords
+    const deviceKeywords = /\b(iphone|ipad|samsung|sony|sharp|oppo|huawei|xiaomi|pixel|lg|htc|motorola|nokia|oneplus|vivo|realme|asus|all\s*models?|all\s*devices?|supported|compatible)\b/i;
+    // Type keywords
+    const typeKeywords = /\b(clean|lost|blacklist|unpaid|paid|generic|premium|express|standard|barred|in.?contract|out.?contract|blocked)\b/i;
+
+    if (parts.length <= 1 && name.length < 50) {
+      return { title: name, devices: null, type: null };
+    }
+
+    let title = parts[0];
+    let devices: string | null = null;
+    let type: string | null = null;
+
+    for (let i = 1; i < parts.length; i++) {
+      const p = parts[i];
+      if (deviceKeywords.test(p) && !devices) {
+        devices = p;
+      } else if (typeKeywords.test(p) && !type) {
+        type = p;
+      } else {
+        // Append to title if it's short, otherwise to devices/type
+        if (title.length < 40) title += ` — ${p}`;
+        else if (!devices) devices = p;
+        else if (!type) type = p;
+      }
+    }
+
+    return { title, devices, type };
+  }, [product?.name]);
 
   const currentTier = useMemo(() => {
     if (!pricingTiers.length) return null;
@@ -71,8 +110,6 @@ export default function PurchaseConfirmModal({
 
   const deficit = totalPrice - userBalance;
   const hasInsufficientBalance = deficit > 0;
-
-  // Round up deficit to nearest 5000 for a clean top-up suggestion
   const suggestedTopUp = Math.ceil(deficit / 5000) * 5000;
 
   const handleOpenChange = (open: boolean) => {
@@ -87,10 +124,35 @@ export default function PurchaseConfirmModal({
       <AlertDialogContent className="bg-card border-border max-w-md rounded-modal p-card gap-card">
         {product && (
           <div className="space-y-card">
-            {/* Product Name */}
-            <div>
-              <h2 className="text-h3 text-foreground">{product.name}</h2>
-              <p className="text-caption text-muted-foreground">{product.duration}</p>
+            {/* Product Name — structured for mobile */}
+            <div className="space-y-2">
+              <h2 className="text-h3 text-foreground leading-snug line-clamp-2 break-words">
+                {parsedName?.title || product.name}
+              </h2>
+
+              {/* Structured metadata chips */}
+              {(parsedName?.devices || parsedName?.type) && (
+                <div className="space-y-1.5">
+                  {parsedName.devices && (
+                    <div className="flex items-start gap-1.5">
+                      <Smartphone className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />
+                      <p className="text-xs text-muted-foreground leading-relaxed break-words">
+                        {parsedName.devices.split(/[,•·]\s*/).join(" • ")}
+                      </p>
+                    </div>
+                  )}
+                  {parsedName.type && (
+                    <div className="flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                      <p className="text-xs text-muted-foreground">{parsedName.type}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {product.duration && (
+                <p className="text-caption text-muted-foreground">{product.duration}</p>
+              )}
             </div>
 
             <Separator />
