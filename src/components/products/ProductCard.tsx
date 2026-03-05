@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useT, t } from "@/lib/i18n";
 import { Clock, Zap, ShieldCheck } from "lucide-react";
+import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 
 interface PricingTier {
   min_qty: number;
@@ -76,20 +77,32 @@ export default function ProductCard({
       <div className="p-6 flex flex-col flex-1 gap-4">
         {/* ─── Name + Type badge ─── */}
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <Link to={`/dashboard/products/${product.slug || product.id}`}>
-              <h3 className="text-sm font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">
-                {product.display_id && (
-                  <span className="font-mono font-bold text-primary/70 mr-1">#{product.display_id}</span>
-                )}
-                {product.name}
-              </h3>
-            </Link>
-            {product.duration && (
-              <p className="text-[10px] text-muted-foreground/60 mt-1.5 tracking-wide uppercase">
-                {product.duration}
-              </p>
-            )}
+          <div className="flex items-start gap-3 min-w-0 flex-1">
+            {/* Category Icon */}
+            {(() => {
+              const IconComp = getCategoryIcon(product.category, product.name);
+              const iconColor = getCategoryIconColor(product.category, product.name);
+              return (
+                <div className={cn("shrink-0 w-9 h-9 rounded-xl flex items-center justify-center mt-0.5", iconColor)}>
+                  <IconComp className="w-4.5 h-4.5" />
+                </div>
+              );
+            })()}
+            <div className="min-w-0 flex-1">
+              <Link to={`/dashboard/products/${product.slug || product.id}`}>
+                <h3 className="text-sm font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">
+                  {product.display_id && (
+                    <span className="font-mono font-bold text-primary/70 mr-1">#{product.display_id}</span>
+                  )}
+                  {product.name}
+                </h3>
+              </Link>
+              {product.duration && (
+                <p className="text-[10px] text-muted-foreground/60 mt-1.5 tracking-wide uppercase">
+                  {product.duration}
+                </p>
+              )}
+            </div>
           </div>
 
           <span

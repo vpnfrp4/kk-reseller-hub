@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { Search, ChevronDown, Zap, Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 
 interface ServiceItem {
   id: string;
@@ -145,6 +146,8 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
                   const isDigital = service.product_type === "digital";
                   const isAuto = service.product_type === "api" || isDigital;
                   const isOutOfStock = isDigital && service.stock === 0;
+                  const IconComp = getCategoryIcon(service.category, service.name);
+                  const iconColor = getCategoryIconColor(service.category, service.name);
 
                   return (
                     <button
@@ -152,13 +155,18 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
                       onClick={() => !isOutOfStock && handleSelect(service)}
                       disabled={isOutOfStock}
                       className={cn(
-                        "w-full flex items-center justify-between gap-4 px-5 py-3.5 text-left",
+                        "w-full flex items-center gap-3 px-5 py-3.5 text-left",
                         "transition-all duration-150 border-b border-border/5 last:border-0",
                         isOutOfStock
                           ? "opacity-40 cursor-not-allowed"
                           : "hover:bg-primary/5 cursor-pointer"
                       )}
                     >
+                      {/* Category Icon */}
+                      <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center", iconColor)}>
+                        <IconComp className="w-4 h-4" />
+                      </div>
+
                       <div className="min-w-0 flex-1">
                         <p className="text-sm text-foreground truncate leading-snug">
                           {(service as any).display_id && (
@@ -167,9 +175,6 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
                           {service.name}
                         </p>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold bg-primary/15 text-primary">
-                            Service Active
-                          </span>
                           <span className={cn(
                             "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
                             isAuto
