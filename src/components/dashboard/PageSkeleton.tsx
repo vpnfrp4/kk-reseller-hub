@@ -5,9 +5,19 @@
 
 import { cn } from "@/lib/utils";
 
-/* ─── Pulse block helper ─── */
+/* ─── Shimmer block helper ─── */
 function Pulse({ className, style }: { className?: string; style?: React.CSSProperties }) {
-  return <div className={cn("rounded-lg bg-muted/50 animate-pulse", className)} style={style} />;
+  return (
+    <div
+      className={cn("rounded-lg bg-muted/40 animate-gold-shimmer", className)}
+      style={{
+        backgroundImage:
+          "linear-gradient(90deg, transparent 0%, hsl(var(--primary) / 0.06) 30%, hsl(var(--primary) / 0.14) 50%, hsl(var(--primary) / 0.06) 70%, transparent 100%)",
+        backgroundSize: "200% 100%",
+        ...style,
+      }}
+    />
+  );
 }
 
 /* ═══ HOME SKELETON ═══ */
