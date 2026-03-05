@@ -396,7 +396,7 @@ export default function PlaceOrderPage() {
                     <p className="text-xs mt-1">Try adjusting your search or filters</p>
                   </div>
                 ) : (
-                  <div className="p-3 space-y-2">
+                  <div className="p-3 sm:p-4 space-y-2.5">
                     {filteredProducts.map((p: any) => {
                       const pType = p.product_type;
                       const isAuto = pType === "api" || pType === "digital";
@@ -422,20 +422,27 @@ export default function PlaceOrderPage() {
                           onClick={() => !isOutOfStock && handleSelectProduct(p.id)}
                           disabled={isOutOfStock}
                           className={cn(
-                            "w-full text-left px-4 py-3.5 rounded-[var(--radius-card)] border transition-all duration-200 group",
+                            "w-full text-left px-4 py-4 rounded-[var(--radius-card)] border transition-all duration-300 ease-out group/card",
                             isOutOfStock
                               ? "opacity-30 cursor-not-allowed border-border/30 bg-muted/5"
-                              : "border-border bg-card hover:border-primary/25 hover:shadow-[0_0_20px_hsl(var(--primary)/0.06)] cursor-pointer"
+                              : "border-border/40 bg-card/80 backdrop-blur-sm cursor-pointer",
+                            !isOutOfStock && "hover:border-primary/30 hover:bg-card hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.12)] active:scale-[0.995] active:shadow-none"
                           )}
-                          style={!isOutOfStock ? { boxShadow: "var(--shadow-card)" } : undefined}
                         >
-                          <div className="flex items-start gap-3">
+                          {/* Subtle top accent on hover */}
+                          <div className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover/card:via-primary/30 transition-all duration-500" />
+
+                          <div className="flex items-start gap-3.5">
                             {/* Category Icon */}
                             {(() => {
                               const CatIcon = getCategoryIcon(p.category, p.name);
                               const catColor = getCategoryIconColor(p.category, p.name);
                               return (
-                                <div className={cn("shrink-0 w-9 h-9 rounded-xl flex items-center justify-center mt-0.5", catColor)}>
+                                <div className={cn(
+                                  "shrink-0 w-10 h-10 rounded-xl flex items-center justify-center mt-0.5 transition-transform duration-300",
+                                  "group-hover/card:scale-110",
+                                  catColor
+                                )}>
                                   <CatIcon className="w-4 h-4" />
                                 </div>
                               );
@@ -446,13 +453,13 @@ export default function PlaceOrderPage() {
                                 <span className="shrink-0 font-mono text-[10px] font-bold text-primary bg-primary/8 px-1.5 py-0.5 rounded-[var(--radius-btn)] mt-0.5 border border-primary/10">
                                   #{p.display_id}
                                 </span>
-                                <p className="text-[13px] text-foreground font-semibold leading-snug line-clamp-2 break-words">
+                                <p className="text-[13px] text-foreground font-semibold leading-snug line-clamp-2 break-words group-hover/card:text-primary transition-colors duration-200">
                                   {sanitizeName(p.name)}
                                 </p>
                               </div>
-                              <div className="flex items-center gap-2 mt-2 flex-wrap">
+                              <div className="flex items-center gap-2 mt-2.5 flex-wrap">
                                 <span className={cn(
-                                  "inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border",
+                                  "inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-0.5 border transition-colors duration-200",
                                   badgeClass
                                 )}>
                                   <BadgeIcon className="w-2.5 h-2.5" />
@@ -469,18 +476,18 @@ export default function PlaceOrderPage() {
                             </div>
 
                             {/* Right */}
-                            <div className="shrink-0 flex flex-col items-end gap-2 pt-0.5">
+                            <div className="shrink-0 flex flex-col items-end gap-2.5 pt-0.5">
                               <span className="text-sm font-bold font-mono tabular-nums text-foreground">
                                 <Money amount={p.wholesale_price} compact />
                               </span>
                               {!isOutOfStock && (
                                 <span className={cn(
-                                  "inline-flex items-center gap-1 text-[10px] font-bold text-primary-foreground px-3 py-1 rounded-full",
+                                  "inline-flex items-center gap-1 text-[10px] font-bold text-primary-foreground px-3 py-1.5 rounded-full",
                                   "bg-gradient-to-r from-primary to-primary/80",
-                                  "shadow-[0_0_10px_hsl(var(--primary)/0.12)]",
-                                  "group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.25)] transition-all duration-300"
+                                  "shadow-[0_2px_8px_hsl(var(--primary)/0.1)]",
+                                  "group-hover/card:shadow-[0_4px_20px_hsl(var(--primary)/0.25)] group-hover/card:scale-105 transition-all duration-300"
                                 )}>
-                                  Order <ArrowRight className="w-3 h-3" />
+                                  Order <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover/card:translate-x-0.5" />
                                 </span>
                               )}
                             </div>
