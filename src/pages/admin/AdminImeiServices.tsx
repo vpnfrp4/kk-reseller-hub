@@ -151,7 +151,7 @@ export default function AdminImeiServices() {
               <Database className="w-5 h-5 text-cyan-400" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">IMEI Service Manager</h1>
+              <h1 className="text-xl font-bold gradient-text">IMEI Service Manager</h1>
               <p className="page-header-subtitle">
                 Manage iFreeiCloud API services — {enabledCount}/{totalCount} enabled
               </p>

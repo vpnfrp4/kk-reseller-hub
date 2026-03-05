@@ -160,7 +160,7 @@ export default function AdminBlog() {
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">Blog Posts</p>
+          <p className="text-[10px] uppercase tracking-widest font-semibold gradient-text">Blog Posts</p>
           <p className="text-xs text-muted-foreground mt-0.5">{posts.length} post{posts.length !== 1 ? "s" : ""}</p>
         </div>
         <Button size="sm" className="btn-glow" onClick={openCreate}>
