@@ -25,7 +25,7 @@ export default {
   				'Noto Color Emoji'
   			],
   			mono: [
-  				'Space Mono',
+  				'JetBrains Mono',
   				'ui-monospace',
   				'SFMono-Regular',
   				'Menlo',
@@ -174,10 +174,11 @@ export default {
   			lg: 'var(--radius)',
   			md: 'calc(var(--radius) - 2px)',
   			sm: 'calc(var(--radius) - 4px)',
-  			btn: 'var(--radius-btn, 10px)',
-  			card: 'var(--radius-card, 14px)',
-  			modal: 'var(--radius-modal, 18px)',
-  			input: 'var(--radius-input, 10px)'
+  			btn: 'var(--radius-btn, 14px)',
+  			card: 'var(--radius-card, 20px)',
+  			modal: 'var(--radius-modal, 24px)',
+  			input: 'var(--radius-input, 12px)',
+  			pill: 'var(--radius-pill, 9999px)'
   		},
   		keyframes: {
   			'accordion-down': {
@@ -268,6 +269,14 @@ export default {
   				'100%': {
   					transform: 'translateX(-50%)'
   				}
+  			},
+  			'float-gentle': {
+  				'0%, 100%': {
+  					transform: 'translateY(0)'
+  				},
+  				'50%': {
+  					transform: 'translateY(-6px)'
+  				}
   			}
   		},
   		animation: {
@@ -280,13 +289,15 @@ export default {
   			shimmer: 'shimmer 2s linear infinite',
   			'gold-shimmer': 'gold-shimmer 2.5s ease-in-out infinite',
   			'gold-pulse': 'gold-pulse 3s ease-in-out infinite',
-  			ticker: 'ticker linear infinite'
+  			ticker: 'ticker linear infinite',
+  			'float-gentle': 'float-gentle 4s ease-in-out infinite'
   		},
   		boxShadow: {
   			card: 'var(--shadow-card)',
   			elevated: 'var(--shadow-elevated)',
   			inset: 'var(--shadow-inset)',
   			luxury: 'var(--shadow-card)',
+  			glow: 'var(--shadow-glow)',
   			'2xs': 'var(--shadow-2xs)',
   			xs: 'var(--shadow-xs)',
   			sm: 'var(--shadow-sm)',
