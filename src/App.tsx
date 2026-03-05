@@ -94,7 +94,11 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
     );
   }
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <AdminLayout>{children}</AdminLayout>;
+  return (
+    <AdminLayout>
+      <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
+    </AdminLayout>
+  );
 }
 
 function WalletTopupRedirect() {
