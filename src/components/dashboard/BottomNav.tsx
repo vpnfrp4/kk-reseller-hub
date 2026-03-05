@@ -1,12 +1,13 @@
 import { useLocation } from "react-router-dom";
 import PrefetchLink from "@/components/PrefetchLink";
-import { Home, ShoppingCart, Receipt, User } from "lucide-react";
+import { Home, ShoppingCart, Receipt, Wallet, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { label: "Home", icon: Home, path: "/dashboard" },
   { label: "Order", icon: ShoppingCart, path: "/dashboard/place-order" },
   { label: "Orders", icon: Receipt, path: "/dashboard/orders" },
+  { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
   { label: "Account", icon: User, path: "/dashboard/settings" },
 ];
 
@@ -28,9 +29,7 @@ export default function BottomNav() {
               to={item.path}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 gap-0.5 text-[10px] font-medium transition-all duration-200 active:scale-90 active:opacity-70",
-                active
-                  ? "text-primary"
-                  : "text-muted-foreground"
+                active ? "text-primary" : "text-muted-foreground"
               )}
             >
               <div className="relative">
