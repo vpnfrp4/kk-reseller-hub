@@ -170,7 +170,7 @@ Deno.serve(async (req) => {
           `🏦 <b>Method:</b> ${tx.method || "N/A"}`,
           "━━━━━━━━━━━━━━━━━━",
           `🎉 Your funds are ready to use!`,
-          `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">View Wallet</a>`,
+          `🔗 <a href="https://karkar4.store/dashboard/wallet">View Wallet</a>`,
         ].join("\n") : [
           `${emoji} <b>Top-Up Rejected</b>`,
           "━━━━━━━━━━━━━━━━━━",
@@ -178,7 +178,7 @@ Deno.serve(async (req) => {
           `🏦 <b>Method:</b> ${tx.method || "N/A"}`,
           "━━━━━━━━━━━━━━━━━━",
           `Please verify your payment details and try again.`,
-          `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">View Wallet</a>`,
+          `🔗 <a href="https://karkar4.store/dashboard/wallet">View Wallet</a>`,
         ].join("\n");
 
         const telegramUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-telegram`;

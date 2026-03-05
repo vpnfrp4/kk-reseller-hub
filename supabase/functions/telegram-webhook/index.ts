@@ -67,7 +67,7 @@ const HELP_TEXT = [
   "• Top-up approvals and balance changes are sent instantly",
   "• Use /status with partial order codes too",
   "",
-  "🌐 <b>Dashboard:</b> https://kk-reseller-hub.lovable.app",
+  "🌐 <b>Dashboard:</b> https://karkar4.store",
 ].join("\n");
 
 // ── Helper: find linked user via telegram_connections table ──
@@ -188,7 +188,7 @@ async function handleStart(supabase: any, botToken: string, chatId: number, text
     "/help — Show all commands",
     "/unlink — Disconnect Telegram",
     "",
-    "🌐 https://kk-reseller-hub.lovable.app",
+    "🌐 https://karkar4.store",
   ].join("\n"));
 }
 
@@ -229,7 +229,7 @@ async function handleBalance(supabase: any, botToken: string, chatId: number, us
   }
 
   lines.push("");
-  lines.push(`🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">Top Up Wallet</a>`);
+  lines.push(`🔗 <a href="https://karkar4.store/dashboard/wallet">Top Up Wallet</a>`);
 
   await sendMessage(botToken, chatId, lines.join("\n"));
 }
@@ -248,7 +248,7 @@ async function handleOrders(supabase: any, botToken: string, chatId: number, use
       "📦 <b>No Orders Yet</b>",
       "",
       "You haven't placed any orders.",
-      `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/place-order">Place Your First Order</a>`,
+      `🔗 <a href="https://karkar4.store/dashboard/place-order">Place Your First Order</a>`,
     ].join("\n"));
     return;
   }
@@ -266,7 +266,7 @@ async function handleOrders(supabase: any, botToken: string, chatId: number, use
     ...lines,
     "━━━━━━━━━━━━━━━━━━",
     "💡 Use /status [OrderCode] for full details",
-    `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/orders">View All Orders</a>`,
+    `🔗 <a href="https://karkar4.store/dashboard/orders">View All Orders</a>`,
   ].join("\n"));
 }
 
@@ -352,7 +352,7 @@ async function handleStatus(supabase: any, botToken: string, chatId: number, tex
   }
 
   lines.push("━━━━━━━━━━━━━━━━━━");
-  lines.push(`🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/orders">View in Dashboard</a>`);
+  lines.push(`🔗 <a href="https://karkar4.store/dashboard/orders">View in Dashboard</a>`);
 
   await sendMessage(botToken, chatId, lines.join("\n"));
 }
@@ -435,7 +435,7 @@ async function handleProducts(supabase: any, botToken: string, chatId: number, t
     lines.push("💡 Filter: <code>/products IMEI Unlock</code>");
   }
 
-  lines.push(`🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/place-order">Order in Dashboard</a>`);
+  lines.push(`🔗 <a href="https://karkar4.store/dashboard/place-order">Order in Dashboard</a>`);
 
   await sendMessage(botToken, chatId, lines.join("\n"));
 }
@@ -568,7 +568,7 @@ async function handleCancel(supabase: any, botToken: string, chatId: number, tex
     `💵 <b>New Balance:</b> ${newBalance.toLocaleString()} MMK`,
     "━━━━━━━━━━━━━━━━━━",
     "Your balance has been restored.",
-    `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">View Wallet</a>`,
+    `🔗 <a href="https://karkar4.store/dashboard/wallet">View Wallet</a>`,
   ].join("\n"));
 }
 
@@ -594,7 +594,7 @@ async function handleUnlink(supabase: any, botToken: string, chatId: number, tel
     "❌ You won't receive order or wallet notifications anymore.",
     "",
     "To reconnect, visit your Settings page:",
-    "🔗 https://kk-reseller-hub.lovable.app/dashboard/settings",
+    "🔗 https://karkar4.store/dashboard/settings",
   ].join("\n"));
 }
 
@@ -603,7 +603,7 @@ const NOT_LINKED_MSG = [
   "",
   "Please connect your Telegram account from your KKTech dashboard.",
   "",
-  "📱 Visit: https://kk-reseller-hub.lovable.app/dashboard/settings",
+  "📱 Visit: https://karkar4.store/dashboard/settings",
   "",
   "Need help? Send /help for more info.",
 ].join("\n");
@@ -619,7 +619,27 @@ Deno.serve(async (req) => {
       return new Response("Bot token not configured", { status: 500 });
     }
 
-    const update: TelegramUpdate = await req.json();
+    // ── Webhook registration endpoint ──
+    const body = await req.text();
+    let parsed: any;
+    try { parsed = JSON.parse(body); } catch { parsed = {}; }
+
+    if (parsed?.action === "set_webhook") {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const webhookUrl = `${supabaseUrl}/functions/v1/telegram-webhook`;
+      const setRes = await fetch(`https://api.telegram.org/bot${botToken}/setWebhook`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: webhookUrl }),
+      });
+      const setData = await setRes.json();
+      return new Response(JSON.stringify(setData), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const update: TelegramUpdate = parsed;
     const message = update.message;
     if (!message?.text) {
       return new Response("OK", { status: 200 });
