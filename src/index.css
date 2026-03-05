@@ -829,6 +829,20 @@
   .pb-safe {
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
+  /* Ensure elements with animation-delay start hidden */
+  .animate-fade-in[style*="animation-delay"],
+  .animate-fade-in.\[animation-delay\:0\.08s\],
+  .animate-fade-in.\[animation-delay\:0\.15s\],
+  .animate-fade-in.\[animation-delay\:0\.22s\],
+  .animate-fade-in.\[animation-delay\:0\.25s\],
+  .animate-fade-in.\[animation-delay\:0\.3s\],
+  .animate-fade-in.\[animation-delay\:0\.35s\],
+  .animate-fade-in.\[animation-delay\:0\.4s\],
+  .animate-fade-in.\[animation-delay\:0\.45s\],
+  .animate-fade-in.\[animation-delay\:0\.5s\],
+  .animate-fade-in.\[animation-delay\:0\.55s\] {
+    opacity: 0;
+  }
 }
 
 /* ─── Global Scroll & Touch ─── */

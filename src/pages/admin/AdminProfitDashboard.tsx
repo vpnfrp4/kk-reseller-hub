@@ -130,9 +130,9 @@ export default function AdminProfitDashboard() {
 
   return (
     <PageContainer>
-      <div className="animate-fade-in space-y-8">
+      <div className="space-y-8">
         {/* Header */}
-        <div>
+        <div className="animate-fade-in">
           <h1 className="text-h1 gradient-text tracking-tight">Profit Analytics</h1>
           <p className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] mt-1">
             Revenue, Cost & Margin Tracking
@@ -140,7 +140,7 @@ export default function AdminProfitDashboard() {
         </div>
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in [animation-delay:0.08s]">
           {[
             { label: "Total Revenue", value: stats.totalRevenue, icon: DollarSign, color: "text-primary" },
             { label: "Provider Cost", value: stats.totalCost, icon: ArrowDownRight, color: "text-destructive" },
@@ -173,7 +173,7 @@ export default function AdminProfitDashboard() {
         </div>
 
         {/* 30-Day Profit Chart */}
-        <div className="glass-card p-6 space-y-4">
+        <div className="glass-card p-6 space-y-4 animate-fade-in [animation-delay:0.15s]">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-foreground">30-Day Profit Trend</h2>
@@ -216,7 +216,7 @@ export default function AdminProfitDashboard() {
         </div>
 
         {/* Service-Level Profit Table */}
-        <div className="glass-card overflow-hidden">
+        <div className="glass-card overflow-hidden animate-fade-in [animation-delay:0.22s]">
           <div className="p-5 border-b border-border/30">
             <h2 className="text-sm font-semibold text-foreground">Service Profit Breakdown</h2>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
