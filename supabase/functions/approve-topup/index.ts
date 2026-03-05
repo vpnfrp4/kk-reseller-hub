@@ -133,16 +133,34 @@ Deno.serve(async (req) => {
       type: action === "approve" ? "success" : "warning",
     });
 
-    // Send Telegram notification to user if they have telegram_chat_id
+    // Send Telegram notification to user
     try {
-      const { data: userProfile } = await serviceClient
-        .from("profiles")
-        .select("telegram_chat_id, name, email, balance")
+      // Check telegram_connections first, then profiles
+      let chatId: string | null = null;
+      const { data: tgConn } = await serviceClient
+        .from("telegram_connections")
+        .select("telegram_id")
         .eq("user_id", tx.user_id)
         .maybeSingle();
 
-      if (userProfile?.telegram_chat_id) {
-        const emoji = action === "approve" ? "✅" : "❌";
+      if (tgConn?.telegram_id) {
+        chatId = tgConn.telegram_id;
+      } else {
+        const { data: userProfile } = await serviceClient
+          .from("profiles")
+          .select("telegram_chat_id")
+          .eq("user_id", tx.user_id)
+          .maybeSingle();
+        chatId = userProfile?.telegram_chat_id || null;
+      }
+
+      const { data: userProfile } = await serviceClient
+        .from("profiles")
+        .select("name, email, balance")
+        .eq("user_id", tx.user_id)
+        .maybeSingle();
+
+      if (chatId && userProfile) {
         const newBalance = Number(userProfile.balance || 0);
         const tgMessage = action === "approve" ? [
           `${emoji} <b>Wallet Top-up Approved!</b>`,
@@ -172,7 +190,7 @@ Deno.serve(async (req) => {
           },
           body: JSON.stringify({
             type: "custom",
-            chat_id: userProfile.telegram_chat_id,
+            chat_id: chatId,
             message: tgMessage,
           }),
         });

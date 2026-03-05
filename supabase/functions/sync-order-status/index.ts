@@ -1,5 +1,54 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+async function getUserTelegramChatId(supabase: any, userId: string): Promise<string | null> {
+  const { data: tgConn } = await supabase
+    .from("telegram_connections")
+    .select("telegram_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (tgConn?.telegram_id) return tgConn.telegram_id;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("telegram_chat_id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  return profile?.telegram_chat_id || null;
+}
+
+async function sendTelegramStatusUpdate(supabase: any, chatId: string, order: any, status: string) {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const telegramUrl = `${supabaseUrl}/functions/v1/send-telegram`;
+
+  await fetch(telegramUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${anonKey}`,
+    },
+    body: JSON.stringify({
+      type: status === "failed" ? "custom" : "status_update",
+      chat_id: chatId,
+      order_id: order.id,
+      order_code: order.order_code,
+      product_name: order.product_name,
+      status,
+      price: order.price,
+      ...(status === "failed" ? {
+        message: [
+          "🔄 <b>Order Auto-Refunded</b>",
+          "━━━━━━━━━━━━━━━━━━",
+          `📦 <b>Service:</b> ${order.product_name}`,
+          `💰 <b>Refunded:</b> ${Number(order.price).toLocaleString()} MMK`,
+          "━━━━━━━━━━━━━━━━━━",
+          "Your balance has been restored automatically.",
+          `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">View Wallet</a>`,
+        ].join("\n"),
+      } : {}),
+    }),
+  });
+}
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -22,7 +71,7 @@ Deno.serve(async (req) => {
     // Fetch all processing orders with an external_order_id
     const { data: orders, error: fetchErr } = await supabase
       .from("orders")
-      .select("id, external_order_id, product_id, user_id, price, product_name")
+      .select("id, external_order_id, product_id, user_id, price, product_name, order_code")
       .eq("status", "processing")
       .not("external_order_id", "is", null);
 
@@ -231,6 +280,12 @@ Deno.serve(async (req) => {
               type: "order",
               link: "/orders",
             });
+
+            // Telegram notification for refund
+            try {
+              const chatId = await getUserTelegramChatId(supabase, order.user_id);
+              if (chatId) await sendTelegramStatusUpdate(supabase, chatId, order, "failed");
+            } catch {}
           } else {
             updatePayload.admin_notes = `Provider failed but charged ${charge}. Manual review needed.`;
           }
@@ -255,6 +310,12 @@ Deno.serve(async (req) => {
             type: "order",
             link: "/orders",
           });
+
+          // Telegram notification
+          try {
+            const chatId = await getUserTelegramChatId(supabase, order.user_id);
+            if (chatId) await sendTelegramStatusUpdate(supabase, chatId, order, "completed");
+          } catch {}
         }
 
         synced++;

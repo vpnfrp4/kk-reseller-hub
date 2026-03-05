@@ -534,9 +534,28 @@ async function sendTelegramNotifications(serviceClient: any, userId: string, pro
   try {
     const { data: buyerProfile } = await serviceClient
       .from("profiles")
-      .select("name, email, telegram_chat_id")
+      .select("name, email")
       .eq("user_id", userId)
       .maybeSingle();
+
+    // Resolve Telegram chat ID from telegram_connections first, then profiles
+    let chatId: string | null = null;
+    const { data: tgConn } = await serviceClient
+      .from("telegram_connections")
+      .select("telegram_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (tgConn?.telegram_id) {
+      chatId = tgConn.telegram_id;
+    } else {
+      const { data: profileTg } = await serviceClient
+        .from("profiles")
+        .select("telegram_chat_id")
+        .eq("user_id", userId)
+        .maybeSingle();
+      chatId = profileTg?.telegram_chat_id || null;
+    }
 
     const { data: productInfo } = await serviceClient
       .from("products")
@@ -574,13 +593,13 @@ async function sendTelegramNotifications(serviceClient: any, userId: string, pro
     });
 
     // User notification
-    if (buyerProfile?.telegram_chat_id) {
+    if (chatId) {
       await fetch(telegramUrl, {
         method: "POST",
         headers: tgHeaders,
         body: JSON.stringify({
           type: "order_placed",
-          chat_id: buyerProfile.telegram_chat_id,
+          chat_id: chatId,
           order_code: orderRow?.order_code,
           product_name: data.product_name,
           price: data.price,
