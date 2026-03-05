@@ -277,21 +277,30 @@ export default {
   				'50%': {
   					transform: 'translateY(-6px)'
   				}
-  			}
-  		},
-  		animation: {
-  			'accordion-down': 'accordion-down 0.2s ease-out',
-  			'accordion-up': 'accordion-up 0.2s ease-out',
-  			'fade-in': 'fade-in 0.4s ease-out forwards',
-  			'slide-in': 'slide-in 0.3s ease-out forwards',
-  			'stagger-in': 'stagger-in 0.35s ease-out forwards',
-  			'row-in': 'row-in 0.25s ease-out forwards',
-  			shimmer: 'shimmer 2s linear infinite',
-  			'gold-shimmer': 'gold-shimmer 2.5s ease-in-out infinite',
-  			'gold-pulse': 'gold-pulse 3s ease-in-out infinite',
-  			ticker: 'ticker linear infinite',
-  			'float-gentle': 'float-gentle 4s ease-in-out infinite'
-  		},
+			},
+			'progress-glow': {
+				'0%, 100%': {
+					boxShadow: '0 0 12px 3px hsl(var(--primary) / 0.6), 0 0 24px 6px hsl(var(--primary) / 0.3)'
+				},
+				'50%': {
+					boxShadow: '0 0 20px 6px hsl(var(--primary) / 0.8), 0 0 40px 12px hsl(var(--primary) / 0.45)'
+				}
+			}
+		},
+		animation: {
+			'accordion-down': 'accordion-down 0.2s ease-out',
+			'accordion-up': 'accordion-up 0.2s ease-out',
+			'fade-in': 'fade-in 0.4s ease-out forwards',
+			'slide-in': 'slide-in 0.3s ease-out forwards',
+			'stagger-in': 'stagger-in 0.35s ease-out forwards',
+			'row-in': 'row-in 0.25s ease-out forwards',
+			shimmer: 'shimmer 2s linear infinite',
+			'gold-shimmer': 'gold-shimmer 2.5s ease-in-out infinite',
+			'gold-pulse': 'gold-pulse 3s ease-in-out infinite',
+			ticker: 'ticker linear infinite',
+			'float-gentle': 'float-gentle 4s ease-in-out infinite',
+			'progress-glow': 'progress-glow 1.2s ease-in-out infinite'
+		},
   		boxShadow: {
   			card: 'var(--shadow-card)',
   			elevated: 'var(--shadow-elevated)',
