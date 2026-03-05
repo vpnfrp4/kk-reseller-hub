@@ -6,7 +6,7 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-const SITE_URL = "https://kktech.shop";
+const SITE_URL = "https://karkar4.store";
 const SITE_NAME = "KKTech";
 const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
 

@@ -61,8 +61,8 @@ export default function ImeiUnlockServicePage() {
   useEffect(() => {
     const title = "IMEI Unlock Services — Professional Reseller Infrastructure | KKTech";
     const desc = "Structured IMEI unlock services for professional resellers. iPhone carrier unlock, Samsung FRP removal, 200+ carrier coverage. Verified providers, transparent pricing.";
-    const url = "https://kktech.shop/services/imei-unlock";
-    const image = "https://kktech.shop/og-imei-unlock.png";
+    const url = "https://karkar4.store/services/imei-unlock";
+    const image = "https://karkar4.store/og-imei-unlock.png";
 
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
@@ -89,7 +89,7 @@ export default function ImeiUnlockServicePage() {
       "@type": "Service",
       name: "IMEI Unlock Services",
       description: desc,
-      provider: { "@type": "Organization", name: "KKTech", url: "https://kktech.shop" },
+      provider: { "@type": "Organization", name: "KKTech", url: "https://karkar4.store" },
       url,
       areaServed: "Worldwide",
       serviceType: "IMEI Carrier Unlock",

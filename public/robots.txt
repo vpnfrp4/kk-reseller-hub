@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://kktech.shop/sitemap.xml
+Sitemap: https://karkar4.store/sitemap.xml
