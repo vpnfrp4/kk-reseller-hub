@@ -13,6 +13,7 @@ import SplashScreen from "@/components/SplashScreen";
 import PwaUpdatePrompt from "@/components/PwaUpdatePrompt";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 import AdminLayout from "./components/admin/AdminLayout";
+import PageSkeleton from "@/components/dashboard/PageSkeleton";
 
 // ─── Lazy-loaded pages ───
 const Login = lazy(() => import("./pages/Login"));
@@ -76,7 +77,11 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
     );
   }
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return (
+    <DashboardLayout>
+      <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
+    </DashboardLayout>
+  );
 }
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
