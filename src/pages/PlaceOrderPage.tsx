@@ -259,7 +259,7 @@ export default function PlaceOrderPage() {
               <ShoppingCart className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1>Place Order</h1>
+              <h1 className="gradient-text">Place Order</h1>
               <p className="page-header-subtitle">Search and order services quickly</p>
             </div>
           </div>

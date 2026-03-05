@@ -112,7 +112,7 @@ export default function DashboardHome() {
                 <TrendingUp className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h1>Welcome back, <span className="text-primary">{profile?.name || "Reseller"}</span></h1>
+                <h1>Welcome back, <span className="gradient-text">{profile?.name || "Reseller"}</span></h1>
                 <p className="page-header-subtitle">Here's your business overview</p>
               </div>
             </div>
@@ -197,7 +197,7 @@ export default function DashboardHome() {
           {/* ═══ ORDER HISTORY TABLE ═══ */}
           <div className="glass-card overflow-hidden animate-fade-in" style={{ animationDelay: "0.1s" }}>
             <div className="p-5 sm:p-6 border-b border-border/30 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <h2 className="text-lg font-bold text-foreground">Recent Orders</h2>
+              <h2 className="text-lg font-bold gradient-text">Recent Orders</h2>
               <div className="relative w-full sm:w-64">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
