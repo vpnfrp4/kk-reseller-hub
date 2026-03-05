@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
+import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { sanitizeName } from "@/lib/sanitize-name";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   ShoppingCart, CheckCircle2, Clock, Zap, Copy, Eye, X,
-  AlertTriangle, Search, Download, ShieldAlert, ArrowLeft,
-  Smartphone, Link2, Package, ArrowRight, Star, Flame, Hash,
+  AlertTriangle, Search, Download, ShieldAlert,
+  Smartphone, Link2, Package, ArrowRight, Star, Flame,
+  ChevronDown, ChevronRight, List,
 } from "lucide-react";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 import { toast } from "sonner";
@@ -37,8 +38,17 @@ const FAVORITES_KEY = "kktech_favorite_services";
 function getFavorites(): string[] {
   try { return JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]"); } catch { return []; }
 }
-function setFavorites(ids: string[]) {
+function saveFavorites(ids: string[]) {
   localStorage.setItem(FAVORITES_KEY, JSON.stringify(ids));
+}
+
+/* ═══ COLLAPSED GROUPS STORAGE ═══ */
+const COLLAPSED_KEY = "kktech_collapsed_groups";
+function getCollapsed(): string[] {
+  try { return JSON.parse(localStorage.getItem(COLLAPSED_KEY) || "[]"); } catch { return []; }
+}
+function saveCollapsed(ids: string[]) {
+  localStorage.setItem(COLLAPSED_KEY, JSON.stringify(ids));
 }
 
 export default function PlaceOrderPage() {
@@ -51,10 +61,31 @@ export default function PlaceOrderPage() {
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, string>>({});
   const [purchasing, setPurchasing] = useState(false);
   const [result, setResult] = useState<PurchaseResult | null>(null);
-  const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavoritesState] = useState<string[]>(getFavorites);
   const [quickOrderOpen, setQuickOrderOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [collapsedGroups, setCollapsedGroups] = useState<string[]>(getCollapsed);
+  const [showGroupNav, setShowGroupNav] = useState(false);
+
+  // Quick order panel state
+  const [quickImei, setQuickImei] = useState("");
+  const [quickServiceId, setQuickServiceId] = useState("");
+
+  const groupRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard shortcut: / to focus search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "/" && !["INPUT", "TEXTAREA", "SELECT"].includes((e.target as HTMLElement)?.tagName)) {
+        e.preventDefault();
+        searchRef.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
 
   // Realtime
   useEffect(() => {
@@ -121,63 +152,13 @@ export default function PlaceOrderPage() {
     enabled: !!profile?.tier,
   });
 
-  // Derived
+  // Derived pricing for selected product
   const isApiProduct = (selectedProduct as any)?.product_type === "api";
   const defaultMode = selectedProduct
     ? (Array.isArray(selectedProduct.fulfillment_modes) ? String((selectedProduct.fulfillment_modes as any[])[0]) : "instant")
     : "instant";
   const activeFields = customFields.filter((f: any) => f.linked_mode === defaultMode);
 
-  const categories = useMemo(() => {
-    const cats = new Map<string, number>();
-    products.forEach((p: any) => {
-      const cat = p.category || "Other";
-      cats.set(cat, (cats.get(cat) || 0) + 1);
-    });
-    return Array.from(cats.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => ({ name, count }));
-  }, [products]);
-
-  const allCategories = useMemo(() => {
-    return [{ name: "All", count: products.length }, ...categories];
-  }, [categories, products.length]);
-
-  const [activeCategory, setActiveCategory] = useState("All");
-
-  const filteredProducts = useMemo(() => {
-    return products.filter((p: any) => {
-      const matchCat = activeCategory === "All" || p.category === activeCategory;
-      const q = searchQuery.trim().toLowerCase();
-      const matchSearch = !q ||
-        p.name.toLowerCase().includes(q) ||
-        String(p.display_id).includes(q) ||
-        (p.brand && p.brand.toLowerCase().includes(q)) ||
-        (p.category && p.category.toLowerCase().includes(q));
-      return matchCat && matchSearch;
-    });
-  }, [products, searchQuery, activeCategory]);
-
-  // Favorites
-  const favoriteProducts = useMemo(() => {
-    return products.filter((p: any) => favorites.includes(p.id));
-  }, [products, favorites]);
-
-  const toggleFavorite = useCallback((id: string, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setFavoritesState(prev => {
-      const next = prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id];
-      setFavorites(next);
-      return next;
-    });
-  }, []);
-
-  // Popular services (top 6 by display_id which correlates with order frequency)
-  const popularProducts = useMemo(() => {
-    return [...products].sort((a: any, b: any) => (b.sort_order || 0) - (a.sort_order || 0)).slice(0, 6);
-  }, [products]);
-
-  // Pricing
   const unitPrice = useMemo(() => {
     if (!selectedProduct) return 0;
     if (isApiProduct && selectedProduct.api_rate && usdRate) {
@@ -201,6 +182,80 @@ export default function PlaceOrderPage() {
   const deliveryTime = deliveryTimeConfig[defaultMode] || selectedProduct?.processing_time || "Instant";
   const isInstant = defaultMode === "instant" || deliveryTime.toLowerCase().includes("instant");
 
+  // Categories
+  const allCategories = useMemo(() => {
+    const cats = new Map<string, number>();
+    products.forEach((p: any) => {
+      const cat = p.category || "Other";
+      cats.set(cat, (cats.get(cat) || 0) + 1);
+    });
+    const sorted = Array.from(cats.entries()).sort((a, b) => b[1] - a[1]).map(([name, count]) => ({ name, count }));
+    return [{ name: "All", count: products.length }, ...sorted];
+  }, [products]);
+
+  // Filtered products
+  const filteredProducts = useMemo(() => {
+    return products.filter((p: any) => {
+      const matchCat = activeCategory === "All" || p.category === activeCategory;
+      const q = searchQuery.trim().toLowerCase();
+      const matchSearch = !q ||
+        p.name.toLowerCase().includes(q) ||
+        String(p.display_id).includes(q) ||
+        (p.brand && p.brand.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q));
+      return matchCat && matchSearch;
+    });
+  }, [products, searchQuery, activeCategory]);
+
+  // Grouped products by category
+  const groupedProducts = useMemo(() => {
+    const groups = new Map<string, any[]>();
+    for (const p of filteredProducts) {
+      const cat = p.category || "Other";
+      if (!groups.has(cat)) groups.set(cat, []);
+      groups.get(cat)!.push(p);
+    }
+    return Array.from(groups.entries()).sort((a, b) => b[1].length - a[1].length);
+  }, [filteredProducts]);
+
+  // Favorites & Popular
+  const favoriteProducts = useMemo(() => products.filter((p: any) => favorites.includes(p.id)), [products, favorites]);
+  const popularProducts = useMemo(() => [...products].sort((a: any, b: any) => (b.sort_order || 0) - (a.sort_order || 0)).slice(0, 6), [products]);
+
+  const toggleFavorite = useCallback((id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setFavoritesState(prev => {
+      const next = prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id];
+      saveFavorites(next);
+      return next;
+    });
+  }, []);
+
+  const toggleGroup = useCallback((name: string) => {
+    setCollapsedGroups(prev => {
+      const next = prev.includes(name) ? prev.filter(g => g !== name) : [...prev, name];
+      saveCollapsed(next);
+      return next;
+    });
+  }, []);
+
+  const scrollToGroup = useCallback((name: string) => {
+    // Expand if collapsed
+    setCollapsedGroups(prev => {
+      if (prev.includes(name)) {
+        const next = prev.filter(g => g !== name);
+        saveCollapsed(next);
+        return next;
+      }
+      return prev;
+    });
+    setTimeout(() => {
+      groupRefs.current[name]?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+    setShowGroupNav(false);
+  }, []);
+
+  // Handlers
   const handleSelectProduct = (id: string) => {
     setSelectedProductId(id);
     setCustomFieldValues({});
@@ -210,10 +265,22 @@ export default function PlaceOrderPage() {
 
   const handleCloseModal = () => {
     setQuickOrderOpen(false);
-    setTimeout(() => {
-      setSelectedProductId("");
+    setTimeout(() => { setSelectedProductId(""); setCustomFieldValues({}); }, 200);
+  };
+
+  const handleQuickOrder = () => {
+    if (!quickServiceId) { toast.error("Please select a service"); return; }
+    const product = products.find((p: any) => p.id === quickServiceId);
+    if (!product) return;
+    setSelectedProductId(quickServiceId);
+    if (quickImei) {
+      // Pre-fill IMEI into custom fields
+      setCustomFieldValues({ IMEI: quickImei, imei: quickImei });
+    } else {
       setCustomFieldValues({});
-    }, 200);
+    }
+    setResult(null);
+    setQuickOrderOpen(true);
   };
 
   const handlePurchase = async () => {
@@ -240,6 +307,8 @@ export default function PlaceOrderPage() {
       if (data && !data.success) { toast.error(data.error as string); return; }
       setResult(data as PurchaseResult);
       setQuickOrderOpen(false);
+      setQuickImei("");
+      setQuickServiceId("");
       queryClient.invalidateQueries({ queryKey: ["products-for-order"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] });
       refreshProfile();
@@ -252,17 +321,17 @@ export default function PlaceOrderPage() {
 
   const copyCredentials = (creds: string) => {
     navigator.clipboard.writeText(creds);
-    setCopied(true);
     toast.success("Copied!");
-    setTimeout(() => setCopied(false), 2000);
   };
 
   const credentialsList = result?.credentials?.split("\n").filter(Boolean) || [];
+  const isSearching = !!searchQuery.trim();
+  const showSpecialSections = !isSearching && activeCategory === "All";
 
   return (
     <PageContainer maxWidth="max-w-5xl">
       {/* ═══ HEADER ═══ */}
-      <div className="page-header-card mb-6">
+      <div className="page-header-card mb-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3.5">
             <div className="page-header-icon">
@@ -270,32 +339,46 @@ export default function PlaceOrderPage() {
             </div>
             <div>
               <h1 className="gradient-text">Place Order</h1>
-              <p className="page-header-subtitle">Search and order services instantly</p>
+              <p className="page-header-subtitle">Unlock service marketplace</p>
             </div>
           </div>
-          <div className="flex gap-1 p-1 rounded-[var(--radius-btn)] bg-secondary/50 border border-border">
+          <div className="flex items-center gap-2">
+            {/* Group nav toggle (desktop) */}
             <button
-              onClick={() => setActiveTab("services")}
+              onClick={() => setShowGroupNav(!showGroupNav)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-[calc(var(--radius-btn)-2px)] text-[11px] font-bold transition-all duration-200",
-                activeTab === "services"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                "hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--radius-btn)] text-[11px] font-bold border transition-all duration-200",
+                showGroupNav
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-secondary/50 text-muted-foreground border-border hover:text-foreground"
               )}
             >
-              <ShoppingCart className="w-3 h-3" /> Services
+              <List className="w-3 h-3" /> Groups
             </button>
-            <button
-              onClick={() => setActiveTab("ifree")}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1.5 rounded-[calc(var(--radius-btn)-2px)] text-[11px] font-bold transition-all duration-200",
-                activeTab === "ifree"
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Smartphone className="w-3 h-3" /> IMEI
-            </button>
+            <div className="flex gap-1 p-1 rounded-[var(--radius-btn)] bg-secondary/50 border border-border">
+              <button
+                onClick={() => setActiveTab("services")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-[calc(var(--radius-btn)-2px)] text-[11px] font-bold transition-all duration-200",
+                  activeTab === "services"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <ShoppingCart className="w-3 h-3" /> Services
+              </button>
+              <button
+                onClick={() => setActiveTab("ifree")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded-[calc(var(--radius-btn)-2px)] text-[11px] font-bold transition-all duration-200",
+                  activeTab === "ifree"
+                    ? "bg-primary text-primary-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Smartphone className="w-3 h-3" /> IMEI
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -306,111 +389,160 @@ export default function PlaceOrderPage() {
           <IFreeCheckHistory />
         </div>
       ) : (
-        <div className="space-y-5">
-          {/* ═══ SMART SEARCH BAR ═══ */}
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40 pointer-events-none transition-colors group-focus-within:text-primary/60" />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search service name, ID or brand..."
-              className={cn(
-                "w-full pl-12 pr-12 py-4 rounded-2xl text-sm font-medium",
-                "bg-card border border-border/50 text-foreground placeholder:text-muted-foreground/40",
-                "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40",
-                "transition-all duration-300",
-                "shadow-[0_2px_12px_rgba(0,0,0,0.04)]",
-              )}
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-muted-foreground/50 hover:text-foreground hover:bg-secondary/60 transition-colors">
-                <X className="w-4 h-4" />
-              </button>
+        <div className="flex gap-5">
+          {/* ═══ FLOATING GROUP NAV (desktop sidebar) ═══ */}
+          <AnimatePresence>
+            {showGroupNav && groupedProducts.length > 1 && (
+              <motion.aside
+                initial={{ opacity: 0, x: -20, width: 0 }}
+                animate={{ opacity: 1, x: 0, width: 180 }}
+                exit={{ opacity: 0, x: -20, width: 0 }}
+                transition={{ duration: 0.2 }}
+                className="hidden sm:block shrink-0 sticky top-20 self-start"
+              >
+                <div className="rounded-[var(--radius-card)] border border-border/40 bg-card p-3 space-y-0.5" style={{ boxShadow: "var(--shadow-card)" }}>
+                  <p className="text-[10px] uppercase tracking-[0.12em] font-bold text-muted-foreground/40 px-2 pb-1.5">
+                    Service Groups
+                  </p>
+                  {groupedProducts.map(([name, items]) => {
+                    const CatIcon = getCategoryIcon(name, "");
+                    return (
+                      <button
+                        key={name}
+                        onClick={() => scrollToGroup(name)}
+                        className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-secondary/50 transition-colors group/nav"
+                      >
+                        <CatIcon className="w-3 h-3 text-muted-foreground/50 group-hover/nav:text-primary transition-colors" />
+                        <span className="text-[11px] font-medium text-muted-foreground group-hover/nav:text-foreground transition-colors truncate">{name}</span>
+                        <span className="ml-auto text-[9px] font-mono text-muted-foreground/30">{items.length}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.aside>
             )}
-          </div>
+          </AnimatePresence>
 
-          {/* ═══ CATEGORY FILTER CHIPS ═══ */}
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
-            {allCategories.map((cat) => {
-              const CatIcon = cat.name === "All" ? Package : getCategoryIcon(cat.name, "");
-              const isActive = activeCategory === cat.name;
-              return (
-                <button
-                  key={cat.name}
-                  onClick={() => setActiveCategory(cat.name)}
-                  className={cn(
-                    "shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 text-[11px] font-bold rounded-full border transition-all duration-200",
-                    isActive
-                      ? "bg-primary text-primary-foreground border-primary shadow-[0_0_16px_hsl(var(--primary)/0.2)]"
-                      : "bg-card text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground hover:bg-card/80"
-                  )}
-                >
-                  <CatIcon className="w-3.5 h-3.5" />
-                  {cat.name}
-                  <span className={cn("font-mono text-[10px]", isActive ? "opacity-70" : "opacity-40")}>{cat.count}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* ═══ FAVORITE SERVICES ═══ */}
-          {favoriteProducts.length > 0 && !searchQuery && activeCategory === "All" && (
-            <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-3"
-            >
-              <div className="flex items-center gap-2">
-                <Star className="w-4 h-4 text-warning fill-warning" />
-                <h2 className="text-sm font-bold text-foreground">Favorite Services</h2>
-                <span className="text-[10px] font-mono text-muted-foreground/40">{favoriteProducts.length}</span>
+          {/* ═══ MAIN CONTENT ═══ */}
+          <div className="flex-1 min-w-0 space-y-4">
+            {/* ═══ SMART SEARCH BAR ═══ */}
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40 pointer-events-none transition-colors group-focus-within:text-primary/60" />
+              <input
+                ref={searchRef}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search service name, ID, or brand…"
+                className={cn(
+                  "w-full pl-12 pr-20 py-3.5 rounded-2xl text-sm font-medium",
+                  "bg-card border border-border/50 text-foreground placeholder:text-muted-foreground/40",
+                  "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40",
+                  "transition-all duration-300",
+                  "shadow-[0_2px_12px_rgba(0,0,0,0.04)]",
+                )}
+              />
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
+                {searchQuery ? (
+                  <button onClick={() => setSearchQuery("")} className="p-1 rounded-full text-muted-foreground/50 hover:text-foreground hover:bg-secondary/60 transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <kbd className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono font-bold text-muted-foreground/30 bg-secondary/50 border border-border/30">/</kbd>
+                )}
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {favoriteProducts.map((p: any) => (
-                  <FavoriteCard
-                    key={p.id}
-                    product={p}
-                    isFavorite
-                    onToggleFavorite={toggleFavorite}
-                    onSelect={handleSelectProduct}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ═══ POPULAR SERVICES ═══ */}
-          {!searchQuery && activeCategory === "All" && popularProducts.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
-              className="space-y-3"
-            >
-              <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-destructive" />
-                <h2 className="text-sm font-bold text-foreground">Popular Services</h2>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {popularProducts.map((p: any) => (
-                  <PopularCard key={p.id} product={p} onSelect={handleSelectProduct} />
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ═══ ALL SERVICES ═══ */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-muted-foreground/50" />
-                <h2 className="text-sm font-bold text-foreground">
-                  {activeCategory === "All" ? "All Services" : activeCategory}
-                </h2>
-              </div>
-              <span className="text-[10px] font-mono text-muted-foreground/40">{filteredProducts.length} results</span>
             </div>
 
+            {/* ═══ QUICK ORDER PANEL ═══ */}
+            <div className="rounded-[var(--radius-card)] border border-primary/15 bg-gradient-to-r from-primary/[0.03] to-accent/[0.03] p-4" style={{ boxShadow: "0 0 24px hsl(var(--primary) / 0.04)" }}>
+              <div className="flex items-center gap-2 mb-3">
+                <Zap className="w-4 h-4 text-primary" />
+                <h2 className="text-xs font-bold text-foreground">Quick Order</h2>
+                <span className="text-[10px] text-muted-foreground/40">Paste IMEI → Select → Order</span>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={quickImei}
+                  onChange={(e) => setQuickImei(e.target.value)}
+                  placeholder="Paste IMEI (optional)"
+                  className="flex-1 bg-card/80 border-border/40 font-mono text-sm h-10 rounded-xl"
+                  maxLength={20}
+                />
+                <select
+                  value={quickServiceId}
+                  onChange={(e) => setQuickServiceId(e.target.value)}
+                  className="flex-1 h-10 rounded-xl bg-card/80 border border-border/40 px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
+                >
+                  <option value="">Select Service</option>
+                  {products.map((p: any) => (
+                    <option key={p.id} value={p.id}>#{p.display_id} — {sanitizeName(p.name)}</option>
+                  ))}
+                </select>
+                <Button
+                  onClick={handleQuickOrder}
+                  disabled={!quickServiceId}
+                  className="h-10 px-6 gap-2 rounded-xl bg-gradient-to-r from-primary to-primary/80 text-primary-foreground font-bold text-sm shadow-[0_0_16px_hsl(var(--primary)/0.15)] hover:shadow-[0_0_24px_hsl(var(--primary)/0.3)] transition-all"
+                >
+                  Order <ArrowRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            {/* ═══ CATEGORY FILTER CHIPS ═══ */}
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-0.5 -mx-1 px-1">
+              {allCategories.map((cat) => {
+                const CatIcon = cat.name === "All" ? Package : getCategoryIcon(cat.name, "");
+                const isActive = activeCategory === cat.name;
+                return (
+                  <button
+                    key={cat.name}
+                    onClick={() => setActiveCategory(cat.name)}
+                    className={cn(
+                      "shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 text-[11px] font-bold rounded-full border transition-all duration-200",
+                      isActive
+                        ? "bg-primary text-primary-foreground border-primary shadow-[0_0_16px_hsl(var(--primary)/0.2)]"
+                        : "bg-card text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground"
+                    )}
+                  >
+                    <CatIcon className="w-3.5 h-3.5" />
+                    {cat.name}
+                    <span className={cn("font-mono text-[10px]", isActive ? "opacity-70" : "opacity-40")}>{cat.count}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* ═══ FAVORITES ═══ */}
+            {showSpecialSections && favoriteProducts.length > 0 && (
+              <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 text-warning fill-warning" />
+                  <h2 className="text-xs font-bold text-foreground uppercase tracking-wider">Favorites</h2>
+                  <span className="text-[10px] font-mono text-muted-foreground/30">{favoriteProducts.length}</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                  {favoriteProducts.map((p: any) => (
+                    <CompactCard key={p.id} product={p} variant="favorite" isFavorite onToggleFavorite={toggleFavorite} onSelect={handleSelectProduct} />
+                  ))}
+                </div>
+              </motion.section>
+            )}
+
+            {/* ═══ POPULAR ═══ */}
+            {showSpecialSections && popularProducts.length > 0 && (
+              <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.05 }} className="space-y-2.5">
+                <div className="flex items-center gap-2">
+                  <Flame className="w-4 h-4 text-destructive" />
+                  <h2 className="text-xs font-bold text-foreground uppercase tracking-wider">Popular</h2>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {popularProducts.map((p: any) => (
+                    <CompactCard key={p.id} product={p} variant="popular" isFavorite={favorites.includes(p.id)} onToggleFavorite={toggleFavorite} onSelect={handleSelectProduct} />
+                  ))}
+                </div>
+              </motion.section>
+            )}
+
+            {/* ═══ SERVICE GROUPS ═══ */}
             {productsLoading ? (
               <div className="space-y-2">
                 {Array.from({ length: 6 }).map((_, i) => (
@@ -432,22 +564,117 @@ export default function PlaceOrderPage() {
                 <p className="text-sm font-medium">No services found</p>
                 <p className="text-xs mt-1">Try adjusting your search or filters</p>
               </div>
+            ) : isSearching || activeCategory !== "All" ? (
+              /* Flat list when searching or filtered */
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xs font-bold text-foreground uppercase tracking-wider">
+                    {isSearching ? "Search Results" : activeCategory}
+                  </h2>
+                  <span className="text-[10px] font-mono text-muted-foreground/40">{filteredProducts.length}</span>
+                </div>
+                <div className="space-y-1.5">
+                  {filteredProducts.map((p: any, i: number) => (
+                    <ServiceCard key={p.id} product={p} index={i} isFavorite={favorites.includes(p.id)} onToggleFavorite={toggleFavorite} onSelect={handleSelectProduct} />
+                  ))}
+                </div>
+              </div>
             ) : (
-              <div className="space-y-2">
-                {filteredProducts.map((p: any, i: number) => (
-                  <ServiceCard
-                    key={p.id}
-                    product={p}
-                    index={i}
-                    isFavorite={favorites.includes(p.id)}
-                    onToggleFavorite={toggleFavorite}
-                    onSelect={handleSelectProduct}
-                  />
-                ))}
+              /* Grouped view */
+              <div className="space-y-4">
+                {groupedProducts.map(([groupName, items]) => {
+                  const isCollapsed = collapsedGroups.includes(groupName);
+                  const CatIcon = getCategoryIcon(groupName, "");
+                  const catColor = getCategoryIconColor(groupName, "");
+
+                  return (
+                    <div
+                      key={groupName}
+                      ref={(el) => { groupRefs.current[groupName] = el; }}
+                      className="rounded-[var(--radius-card)] border border-border/40 bg-card overflow-hidden"
+                      style={{ boxShadow: "var(--shadow-card)" }}
+                    >
+                      {/* Group Header */}
+                      <button
+                        onClick={() => toggleGroup(groupName)}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-secondary/20 transition-colors"
+                      >
+                        <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center", catColor)}>
+                          <CatIcon className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 text-left min-w-0">
+                          <h3 className="text-sm font-bold text-foreground">{groupName}</h3>
+                        </div>
+                        <span className="text-[10px] font-mono font-bold text-muted-foreground/40 bg-secondary/40 px-2 py-0.5 rounded-md">{items.length}</span>
+                        <ChevronDown className={cn("w-4 h-4 text-muted-foreground/40 transition-transform duration-200", isCollapsed && "-rotate-90")} />
+                      </button>
+
+                      {/* Group Content */}
+                      <AnimatePresence initial={false}>
+                        {!isCollapsed && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: "easeInOut" }}
+                            className="overflow-hidden"
+                          >
+                            <div className="border-t border-border/20 px-3 py-2 space-y-1.5">
+                              {items.map((p: any, i: number) => (
+                                <ServiceCard key={p.id} product={p} index={i} isFavorite={favorites.includes(p.id)} onToggleFavorite={toggleFavorite} onSelect={handleSelectProduct} compact />
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
+      )}
+
+      {/* ═══ MOBILE GROUP NAV (floating bottom sheet) ═══ */}
+      <AnimatePresence>
+        {showGroupNav && groupedProducts.length > 1 && (
+          <motion.div
+            initial={{ opacity: 0, y: 100 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 100 }}
+            className="sm:hidden fixed inset-x-0 bottom-16 z-40 mx-4"
+          >
+            <div className="rounded-2xl border border-border bg-card/95 backdrop-blur-xl p-3 shadow-elevated max-h-[50vh] overflow-y-auto">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-[10px] uppercase tracking-[0.12em] font-bold text-muted-foreground/40">Groups</p>
+                <button onClick={() => setShowGroupNav(false)} className="p-1 rounded-lg hover:bg-secondary"><X className="w-3.5 h-3.5 text-muted-foreground" /></button>
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                {groupedProducts.map(([name, items]) => {
+                  const CatIcon = getCategoryIcon(name, "");
+                  return (
+                    <button key={name} onClick={() => scrollToGroup(name)} className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-secondary/50 transition-colors text-left">
+                      <CatIcon className="w-3.5 h-3.5 text-muted-foreground/50" />
+                      <span className="text-[11px] font-medium text-foreground truncate">{name}</span>
+                      <span className="ml-auto text-[9px] font-mono text-muted-foreground/30">{items.length}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile group nav FAB */}
+      {activeTab === "services" && groupedProducts.length > 1 && !showGroupNav && (
+        <button
+          onClick={() => setShowGroupNav(true)}
+          className="sm:hidden fixed bottom-20 right-4 z-30 w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-[0_4px_20px_hsl(var(--primary)/0.3)] flex items-center justify-center"
+        >
+          <List className="w-4 h-4" />
+        </button>
       )}
 
       {/* ═══ QUICK ORDER MODAL ═══ */}
@@ -459,42 +686,39 @@ export default function PlaceOrderPage() {
                 <DialogTitle className="text-lg font-bold leading-tight pr-6">
                   {sanitizeName(selectedProduct.name)}
                 </DialogTitle>
-                <DialogDescription className="flex items-center gap-2 flex-wrap mt-1">
-                  <span className="font-mono text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-md font-bold">
-                    #{selectedProduct.display_id}
-                  </span>
-                  <span className="text-[10px] text-muted-foreground">{selectedProduct.category}</span>
-                  <DeliveryBadge product={selectedProduct} isInstant={isInstant} deliveryTime={deliveryTime} />
+                <DialogDescription asChild>
+                  <div className="flex items-center gap-2 flex-wrap mt-1">
+                    <span className="font-mono text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-md font-bold">
+                      #{selectedProduct.display_id}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">{selectedProduct.category}</span>
+                    <DeliveryBadge product={selectedProduct} isInstant={isInstant} deliveryTime={deliveryTime} />
+                  </div>
                 </DialogDescription>
               </DialogHeader>
 
               {/* Description */}
-              <div className="max-h-[25vh] overflow-y-auto stool-scrollbar rounded-xl bg-secondary/20 border border-border/30 p-3">
+              <div className="max-h-[20vh] overflow-y-auto stool-scrollbar rounded-xl bg-secondary/20 border border-border/30 p-3">
                 <ServiceDescription product={selectedProduct} />
               </div>
 
               {/* Custom Fields */}
               {activeFields.length > 0 && (
                 <div className="space-y-3">
-                  <h3 className="text-[11px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50">
-                    Order Details
-                  </h3>
+                  <h3 className="text-[11px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50">Order Details</h3>
                   {activeFields.map((field: any) => (
                     <div key={field.id} className="space-y-1.5">
                       <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        {field.field_name}
-                        {field.required && <span className="text-destructive ml-0.5">*</span>}
+                        {field.field_name}{field.required && <span className="text-destructive ml-0.5">*</span>}
                       </label>
                       {field.field_type === "select" && Array.isArray(field.options) && field.options.length > 0 ? (
                         <select
                           value={customFieldValues[field.field_name] || ""}
                           onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
-                          className="w-full h-10 rounded-[var(--radius-input)] bg-secondary/50 border border-border px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40"
+                          className="w-full h-10 rounded-xl bg-secondary/50 border border-border px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30"
                         >
                           <option value="">{field.placeholder || `Select ${field.field_name}`}</option>
-                          {(field.options as string[]).map((opt: string) => (
-                            <option key={opt} value={opt}>{opt}</option>
-                          ))}
+                          {(field.options as string[]).map((opt: string) => (<option key={opt} value={opt}>{opt}</option>))}
                         </select>
                       ) : (
                         <Input
@@ -502,16 +726,14 @@ export default function PlaceOrderPage() {
                           value={customFieldValues[field.field_name] || ""}
                           onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
                           placeholder={field.placeholder || `Enter ${field.field_name}`}
-                          className="bg-secondary/50 border-border font-mono text-sm rounded-[var(--radius-input)]"
+                          className="bg-secondary/50 border-border font-mono text-sm rounded-xl"
                           min={field.min_length || undefined}
                           max={field.max_length || undefined}
                         />
                       )}
                       {(field.field_type === "quantity" || field.field_type === "number") && (field.min_length || field.max_length) && (
                         <p className="text-[10px] text-muted-foreground/50">
-                          {field.min_length ? `Min: ${field.min_length.toLocaleString()}` : ""}
-                          {field.min_length && field.max_length ? " · " : ""}
-                          {field.max_length ? `Max: ${field.max_length.toLocaleString()}` : ""}
+                          {field.min_length ? `Min: ${field.min_length.toLocaleString()}` : ""}{field.min_length && field.max_length ? " · " : ""}{field.max_length ? `Max: ${field.max_length.toLocaleString()}` : ""}
                         </p>
                       )}
                     </div>
@@ -523,15 +745,11 @@ export default function PlaceOrderPage() {
               <div className="rounded-xl bg-secondary/20 border border-border/30 p-4 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Total Price</span>
-                  <span className="text-xl font-extrabold font-mono tabular-nums text-foreground">
-                    <Money amount={totalPrice} />
-                  </span>
+                  <span className="text-xl font-extrabold font-mono tabular-nums text-foreground"><Money amount={totalPrice} /></span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Your Balance</span>
-                  <span className={cn("text-xs font-bold font-mono tabular-nums", hasInsufficientBalance ? "text-destructive" : "text-success")}>
-                    <Money amount={balance} />
-                  </span>
+                  <span className={cn("text-xs font-bold font-mono tabular-nums", hasInsufficientBalance ? "text-destructive" : "text-success")}><Money amount={balance} /></span>
                 </div>
                 {tierDiscount > 0 && (
                   <div className="flex items-center justify-between">
@@ -577,11 +795,16 @@ export default function PlaceOrderPage() {
   );
 }
 
+/* ═══════════════════════════════════════════════════════
+   SUBCOMPONENTS
+   ═══════════════════════════════════════════════════════ */
+
 /* ═══ SERVICE CARD ═══ */
-function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect }: {
+function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect, compact }: {
   product: any; index: number; isFavorite: boolean;
   onToggleFavorite: (id: string, e?: React.MouseEvent) => void;
   onSelect: (id: string) => void;
+  compact?: boolean;
 }) {
   const pType = p.product_type;
   const isAuto = pType === "api" || pType === "digital";
@@ -593,163 +816,109 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
   let badgeLabel = "Manual";
   let badgeClass = "bg-warning/10 text-warning border-warning/20";
   let BadgeIcon = Clock;
-  if (pType === "digital") {
-    badgeLabel = "Instant";
-    badgeClass = "bg-success/10 text-success border-success/20";
-    BadgeIcon = Zap;
-  } else if (pType === "api") {
-    badgeLabel = "API";
-    badgeClass = "bg-ice/10 text-ice border-ice/20";
-    BadgeIcon = Link2;
-  }
+  if (pType === "digital") { badgeLabel = "Instant"; badgeClass = "bg-success/10 text-success border-success/20"; BadgeIcon = Zap; }
+  else if (pType === "api") { badgeLabel = "API"; badgeClass = "bg-ice/10 text-ice border-ice/20"; BadgeIcon = Link2; }
 
   return (
-    <motion.button
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.15, delay: Math.min(index * 0.02, 0.3) }}
+    <button
       onClick={() => !isOutOfStock && onSelect(p.id)}
       disabled={isOutOfStock}
       className={cn(
-        "w-full text-left rounded-[var(--radius-card)] border transition-all duration-200 ease-out group/card relative",
+        "w-full text-left rounded-xl border transition-all duration-200 ease-out group/card relative",
+        compact ? "p-2.5" : "p-3",
         isOutOfStock
-          ? "opacity-30 cursor-not-allowed border-border/30 bg-muted/5 p-3.5"
-          : "border-border/40 bg-card cursor-pointer p-3.5",
-        !isOutOfStock && "hover:border-primary/30 hover:bg-card hover:-translate-y-px hover:shadow-[0_6px_24px_-6px_hsl(var(--primary)/0.1)] active:scale-[0.998]"
+          ? "opacity-30 cursor-not-allowed border-border/20 bg-muted/5"
+          : "border-border/30 bg-card/60 cursor-pointer",
+        !isOutOfStock && "hover:border-primary/25 hover:bg-card hover:-translate-y-px hover:shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.08)] active:scale-[0.998]"
       )}
-      style={{ boxShadow: "var(--shadow-card)" }}
     >
       <div className="flex items-center gap-3">
-        {/* Icon */}
-        <div className={cn(
-          "shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover/card:scale-105",
-          catColor
-        )}>
-          <CatIcon className="w-4.5 h-4.5" />
+        <div className={cn("shrink-0 rounded-lg flex items-center justify-center transition-transform duration-200 group-hover/card:scale-105", catColor, compact ? "w-8 h-8" : "w-9 h-9")}>
+          <CatIcon className={compact ? "w-3.5 h-3.5" : "w-4 h-4"} />
         </div>
 
-        {/* Info */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <span className="shrink-0 font-mono text-[10px] font-bold text-primary/70">#{p.display_id}</span>
-            <p className="text-[13px] text-foreground font-semibold leading-snug truncate group-hover/card:text-primary transition-colors duration-200">
+            <span className="shrink-0 font-mono text-[10px] font-bold text-primary/60">#{p.display_id}</span>
+            <p className={cn("text-foreground font-semibold leading-snug truncate group-hover/card:text-primary transition-colors duration-200", compact ? "text-xs" : "text-[13px]")}>
               {sanitizeName(p.name)}
             </p>
           </div>
-          <div className="flex items-center gap-2 mt-1.5">
+          <div className="flex items-center gap-2 mt-1">
             <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border", badgeClass)}>
-              <BadgeIcon className="w-2.5 h-2.5" />
-              {badgeLabel}
+              <BadgeIcon className="w-2.5 h-2.5" />{badgeLabel}
             </span>
-            <span className="text-[10px] text-muted-foreground/50 font-medium flex items-center gap-1">
-              <Clock className="w-2.5 h-2.5" />
-              {pTime}
+            <span className="text-[10px] text-muted-foreground/40 font-medium flex items-center gap-1">
+              <Clock className="w-2.5 h-2.5" />{pTime}
             </span>
             {isOutOfStock && <span className="text-[10px] font-bold text-destructive">Out of Stock</span>}
           </div>
         </div>
 
-        {/* Right: Price + Actions */}
         <div className="shrink-0 flex items-center gap-2">
-          <div className="text-right">
-            <span className="text-sm font-bold font-mono tabular-nums text-foreground block">
-              <Money amount={p.wholesale_price} compact />
-            </span>
-          </div>
+          <span className="text-sm font-bold font-mono tabular-nums text-foreground"><Money amount={p.wholesale_price} compact /></span>
           {!isOutOfStock && (
             <span className={cn(
-              "inline-flex items-center gap-1 text-[10px] font-bold text-primary-foreground px-3 py-1.5 rounded-full",
+              "hidden sm:inline-flex items-center gap-1 text-[10px] font-bold text-primary-foreground px-2.5 py-1 rounded-full",
               "bg-gradient-to-r from-primary to-primary/80",
-              "shadow-[0_2px_8px_hsl(var(--primary)/0.1)]",
-              "group-hover/card:shadow-[0_4px_16px_hsl(var(--primary)/0.2)] group-hover/card:scale-105 transition-all duration-200"
+              "group-hover/card:shadow-[0_2px_12px_hsl(var(--primary)/0.2)] group-hover/card:scale-105 transition-all duration-200"
             )}>
-              Order <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover/card:translate-x-0.5" />
+              Order <ArrowRight className="w-3 h-3 group-hover/card:translate-x-0.5 transition-transform" />
             </span>
           )}
         </div>
       </div>
 
-      {/* Favorite star */}
       {!isOutOfStock && (
         <button
           onClick={(e) => onToggleFavorite(p.id, e)}
           className={cn(
-            "absolute top-2.5 right-2.5 p-1 rounded-full transition-all duration-200 z-10",
-            isFavorite
-              ? "text-warning opacity-100"
-              : "text-muted-foreground/20 opacity-0 group-hover/card:opacity-100 hover:text-warning/60"
+            "absolute top-2 right-2 p-1 rounded-full transition-all duration-200 z-10",
+            isFavorite ? "text-warning opacity-100" : "text-muted-foreground/20 opacity-0 group-hover/card:opacity-100 hover:text-warning/60"
           )}
         >
-          <Star className={cn("w-3.5 h-3.5", isFavorite && "fill-warning")} />
+          <Star className={cn("w-3 h-3", isFavorite && "fill-warning")} />
         </button>
       )}
-    </motion.button>
+    </button>
   );
 }
 
-/* ═══ FAVORITE CARD (compact) ═══ */
-function FavoriteCard({ product: p, isFavorite, onToggleFavorite, onSelect }: {
-  product: any; isFavorite: boolean;
+/* ═══ COMPACT CARD (favorites & popular) ═══ */
+function CompactCard({ product: p, variant, isFavorite, onToggleFavorite, onSelect }: {
+  product: any; variant: "favorite" | "popular"; isFavorite: boolean;
   onToggleFavorite: (id: string, e?: React.MouseEvent) => void;
   onSelect: (id: string) => void;
 }) {
   const CatIcon = getCategoryIcon(p.category, p.name);
   const catColor = getCategoryIconColor(p.category, p.name);
+  const isFav = variant === "favorite";
 
   return (
     <button
       onClick={() => onSelect(p.id)}
       className={cn(
-        "w-full text-left rounded-xl border border-warning/20 bg-warning/[0.03] p-3 group/fav",
-        "hover:border-warning/40 hover:bg-warning/[0.06] transition-all duration-200 relative"
+        "w-full text-left rounded-xl border p-2.5 group/c relative",
+        "transition-all duration-200",
+        isFav
+          ? "border-warning/15 bg-warning/[0.02] hover:border-warning/30 hover:bg-warning/[0.05]"
+          : "border-border/30 bg-card hover:border-primary/25 hover:-translate-y-px hover:shadow-[0_4px_16px_-4px_hsl(var(--primary)/0.06)]"
       )}
     >
-      <div className="flex items-center gap-2.5">
-        <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center", catColor)}>
-          <CatIcon className="w-3.5 h-3.5" />
+      <div className="flex items-center gap-2">
+        <div className={cn("shrink-0 w-7 h-7 rounded-lg flex items-center justify-center", catColor)}>
+          <CatIcon className="w-3 h-3" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-foreground truncate">{sanitizeName(p.name)}</p>
-          <p className="text-[10px] font-mono text-muted-foreground/50 mt-0.5">
-            <Money amount={p.wholesale_price} compact />
-          </p>
+          <p className="text-[11px] font-semibold text-foreground truncate group-hover/c:text-primary transition-colors">{sanitizeName(p.name)}</p>
+          <p className="text-[10px] font-mono text-muted-foreground/40 mt-0.5"><Money amount={p.wholesale_price} compact /></p>
         </div>
       </div>
-      <button
-        onClick={(e) => onToggleFavorite(p.id, e)}
-        className="absolute top-2 right-2 p-0.5 text-warning opacity-60 hover:opacity-100 transition-opacity"
-      >
-        <Star className="w-3 h-3 fill-warning" />
-      </button>
-    </button>
-  );
-}
-
-/* ═══ POPULAR CARD ═══ */
-function PopularCard({ product: p, onSelect }: { product: any; onSelect: (id: string) => void }) {
-  const CatIcon = getCategoryIcon(p.category, p.name);
-  const catColor = getCategoryIconColor(p.category, p.name);
-
-  return (
-    <button
-      onClick={() => onSelect(p.id)}
-      className={cn(
-        "w-full text-left rounded-xl border border-border/40 bg-card p-3 group/pop",
-        "hover:border-primary/30 hover:-translate-y-px hover:shadow-[0_4px_16px_-4px_hsl(var(--primary)/0.08)] transition-all duration-200"
+      {isFav && (
+        <button onClick={(e) => onToggleFavorite(p.id, e)} className="absolute top-1.5 right-1.5 p-0.5 text-warning opacity-50 hover:opacity-100 transition-opacity">
+          <Star className="w-2.5 h-2.5 fill-warning" />
+        </button>
       )}
-      style={{ boxShadow: "var(--shadow-card)" }}
-    >
-      <div className="flex items-center gap-2.5">
-        <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center", catColor)}>
-          <CatIcon className="w-3.5 h-3.5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-foreground truncate group-hover/pop:text-primary transition-colors">{sanitizeName(p.name)}</p>
-          <p className="text-[10px] font-mono text-success mt-0.5">
-            <Money amount={p.wholesale_price} compact />
-          </p>
-        </div>
-      </div>
     </button>
   );
 }
@@ -758,22 +927,14 @@ function PopularCard({ product: p, onSelect }: { product: any; onSelect: (id: st
 function DeliveryBadge({ product, isInstant, deliveryTime }: { product: any; isInstant: boolean; deliveryTime: string }) {
   return (
     <div className="flex items-center gap-1.5 flex-wrap">
-      <span className={cn(
-        "inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border",
-        isInstant ? "bg-success/10 text-success border-success/20" : "bg-warning/10 text-warning border-warning/20"
-      )}>
-        {isInstant ? <Zap className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-        {isInstant ? "Instant" : "Manual"}
+      <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border", isInstant ? "bg-success/10 text-success border-success/20" : "bg-warning/10 text-warning border-warning/20")}>
+        {isInstant ? <Zap className="w-3 h-3" /> : <Clock className="w-3 h-3" />}{isInstant ? "Instant" : "Manual"}
       </span>
       {deliveryTime && deliveryTime !== "Instant" && (
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 bg-ice/10 text-ice border border-ice/20">
-          <Clock className="w-3 h-3" /> {deliveryTime}
-        </span>
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 bg-ice/10 text-ice border border-ice/20"><Clock className="w-3 h-3" /> {deliveryTime}</span>
       )}
       {product.description?.toLowerCase().includes("no refund") && (
-        <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 bg-destructive/10 text-destructive border border-destructive/20">
-          <ShieldAlert className="w-3 h-3" /> NO REFUND
-        </span>
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 bg-destructive/10 text-destructive border border-destructive/20"><ShieldAlert className="w-3 h-3" /> NO REFUND</span>
       )}
     </div>
   );
@@ -805,46 +966,25 @@ function ServiceDescription({ product }: { product: any }) {
   }
 
   return (
-    <div className="space-y-2.5">
-      {regularLines.length > 0 && (
-        <div className="space-y-1">
-          {regularLines.map((line, i) => {
-            if (line.startsWith("**") && line.endsWith("**"))
-              return <p key={i} className="text-xs font-bold text-foreground">{line.replace(/\*\*/g, "")}</p>;
-            return <p key={i} className="text-xs text-muted-foreground leading-relaxed">{line}</p>;
-          })}
-        </div>
-      )}
-      {features.length > 0 && (
-        <div className="space-y-1">
-          {features.map((feat, i) => (
-            <div key={i} className="flex items-start gap-2">
-              <CheckCircle2 className="w-3 h-3 text-success shrink-0 mt-0.5" />
-              <span className="text-xs text-foreground/90">{feat}</span>
-            </div>
-          ))}
-        </div>
-      )}
+    <div className="space-y-2">
+      {regularLines.length > 0 && regularLines.map((line, i) => {
+        if (line.startsWith("**") && line.endsWith("**")) return <p key={i} className="text-xs font-bold text-foreground">{line.replace(/\*\*/g, "")}</p>;
+        return <p key={i} className="text-xs text-muted-foreground leading-relaxed">{line}</p>;
+      })}
+      {features.length > 0 && features.map((feat, i) => (
+        <div key={`f${i}`} className="flex items-start gap-2"><CheckCircle2 className="w-3 h-3 text-success shrink-0 mt-0.5" /><span className="text-xs text-foreground/90">{feat}</span></div>
+      ))}
       {warnings.length > 0 && (
-        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-2.5 space-y-1">
-          <div className="flex items-center gap-1.5 text-destructive font-bold text-[10px] uppercase tracking-wider">
-            <ShieldAlert className="w-3 h-3" /> Important
-          </div>
-          {warnings.map((warn, i) => (
-            <p key={i} className="text-[11px] text-destructive/80 font-medium">{warn}</p>
-          ))}
+        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-2 space-y-0.5">
+          <div className="flex items-center gap-1.5 text-destructive font-bold text-[10px] uppercase tracking-wider"><ShieldAlert className="w-3 h-3" /> Important</div>
+          {warnings.map((warn, i) => <p key={i} className="text-[11px] text-destructive/80 font-medium">{warn}</p>)}
         </div>
       )}
-      {downloadLines.length > 0 && (
-        <div className="space-y-1.5">
-          {downloadLines.map((url, i) => (
-            <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-primary/8 border border-primary/15 text-primary font-semibold text-xs hover:bg-primary/15 transition-all duration-200">
-              <Download className="w-3.5 h-3.5" /> Download Tool{downloadLines.length > 1 ? ` ${i + 1}` : ""}
-            </a>
-          ))}
-        </div>
-      )}
+      {downloadLines.length > 0 && downloadLines.map((url, i) => (
+        <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-primary/8 border border-primary/15 text-primary font-semibold text-xs hover:bg-primary/15 transition-all">
+          <Download className="w-3.5 h-3.5" /> Download Tool{downloadLines.length > 1 ? ` ${i + 1}` : ""}
+        </a>
+      ))}
       {!description && <p className="text-xs text-muted-foreground/50 italic">No description available.</p>}
     </div>
   );
@@ -858,9 +998,7 @@ function SuccessModal({ result, credentialsList, onCopy, onClose, onNewOrder, na
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-fade-in">
       <div className="rounded-[var(--radius-modal)] border border-border bg-card max-w-md w-full mx-4 p-8 space-y-6 relative" style={{ boxShadow: "var(--shadow-elevated)" }}>
-        <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors">
-          <X className="w-5 h-5" />
-        </button>
+        <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><X className="w-5 h-5" /></button>
         <Confetti />
         <div className="text-center space-y-3">
           <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto" style={{ boxShadow: "0 0 30px hsl(var(--success) / 0.15)" }}>
