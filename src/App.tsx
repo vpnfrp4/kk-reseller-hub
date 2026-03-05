@@ -14,7 +14,7 @@ import RouteProgressBar from "@/components/RouteProgressBar";
 import PwaUpdatePrompt from "@/components/PwaUpdatePrompt";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 import AdminLayout from "./components/admin/AdminLayout";
-import PageSkeleton from "@/components/dashboard/PageSkeleton";
+import PageSkeleton, { HomeSkeleton, PlaceOrderSkeleton, OrdersSkeleton, WalletSkeleton, SettingsSkeleton } from "@/components/dashboard/PageSkeleton";
 
 // ─── Lazy-loaded pages ───
 const Login = lazy(() => import("./pages/Login"));
@@ -68,7 +68,7 @@ function PageLoader() {
 
 const queryClient = new QueryClient();
 
-function ProtectedRoute({ children }: { children: React.ReactNode }) {
+function ProtectedRoute({ children, skeleton }: { children: React.ReactNode; skeleton?: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
   if (loading) {
     return (
@@ -80,7 +80,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   return (
     <DashboardLayout>
-      <Suspense fallback={<PageSkeleton />}>{children}</Suspense>
+      <Suspense fallback={skeleton || <PageSkeleton />}>{children}</Suspense>
     </DashboardLayout>
   );
 }
@@ -143,18 +143,18 @@ function AppRoutes() {
       <Route path="/wallet" element={<Navigate to="/dashboard/wallet" replace />} />
       <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
       <Route path="/notifications" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
-      <Route path="/dashboard/place-order" element={<ProtectedRoute><PlaceOrderPage /></ProtectedRoute>} />
-      <Route path="/dashboard/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
+      <Route path="/dashboard" element={<ProtectedRoute skeleton={<HomeSkeleton />}><DashboardHome /></ProtectedRoute>} />
+      <Route path="/dashboard/place-order" element={<ProtectedRoute skeleton={<PlaceOrderSkeleton />}><PlaceOrderPage /></ProtectedRoute>} />
+      <Route path="/dashboard/wallet" element={<ProtectedRoute skeleton={<WalletSkeleton />}><WalletPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet/topup-status" element={<WalletTopupRedirect />} />
       <Route path="/dashboard/topup-status/:id" element={<ProtectedRoute><TopUpStatusPage /></ProtectedRoute>} />
       <Route path="/dashboard/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
       <Route path="/dashboard/products/:id" element={<ProtectedRoute><ProductDetailPage /></ProtectedRoute>} />
       <Route path="/dashboard/order/:id" element={<ProtectedRoute><OrderFlowPage /></ProtectedRoute>} />
       <Route path="/dashboard/providers/:id" element={<ProtectedRoute><ProviderProfilePage /></ProtectedRoute>} />
-      <Route path="/dashboard/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
+      <Route path="/dashboard/orders" element={<ProtectedRoute skeleton={<OrdersSkeleton />}><OrdersPage /></ProtectedRoute>} />
       <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
-      <Route path="/dashboard/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+      <Route path="/dashboard/settings" element={<ProtectedRoute skeleton={<SettingsSkeleton />}><SettingsPage /></ProtectedRoute>} />
       <Route path="/dashboard/notifications" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard/imei-orders" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard/*" element={<Navigate to="/dashboard" replace />} />
