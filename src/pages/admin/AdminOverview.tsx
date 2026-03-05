@@ -391,7 +391,13 @@ export default function AdminOverview() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-default">
+        <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-default">
+          {/* Floating orbs for visual depth */}
+          <div className="pointer-events-none absolute -inset-8 overflow-hidden -z-10" aria-hidden="true">
+            <div className="absolute top-1/2 left-1/4 w-32 h-32 rounded-full bg-primary/8 blur-3xl animate-float-gentle" />
+            <div className="absolute top-1/3 right-1/4 w-40 h-40 rounded-full bg-accent/6 blur-3xl animate-float-gentle" style={{ animationDelay: "-3s" }} />
+            <div className="absolute bottom-0 left-1/2 w-28 h-28 rounded-full bg-primary-glow/5 blur-2xl animate-float-gentle" style={{ animationDelay: "-5s" }} />
+          </div>
           <HeroStat label="Wallet Liability" value={stats?.walletLiability || 0} icon={AlertTriangle} iconColor="text-warning" featured sparkData={sparkTopup} delay={0} />
           <HeroStat label="Revenue (30d)" value={stats?.monthRevenue || 0} icon={Wallet} iconColor="text-success" sparkData={sparkRevenue} delay={0.08} />
           <HeroStat label="Pending Top-ups" value={stats?.pendingTopups || 0} icon={Clock} iconColor="text-ice" suffix="" delay={0.16} />
