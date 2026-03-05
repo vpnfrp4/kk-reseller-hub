@@ -132,7 +132,7 @@ function AppRoutes() {
       <Route path="/products" element={<Navigate to="/dashboard/products" replace />} />
       <Route path="/wallet" element={<Navigate to="/dashboard/wallet" replace />} />
       <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
-      <Route path="/notifications" element={<Navigate to="/dashboard/notifications" replace />} />
+      <Route path="/notifications" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardHome /></ProtectedRoute>} />
       <Route path="/dashboard/place-order" element={<ProtectedRoute><PlaceOrderPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet" element={<ProtectedRoute><WalletPage /></ProtectedRoute>} />
@@ -145,8 +145,8 @@ function AppRoutes() {
       <Route path="/dashboard/orders" element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
       <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
       <Route path="/dashboard/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
-      <Route path="/dashboard/notifications" element={<ProtectedRoute><NotificationsPage /></ProtectedRoute>} />
-      <Route path="/dashboard/imei-orders" element={<ProtectedRoute><ImeiOrdersPage /></ProtectedRoute>} />
+      <Route path="/dashboard/notifications" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/dashboard/imei-orders" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard/*" element={<Navigate to="/dashboard" replace />} />
       <Route path="/admin" element={<AdminRoute><AdminOverview /></AdminRoute>} />
       <Route path="/admin/products" element={<AdminRoute><AdminProducts /></AdminRoute>} />
