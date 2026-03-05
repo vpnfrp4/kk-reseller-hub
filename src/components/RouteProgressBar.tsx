@@ -42,7 +42,7 @@ export default function RouteProgressBar() {
   return (
     <div className="fixed top-0 left-0 right-0 z-[9999] h-[3.5px] pointer-events-none">
       <div
-        className="h-full bg-gradient-to-r from-primary via-[hsl(250_70%_55%)] to-primary rounded-r-full animate-progress-glow"
+        className="h-full bg-gradient-to-r from-primary via-[hsl(250_70%_55%)] to-primary rounded-r-full animate-progress-glow relative overflow-hidden"
         style={{
           width: `${progress}%`,
           transition: progress === 0
@@ -52,7 +52,9 @@ export default function RouteProgressBar() {
               : "width 400ms cubic-bezier(0.4, 0, 0.2, 1)",
           opacity: progress === 100 ? 0 : 1,
         }}
-      />
+      >
+        <div className="absolute inset-0 animate-shimmer bg-[length:200%_100%] bg-gradient-to-r from-transparent via-white/30 to-transparent" />
+      </div>
     </div>
   );
 }
