@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PrefetchLink from "@/components/PrefetchLink";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import PageTransition from "@/components/dashboard/PageTransition";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +16,16 @@ import {
   Wallet,
   ChevronsLeft,
   ChevronsRight,
+  Menu,
+  X,
+  ClipboardList,
+  Shield,
+  Key,
+  Bell,
+  Headphones,
+  Bot,
+  CreditCard,
+  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -26,12 +36,53 @@ import FloatingSupport from "@/components/shared/FloatingSupport";
 import BottomNav from "@/components/dashboard/BottomNav";
 import kkLogo from "@/assets/kkremote-logo.png";
 
-/* ── Sidebar nav items ── */
-const baseNavItems = [
-  { label: "Dashboard", icon: Home, path: "/dashboard" },
-  { label: "Place Order", icon: ShoppingCart, path: "/dashboard/place-order" },
-  { label: "Orders", icon: Receipt, path: "/dashboard/orders" },
-  { label: "Account", icon: User, path: "/dashboard/settings" },
+/* ── Sidebar nav groups ── */
+interface NavItem {
+  label: string;
+  icon: React.ElementType;
+  path: string;
+}
+
+interface NavGroup {
+  title: string;
+  items: NavItem[];
+}
+
+const navGroups: NavGroup[] = [
+  {
+    title: "MAIN",
+    items: [
+      { label: "Dashboard", icon: Home, path: "/dashboard" },
+      { label: "Place Order", icon: ShoppingCart, path: "/dashboard/place-order" },
+      { label: "IMEI Services", icon: Smartphone, path: "/dashboard/imei-orders" },
+    ],
+  },
+  {
+    title: "ORDERS",
+    items: [
+      { label: "Orders", icon: Receipt, path: "/dashboard/orders" },
+    ],
+  },
+  {
+    title: "FINANCE",
+    items: [
+      { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
+    ],
+  },
+  {
+    title: "ACCOUNT",
+    items: [
+      { label: "Profile", icon: User, path: "/dashboard/settings" },
+      { label: "Security", icon: Shield, path: "/dashboard/settings?tab=security" },
+      { label: "API Keys", icon: Key, path: "/dashboard/settings?tab=api-keys" },
+    ],
+  },
+  {
+    title: "SYSTEM",
+    items: [
+      { label: "Notifications", icon: Bell, path: "/dashboard/notifications" },
+    ],
+  },
 ];
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
@@ -51,18 +102,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Build nav items — Wallet only shows if user has balance
-  const navItems = useMemo(() => {
-    const items = [...baseNavItems];
-    const balance = profile?.balance || 0;
-    if (balance > 0) {
-      // Insert Wallet before Account
-      const accountIdx = items.findIndex(i => i.path === "/dashboard/settings");
-      items.splice(accountIdx, 0, { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" });
-    }
-    return items;
-  }, [profile?.balance]);
-
   useEffect(() => {
     const handler = () => navigate("/dashboard/wallet");
     window.addEventListener("open-topup-dialog", handler);
@@ -79,34 +118,49 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     navigate("/login");
   };
 
+  const isActive = (path: string) => {
+    if (path.includes("?tab=")) {
+      const [basePath, query] = path.split("?");
+      const tab = new URLSearchParams(query).get("tab");
+      return location.pathname === basePath && new URLSearchParams(location.search).get("tab") === tab;
+    }
+    if (path === "/dashboard") return location.pathname === "/dashboard";
+    return location.pathname.startsWith(path);
+  };
+
+  // Flatten all items for the header title
+  const allItems = navGroups.flatMap((g) => g.items);
+
   return (
     <div className="min-h-[100dvh] flex flex-col lg:h-screen lg:flex-row bg-background lg:overflow-hidden">
-      {/* Mobile overlay — only used for sidebar sheet on large screens; bottom nav replaces sidebar on mobile */}
+      {/* Mobile overlay */}
       <div
         className={cn(
-          "fixed inset-0 bg-background/60 backdrop-blur-sm z-40 hidden transition-opacity duration-300",
-          sidebarOpen ? "lg:block opacity-100" : "opacity-0 pointer-events-none"
+          "fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300",
+          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
         )}
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* ═══ SIDEBAR — Desktop only ═══ */}
+      {/* ═══ SIDEBAR ═══ */}
       <aside
         className={cn(
-          "hidden lg:static lg:flex inset-y-0 left-0 z-50 flex-col",
+          "fixed lg:static inset-y-0 left-0 z-50 flex flex-col",
           "bg-sidebar/80 backdrop-blur-xl border-r border-sidebar-border/50",
           "transition-all duration-300 ease-out",
-          collapsed ? "lg:w-[68px]" : "lg:w-[260px]",
+          collapsed ? "lg:w-[72px]" : "lg:w-[260px]",
+          "w-[280px]",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <TooltipProvider delayDuration={0}>
-          {/* Logo */}
-          <div className="px-4 py-5 border-b border-sidebar-border/50 flex items-center justify-between">
+          {/* Logo header */}
+          <div className="h-14 px-4 border-b border-sidebar-border/50 flex items-center justify-between shrink-0">
             <Link to="/dashboard" className="flex items-center gap-3 group min-w-0" onClick={() => setSidebarOpen(false)}>
               <img
                 src={kkLogo}
                 alt="KKTech"
-                className="w-9 h-9 rounded-xl object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
+                className="w-8 h-8 rounded-xl object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
               />
               {!collapsed && (
                 <div className="overflow-hidden">
@@ -119,111 +173,198 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
               )}
             </Link>
+
+            {/* Close button on mobile, collapse toggle on desktop */}
             <button
-              onClick={toggleCollapsed}
-              className="hidden lg:flex items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors shrink-0"
-              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              onClick={() => {
+                if (window.innerWidth < 1024) setSidebarOpen(false);
+                else toggleCollapsed();
+              }}
+              className="flex items-center justify-center w-7 h-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors shrink-0"
             >
-              {collapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
+              {sidebarOpen && window.innerWidth < 1024 ? (
+                <X className="w-4 h-4" />
+              ) : collapsed ? (
+                <ChevronsRight className="w-4 h-4" />
+              ) : (
+                <ChevronsLeft className="w-4 h-4" />
+              )}
             </button>
           </div>
 
-          {/* Navigation */}
-          <nav className="flex-1 px-3 pt-5 pb-2 flex flex-col gap-1">
-            {navItems.map((item) => {
-              const active = location.pathname === item.path ||
-                (item.path === "/dashboard" && location.pathname === "/dashboard") ||
-                (item.path !== "/dashboard" && location.pathname.startsWith(item.path));
+          {/* Navigation groups */}
+          <nav className="flex-1 overflow-y-auto px-3 pt-3 pb-2 sidebar-scroll">
+            {navGroups.map((group, gi) => (
+              <div key={group.title} className={cn(gi > 0 && "mt-4")}>
+                {/* Section label */}
+                {!collapsed && (
+                  <div className="px-3 mb-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                      {group.title}
+                    </span>
+                  </div>
+                )}
+                {collapsed && gi > 0 && (
+                  <div className="mx-3 mb-2 border-t border-sidebar-border/40" />
+                )}
 
-              const linkEl = (
-                <PrefetchLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setSidebarOpen(false)}
-                  className={cn(
-                    "group relative flex items-center gap-3 h-[44px] rounded-xl text-[13px] tracking-wide",
-                    "transition-all duration-200",
-                    collapsed ? "justify-center px-0" : "pl-4 pr-3",
-                    active
-                      ? "bg-primary/15 text-foreground font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/40 hover:shadow-[0_0_12px_rgba(59,130,246,0.06)]"
-                  )}
-                >
-                  {active && (
-                    <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)]" />
-                  )}
-                  <item.icon
-                    className={cn(
-                      "w-[18px] h-[18px] shrink-0 transition-colors duration-200",
-                      active ? "text-primary" : "group-hover:text-foreground"
-                    )}
-                    strokeWidth={1.5}
-                  />
-                  {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
-                </PrefetchLink>
-              );
+                <div className="flex flex-col gap-0.5">
+                  {group.items.map((item) => {
+                    const active = isActive(item.path);
 
-              return collapsed ? (
-                <Tooltip key={item.path}>
-                  <TooltipTrigger asChild>{linkEl}</TooltipTrigger>
-                  <TooltipContent side="right" className="text-xs">{item.label}</TooltipContent>
-                </Tooltip>
-              ) : (
-                <span key={item.path}>{linkEl}</span>
-              );
-            })}
-          </nav>
+                    const linkEl = (
+                      <PrefetchLink
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setSidebarOpen(false)}
+                        className={cn(
+                          "group relative flex items-center gap-3 h-10 rounded-lg text-[13px] tracking-wide",
+                          "transition-all duration-200",
+                          collapsed ? "justify-center px-0" : "pl-3 pr-3",
+                          active
+                            ? "bg-primary/12 text-foreground font-semibold"
+                            : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+                        )}
+                      >
+                        {active && (
+                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.4)]" />
+                        )}
+                        <div
+                          className={cn(
+                            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200",
+                            active
+                              ? "bg-primary/15 text-primary"
+                              : "text-muted-foreground group-hover:text-foreground group-hover:bg-secondary/60"
+                          )}
+                        >
+                          <item.icon className="w-[16px] h-[16px]" strokeWidth={1.8} />
+                        </div>
+                        {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
+                      </PrefetchLink>
+                    );
 
-          {/* Footer */}
-          <div className="mt-auto border-t border-sidebar-border/50 px-3 pt-3 pb-4 space-y-1">
+                    return collapsed ? (
+                      <Tooltip key={item.path}>
+                        <TooltipTrigger asChild>{linkEl}</TooltipTrigger>
+                        <TooltipContent side="right" sideOffset={8} className="text-xs font-medium">
+                          {item.label}
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <span key={item.path}>{linkEl}</span>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+
+            {/* Admin group */}
             {isAdmin && (
-              collapsed ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
+              <div className="mt-4">
+                {!collapsed && (
+                  <div className="px-3 mb-1.5">
+                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
+                      ADMIN
+                    </span>
+                  </div>
+                )}
+                {collapsed && <div className="mx-3 mb-2 border-t border-sidebar-border/40" />}
+                {(() => {
+                  const linkEl = (
                     <Link
                       to="/admin"
                       onClick={() => setSidebarOpen(false)}
-                      className="flex items-center justify-center gap-3 h-[44px] rounded-xl text-[13px] text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-all duration-200 px-0"
+                      className={cn(
+                        "group relative flex items-center gap-3 h-10 rounded-lg text-[13px] tracking-wide transition-all duration-200",
+                        collapsed ? "justify-center px-0" : "pl-3 pr-3",
+                        "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
+                      )}
                     >
-                      <ArrowLeftRight className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
+                      <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-muted-foreground group-hover:text-foreground group-hover:bg-secondary/60 transition-all duration-200">
+                        <ArrowLeftRight className="w-[16px] h-[16px]" strokeWidth={1.8} />
+                      </div>
+                      {!collapsed && <span className="flex-1 truncate">Admin Panel</span>}
                     </Link>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="text-xs">Admin Panel</TooltipContent>
-                </Tooltip>
-              ) : (
-                <Link
-                  to="/admin"
-                  onClick={() => setSidebarOpen(false)}
-                  className="flex items-center gap-3 h-[44px] rounded-xl text-[13px] text-muted-foreground hover:text-foreground hover:bg-secondary/40 transition-all duration-200 pl-4 pr-3"
-                >
-                  <ArrowLeftRight className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
-                  <span>Admin Panel</span>
-                </Link>
-              )
-            )}
+                  );
 
-            {collapsed ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[44px] text-[13px] rounded-xl transition-all duration-200 justify-center px-0"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="w-[18px] h-[18px] shrink-0 text-destructive/60" strokeWidth={1.5} />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="text-xs">Sign Out</TooltipContent>
-              </Tooltip>
+                  return collapsed ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>{linkEl}</TooltipTrigger>
+                      <TooltipContent side="right" sideOffset={8} className="text-xs font-medium">Admin Panel</TooltipContent>
+                    </Tooltip>
+                  ) : linkEl;
+                })()}
+              </div>
+            )}
+          </nav>
+
+          {/* User profile footer */}
+          <div className="mt-auto border-t border-sidebar-border/50 px-3 py-3 shrink-0">
+            {!collapsed ? (
+              <div className="flex items-center gap-3 px-2">
+                <button
+                  onClick={() => { navigate("/dashboard/settings"); setSidebarOpen(false); }}
+                  className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden transition-all hover:border-primary/40 shrink-0"
+                >
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    profile?.name?.charAt(0)?.toUpperCase() || "R"
+                  )}
+                </button>
+                <div className="flex-1 min-w-0">
+                  <p className="text-[13px] font-semibold text-foreground truncate">
+                    {profile?.name || "Reseller"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                    {profile?.tier || "Reseller"}
+                  </p>
+                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all shrink-0"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="w-4 h-4" strokeWidth={1.8} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="text-xs">Sign Out</TooltipContent>
+                </Tooltip>
+              </div>
             ) : (
-              <Button
-                variant="ghost"
-                className="w-full text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[44px] text-[13px] rounded-xl transition-all duration-200 justify-start pl-4"
-                onClick={handleLogout}
-              >
-                <LogOut className="w-[18px] h-[18px] shrink-0 text-destructive/60 mr-3" strokeWidth={1.5} />
-                <span>Sign Out</span>
-              </Button>
+              <div className="flex flex-col items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      onClick={() => { navigate("/dashboard/settings"); setSidebarOpen(false); }}
+                      className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden transition-all hover:border-primary/40"
+                    >
+                      {profile?.avatar_url ? (
+                        <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        profile?.name?.charAt(0)?.toUpperCase() || "R"
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="text-xs">{profile?.name || "Profile"}</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="w-4 h-4" strokeWidth={1.8} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="text-xs">Sign Out</TooltipContent>
+                </Tooltip>
+              </div>
             )}
           </div>
         </TooltipProvider>
@@ -231,9 +372,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* ═══ MAIN AREA ═══ */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        {/* Top Navbar — ALWAYS visible, fixed on mobile, sticky on desktop */}
+        {/* Top Navbar */}
         <header className="h-14 border-b border-border/50 flex items-center justify-between px-3 sm:px-4 lg:px-8 fixed top-0 left-0 right-0 lg:sticky lg:relative z-30 bg-card/90 backdrop-blur-xl">
           <div className="flex items-center gap-2 sm:gap-3">
+            {/* Hamburger for mobile */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+            >
+              <Menu className="w-5 h-5" strokeWidth={1.5} />
+            </button>
             <Link to="/dashboard" className="lg:hidden flex items-center gap-2">
               <img src={kkLogo} alt="KKTech" className="w-7 h-7 rounded-lg object-contain" />
               <span className="text-sm font-bold text-foreground">KK<span className="text-primary">Tech</span></span>
@@ -241,7 +389,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div className="hidden lg:block">
               <h2 className="text-sm font-semibold text-foreground tracking-wide">
                 {location.pathname.startsWith("/dashboard/wallet") ? "Wallet"
-                  : navItems.find((i) => location.pathname.startsWith(i.path) && i.path !== "/dashboard")?.label
+                  : allItems.find((i) => !i.path.includes("?") && location.pathname.startsWith(i.path) && i.path !== "/dashboard")?.label
                   || (location.pathname === "/dashboard" ? "Dashboard" : "Dashboard")}
               </h2>
             </div>
@@ -249,10 +397,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
             <WalletChip profile={profile} />
-
             <NotificationDropdown />
-
-            {/* User Avatar */}
             <button
               onClick={() => navigate("/dashboard/settings")}
               className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden transition-all hover:border-primary/40 shrink-0"
