@@ -57,6 +57,7 @@ const HELP_TEXT = [
   "/orders — 📦 View your last 5 orders",
   "/products [category] — 🛒 Browse available services",
   "/status [OrderCode] — 🔍 Check a specific order",
+  "/cancel [OrderCode] — 🚫 Request cancellation of a pending order",
   "/help — ℹ️ Show this help message",
   "/unlink — 🔓 Disconnect Telegram from your account",
   "",
@@ -439,6 +440,138 @@ async function handleProducts(supabase: any, botToken: string, chatId: number, t
   await sendMessage(botToken, chatId, lines.join("\n"));
 }
 
+// ── Handler: /cancel ──
+const CANCELLABLE_STATUSES = ["pending", "pending_review", "pending_creation", "api_pending"];
+
+async function handleCancel(supabase: any, botToken: string, chatId: number, text: string, user: any) {
+  const parts = text.split(" ");
+  if (parts.length < 2) {
+    await sendMessage(botToken, chatId, [
+      "ℹ️ <b>Usage:</b> /cancel [OrderCode]",
+      "",
+      "Example: <code>/cancel ORD-2603-AB12-0001</code>",
+      "",
+      "💡 Only pending orders can be cancelled.",
+    ].join("\n"));
+    return;
+  }
+
+  const query = parts.slice(1).join(" ").trim().replace("#", "");
+
+  // Find order by exact or partial code
+  let order: any = null;
+  const { data: orderByCode } = await supabase
+    .from("orders")
+    .select("id, order_code, product_name, status, price, product_type")
+    .eq("user_id", user.user_id)
+    .eq("order_code", query)
+    .maybeSingle();
+
+  if (orderByCode) {
+    order = orderByCode;
+  } else {
+    const { data: orderByPartial } = await supabase
+      .from("orders")
+      .select("id, order_code, product_name, status, price, product_type")
+      .eq("user_id", user.user_id)
+      .ilike("order_code", `%${query}%`)
+      .limit(1)
+      .maybeSingle();
+    order = orderByPartial;
+  }
+
+  if (!order) {
+    await sendMessage(botToken, chatId, `❌ No order found matching "<b>${escapeHtml(query)}</b>".\n\n💡 Try /orders to see your recent orders.`);
+    return;
+  }
+
+  // Check if order is cancellable
+  if (!CANCELLABLE_STATUSES.includes(order.status)) {
+    const statusEmoji = STATUS_EMOJI[order.status] || "📋";
+    await sendMessage(botToken, chatId, [
+      `⚠️ <b>Cannot Cancel This Order</b>`,
+      "━━━━━━━━━━━━━━━━━━",
+      `📦 <b>Service:</b> ${escapeHtml(order.product_name)}`,
+      `🆔 <b>Order:</b> <code>${order.order_code}</code>`,
+      `${statusEmoji} <b>Status:</b> ${order.status.toUpperCase()}`,
+      "",
+      "Only pending orders can be cancelled.",
+      "Please contact support for assistance.",
+    ].join("\n"));
+    return;
+  }
+
+  // Perform cancellation: update order + refund balance
+  const { error: updateErr } = await supabase
+    .from("orders")
+    .update({
+      status: "cancelled",
+      admin_notes: "Cancelled by user via Telegram bot",
+      completed_at: new Date().toISOString(),
+    })
+    .eq("id", order.id)
+    .eq("user_id", user.user_id);
+
+  if (updateErr) {
+    await sendMessage(botToken, chatId, "❌ Failed to cancel order. Please try again or contact support.");
+    return;
+  }
+
+  // Refund balance
+  await supabase.rpc("atomic_refund", {
+    p_user_id: user.user_id,
+    p_amount: order.price,
+  });
+
+  // Log refund transaction
+  await supabase.from("wallet_transactions").insert({
+    user_id: user.user_id,
+    type: "refund",
+    amount: order.price,
+    status: "approved",
+    description: `Cancelled: ${order.product_name}`,
+  });
+
+  // Notify admins
+  const { data: admins } = await supabase
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "admin");
+
+  if (admins) {
+    for (const admin of admins) {
+      await supabase.from("notifications").insert({
+        user_id: admin.user_id,
+        title: "🚫 Order Cancelled by User",
+        body: `${user.name || user.email} cancelled order ${order.order_code} (${order.product_name}). ${Number(order.price).toLocaleString()} MMK refunded.`,
+        type: "order",
+        link: `/admin/orders?order=${order.id}`,
+      });
+    }
+  }
+
+  // Get updated balance
+  const { data: updatedProfile } = await supabase
+    .from("profiles")
+    .select("balance")
+    .eq("user_id", user.user_id)
+    .maybeSingle();
+
+  const newBalance = Number(updatedProfile?.balance || 0);
+
+  await sendMessage(botToken, chatId, [
+    "🚫 <b>Order Cancelled Successfully</b>",
+    "━━━━━━━━━━━━━━━━━━",
+    `📦 <b>Service:</b> ${escapeHtml(order.product_name)}`,
+    `🆔 <b>Order:</b> <code>${order.order_code}</code>`,
+    `💰 <b>Refunded:</b> ${Number(order.price).toLocaleString()} MMK`,
+    `💵 <b>New Balance:</b> ${newBalance.toLocaleString()} MMK`,
+    "━━━━━━━━━━━━━━━━━━",
+    "Your balance has been restored.",
+    `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">View Wallet</a>`,
+  ].join("\n"));
+}
+
 // ── Handler: /unlink ──
 async function handleUnlink(supabase: any, botToken: string, chatId: number, telegramId: string, user: any) {
   // Remove from telegram_connections
@@ -542,6 +675,12 @@ Deno.serve(async (req) => {
     // ── /status [OrderID] ──
     if (text.startsWith("/status")) {
       await handleStatus(supabase, botToken, chatId, text, user);
+      return new Response("OK");
+    }
+
+    // ── /cancel ──
+    if (text.startsWith("/cancel")) {
+      await handleCancel(supabase, botToken, chatId, text, user);
       return new Response("OK");
     }
 
