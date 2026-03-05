@@ -90,11 +90,11 @@ export default function StatCard({
         <p
           className={cn("font-extrabold font-mono tabular-nums tracking-tight", featured ? "text-4xl" : "text-3xl")}
           style={{
-            backgroundImage: "linear-gradient(90deg, hsl(var(--foreground)) 0%, hsl(43 65% 72%) 40%, hsl(43 65% 52%) 50%, hsl(43 65% 72%) 60%, hsl(var(--foreground)) 100%)",
+            backgroundImage: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-glow)) 40%, hsl(var(--accent)) 100%)",
             backgroundSize: "200% 100%",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
-            animation: "gold-shimmer 4s ease-in-out infinite",
+            animation: "gold-shimmer 5s ease-in-out infinite",
           }}
         >
           {isCurrency ? (

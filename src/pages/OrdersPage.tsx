@@ -395,7 +395,7 @@ export default function OrdersPage() {
                 <Package className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-foreground">Order History</h1>
+                <h1 className="text-xl font-bold gradient-text">Order History</h1>
                 <p className="page-header-subtitle">View and manage all your previous service orders.</p>
               </div>
             </div>
