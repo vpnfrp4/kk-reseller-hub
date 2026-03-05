@@ -88,22 +88,22 @@ export function getCategoryIconColor(category: string, productName?: string): st
   const searchText = `${category} ${productName || ""}`.toLowerCase();
 
   if (["apple", "iphone", "ipad", "icloud", "ios"].some((k) => searchText.includes(k))) {
-    return "text-foreground/70 bg-foreground/8";
+    return "text-[hsl(217,90%,60%)] bg-[hsl(217,90%,60%)]/10";
   }
   if (["android", "samsung", "huawei", "xiaomi"].some((k) => searchText.includes(k))) {
-    return "text-[hsl(122,40%,55%)] bg-[hsl(122,40%,55%)]/10";
+    return "text-[hsl(142,55%,50%)] bg-[hsl(142,55%,50%)]/10";
   }
   if (["network", "carrier", "sim", "unlock", "softbank", "docomo", "at&t"].some((k) => searchText.includes(k))) {
-    return "text-primary bg-primary/10";
+    return "text-[hsl(270,60%,60%)] bg-[hsl(270,60%,60%)]/10";
   }
   if (["imei", "check", "lookup"].some((k) => searchText.includes(k))) {
-    return "text-[hsl(200,80%,55%)] bg-[hsl(200,80%,55%)]/10";
+    return "text-[hsl(45,95%,55%)] bg-[hsl(45,95%,55%)]/10";
   }
   if (["game", "gaming", "pubg", "roblox", "steam"].some((k) => searchText.includes(k))) {
-    return "text-[hsl(280,65%,60%)] bg-[hsl(280,65%,60%)]/10";
+    return "text-[hsl(330,70%,60%)] bg-[hsl(330,70%,60%)]/10";
   }
   if (["vpn", "proxy", "security"].some((k) => searchText.includes(k))) {
-    return "text-[hsl(160,60%,45%)] bg-[hsl(160,60%,45%)]/10";
+    return "text-[hsl(185,70%,50%)] bg-[hsl(185,70%,50%)]/10";
   }
   if (["tiktok", "instagram", "facebook", "youtube", "twitter", "telegram", "followers", "likes", "views", "comments", "subscriber"].some((k) => searchText.includes(k))) {
     return "text-[hsl(340,75%,55%)] bg-[hsl(340,75%,55%)]/10";
