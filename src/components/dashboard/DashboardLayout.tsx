@@ -129,16 +129,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside
         className={cn(
           "fixed lg:static inset-y-0 left-0 z-50 flex flex-col",
-          "bg-sidebar/80 backdrop-blur-xl border-r border-sidebar-border/50",
+          "bg-sidebar/70 backdrop-blur-2xl border-r border-sidebar-border/30",
           "transition-all duration-300 ease-out",
           collapsed ? "lg:w-[72px]" : "lg:w-[260px]",
           "w-[280px]",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
+        {/* Subtle gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-accent/[0.02] pointer-events-none rounded-none" />
         <TooltipProvider delayDuration={0}>
           {/* Logo header */}
-          <div className="h-14 px-4 border-b border-sidebar-border/50 flex items-center justify-between shrink-0">
+          <div className="h-14 px-4 border-b border-sidebar-border/30 flex items-center justify-between shrink-0">
             <Link to="/dashboard" className="flex items-center gap-3 group min-w-0" onClick={() => setSidebarOpen(false)}>
               <img
                 src={kkLogo}
@@ -201,22 +203,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         to={item.path}
                         onClick={() => setSidebarOpen(false)}
                         className={cn(
-                          "group relative flex items-center gap-3 h-10 rounded-lg text-[13px] tracking-wide",
+                          "group relative flex items-center gap-3 h-10 rounded-xl text-[13px] tracking-wide",
                           "transition-all duration-200",
                           collapsed ? "justify-center px-0" : "pl-3 pr-3",
                           active
-                            ? "bg-primary/12 text-foreground font-semibold"
+                            ? "bg-primary/10 text-foreground font-semibold"
                             : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
                         )}
                       >
                         {active && (
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.4)]" />
+                          <span
+                            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
+                            style={{
+                              background: 'linear-gradient(180deg, hsl(217 91% 60%), hsl(250 70% 60%))',
+                              boxShadow: '0 0 10px hsl(217 91% 60% / 0.5), 0 0 20px hsl(250 70% 60% / 0.2)',
+                            }}
+                          />
                         )}
                         <div
                           className={cn(
                             "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200",
                             active
-                              ? "bg-primary/15 text-primary"
+                              ? "bg-gradient-to-br from-primary/20 to-accent/15 text-primary"
                               : "text-muted-foreground group-hover:text-foreground group-hover:bg-secondary/60"
                           )}
                         >
@@ -282,7 +290,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </nav>
 
           {/* User profile footer */}
-          <div className="mt-auto border-t border-sidebar-border/50 px-3 py-3 shrink-0">
+          <div className="mt-auto border-t border-sidebar-border/30 px-3 py-3 shrink-0">
             {!collapsed ? (
               <div className="flex items-center gap-3 px-2">
                 <button
@@ -356,7 +364,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ═══ MAIN AREA ═══ */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         {/* Top Navbar */}
-        <header className="h-14 border-b border-border/50 flex items-center justify-between px-3 sm:px-4 lg:px-8 fixed top-0 left-0 right-0 lg:sticky lg:relative z-30 bg-card/90 backdrop-blur-xl">
+        <header className="h-14 border-b border-border/30 flex items-center justify-between px-3 sm:px-4 lg:px-8 fixed top-0 left-0 right-0 lg:sticky lg:relative z-30 bg-card/70 backdrop-blur-2xl">
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Hamburger for mobile */}
             <button

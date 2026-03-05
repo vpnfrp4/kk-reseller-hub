@@ -15,7 +15,7 @@ export default function BottomNav() {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 lg:hidden bg-card/90 backdrop-blur-xl border-t border-border/50 pb-safe">
+    <nav className="fixed bottom-0 inset-x-0 z-50 lg:hidden bg-card/70 backdrop-blur-2xl border-t border-border/30 pb-safe">
       <div className="flex items-stretch justify-around h-14">
         {navItems.map((item) => {
           const active =
@@ -36,12 +36,18 @@ export default function BottomNav() {
                 <item.icon
                   className={cn(
                     "w-5 h-5 transition-all duration-200",
-                    active && "drop-shadow-[0_0_6px_hsl(var(--primary)/0.5)]"
+                    active && "drop-shadow-[0_0_8px_hsl(var(--primary)/0.5)]"
                   )}
                   strokeWidth={active ? 2 : 1.5}
                 />
                 {active && (
-                  <span className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary" />
+                  <span
+                    className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-5 h-[2px] rounded-full"
+                    style={{
+                      background: 'linear-gradient(90deg, hsl(217 91% 60%), hsl(250 70% 60%))',
+                      boxShadow: '0 0 8px hsl(217 91% 60% / 0.4)',
+                    }}
+                  />
                 )}
               </div>
               <span>{item.label}</span>
