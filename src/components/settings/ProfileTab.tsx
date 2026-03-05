@@ -90,19 +90,12 @@ export default function ProfileTab() {
     }
   };
 
-  // ── Telegram Link Generation ──
+  // ── Telegram Link Generation (uses user_id directly) ──
   const generateLinkToken = useCallback(async () => {
     if (!user) return;
     setGeneratingLink(true);
     try {
-      // Generate a random token
-      const token = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
-      const { error } = await supabase
-        .from("profiles")
-        .update({ telegram_link_token: token } as any)
-        .eq("user_id", user.id);
-      if (error) throw error;
-      setLinkToken(token);
+      setLinkToken(user.id);
       toast.success("Link generated! Click it or copy to share.");
     } catch (err: any) {
       toast.error(err.message || "Failed to generate link");
@@ -112,13 +105,13 @@ export default function ProfileTab() {
   }, [user]);
 
   const handleCopyLink = useCallback(() => {
-    if (!linkToken) return;
-    const url = `https://t.me/${BOT_USERNAME}?start=${linkToken}`;
+    if (!user) return;
+    const url = `https://t.me/${BOT_USERNAME}?start=${user.id}`;
     navigator.clipboard.writeText(url);
     setCopied(true);
     toast.success("Link copied to clipboard!");
     setTimeout(() => setCopied(false), 2000);
-  }, [linkToken]);
+  }, [user]);
 
   const handleUnlinkTelegram = useCallback(async () => {
     if (!user) return;
