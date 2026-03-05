@@ -40,7 +40,7 @@ function buildOrderMessage(p: TelegramPayload): string {
     `🆔 <b>Order ID:</b> #${p.order_code || p.order_id?.slice(0, 8) || "N/A"}`,
     `📋 <b>Type:</b> ${(p.product_type || "digital").toUpperCase()}`,
     `━━━━━━━━━━━━━━━━━━`,
-    `🔗 <a href="https://kk-reseller-hub.lovable.app/admin/orders">Manage Order</a>`,
+    `🔗 <a href="https://karkar4.store/admin/orders">Manage Order</a>`,
   ].join("\n");
 }
 
@@ -55,7 +55,7 @@ function buildOrderPlacedMessage(p: TelegramPayload): string {
     `📊 <b>Status:</b> ${(p.status || "PROCESSING").toUpperCase()}`,
     `━━━━━━━━━━━━━━━━━━`,
     `⏳ We'll notify you when your order is updated.`,
-    `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/orders">Track Order</a>`,
+    `🔗 <a href="https://karkar4.store/dashboard/orders">Track Order</a>`,
   ].join("\n");
 }
 
@@ -72,7 +72,7 @@ function buildTopupMessage(p: TelegramPayload): string {
     lines.push(`📸 <b>Screenshot:</b> <a href="${p.screenshot_url}">View</a>`);
   }
   lines.push(`━━━━━━━━━━━━━━━━━━`);
-  lines.push(`🔗 <a href="https://kk-reseller-hub.lovable.app/admin/topups">Review Top-Ups</a>`);
+  lines.push(`🔗 <a href="https://karkar4.store/admin/topups">Review Top-Ups</a>`);
   return lines.join("\n");
 }
 
@@ -107,7 +107,7 @@ function buildStatusMessage(p: TelegramPayload): string {
   }
 
   lines.push(`━━━━━━━━━━━━━━━━━━`);
-  lines.push(`🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/orders">View Orders</a>`);
+  lines.push(`🔗 <a href="https://karkar4.store/dashboard/orders">View Orders</a>`);
   return lines.join("\n");
 }
 
@@ -118,7 +118,7 @@ function buildBalanceUpdateMessage(p: TelegramPayload): string {
     `💵 <b>Amount:</b> ${Number(p.amount || 0).toLocaleString()} MMK`,
     `📊 <b>New Balance:</b> ${Number(p.new_balance || 0).toLocaleString()} MMK`,
     `━━━━━━━━━━━━━━━━━━`,
-    `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">View Wallet</a>`,
+    `🔗 <a href="https://karkar4.store/dashboard/wallet">View Wallet</a>`,
   ].join("\n");
 }
 

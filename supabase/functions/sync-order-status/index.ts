@@ -43,7 +43,7 @@ async function sendTelegramStatusUpdate(supabase: any, chatId: string, order: an
           `💰 <b>Refunded:</b> ${Number(order.price).toLocaleString()} MMK`,
           "━━━━━━━━━━━━━━━━━━",
           "Your balance has been restored automatically.",
-          `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">View Wallet</a>`,
+          `🔗 <a href="https://karkar4.store/dashboard/wallet">View Wallet</a>`,
         ].join("\n"),
       } : {}),
     }),

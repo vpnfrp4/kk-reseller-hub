@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const SITE_URL = "https://kk-reseller-hub.lovable.app";
+const SITE_URL = "https://karkar4.store";
 
 const staticPages = [
   { path: "/", priority: "1.0", changefreq: "weekly" },
