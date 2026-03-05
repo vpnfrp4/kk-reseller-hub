@@ -161,31 +161,45 @@ Deno.serve(async (req) => {
 
         // Send Telegram notification to user
         try {
+        // Find user's Telegram chat ID (check telegram_connections first, then profiles)
+        let chatId: string | null = null;
+
+        const { data: tgConn } = await serviceClient
+          .from("telegram_connections")
+          .select("telegram_id")
+          .eq("user_id", order.user_id)
+          .maybeSingle();
+
+        if (tgConn?.telegram_id) {
+          chatId = tgConn.telegram_id;
+        } else {
           const { data: userProfile } = await serviceClient
             .from("profiles")
             .select("telegram_chat_id")
             .eq("user_id", order.user_id)
             .maybeSingle();
+          chatId = userProfile?.telegram_chat_id || null;
+        }
 
-          if (userProfile?.telegram_chat_id) {
-            const telegramUrl = `${supabaseUrl}/functions/v1/send-telegram`;
-            await fetch(telegramUrl, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${supabaseAnonKey}`,
-              },
-              body: JSON.stringify({
-                type: "status_update",
-                chat_id: userProfile.telegram_chat_id,
-                order_id: order.id,
-                order_code: order.order_code,
-                product_name: order.product_name,
-                status,
-                price: order.price,
-              }),
-            });
-          }
+        if (chatId) {
+          const telegramUrl = `${supabaseUrl}/functions/v1/send-telegram`;
+          await fetch(telegramUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${supabaseAnonKey}`,
+            },
+            body: JSON.stringify({
+              type: "status_update",
+              chat_id: chatId,
+              order_id: order.id,
+              order_code: order.order_code,
+              product_name: order.product_name,
+              status,
+              price: order.price,
+            }),
+          });
+        }
         } catch (tgErr) {
           console.error("Telegram notification failed:", tgErr);
         }
