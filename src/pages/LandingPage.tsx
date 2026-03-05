@@ -80,7 +80,7 @@ function AnimatedStat({ target, suffix, label }: { target: number; suffix: strin
   const { display, ref } = useCountUpOnView(target, 1200);
   return (
     <div ref={ref} className="text-center">
-      <p className="text-3xl sm:text-4xl font-black tracking-tight text-foreground">
+      <p className="text-3xl sm:text-4xl font-black tracking-tight gradient-text">
         {display.toLocaleString()}{suffix}
       </p>
       <p className="mt-1.5 text-xs sm:text-sm font-medium text-muted-foreground">{label}</p>
@@ -214,7 +214,7 @@ export default function LandingPage() {
             <Button variant="ghost" size="sm" className="text-sm font-medium" asChild>
               <Link to="/login">Log In</Link>
             </Button>
-            <Button size="sm" className="text-sm px-5 font-semibold" asChild>
+            <Button size="sm" variant="premium" className="text-sm px-5 font-semibold" asChild>
               <Link to="/login">Get Started</Link>
             </Button>
           </div>
@@ -226,30 +226,30 @@ export default function LandingPage() {
         {/* ═══════════ HERO ═══════════ */}
         <section className="relative overflow-hidden">
           {/* Grid background */}
-          <div className="absolute inset-0 opacity-[0.04]" style={{
-            backgroundImage: "linear-gradient(hsl(var(--foreground) / 0.15) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground) / 0.15) 1px, transparent 1px)",
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: "linear-gradient(hsl(var(--foreground) / 0.12) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground) / 0.12) 1px, transparent 1px)",
             backgroundSize: "60px 60px",
           }} />
-          {/* Glow */}
-          <div className="pointer-events-none absolute inset-0" style={{
-            background: "radial-gradient(800px circle at 30% 40%, hsl(var(--primary) / 0.08), transparent 60%)",
-          }} />
-          <div className="pointer-events-none absolute inset-0 hidden md:block" style={{
-            background: "radial-gradient(600px circle at 75% 50%, hsl(var(--primary) / 0.05), transparent 50%)",
-          }} />
+
+          {/* Floating orbs */}
+          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+            <div className="absolute top-[15%] left-[10%] w-[400px] h-[400px] rounded-full bg-primary/[0.07] blur-[100px] animate-float-gentle" />
+            <div className="absolute top-[30%] right-[5%] w-[350px] h-[350px] rounded-full bg-accent/[0.06] blur-[100px] animate-float-gentle" style={{ animationDelay: "-3s" }} />
+            <div className="absolute bottom-[10%] left-[40%] w-[300px] h-[300px] rounded-full bg-primary-glow/[0.05] blur-[80px] animate-float-gentle" style={{ animationDelay: "-5s" }} />
+          </div>
 
           <div className="relative mx-auto max-w-[1120px] px-6 pt-20 pb-16 sm:pt-28 sm:pb-24 md:pt-36 md:pb-32">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-8 items-center">
               {/* LEFT */}
               <ScrollReveal className="text-center md:text-left relative z-10">
-                <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 backdrop-blur-sm px-4 py-1.5 mb-6">
-                  <ShieldCheck className="h-3.5 w-3.5 text-success" />
-                  <span className="text-xs font-semibold text-muted-foreground">Trusted by technicians and resellers worldwide</span>
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] backdrop-blur-xl px-4 py-1.5 mb-6 shadow-[0_0_20px_-6px_hsl(var(--primary)/0.2)]">
+                  <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                  <span className="text-xs font-semibold text-primary/80">Trusted by technicians and resellers worldwide</span>
                 </div>
 
                 <h1 className="text-[2.2rem] font-black leading-[1.08] tracking-tight sm:text-[3rem] lg:text-[3.6rem]">
                   <span className="text-foreground">Premium</span>{" "}
-                  <span className="text-primary">Apple Device</span>
+                  <span className="gradient-text">Apple Device</span>
                   <br />
                   <span className="text-foreground">Solutions</span>
                 </h1>
@@ -259,12 +259,12 @@ export default function LandingPage() {
                 </p>
 
                 <div className="mt-8 flex flex-wrap gap-3 justify-center md:justify-start">
-                  <Button size="lg" className="h-12 px-8 text-sm font-bold" asChild>
+                  <Button size="lg" variant="premium" className="h-12 px-8 text-sm font-bold shadow-[0_0_30px_-5px_hsl(var(--primary)/0.4)]" asChild>
                     <Link to="/login">
                       Get Started <ArrowRight className="w-4 h-4 ml-1.5" />
                     </Link>
                   </Button>
-                  <Button variant="outline" size="lg" className="h-12 px-8 text-sm font-semibold" asChild>
+                  <Button variant="outline" size="lg" className="h-12 px-8 text-sm font-semibold border-border/60 bg-card/40 backdrop-blur-sm hover:bg-card/70" asChild>
                     <Link to="/tools/imei-check">Check IMEI</Link>
                   </Button>
                 </div>
@@ -281,7 +281,7 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ TRUST STATS ═══════════ */}
-        <section className="border-y border-border/50 bg-card/30 backdrop-blur-sm">
+        <section className="border-y border-border/30 bg-card/20 backdrop-blur-sm">
           <div className="mx-auto max-w-[1120px] px-6 py-14 sm:py-16">
             <ScrollReveal>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-4">
@@ -303,8 +303,8 @@ export default function LandingPage() {
           <div className="relative mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
               <div className="text-center">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/60">Services</p>
-                <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">Services</p>
+                <h2 className="text-2xl font-bold tracking-tight sm:text-3xl gradient-text">
                   Everything You Need
                 </h2>
                 <p className="mt-3 text-base text-muted-foreground max-w-lg mx-auto">
@@ -343,8 +343,8 @@ export default function LandingPage() {
           <div className="relative mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
               <div className="text-center">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/60">Platform</p>
-                <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">Platform</p>
+                <h2 className="text-2xl font-bold tracking-tight sm:text-3xl gradient-text">
                   Why KKTech Platform
                 </h2>
                 <p className="mt-3 text-base text-muted-foreground max-w-lg mx-auto">
@@ -376,8 +376,8 @@ export default function LandingPage() {
           <div className="mx-auto max-w-[1120px] px-6">
             <ScrollReveal>
               <div className="text-center">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/60">Process</p>
-                <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">Process</p>
+                <h2 className="text-2xl font-bold tracking-tight sm:text-3xl gradient-text">
                   How It Works
                 </h2>
               </div>
@@ -406,8 +406,8 @@ export default function LandingPage() {
         <section id="faq" className="relative border-t border-border/40 py-20 sm:py-28 bg-card/20">
           <div className="relative mx-auto max-w-[800px] px-6">
             <ScrollReveal>
-              <p className="mb-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-primary/60">Support</p>
-              <h2 className="mb-4 text-center text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              <p className="mb-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-primary/70">Support</p>
+              <h2 className="mb-4 text-center text-2xl font-bold tracking-tight sm:text-3xl gradient-text">
                 Frequently Asked Questions
               </h2>
               <p className="mb-12 text-center text-sm text-muted-foreground">
