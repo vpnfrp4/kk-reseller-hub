@@ -68,6 +68,329 @@ const HELP_TEXT = [
   "🌐 <b>Dashboard:</b> https://kk-reseller-hub.lovable.app",
 ].join("\n");
 
+// ── Helper: find linked user via telegram_connections table ──
+async function findLinkedUser(supabase: any, telegramId: string) {
+  const { data: conn } = await supabase
+    .from("telegram_connections")
+    .select("user_id")
+    .eq("telegram_id", telegramId)
+    .maybeSingle();
+
+  if (!conn) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("user_id, name, email, balance")
+    .eq("user_id", conn.user_id)
+    .maybeSingle();
+
+  return profile;
+}
+
+// ── Handler: /start with user_id deep link ──
+async function handleStart(supabase: any, botToken: string, chatId: number, text: string, fromUser?: { id: number; username?: string }) {
+  const parts = text.split(" ");
+
+  if (parts.length > 1) {
+    const userId = parts[1].trim();
+
+    // Check if this user_id exists in profiles
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("user_id, name, email")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (error || !profile) {
+      await sendMessage(botToken, chatId, [
+        "❌ <b>Invalid or expired link.</b>",
+        "",
+        "Please generate a new connection link from your Settings page.",
+      ].join("\n"));
+      return;
+    }
+
+    // Check if already linked to a different telegram
+    const telegramId = String(fromUser?.id || chatId);
+    const { data: existing } = await supabase
+      .from("telegram_connections")
+      .select("id")
+      .eq("user_id", profile.user_id)
+      .maybeSingle();
+
+    if (existing) {
+      // Update existing connection
+      await supabase
+        .from("telegram_connections")
+        .update({
+          telegram_id: telegramId,
+          telegram_username: fromUser?.username || null,
+        })
+        .eq("user_id", profile.user_id);
+    } else {
+      // Insert new connection
+      await supabase
+        .from("telegram_connections")
+        .insert({
+          user_id: profile.user_id,
+          telegram_id: telegramId,
+          telegram_username: fromUser?.username || null,
+        });
+    }
+
+    // Also update profiles for backward compatibility
+    await supabase
+      .from("profiles")
+      .update({
+        telegram_chat_id: String(chatId),
+        telegram_link_token: null,
+      } as any)
+      .eq("user_id", profile.user_id);
+
+    await sendMessage(botToken, chatId, [
+      "✅ <b>Telegram Linked Successfully!</b>",
+      "━━━━━━━━━━━━━━━━━━",
+      `👤 <b>Account:</b> ${escapeHtml(profile.name || profile.email)}`,
+      "",
+      "You'll now receive real-time notifications for:",
+      "• 📦 Order status updates",
+      "• 💰 Wallet top-up approvals",
+      "• ⚠️ Important account alerts",
+      "",
+      "📋 <b>Commands:</b>",
+      "/balance — Check wallet balance",
+      "/orders — View recent orders",
+      "/status [ID] — Check order status",
+      "/help — All available commands",
+      "/unlink — Disconnect Telegram",
+    ].join("\n"));
+    return;
+  }
+
+  // Plain /start without token
+  await sendMessage(botToken, chatId, [
+    "🤖 <b>Welcome to KKTech Reseller Hub!</b>",
+    "━━━━━━━━━━━━━━━━━━",
+    "",
+    "Your professional IMEI unlock & digital service platform.",
+    "",
+    "🔗 <b>To get started:</b>",
+    "1. Go to your Dashboard → Settings",
+    "2. Click \"Connect Telegram\"",
+    "3. Open the link to connect your account",
+    "",
+    "📋 <b>Commands (after linking):</b>",
+    "/balance — Check wallet balance",
+    "/orders — View recent orders",
+    "/status [ID] — Check order status",
+    "/help — Show all commands",
+    "/unlink — Disconnect Telegram",
+    "",
+    "🌐 https://kk-reseller-hub.lovable.app",
+  ].join("\n"));
+}
+
+// ── Handler: /balance ──
+async function handleBalance(supabase: any, botToken: string, chatId: number, user: any) {
+  const { data: rateSetting } = await supabase
+    .from("system_settings")
+    .select("value")
+    .eq("key", "usd_mmk_rate")
+    .maybeSingle();
+
+  const usdRate = rateSetting?.value?.rate || 0;
+  const balanceMMK = Number(user.balance || 0);
+  const balanceUSD = usdRate > 0 ? (balanceMMK / usdRate).toFixed(2) : "N/A";
+
+  const { data: recentTx } = await supabase
+    .from("wallet_transactions")
+    .select("type, amount, status, created_at")
+    .eq("user_id", user.user_id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const lines = [
+    "💰 <b>Wallet Balance</b>",
+    "━━━━━━━━━━━━━━━━━━",
+    `💵 <b>MMK:</b> ${balanceMMK.toLocaleString()} MMK`,
+    `💲 <b>USD:</b> $${balanceUSD}`,
+    "━━━━━━━━━━━━━━━━━━",
+    `👤 ${escapeHtml(user.name || user.email)}`,
+  ];
+
+  if (recentTx) {
+    const txDate = new Date(recentTx.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const txEmoji = recentTx.type === "topup" ? "📥" : "📤";
+    lines.push("");
+    lines.push(`${txEmoji} <b>Last Transaction:</b> ${recentTx.type.toUpperCase()} — ${Number(recentTx.amount).toLocaleString()} MMK (${txDate})`);
+  }
+
+  lines.push("");
+  lines.push(`🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">Top Up Wallet</a>`);
+
+  await sendMessage(botToken, chatId, lines.join("\n"));
+}
+
+// ── Handler: /orders ──
+async function handleOrders(supabase: any, botToken: string, chatId: number, user: any) {
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("order_code, product_name, status, price, created_at, product_type")
+    .eq("user_id", user.user_id)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  if (!orders || orders.length === 0) {
+    await sendMessage(botToken, chatId, [
+      "📦 <b>No Orders Yet</b>",
+      "",
+      "You haven't placed any orders.",
+      `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/place-order">Place Your First Order</a>`,
+    ].join("\n"));
+    return;
+  }
+
+  const lines = orders.map((o: any, i: number) => {
+    const emoji = STATUS_EMOJI[o.status] || "📋";
+    const date = new Date(o.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const typeLabel = (o.product_type || "digital").toUpperCase();
+    return `${i + 1}. ${emoji} <b>${escapeHtml(o.product_name)}</b>\n   💰 ${Number(o.price).toLocaleString()} MMK | ${typeLabel}\n   📊 ${o.status.toUpperCase()} | 📅 ${date}\n   🆔 <code>${o.order_code}</code>`;
+  });
+
+  await sendMessage(botToken, chatId, [
+    "📦 <b>Your Recent Orders</b>",
+    "━━━━━━━━━━━━━━━━━━",
+    ...lines,
+    "━━━━━━━━━━━━━━━━━━",
+    "💡 Use /status [OrderCode] for full details",
+    `🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/orders">View All Orders</a>`,
+  ].join("\n"));
+}
+
+// ── Handler: /status ──
+async function handleStatus(supabase: any, botToken: string, chatId: number, text: string, user: any) {
+  const parts = text.split(" ");
+  if (parts.length < 2) {
+    await sendMessage(botToken, chatId, [
+      "ℹ️ <b>Usage:</b> /status [OrderCode]",
+      "",
+      "Example: <code>/status ORD-2603-AB12-0001</code>",
+      "",
+      "💡 You can also use partial codes!",
+    ].join("\n"));
+    return;
+  }
+
+  const query = parts.slice(1).join(" ").trim().replace("#", "");
+
+  let order: any = null;
+  const { data: orderByCode } = await supabase
+    .from("orders")
+    .select("order_code, product_name, status, price, created_at, credentials, result, product_type, imei_number, fulfillment_mode, completed_at")
+    .eq("user_id", user.user_id)
+    .eq("order_code", query)
+    .maybeSingle();
+
+  if (orderByCode) {
+    order = orderByCode;
+  } else {
+    const { data: orderByPartial } = await supabase
+      .from("orders")
+      .select("order_code, product_name, status, price, created_at, credentials, result, product_type, imei_number, fulfillment_mode, completed_at")
+      .eq("user_id", user.user_id)
+      .ilike("order_code", `%${query}%`)
+      .limit(1)
+      .maybeSingle();
+    order = orderByPartial;
+  }
+
+  if (!order) {
+    await sendMessage(botToken, chatId, `❌ No order found matching "<b>${escapeHtml(query)}</b>".\n\n💡 Try /orders to see your recent orders.`);
+    return;
+  }
+
+  const emoji = STATUS_EMOJI[order.status] || "📋";
+  const date = new Date(order.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  const typeLabel = (order.product_type || "digital").toUpperCase();
+
+  const etaMap: Record<string, string> = {
+    instant: "⚡ Instant",
+    manual: "⏳ 1–24 Hours",
+    api: "⚡ 1–5 Minutes",
+    imei: "⏳ 5–30 Minutes",
+  };
+  const eta = etaMap[order.fulfillment_mode] || "⏳ Varies";
+
+  const lines = [
+    `${emoji} <b>Order Details</b>`,
+    "━━━━━━━━━━━━━━━━━━",
+    `📦 <b>Service:</b> ${escapeHtml(order.product_name)}`,
+    `🆔 <b>Order ID:</b> <code>${order.order_code}</code>`,
+    `📋 <b>Type:</b> ${typeLabel}`,
+    `📊 <b>Status:</b> ${order.status.toUpperCase()}`,
+    `💰 <b>Price:</b> ${Number(order.price).toLocaleString()} MMK`,
+    `📅 <b>Date:</b> ${date}`,
+    `⏱ <b>Est. Time:</b> ${eta}`,
+  ];
+
+  if (order.imei_number) {
+    lines.push(`📱 <b>IMEI:</b> <code>${order.imei_number}</code>`);
+  }
+
+  if (order.result) {
+    lines.push("");
+    lines.push(`📋 <b>Result:</b>`);
+    lines.push(`<code>${escapeHtml(order.result.slice(0, 500))}</code>`);
+  }
+
+  if (order.completed_at) {
+    const completedDate = new Date(order.completed_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    lines.push(`✅ <b>Completed:</b> ${completedDate}`);
+  }
+
+  lines.push("━━━━━━━━━━━━━━━━━━");
+  lines.push(`🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/orders">View in Dashboard</a>`);
+
+  await sendMessage(botToken, chatId, lines.join("\n"));
+}
+
+// ── Handler: /unlink ──
+async function handleUnlink(supabase: any, botToken: string, chatId: number, telegramId: string, user: any) {
+  // Remove from telegram_connections
+  await supabase
+    .from("telegram_connections")
+    .delete()
+    .eq("telegram_id", telegramId);
+
+  // Clear from profiles for backward compatibility
+  await supabase
+    .from("profiles")
+    .update({ telegram_chat_id: null } as any)
+    .eq("user_id", user.user_id);
+
+  await sendMessage(botToken, chatId, [
+    "🔓 <b>Telegram Disconnected</b>",
+    "━━━━━━━━━━━━━━━━━━",
+    "Your Telegram has been unlinked from your KKTech account.",
+    "",
+    "❌ You won't receive order or wallet notifications anymore.",
+    "",
+    "To reconnect, visit your Settings page:",
+    "🔗 https://kk-reseller-hub.lovable.app/dashboard/settings",
+  ].join("\n"));
+}
+
+const NOT_LINKED_MSG = [
+  "🔗 <b>Account Not Linked</b>",
+  "",
+  "Please connect your Telegram account from your KKTech dashboard.",
+  "",
+  "📱 Visit: https://kk-reseller-hub.lovable.app/dashboard/settings",
+  "",
+  "Need help? Send /help for more info.",
+].join("\n");
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -87,81 +410,16 @@ Deno.serve(async (req) => {
 
     const chatId = message.chat.id;
     const text = message.text.trim();
+    const fromUser = message.from;
+    const telegramId = String(fromUser?.id || chatId);
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // ── /start with linking token ──
+    // ── /start ──
     if (text.startsWith("/start")) {
-      const parts = text.split(" ");
-      if (parts.length > 1) {
-        const token = parts[1].trim();
-
-        const { data: profile, error } = await supabase
-          .from("profiles")
-          .select("id, user_id, name, email, telegram_chat_id")
-          .eq("telegram_link_token", token)
-          .maybeSingle();
-
-        if (error || !profile) {
-          await sendMessage(botToken, chatId, [
-            "❌ <b>Invalid or expired link token.</b>",
-            "",
-            "Please generate a new link from your Settings page.",
-          ].join("\n"));
-          return new Response("OK");
-        }
-
-        // Link the chat ID and clear the token
-        await supabase
-          .from("profiles")
-          .update({
-            telegram_chat_id: String(chatId),
-            telegram_link_token: null,
-          } as any)
-          .eq("user_id", profile.user_id);
-
-        await sendMessage(botToken, chatId, [
-          "✅ <b>Telegram Linked Successfully!</b>",
-          "━━━━━━━━━━━━━━━━━━",
-          `👤 <b>Account:</b> ${escapeHtml(profile.name || profile.email)}`,
-          "",
-          "You'll now receive real-time notifications for:",
-          "• 📦 Order status updates",
-          "• 💰 Wallet top-up approvals",
-          "• ⚠️ Important account alerts",
-          "",
-          "📋 <b>Commands:</b>",
-          "/balance — Check wallet balance",
-          "/orders — View recent orders",
-          "/status [ID] — Check order status",
-          "/help — All available commands",
-          "/unlink — Disconnect Telegram",
-        ].join("\n"));
-        return new Response("OK");
-      }
-
-      // Plain /start without token
-      await sendMessage(botToken, chatId, [
-        "🤖 <b>Welcome to KKTech Reseller Hub!</b>",
-        "━━━━━━━━━━━━━━━━━━",
-        "",
-        "Your professional IMEI unlock & digital service platform.",
-        "",
-        "🔗 <b>To get started:</b>",
-        "1. Go to your Dashboard → Settings",
-        "2. Click \"Generate Connection Link\"",
-        "3. Open the link to connect your account",
-        "",
-        "📋 <b>Commands (after linking):</b>",
-        "/balance — Check wallet balance",
-        "/orders — View recent orders",
-        "/status [ID] — Check order status",
-        "/help — Show all commands",
-        "/unlink — Disconnect Telegram",
-        "",
-        "🌐 https://kk-reseller-hub.lovable.app",
-      ].join("\n"));
+      await handleStart(supabase, botToken, chatId, text, fromUser);
       return new Response("OK");
     }
 
@@ -171,213 +429,35 @@ Deno.serve(async (req) => {
       return new Response("OK");
     }
 
-    // ── Find linked user ──
-    const { data: user } = await supabase
-      .from("profiles")
-      .select("user_id, name, email, balance")
-      .eq("telegram_chat_id", String(chatId))
-      .maybeSingle();
+    // ── Find linked user via telegram_connections ──
+    const user = await findLinkedUser(supabase, telegramId);
 
     if (!user) {
-      await sendMessage(botToken, chatId, [
-        "🔗 <b>Account Not Linked</b>",
-        "",
-        "Please link your Telegram from your Settings page first.",
-        "",
-        "📱 Visit: https://kk-reseller-hub.lovable.app/dashboard/settings",
-        "",
-        "Need help? Send /help for more info.",
-      ].join("\n"));
+      await sendMessage(botToken, chatId, NOT_LINKED_MSG);
       return new Response("OK");
     }
 
     // ── /balance ──
     if (text === "/balance") {
-      const { data: rateSetting } = await supabase
-        .from("system_settings")
-        .select("value")
-        .eq("key", "usd_mmk_rate")
-        .maybeSingle();
-
-      const usdRate = rateSetting?.value?.rate || 0;
-      const balanceMMK = Number(user.balance || 0);
-      const balanceUSD = usdRate > 0 ? (balanceMMK / usdRate).toFixed(2) : "N/A";
-
-      // Get recent transaction
-      const { data: recentTx } = await supabase
-        .from("wallet_transactions")
-        .select("type, amount, status, created_at")
-        .eq("user_id", user.user_id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const lines = [
-        "💰 <b>Wallet Balance</b>",
-        "━━━━━━━━━━━━━━━━━━",
-        `💵 <b>MMK:</b> ${balanceMMK.toLocaleString()} MMK`,
-        `💲 <b>USD:</b> $${balanceUSD}`,
-        "━━━━━━━━━━━━━━━━━━",
-        `👤 ${escapeHtml(user.name || user.email)}`,
-      ];
-
-      if (recentTx) {
-        const txDate = new Date(recentTx.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        const txEmoji = recentTx.type === "topup" ? "📥" : "📤";
-        lines.push("");
-        lines.push(`${txEmoji} <b>Last Transaction:</b> ${recentTx.type.toUpperCase()} — ${Number(recentTx.amount).toLocaleString()} MMK (${txDate})`);
-      }
-
-      lines.push("");
-      lines.push(`🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/wallet">Top Up Wallet</a>`);
-
-      await sendMessage(botToken, chatId, lines.join("\n"));
+      await handleBalance(supabase, botToken, chatId, user);
       return new Response("OK");
     }
 
     // ── /orders ──
     if (text === "/orders") {
-      const { data: orders } = await supabase
-        .from("orders")
-        .select("order_code, product_name, status, price, created_at, product_type")
-        .eq("user_id", user.user_id)
-        .order("created_at", { ascending: false })
-        .limit(5);
-
-      if (!orders || orders.length === 0) {
-        await sendMessage(botToken, chatId, [
-          "📦 <b>No Orders Yet</b>",
-          "",
-          "You haven't placed any orders.",
-          "🔗 <a href=\"https://kk-reseller-hub.lovable.app/dashboard/place-order\">Place Your First Order</a>",
-        ].join("\n"));
-        return new Response("OK");
-      }
-
-      const lines = orders.map((o, i) => {
-        const emoji = STATUS_EMOJI[o.status] || "📋";
-        const date = new Date(o.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-        const typeLabel = (o.product_type || "digital").toUpperCase();
-        return `${i + 1}. ${emoji} <b>${escapeHtml(o.product_name)}</b>\n   💰 ${Number(o.price).toLocaleString()} MMK | ${typeLabel}\n   📊 ${o.status.toUpperCase()} | 📅 ${date}\n   🆔 <code>${o.order_code}</code>`;
-      });
-
-      await sendMessage(botToken, chatId, [
-        "📦 <b>Your Recent Orders</b>",
-        "━━━━━━━━━━━━━━━━━━",
-        ...lines,
-        "━━━━━━━━━━━━━━━━━━",
-        "💡 Use /status [OrderCode] for full details",
-        "🔗 <a href=\"https://kk-reseller-hub.lovable.app/dashboard/orders\">View All Orders</a>",
-      ].join("\n"));
+      await handleOrders(supabase, botToken, chatId, user);
       return new Response("OK");
     }
 
     // ── /status [OrderID] ──
     if (text.startsWith("/status")) {
-      const parts = text.split(" ");
-      if (parts.length < 2) {
-        await sendMessage(botToken, chatId, [
-          "ℹ️ <b>Usage:</b> /status [OrderCode]",
-          "",
-          "Example: <code>/status ORD-2603-AB12-0001</code>",
-          "",
-          "💡 You can also use partial codes!",
-        ].join("\n"));
-        return new Response("OK");
-      }
-
-      const query = parts.slice(1).join(" ").trim().replace("#", "");
-
-      let order: any = null;
-      const { data: orderByCode } = await supabase
-        .from("orders")
-        .select("order_code, product_name, status, price, created_at, credentials, result, product_type, imei_number, fulfillment_mode, completed_at")
-        .eq("user_id", user.user_id)
-        .eq("order_code", query)
-        .maybeSingle();
-
-      if (orderByCode) {
-        order = orderByCode;
-      } else {
-        const { data: orderByPartial } = await supabase
-          .from("orders")
-          .select("order_code, product_name, status, price, created_at, credentials, result, product_type, imei_number, fulfillment_mode, completed_at")
-          .eq("user_id", user.user_id)
-          .ilike("order_code", `%${query}%`)
-          .limit(1)
-          .maybeSingle();
-        order = orderByPartial;
-      }
-
-      if (!order) {
-        await sendMessage(botToken, chatId, `❌ No order found matching "<b>${escapeHtml(query)}</b>".\n\n💡 Try /orders to see your recent orders.`);
-        return new Response("OK");
-      }
-
-      const emoji = STATUS_EMOJI[order.status] || "📋";
-      const date = new Date(order.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-      const typeLabel = (order.product_type || "digital").toUpperCase();
-
-      // Estimate processing time based on fulfillment mode
-      const etaMap: Record<string, string> = {
-        instant: "⚡ Instant",
-        manual: "⏳ 1–24 Hours",
-        api: "⚡ 1–5 Minutes",
-        imei: "⏳ 5–30 Minutes",
-      };
-      const eta = etaMap[order.fulfillment_mode] || "⏳ Varies";
-
-      const lines = [
-        `${emoji} <b>Order Details</b>`,
-        "━━━━━━━━━━━━━━━━━━",
-        `📦 <b>Service:</b> ${escapeHtml(order.product_name)}`,
-        `🆔 <b>Order ID:</b> <code>${order.order_code}</code>`,
-        `📋 <b>Type:</b> ${typeLabel}`,
-        `📊 <b>Status:</b> ${order.status.toUpperCase()}`,
-        `💰 <b>Price:</b> ${Number(order.price).toLocaleString()} MMK`,
-        `📅 <b>Date:</b> ${date}`,
-        `⏱ <b>Est. Time:</b> ${eta}`,
-      ];
-
-      if (order.imei_number) {
-        lines.push(`📱 <b>IMEI:</b> <code>${order.imei_number}</code>`);
-      }
-
-      if (order.result) {
-        lines.push("");
-        lines.push(`📋 <b>Result:</b>`);
-        lines.push(`<code>${escapeHtml(order.result.slice(0, 500))}</code>`);
-      }
-
-      if (order.completed_at) {
-        const completedDate = new Date(order.completed_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit" });
-        lines.push(`✅ <b>Completed:</b> ${completedDate}`);
-      }
-
-      lines.push("━━━━━━━━━━━━━━━━━━");
-      lines.push(`🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/orders">View in Dashboard</a>`);
-
-      await sendMessage(botToken, chatId, lines.join("\n"));
+      await handleStatus(supabase, botToken, chatId, text, user);
       return new Response("OK");
     }
 
     // ── /unlink ──
     if (text === "/unlink") {
-      await supabase
-        .from("profiles")
-        .update({ telegram_chat_id: null } as any)
-        .eq("user_id", user.user_id);
-
-      await sendMessage(botToken, chatId, [
-        "🔓 <b>Telegram Disconnected</b>",
-        "━━━━━━━━━━━━━━━━━━",
-        "Your Telegram has been unlinked from your KKTech account.",
-        "",
-        "❌ You won't receive order or wallet notifications anymore.",
-        "",
-        "To reconnect, visit your Settings page:",
-        "🔗 https://kk-reseller-hub.lovable.app/dashboard/settings",
-      ].join("\n"));
+      await handleUnlink(supabase, botToken, chatId, telegramId, user);
       return new Response("OK");
     }
 
