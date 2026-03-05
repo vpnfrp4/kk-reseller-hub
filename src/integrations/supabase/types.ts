@@ -1095,6 +1095,61 @@ export type Database = {
         }
         Relationships: []
       }
+      service_provider_mappings: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          priority: number
+          product_id: string
+          provider_id: string
+          provider_price: number
+          provider_service_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          priority?: number
+          product_id: string
+          provider_id: string
+          provider_price?: number
+          provider_service_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          priority?: number
+          product_id?: string
+          provider_id?: string
+          provider_price?: number
+          provider_service_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_provider_mappings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_provider_mappings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "imei_providers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_provider_mappings_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "imei_providers_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           key: string

@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Search, Plus, Pencil, Trash2, ShieldCheck, Star, TrendingUp, Check, X, Upload, ImageIcon } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, ShieldCheck, Star, TrendingUp, Check, X, Upload, ImageIcon, Wifi, WifiOff, Loader2, Link2, Unlink } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -30,6 +30,7 @@ interface ProviderForm {
   fulfillment_type: string;
   is_verified: boolean;
   api_url: string;
+  api_key: string;
   commission_percent: number;
   sort_order: number;
   logo_url: string;
@@ -40,6 +41,7 @@ const emptyForm: ProviderForm = {
   fulfillment_type: "manual",
   is_verified: false,
   api_url: "",
+  api_key: "",
   commission_percent: 8,
   sort_order: 0,
   logo_url: "",
@@ -146,6 +148,177 @@ function InlineStatCell({
   );
 }
 
+// ── Provider Mappings Dialog ──
+function ProviderMappingsDialog({
+  open,
+  onOpenChange,
+  providerId,
+  providerName,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  providerId: string;
+  providerName: string;
+}) {
+  const queryClient = useQueryClient();
+  const [newProductId, setNewProductId] = useState("");
+  const [newServiceId, setNewServiceId] = useState("");
+  const [newPrice, setNewPrice] = useState("0");
+  const [newPriority, setNewPriority] = useState("0");
+  const [adding, setAdding] = useState(false);
+
+  const { data: mappings = [], isLoading } = useQuery({
+    queryKey: ["provider-mappings", providerId],
+    enabled: open,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("service_provider_mappings")
+        .select("*, products(name)")
+        .eq("provider_id", providerId)
+        .order("priority", { ascending: true });
+      if (error) throw error;
+      return data || [];
+    },
+  });
+
+  const { data: products = [] } = useQuery({
+    queryKey: ["all-products-for-mapping"],
+    enabled: open,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("products")
+        .select("id, name, product_type")
+        .eq("product_type", "api")
+        .order("name");
+      return data || [];
+    },
+  });
+
+  const handleAdd = async () => {
+    if (!newProductId || !newServiceId.trim()) {
+      toast.error("Product and Service ID are required");
+      return;
+    }
+    setAdding(true);
+    try {
+      const { error } = await supabase.from("service_provider_mappings").insert({
+        product_id: newProductId,
+        provider_id: providerId,
+        provider_service_id: newServiceId.trim(),
+        provider_price: parseFloat(newPrice) || 0,
+        priority: parseInt(newPriority) || 0,
+      });
+      if (error) throw error;
+      toast.success("Mapping added");
+      setNewProductId("");
+      setNewServiceId("");
+      setNewPrice("0");
+      setNewPriority("0");
+      queryClient.invalidateQueries({ queryKey: ["provider-mappings", providerId] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to add mapping");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleRemove = async (id: string) => {
+    try {
+      const { error } = await supabase.from("service_provider_mappings").delete().eq("id", id);
+      if (error) throw error;
+      toast.success("Mapping removed");
+      queryClient.invalidateQueries({ queryKey: ["provider-mappings", providerId] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to remove");
+    }
+  };
+
+  const handleToggle = async (id: string, currentActive: boolean) => {
+    try {
+      const { error } = await supabase.from("service_provider_mappings").update({ is_active: !currentActive }).eq("id", id);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["provider-mappings", providerId] });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to toggle");
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Link2 className="w-4 h-4 text-primary" />
+            Service Mappings — {providerName}
+          </DialogTitle>
+        </DialogHeader>
+
+        {/* Existing mappings */}
+        <div className="space-y-2">
+          {isLoading ? (
+            <div className="text-center py-4 text-sm text-muted-foreground">Loading...</div>
+          ) : mappings.length === 0 ? (
+            <div className="text-center py-4 text-sm text-muted-foreground">No mappings yet</div>
+          ) : (
+            mappings.map((m: any) => (
+              <div key={m.id} className="flex items-center gap-3 p-3 rounded-xl border border-border/40 bg-card/60">
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-foreground truncate">{m.products?.name || "Unknown"}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Service ID: <span className="font-mono">{m.provider_service_id}</span>
+                    {" · "}Price: <span className="font-mono">${m.provider_price}</span>
+                    {" · "}Priority: <span className="font-mono">{m.priority}</span>
+                  </p>
+                </div>
+                <Switch
+                  checked={m.is_active}
+                  onCheckedChange={() => handleToggle(m.id, m.is_active)}
+                />
+                <Button size="icon" variant="ghost" className="h-7 w-7 text-destructive" onClick={() => handleRemove(m.id)}>
+                  <Trash2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Add new mapping */}
+        <div className="border-t border-border/30 pt-4 space-y-3">
+          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Add Mapping</p>
+          <Select value={newProductId} onValueChange={setNewProductId}>
+            <SelectTrigger className="h-9 text-sm">
+              <SelectValue placeholder="Select API product..." />
+            </SelectTrigger>
+            <SelectContent>
+              {products.map((p: any) => (
+                <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="grid grid-cols-3 gap-2">
+            <div>
+              <Label className="text-xs">Service ID</Label>
+              <Input value={newServiceId} onChange={(e) => setNewServiceId(e.target.value)} placeholder="182" className="h-8 text-sm" />
+            </div>
+            <div>
+              <Label className="text-xs">Price ($)</Label>
+              <Input type="number" min={0} step={0.01} value={newPrice} onChange={(e) => setNewPrice(e.target.value)} className="h-8 text-sm" />
+            </div>
+            <div>
+              <Label className="text-xs">Priority</Label>
+              <Input type="number" min={0} value={newPriority} onChange={(e) => setNewPriority(e.target.value)} className="h-8 text-sm" />
+            </div>
+          </div>
+          <Button size="sm" onClick={handleAdd} disabled={adding} className="w-full btn-glow">
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            {adding ? "Adding..." : "Add Mapping"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function AdminProviders() {
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -157,6 +330,8 @@ export default function AdminProviders() {
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const [testingId, setTestingId] = useState<string | null>(null);
+  const [mappingsTarget, setMappingsTarget] = useState<{ id: string; name: string } | null>(null);
 
   const { data: providers = [], isLoading } = useQuery({
     queryKey: ["admin-providers"],
@@ -185,6 +360,20 @@ export default function AdminProviders() {
     },
   });
 
+  const { data: mappingCounts = {} } = useQuery({
+    queryKey: ["admin-provider-mapping-counts"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("service_provider_mappings")
+        .select("provider_id");
+      const counts: Record<string, number> = {};
+      (data || []).forEach((m: any) => {
+        if (m.provider_id) counts[m.provider_id] = (counts[m.provider_id] || 0) + 1;
+      });
+      return counts;
+    },
+  });
+
   const filtered = providers.filter((p: any) =>
     !search.trim() || p.name.toLowerCase().includes(search.trim().toLowerCase())
   );
@@ -202,6 +391,7 @@ export default function AdminProviders() {
       fulfillment_type: provider.fulfillment_type || "manual",
       is_verified: provider.is_verified || false,
       api_url: provider.api_url || "",
+      api_key: provider.api_key || "",
       commission_percent: provider.commission_percent ?? 8,
       sort_order: provider.sort_order || 0,
       logo_url: provider.logo_url || "",
@@ -252,6 +442,7 @@ export default function AdminProviders() {
             fulfillment_type: form.fulfillment_type,
             is_verified: form.is_verified,
             api_url: form.api_url.trim() || null,
+            api_key: form.api_key.trim() || null,
             commission_percent: form.commission_percent,
             sort_order: form.sort_order,
             logo_url: form.logo_url.trim() || null,
@@ -267,6 +458,7 @@ export default function AdminProviders() {
             fulfillment_type: form.fulfillment_type,
             is_verified: form.is_verified,
             api_url: form.api_url.trim() || null,
+            api_key: form.api_key.trim() || null,
             commission_percent: form.commission_percent,
             sort_order: form.sort_order,
             logo_url: form.logo_url.trim() || null,
@@ -307,6 +499,45 @@ export default function AdminProviders() {
     }
   };
 
+  const handleTestConnection = async (provider: any) => {
+    if (!provider.api_url || !provider.api_key) {
+      toast.error("API URL and API Key are required to test connection");
+      return;
+    }
+    setTestingId(provider.id);
+    try {
+      // We need to use the api_providers table for test-api-provider edge function
+      // But our providers are in imei_providers. Let's call the provider API directly via a simple balance check.
+      const testUrl = `${provider.api_url}?key=${provider.api_key}&action=balance`;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000);
+
+      // Use edge function for the test
+      const { data: session } = await supabase.auth.getSession();
+      const res = await supabase.functions.invoke("test-api-provider", {
+        body: { provider_id: provider.id },
+      });
+
+      clearTimeout(timeout);
+
+      if (res.error) {
+        toast.error(`Connection failed: ${res.error.message}`);
+        return;
+      }
+
+      const result = res.data;
+      if (result?.success) {
+        toast.success(`Connected! Balance: ${result.balance} ${result.currency || ""}`);
+      } else {
+        toast.error(`Connection failed: ${result?.message || "Unknown error"}`);
+      }
+    } catch (err: any) {
+      toast.error(err.message || "Connection test failed");
+    } finally {
+      setTestingId(null);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -344,6 +575,7 @@ export default function AdminProviders() {
                 <th className="text-center px-3 py-3 font-semibold">Success</th>
                 <th className="text-center px-3 py-3 font-semibold">Completed</th>
                 <th className="text-center px-3 py-3 font-semibold">Products</th>
+                <th className="text-center px-3 py-3 font-semibold">Mappings</th>
                 <th className="text-center px-3 py-3 font-semibold">Status</th>
                 <th className="text-right px-5 py-3 font-semibold">Actions</th>
               </tr>
@@ -352,14 +584,14 @@ export default function AdminProviders() {
               {isLoading ? (
                 Array.from({ length: 3 }).map((_, i) => (
                   <tr key={i} className="border-b border-border/10">
-                    <td colSpan={8} className="px-5 py-4">
+                    <td colSpan={9} className="px-5 py-4">
                       <div className="h-4 bg-muted/30 rounded animate-pulse w-full" />
                     </td>
                   </tr>
                 ))
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-5 py-8 text-center text-muted-foreground">
+                  <td colSpan={9} className="px-5 py-8 text-center text-muted-foreground">
                     No providers found
                   </td>
                 </tr>
@@ -432,6 +664,15 @@ export default function AdminProviders() {
                       <span className="font-mono">{productCounts[p.id] || 0}</span>
                     </td>
                     <td className="px-3 py-3 text-center">
+                      <button
+                        onClick={() => setMappingsTarget({ id: p.id, name: p.name })}
+                        className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
+                      >
+                        <Link2 className="w-3 h-3" />
+                        {mappingCounts[p.id] || 0}
+                      </button>
+                    </td>
+                    <td className="px-3 py-3 text-center">
                       <span className={cn(
                         "text-[11px] px-2 py-0.5 rounded-full font-medium",
                         p.status === "active" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
@@ -441,6 +682,22 @@ export default function AdminProviders() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       <div className="flex items-center justify-end gap-1">
+                        {p.fulfillment_type === "api" && (
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-8 w-8"
+                            disabled={testingId === p.id}
+                            onClick={() => handleTestConnection(p)}
+                            title="Test API Connection"
+                          >
+                            {testingId === p.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Wifi className="w-3.5 h-3.5 text-emerald-500" />
+                            )}
+                          </Button>
+                        )}
                         <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => openEdit(p)}>
                           <Pencil className="w-3.5 h-3.5" />
                         </Button>
@@ -521,10 +778,16 @@ export default function AdminProviders() {
               </Select>
             </div>
             {form.fulfillment_type === "api" && (
-              <div className="space-y-1.5">
-                <Label>API URL</Label>
-                <Input value={form.api_url} onChange={(e) => setForm({ ...form, api_url: e.target.value })} placeholder="https://..." />
-              </div>
+              <>
+                <div className="space-y-1.5">
+                  <Label>API URL</Label>
+                  <Input value={form.api_url} onChange={(e) => setForm({ ...form, api_url: e.target.value })} placeholder="https://provider.com/api/v2" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label>API Key</Label>
+                  <Input type="password" value={form.api_key} onChange={(e) => setForm({ ...form, api_key: e.target.value })} placeholder="Enter API key" />
+                </div>
+              </>
             )}
             <div className="space-y-1.5">
               <Label>Commission %</Label>
@@ -559,6 +822,16 @@ export default function AdminProviders() {
         destructive
         loading={deleting}
       />
+
+      {/* Provider Mappings Dialog */}
+      {mappingsTarget && (
+        <ProviderMappingsDialog
+          open={!!mappingsTarget}
+          onOpenChange={(open) => { if (!open) setMappingsTarget(null); }}
+          providerId={mappingsTarget.id}
+          providerName={mappingsTarget.name}
+        />
+      )}
     </div>
   );
 }
