@@ -119,7 +119,13 @@ export default function DashboardHome() {
           </div>
 
           {/* ═══ 4 PREMIUM STAT CARDS ═══ */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+          <div className="relative grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+            {/* Floating orbs for visual depth */}
+            <div className="pointer-events-none absolute -inset-8 overflow-hidden -z-10" aria-hidden="true">
+              <div className="absolute top-1/2 left-1/4 w-32 h-32 rounded-full bg-primary/8 blur-3xl animate-float-gentle" />
+              <div className="absolute top-1/3 right-1/4 w-40 h-40 rounded-full bg-accent/6 blur-3xl animate-float-gentle" style={{ animationDelay: "-3s" }} />
+              <div className="absolute bottom-0 left-1/2 w-28 h-28 rounded-full bg-primary-glow/5 blur-2xl animate-float-gentle" style={{ animationDelay: "-5s" }} />
+            </div>
             {/* Wallet Balance */}
             <div className="stat-card hover-lift group opacity-0 animate-stagger-in" style={{ animationDelay: "0s" }}>
               <div className="flex items-center gap-3 mb-4">
