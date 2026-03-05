@@ -56,8 +56,8 @@ export default function CapcutProServicePage() {
   useEffect(() => {
     const title = "CapCut Pro Accounts — Professional Reseller Distribution | KKTech";
     const desc = "CapCut Pro accounts for professional resellers. Instant delivery, verified credentials, transparent pricing. Canva Pro also available.";
-    const url = "https://kktech.shop/services/capcut-pro";
-    const image = "https://kktech.shop/og-capcut-pro.png";
+    const url = "https://karkar4.store/services/capcut-pro";
+    const image = "https://karkar4.store/og-capcut-pro.png";
 
     document.title = title;
     const setMeta = (attr: string, key: string, content: string) => {
@@ -84,7 +84,7 @@ export default function CapcutProServicePage() {
       "@type": "Service",
       name: "CapCut Pro Account Distribution",
       description: desc,
-      provider: { "@type": "Organization", name: "KKTech", url: "https://kktech.shop" },
+      provider: { "@type": "Organization", name: "KKTech", url: "https://karkar4.store" },
       url,
       areaServed: "Worldwide",
       serviceType: "Digital Subscription Accounts",

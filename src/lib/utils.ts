@@ -6,4 +6,4 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /** Canonical site URL — update when custom domain is live */
-export const SITE_URL = "https://kktech.shop";
+export const SITE_URL = "https://karkar4.store";

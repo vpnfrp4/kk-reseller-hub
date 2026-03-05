@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     }
 
     webpush.setVapidDetails(
-      "mailto:admin@kktech.shop",
+      "mailto:admin@karkar4.store",
       vapidData.value.publicKey,
       vapidData.value.privateKey
     );
