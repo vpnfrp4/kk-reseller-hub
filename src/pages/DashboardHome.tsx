@@ -82,6 +82,9 @@ export default function DashboardHome() {
   const totalOrders = orders?.length || 0;
   const successOrders = orders?.filter((o: any) => o.status === "delivered" || o.status === "completed").length || 0;
   const successRate = totalOrders > 0 ? Math.round((successOrders / totalOrders) * 100) : 0;
+  const displayOrders = useCountUp(ordersLoading ? 0 : totalOrders, 700);
+  const displaySuccess = useCountUp(ordersLoading ? 0 : successRate, 900);
+  const statsLoading = ordersLoading || !profile;
 
   // Filter orders
   const filteredOrders = useMemo(() => {
@@ -126,6 +129,7 @@ export default function DashboardHome() {
               <div className="absolute top-1/3 right-1/4 w-40 h-40 rounded-full bg-accent/6 blur-3xl animate-float-gentle" style={{ animationDelay: "-3s" }} />
               <div className="absolute bottom-0 left-1/2 w-28 h-28 rounded-full bg-primary-glow/5 blur-2xl animate-float-gentle" style={{ animationDelay: "-5s" }} />
             </div>
+
             {/* Wallet Balance */}
             <div className="stat-card hover-lift group opacity-0 animate-stagger-in" style={{ animationDelay: "0s" }}>
               <div className="flex items-center gap-3 mb-4">
@@ -134,34 +138,52 @@ export default function DashboardHome() {
                 </div>
                 <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Balance</span>
               </div>
-              <p className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums tracking-tight gold-shimmer">
-                <Money amount={displayBalance} raw className="text-2xl sm:text-3xl" />
-              </p>
-              <button
-                onClick={() => navigate("/dashboard/wallet")}
-                className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Funds
-              </button>
+              {statsLoading ? (
+                <div className="space-y-2">
+                  <div className="h-8 w-28 bg-muted-foreground/10 rounded-lg animate-pulse" />
+                  <div className="h-4 w-20 bg-muted-foreground/5 rounded animate-pulse" />
+                </div>
+              ) : (
+                <>
+                  <p className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums tracking-tight gold-shimmer">
+                    <Money amount={displayBalance} raw className="text-2xl sm:text-3xl" />
+                  </p>
+                  <button
+                    onClick={() => navigate("/dashboard/wallet")}
+                    className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" /> Add Funds
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Total Orders */}
             <div className="stat-card hover-lift group opacity-0 animate-stagger-in" style={{ animationDelay: "0.08s" }}>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-11 h-11 rounded-xl bg-violet-500/10 flex items-center justify-center shrink-0 group-hover:bg-violet-500/15 transition-colors">
-                  <ShoppingCart className="w-5 h-5 text-violet-400" strokeWidth={1.5} />
+                <div className="w-11 h-11 rounded-xl bg-accent/10 flex items-center justify-center shrink-0 group-hover:bg-accent/15 transition-colors">
+                  <ShoppingCart className="w-5 h-5 text-accent" strokeWidth={1.5} />
                 </div>
                 <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Orders</span>
               </div>
-              <p className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums tracking-tight text-foreground">
-                {totalOrders.toLocaleString()}
-              </p>
-              <button
-                onClick={() => navigate("/dashboard/orders")}
-                className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-violet-400 hover:text-violet-300 transition-colors"
-              >
-                View all <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+              {statsLoading ? (
+                <div className="space-y-2">
+                  <div className="h-8 w-16 bg-muted-foreground/10 rounded-lg animate-pulse" />
+                  <div className="h-4 w-14 bg-muted-foreground/5 rounded animate-pulse" />
+                </div>
+              ) : (
+                <>
+                  <p className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums tracking-tight text-foreground">
+                    {displayOrders.toLocaleString()}
+                  </p>
+                  <button
+                    onClick={() => navigate("/dashboard/orders")}
+                    className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-accent hover:text-accent/80 transition-colors"
+                  >
+                    View all <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Success Rate */}
@@ -172,19 +194,28 @@ export default function DashboardHome() {
                 </div>
                 <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Success</span>
               </div>
-              <p className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums tracking-tight text-foreground">
-                {successRate}%
-              </p>
-              <p className="mt-3 text-xs text-muted-foreground">
-                {successOrders} of {totalOrders} orders
-              </p>
+              {statsLoading ? (
+                <div className="space-y-2">
+                  <div className="h-8 w-14 bg-muted-foreground/10 rounded-lg animate-pulse" />
+                  <div className="h-4 w-24 bg-muted-foreground/5 rounded animate-pulse" />
+                </div>
+              ) : (
+                <>
+                  <p className="text-2xl sm:text-3xl font-extrabold font-mono tabular-nums tracking-tight text-foreground">
+                    {displaySuccess}%
+                  </p>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    {successOrders} of {totalOrders} orders
+                  </p>
+                </>
+              )}
             </div>
 
             {/* Active Services */}
             <div className="stat-card hover-lift group opacity-0 animate-stagger-in" style={{ animationDelay: "0.24s" }}>
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-11 h-11 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0 group-hover:bg-amber-500/15 transition-colors">
-                  <Zap className="w-5 h-5 text-amber-400" strokeWidth={1.5} />
+                <div className="w-11 h-11 rounded-xl bg-warning/10 flex items-center justify-center shrink-0 group-hover:bg-warning/15 transition-colors">
+                  <Zap className="w-5 h-5 text-warning" strokeWidth={1.5} />
                 </div>
                 <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Services</span>
               </div>
@@ -193,7 +224,7 @@ export default function DashboardHome() {
               </p>
               <button
                 onClick={() => navigate("/dashboard/place-order")}
-                className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors"
+                className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-warning hover:text-warning/80 transition-colors"
               >
                 Place Order <ArrowRight className="w-3.5 h-3.5" />
               </button>
