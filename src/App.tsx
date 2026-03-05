@@ -10,6 +10,7 @@ import { LangProvider } from "@/contexts/LangContext";
 import { useRealtimeNotifications } from "@/hooks/use-realtime-notifications";
 import { lazy, Suspense, useState, useCallback } from "react";
 import SplashScreen from "@/components/SplashScreen";
+import RouteProgressBar from "@/components/RouteProgressBar";
 import PwaUpdatePrompt from "@/components/PwaUpdatePrompt";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
 import AdminLayout from "./components/admin/AdminLayout";
@@ -192,6 +193,7 @@ const App = () => {
             <BrowserRouter>
               <AuthProvider>
                 <CurrencyProvider>
+                  <RouteProgressBar />
                   <ErrorBoundary>
                     <AppRoutes />
                   </ErrorBoundary>
