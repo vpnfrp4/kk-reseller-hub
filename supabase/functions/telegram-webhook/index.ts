@@ -55,6 +55,7 @@ const HELP_TEXT = [
   "/start — Link your account",
   "/balance — 💰 Check wallet balance (MMK & USD)",
   "/orders — 📦 View your last 5 orders",
+  "/products [category] — 🛒 Browse available services",
   "/status [OrderCode] — 🔍 Check a specific order",
   "/help — ℹ️ Show this help message",
   "/unlink — 🔓 Disconnect Telegram from your account",
@@ -355,6 +356,89 @@ async function handleStatus(supabase: any, botToken: string, chatId: number, tex
   await sendMessage(botToken, chatId, lines.join("\n"));
 }
 
+// ── Handler: /products ──
+async function handleProducts(supabase: any, botToken: string, chatId: number, text: string) {
+  const parts = text.split(" ");
+  const categoryFilter = parts.length > 1 ? parts.slice(1).join(" ").trim().toLowerCase() : null;
+
+  let query = supabase
+    .from("products")
+    .select("display_id, name, category, wholesale_price, product_type, processing_time, stock")
+    .order("category", { ascending: true })
+    .order("sort_order", { ascending: true })
+    .limit(50);
+
+  const { data: products, error } = await query;
+
+  if (error || !products || products.length === 0) {
+    await sendMessage(botToken, chatId, "📦 No services available at the moment.");
+    return;
+  }
+
+  // Get unique categories
+  const allCategories = [...new Set(products.map((p: any) => p.category))];
+
+  // Filter by category if specified
+  const filtered = categoryFilter
+    ? products.filter((p: any) => p.category.toLowerCase().includes(categoryFilter))
+    : products;
+
+  if (filtered.length === 0) {
+    await sendMessage(botToken, chatId, [
+      `❌ No services found in category "<b>${escapeHtml(categoryFilter!)}</b>".`,
+      "",
+      "📂 <b>Available categories:</b>",
+      ...allCategories.map((c: string) => `• ${escapeHtml(c)}`),
+      "",
+      "💡 Usage: <code>/products IMEI Unlock</code>",
+    ].join("\n"));
+    return;
+  }
+
+  // Group by category
+  const grouped: Record<string, any[]> = {};
+  for (const p of filtered) {
+    if (!grouped[p.category]) grouped[p.category] = [];
+    grouped[p.category].push(p);
+  }
+
+  const lines: string[] = [
+    "🛒 <b>Available Services</b>",
+    "━━━━━━━━━━━━━━━━━━",
+  ];
+
+  let count = 0;
+  for (const [category, items] of Object.entries(grouped)) {
+    if (count > 0) lines.push("");
+    lines.push(`📂 <b>${escapeHtml(category)}</b> (${items.length})`);
+
+    for (const p of items.slice(0, 10)) {
+      const typeIcon = p.product_type === "imei" ? "🔓" : p.product_type === "api" ? "🤖" : "📦";
+      const price = Number(p.wholesale_price).toLocaleString();
+      const time = p.processing_time || "Instant";
+      const stockInfo = p.product_type === "digital" ? ` | 📦 ${p.stock}` : "";
+      lines.push(`  ${typeIcon} #${p.display_id} ${escapeHtml(p.name)}`);
+      lines.push(`     💰 ${price} MMK | ⏱ ${time}${stockInfo}`);
+    }
+
+    if (items.length > 10) {
+      lines.push(`  ... and ${items.length - 10} more`);
+    }
+    count++;
+  }
+
+  lines.push("");
+  lines.push("━━━━━━━━━━━━━━━━━━");
+
+  if (!categoryFilter) {
+    lines.push("💡 Filter: <code>/products IMEI Unlock</code>");
+  }
+
+  lines.push(`🔗 <a href="https://kk-reseller-hub.lovable.app/dashboard/place-order">Order in Dashboard</a>`);
+
+  await sendMessage(botToken, chatId, lines.join("\n"));
+}
+
 // ── Handler: /unlink ──
 async function handleUnlink(supabase: any, botToken: string, chatId: number, telegramId: string, user: any) {
   // Remove from telegram_connections
@@ -446,6 +530,12 @@ Deno.serve(async (req) => {
     // ── /orders ──
     if (text === "/orders") {
       await handleOrders(supabase, botToken, chatId, user);
+      return new Response("OK");
+    }
+
+    // ── /products ──
+    if (text === "/products" || text.startsWith("/products ")) {
+      await handleProducts(supabase, botToken, chatId, text);
       return new Response("OK");
     }
 
