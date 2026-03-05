@@ -219,7 +219,7 @@ export default function AdminTopups() {
     <div className="space-y-6 lg:space-y-8">
       {/* Header */}
       <div className="animate-fade-in">
-        <h1 className="text-h1 text-foreground">Wallet Top-ups</h1>
+        <h1 className="text-h1 gradient-text">Wallet Top-ups</h1>
         <p className="text-caption text-muted-foreground mt-1">Review and approve reseller top-up requests</p>
       </div>
 

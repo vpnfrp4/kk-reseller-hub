@@ -216,7 +216,7 @@ export default function AdminResellers() {
     <div className="space-y-6 lg:space-y-8">
       {/* Header */}
       <div className="animate-fade-in">
-        <h1 className="text-h1 text-foreground">Resellers</h1>
+        <h1 className="text-h1 gradient-text">Resellers</h1>
         <p className="text-caption text-muted-foreground mt-1">
           Manage registered resellers
           {resellers?.length ? ` · ${filtered.length} of ${resellers.length}` : ""}

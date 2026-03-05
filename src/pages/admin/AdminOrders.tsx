@@ -259,7 +259,7 @@ export default function AdminOrders() {
     <div className="space-y-6 lg:space-y-8">
       {/* Header */}
       <div className="animate-fade-in">
-        <h1 className="text-h1 text-foreground">Order Management</h1>
+        <h1 className="text-h1 gradient-text">Order Management</h1>
         <p className="text-caption text-muted-foreground mt-1">Search, filter, and manage all orders</p>
       </div>
 

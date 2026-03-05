@@ -312,7 +312,7 @@ export default function AdminProviders() {
       {/* Header */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <p className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground">Providers</p>
+          <p className="text-[10px] uppercase tracking-widest font-semibold gradient-text">Providers</p>
           <p className="text-xs text-muted-foreground mt-0.5">{providers.length} provider{providers.length !== 1 ? "s" : ""} registered</p>
         </div>
         <Button size="sm" className="btn-glow" onClick={openCreate}>

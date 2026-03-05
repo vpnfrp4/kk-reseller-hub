@@ -198,7 +198,7 @@ export default function AdminMonitoring() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">Monitoring</h1>
+          <h1 className="text-xl font-bold gradient-text">Monitoring</h1>
           <p className="text-sm text-muted-foreground">API health, errors, and refund tracking</p>
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh}>

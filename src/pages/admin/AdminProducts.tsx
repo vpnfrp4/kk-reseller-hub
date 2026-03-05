@@ -1017,7 +1017,7 @@ export default function AdminProducts() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in">
         <div>
-          <h1 className="text-h1 text-foreground flex items-center gap-2.5">
+          <h1 className="text-h1 gradient-text flex items-center gap-2.5">
             <Package className="w-6 h-6 text-primary" />
             Products
           </h1>
