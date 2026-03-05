@@ -20,7 +20,6 @@ import {
   ShieldAlert,
   ArrowLeft,
   Smartphone,
-  Apple,
   Globe,
   Monitor,
   Link2,
@@ -28,6 +27,7 @@ import {
   ChevronRight,
   ArrowRight,
 } from "lucide-react";
+import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Money } from "@/components/shared";
@@ -46,26 +46,7 @@ interface PurchaseResult {
 }
 
 /* ═══ CATEGORY CONFIG ═══ */
-const CATEGORY_ICONS: Record<string, typeof Apple> = {
-  "Apple": Apple,
-  "Apple Unlock": Apple,
-  "Apple Services": Apple,
-  "IMEI": Smartphone,
-  "IMEI Checks": Smartphone,
-  "Android": Monitor,
-  "Android Unlock": Monitor,
-  "API": Link2,
-  "API Services": Link2,
-  "Subscriptions": Package,
-  "Repair": Globe,
-};
-
-function getCategoryIcon(name: string) {
-  for (const [key, Icon] of Object.entries(CATEGORY_ICONS)) {
-    if (name.toLowerCase().includes(key.toLowerCase())) return Icon;
-  }
-  return Package;
-}
+// Now using shared getCategoryIcon from @/lib/category-icons
 
 export default function PlaceOrderPage() {
   const { user, profile, refreshProfile } = useAuth();
@@ -445,6 +426,16 @@ export default function PlaceOrderPage() {
                           style={!isOutOfStock ? { boxShadow: "var(--shadow-card)" } : undefined}
                         >
                           <div className="flex items-start gap-3">
+                            {/* Category Icon */}
+                            {(() => {
+                              const CatIcon = getCategoryIcon(p.category, p.name);
+                              const catColor = getCategoryIconColor(p.category, p.name);
+                              return (
+                                <div className={cn("shrink-0 w-9 h-9 rounded-xl flex items-center justify-center mt-0.5", catColor)}>
+                                  <CatIcon className="w-4 h-4" />
+                                </div>
+                              );
+                            })()}
                             {/* Left */}
                             <div className="min-w-0 flex-1">
                               <div className="flex items-start gap-2">
