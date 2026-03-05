@@ -8,8 +8,8 @@ const corsHeaders = {
 
 // ── In-memory rate limiter (per isolate) ──
 const rateLimitMap = new Map<string, number[]>();
-const RATE_LIMIT_WINDOW = 60_000; // 1 minute
-const RATE_LIMIT_MAX = 10; // max 10 purchases per minute per user
+const RATE_LIMIT_WINDOW = 60_000;
+const RATE_LIMIT_MAX = 10;
 
 function isRateLimited(userId: string): boolean {
   const now = Date.now();
@@ -36,7 +36,6 @@ function sanitizeLink(raw: string | undefined): string {
 
 // ── Atomic refund helper ──
 async function atomicRefund(serviceClient: any, userId: string, amount: number, orderId: string, productName: string, reason: string, providerId?: string, serviceId?: string) {
-  // Use atomic DB function — no read-then-write race condition
   await serviceClient.rpc("atomic_refund", {
     p_user_id: userId,
     p_amount: amount,
@@ -60,7 +59,6 @@ async function atomicRefund(serviceClient: any, userId: string, amount: number, 
       description: `Auto-refund: ${productName} (API failure)`,
     });
 
-  // Log refund
   await serviceClient.from("api_logs").insert({
     order_id: orderId,
     user_id: userId,
@@ -71,6 +69,156 @@ async function atomicRefund(serviceClient: any, userId: string, amount: number, 
     log_type: "refund",
     response_body: { reason, amount },
   });
+}
+
+// ── Smart provider routing: try providers in priority order ──
+interface ProviderMapping {
+  provider_id: string;
+  provider_service_id: string;
+  provider_price: number;
+  priority: number;
+  api_url: string;
+  api_key: string;
+}
+
+async function getProviderRoutes(serviceClient: any, productId: string, serviceId?: string): Promise<ProviderMapping[]> {
+  // 1. Check service_provider_mappings for multi-provider routes
+  const { data: mappings } = await serviceClient
+    .from("service_provider_mappings")
+    .select("provider_id, provider_service_id, provider_price, priority")
+    .eq("product_id", productId)
+    .eq("is_active", true)
+    .order("priority", { ascending: true });
+
+  if (mappings && mappings.length > 0) {
+    // Fetch provider details for each mapping
+    const providerIds = [...new Set(mappings.map((m: any) => m.provider_id))];
+    const { data: providers } = await serviceClient
+      .from("imei_providers")
+      .select("id, api_url, api_key, status")
+      .in("id", providerIds)
+      .eq("status", "active");
+
+    const providerMap = new Map((providers || []).map((p: any) => [p.id, p]));
+
+    return mappings
+      .filter((m: any) => providerMap.has(m.provider_id))
+      .map((m: any) => {
+        const p = providerMap.get(m.provider_id)!;
+        return {
+          provider_id: m.provider_id,
+          provider_service_id: m.provider_service_id,
+          provider_price: m.provider_price,
+          priority: m.priority,
+          api_url: p.api_url,
+          api_key: p.api_key,
+        };
+      });
+  }
+
+  // 2. Fallback: use the product's directly linked provider
+  const { data: product } = await serviceClient
+    .from("products")
+    .select("provider_id, api_service_id")
+    .eq("id", productId)
+    .single();
+
+  if (product?.provider_id) {
+    const { data: provider } = await serviceClient
+      .from("imei_providers")
+      .select("id, api_url, api_key, status")
+      .eq("id", product.provider_id)
+      .eq("status", "active")
+      .single();
+
+    if (provider?.api_url && provider?.api_key) {
+      return [{
+        provider_id: provider.id,
+        provider_service_id: serviceId || product.api_service_id || "",
+        provider_price: 0,
+        priority: 0,
+        api_url: provider.api_url,
+        api_key: provider.api_key,
+      }];
+    }
+  }
+
+  return [];
+}
+
+async function callProviderApi(
+  provider: ProviderMapping,
+  serviceId: string,
+  qty: number,
+  link: string,
+  serviceClient: any,
+  orderId: string,
+  userId: string,
+): Promise<{ success: boolean; orderExternalId?: string; error?: string }> {
+  const apiUrl = new URL(provider.api_url);
+  apiUrl.searchParams.set("key", provider.api_key);
+  apiUrl.searchParams.set("action", "add");
+  apiUrl.searchParams.set("service", serviceId);
+  apiUrl.searchParams.set("quantity", String(qty));
+  if (link) apiUrl.searchParams.set("link", link);
+
+  const startTime = Date.now();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+
+  try {
+    const apiRes = await fetch(apiUrl.toString(), {
+      method: "POST",
+      headers: { "Accept": "application/json" },
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+
+    const apiBody = await apiRes.json();
+    const duration = Date.now() - startTime;
+
+    // Log the API call (strip key from URL)
+    const logUrl = new URL(provider.api_url);
+    logUrl.searchParams.set("action", "add");
+    logUrl.searchParams.set("service", serviceId);
+    await serviceClient.from("api_logs").insert({
+      order_id: orderId,
+      user_id: userId,
+      provider_id: provider.provider_id,
+      action: "add",
+      service_id: serviceId,
+      request_url: logUrl.toString(),
+      request_body: { service: serviceId, quantity: qty, link },
+      response_status: apiRes.status,
+      response_body: apiBody,
+      success: !!apiBody?.order,
+      error_message: apiBody?.order ? null : (apiBody?.error || "No order ID returned"),
+      duration_ms: duration,
+      log_type: "api_call",
+    });
+
+    if (apiBody?.order) {
+      return { success: true, orderExternalId: String(apiBody.order) };
+    }
+    return { success: false, error: apiBody?.error || "No order ID returned" };
+  } catch (e: any) {
+    clearTimeout(timeout);
+    const errorMsg = e.name === "AbortError" ? "Provider API timed out (30s)" : e.message;
+
+    await serviceClient.from("api_logs").insert({
+      order_id: orderId,
+      user_id: userId,
+      provider_id: provider.provider_id,
+      action: "add",
+      service_id: serviceId,
+      request_url: provider.api_url,
+      success: false,
+      error_message: errorMsg,
+      log_type: "api_call",
+    });
+
+    return { success: false, error: errorMsg };
+  }
 }
 
 Deno.serve(async (req) => {
@@ -104,7 +252,6 @@ Deno.serve(async (req) => {
 
     const userId = claimsData.claims.sub;
 
-    // ── Rate limiting ──
     if (isRateLimited(userId)) {
       return new Response(JSON.stringify({ success: false, error: "Too many requests. Please wait a moment." }), {
         status: 200,
@@ -156,7 +303,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Duplicate order prevention (5s window, same product + link) ──
+    // ── Duplicate order prevention (5s window) ──
     if (service_id && sanitizedLink) {
       const fiveSecondsAgo = new Date(Date.now() - 5000).toISOString();
       const { data: recentOrders } = await serviceClient
@@ -175,12 +322,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Merge API-specific fields into custom_fields
     const mergedCustomFields = { ...(custom_fields || {}) };
     if (sanitizedLink) mergedCustomFields.__link = sanitizedLink;
     if (service_id) mergedCustomFields.__service_id = service_id;
 
-    // For API products with a service_id, fetch service-level margin to override product margin
     let serviceMargin: number | null = null;
     if (service_id) {
       const { data: svcData } = await serviceClient
@@ -194,7 +339,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ── Fetch reseller tier discount and apply ──
     const { data: tierDiscount } = await serviceClient.rpc("get_user_tier_discount", {
       p_user_id: userId,
     });
@@ -224,7 +368,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    // ── Apply tier discount: refund the discount amount back to user ──
+    // ── Apply tier discount ──
     if (discount > 0 && data.price > 0) {
       const discountAmount = Math.floor(data.price * (discount / 100));
       if (discountAmount > 0) {
@@ -233,7 +377,6 @@ Deno.serve(async (req) => {
           p_amount: discountAmount,
         });
 
-        // Log discount as a wallet transaction
         await serviceClient.from("wallet_transactions").insert({
           user_id: userId,
           type: "discount",
@@ -242,7 +385,6 @@ Deno.serve(async (req) => {
           description: `Tier discount (${discount}%) on ${data.product_name}`,
         });
 
-        // Update order profit to reflect discount
         await serviceClient
           .from("orders")
           .update({
@@ -251,103 +393,113 @@ Deno.serve(async (req) => {
           })
           .eq("id", data.order_id);
 
-        // Include discount info in response
         data.discount_percent = discount;
         data.discount_amount = discountAmount;
         data.final_price = data.price - discountAmount;
       }
     }
 
-    // ═══ API FULFILLMENT: Call provider API for api-type products ═══
+    // ═══ SMART API FULFILLMENT WITH MULTI-PROVIDER ROUTING ═══
     if (data.product_type === "api" && service_id) {
       try {
-        const { data: product } = await serviceClient
-          .from("products")
-          .select("provider_id, api_service_id")
-          .eq("id", product_id)
-          .single();
+        const routes = await getProviderRoutes(serviceClient, product_id, service_id);
 
-        if (product?.provider_id) {
-          const { data: provider } = await serviceClient
-            .from("imei_providers")
-            .select("api_url, api_key")
-            .eq("id", product.provider_id)
-            .single();
+        if (routes.length === 0) {
+          await atomicRefund(serviceClient, userId, data.price, data.order_id, data.product_name, "No active provider available");
+          return new Response(JSON.stringify({
+            ...data,
+            success: false,
+            error: "No active provider available for this service. Your balance has been refunded.",
+            refunded: true,
+          }), {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
 
-          if (provider?.api_url && provider?.api_key) {
-            const apiUrl = new URL(provider.api_url);
-            apiUrl.searchParams.set("key", provider.api_key);
-            apiUrl.searchParams.set("action", "add");
-            apiUrl.searchParams.set("service", service_id);
-            apiUrl.searchParams.set("quantity", String(qty));
-            if (sanitizedLink) apiUrl.searchParams.set("link", sanitizedLink);
+        let lastError = "";
+        for (const route of routes) {
+          const effectiveServiceId = route.provider_service_id || service_id;
+          const result = await callProviderApi(
+            route, effectiveServiceId, qty, sanitizedLink,
+            serviceClient, data.order_id, userId
+          );
 
-            const startTime = Date.now();
-            const apiRes = await fetch(apiUrl.toString(), {
-              method: "POST",
-              headers: { "Accept": "application/json" },
+          if (result.success && result.orderExternalId) {
+            // Success — update order with provider info
+            await serviceClient
+              .from("orders")
+              .update({
+                external_order_id: result.orderExternalId,
+                status: "processing",
+                credentials: `Provider Order: ${result.orderExternalId}`,
+                admin_notes: routes.length > 1
+                  ? `Routed to provider ${route.provider_id} (priority ${route.priority})`
+                  : undefined,
+              })
+              .eq("id", data.order_id);
+
+            // Send Telegram notifications
+            await sendTelegramNotifications(serviceClient, userId, product_id, data);
+
+            return new Response(JSON.stringify({
+              ...data,
+              external_order_id: result.orderExternalId,
+              status: "processing",
+            }), {
+              status: 200,
+              headers: { ...corsHeaders, "Content-Type": "application/json" },
             });
+          }
 
-            const apiBody = await apiRes.json();
-            const duration = Date.now() - startTime;
+          // Log fallback attempt
+          lastError = result.error || "Unknown error";
+          console.log(`Provider ${route.provider_id} failed: ${lastError}. Trying next...`);
 
-            // Log the API call
-            const logUrl = new URL(provider.api_url);
-            logUrl.searchParams.set("action", "add");
-            logUrl.searchParams.set("service", service_id);
+          // Notify admin about fallback
+          if (routes.length > 1) {
             await serviceClient.from("api_logs").insert({
               order_id: data.order_id,
               user_id: userId,
-              provider_id: product.provider_id,
-              action: "add",
-              service_id,
-              request_url: logUrl.toString(),
-              request_body: { service: service_id, quantity: qty, link: sanitizedLink },
-              response_status: apiRes.status,
-              response_body: apiBody,
-              success: !!apiBody?.order,
-              error_message: apiBody?.order ? null : (apiBody?.error || "No order ID returned"),
-              duration_ms: duration,
-              log_type: "api_call",
+              provider_id: route.provider_id,
+              action: "fallback",
+              service_id: effectiveServiceId,
+              success: false,
+              error_message: `Fallback triggered: ${lastError}`,
+              log_type: "routing",
             });
-
-            if (apiBody?.order) {
-              await serviceClient
-                .from("orders")
-                .update({
-                  external_order_id: String(apiBody.order),
-                  status: "processing",
-                  credentials: `Provider Order: ${apiBody.order}`,
-                })
-                .eq("id", data.order_id);
-
-              return new Response(JSON.stringify({
-                ...data,
-                external_order_id: apiBody.order,
-                status: "processing",
-              }), {
-                status: 200,
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-              });
-            } else {
-              // API failed: atomic refund
-              const errorMsg = apiBody?.error || "Provider API returned no order ID";
-              await atomicRefund(serviceClient, userId, data.price, data.order_id, data.product_name, `API Error: ${errorMsg}`, product.provider_id, service_id);
-
-              return new Response(JSON.stringify({
-                ...data,
-                success: false,
-                error: `Provider API failed: ${errorMsg}. Your balance has been refunded.`,
-                refunded: true,
-              }), {
-                status: 200,
-                headers: { ...corsHeaders, "Content-Type": "application/json" },
-              });
-            }
           }
         }
+
+        // All providers failed — refund
+        await atomicRefund(
+          serviceClient, userId, data.price, data.order_id, data.product_name,
+          `All providers failed. Last error: ${lastError}`,
+          routes[routes.length - 1]?.provider_id, service_id
+        );
+
+        // Notify admin about total routing failure
+        const adminIds = await serviceClient.from("user_roles").select("user_id").eq("role", "admin");
+        for (const admin of (adminIds.data || [])) {
+          await serviceClient.from("notifications").insert({
+            user_id: admin.user_id,
+            title: "Routing Failure",
+            body: `All ${routes.length} provider(s) failed for ${data.product_name}. Order auto-refunded.`,
+            type: "warning",
+            link: `/admin/orders?order=${data.order_id}`,
+          });
+        }
+
+        return new Response(JSON.stringify({
+          ...data,
+          success: false,
+          error: `All providers failed: ${lastError}. Your balance has been refunded.`,
+          refunded: true,
+        }), {
+          status: 200,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       } catch (apiErr) {
-        // Atomic refund on any API error
         await atomicRefund(serviceClient, userId, data.price, data.order_id, data.product_name, `Error: ${apiErr instanceof Error ? apiErr.message : "Unknown"}`);
 
         return new Response(JSON.stringify({
@@ -362,69 +514,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ═══ TELEGRAM NOTIFICATIONS ═══
-    try {
-      const { data: buyerProfile } = await serviceClient
-        .from("profiles")
-        .select("name, email, telegram_chat_id")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      const { data: productInfo } = await serviceClient
-        .from("products")
-        .select("display_id")
-        .eq("id", product_id)
-        .maybeSingle();
-
-      const telegramUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-telegram`;
-      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-      const tgHeaders = {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${anonKey}`,
-      };
-
-      // Fetch the order_code for the notification
-      const { data: orderRow } = await serviceClient
-        .from("orders")
-        .select("order_code")
-        .eq("id", data.order_id)
-        .maybeSingle();
-
-      // 1. Admin notification
-      await fetch(telegramUrl, {
-        method: "POST",
-        headers: tgHeaders,
-        body: JSON.stringify({
-          type: "order",
-          order_id: data.order_id,
-          order_code: orderRow?.order_code,
-          product_name: `#${productInfo?.display_id || ''} ${data.product_name}`,
-          price: data.price,
-          user_email: buyerProfile?.email,
-          user_name: buyerProfile?.name,
-          product_type: data.product_type,
-        }),
-      });
-
-      // 2. User notification (order placed) — only if user has Telegram linked
-      if (buyerProfile?.telegram_chat_id) {
-        await fetch(telegramUrl, {
-          method: "POST",
-          headers: tgHeaders,
-          body: JSON.stringify({
-            type: "order_placed",
-            chat_id: buyerProfile.telegram_chat_id,
-            order_code: orderRow?.order_code,
-            product_name: data.product_name,
-            price: data.price,
-            product_type: data.product_type,
-            status: data.product_type === "digital" ? "delivered" : "pending",
-          }),
-        });
-      }
-    } catch (tgErr) {
-      console.error("Telegram notification failed:", tgErr);
-    }
+    // ═══ TELEGRAM NOTIFICATIONS (for non-API orders) ═══
+    await sendTelegramNotifications(serviceClient, userId, product_id, data);
 
     return new Response(JSON.stringify(data), {
       status: 200,
@@ -437,3 +528,68 @@ Deno.serve(async (req) => {
     });
   }
 });
+
+// ── Telegram notification helper ──
+async function sendTelegramNotifications(serviceClient: any, userId: string, productId: string, data: any) {
+  try {
+    const { data: buyerProfile } = await serviceClient
+      .from("profiles")
+      .select("name, email, telegram_chat_id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const { data: productInfo } = await serviceClient
+      .from("products")
+      .select("display_id")
+      .eq("id", productId)
+      .maybeSingle();
+
+    const telegramUrl = `${Deno.env.get("SUPABASE_URL")}/functions/v1/send-telegram`;
+    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+    const tgHeaders = {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${anonKey}`,
+    };
+
+    const { data: orderRow } = await serviceClient
+      .from("orders")
+      .select("order_code")
+      .eq("id", data.order_id)
+      .maybeSingle();
+
+    // Admin notification
+    await fetch(telegramUrl, {
+      method: "POST",
+      headers: tgHeaders,
+      body: JSON.stringify({
+        type: "order",
+        order_id: data.order_id,
+        order_code: orderRow?.order_code,
+        product_name: `#${productInfo?.display_id || ''} ${data.product_name}`,
+        price: data.price,
+        user_email: buyerProfile?.email,
+        user_name: buyerProfile?.name,
+        product_type: data.product_type,
+      }),
+    });
+
+    // User notification
+    if (buyerProfile?.telegram_chat_id) {
+      await fetch(telegramUrl, {
+        method: "POST",
+        headers: tgHeaders,
+        body: JSON.stringify({
+          type: "order_placed",
+          chat_id: buyerProfile.telegram_chat_id,
+          order_code: orderRow?.order_code,
+          product_name: data.product_name,
+          price: data.price,
+          product_type: data.product_type,
+          status: data.product_type === "digital" ? "delivered" : "pending",
+        }),
+      });
+    }
+  } catch (tgErr) {
+    console.error("Telegram notification failed:", tgErr);
+  }
+}
