@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, ArrowRight, RefreshCw, Check, X, Mail, Lock, User } from "lucide-react";
 import kkLogo from "@/assets/kkremote-logo.png";
 import { t, useT } from "@/lib/i18n";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   validateUsername,
   validatePassword,
@@ -185,27 +186,51 @@ export default function Login() {
         <div className="absolute bottom-[-15%] left-[-10%] w-[350px] h-[350px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, hsl(220 29% 88% / 0.06), transparent 70%)", filter: "blur(80px)" }} />
 
-        <div className="w-full max-w-[440px] relative z-10">
+        <motion.div
+          className="w-full max-w-[440px] relative z-10"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        >
           {/* Form header */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-foreground tracking-tight">
-              {isForgot ? "Reset Password" : isSignup ? "Create Account" : "Welcome Back"}
-            </h2>
-            <p className="text-sm text-muted-foreground mt-2">
-              {isForgot
-                ? l(t.login.forgotSubtitle)
-                : isSignup
-                ? "Join KKTech and start reselling digital services"
-                : l(t.login.subtitle)}
-            </p>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={isForgot ? "forgot" : isSignup ? "signup" : "login"}
+              className="mb-8"
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 10 }}
+              transition={{ duration: 0.25 }}
+            >
+              <h2 className="text-2xl font-bold text-foreground tracking-tight">
+                {isForgot ? "Reset Password" : isSignup ? "Create Account" : "Welcome Back"}
+              </h2>
+              <p className="text-sm text-muted-foreground mt-2">
+                {isForgot
+                  ? l(t.login.forgotSubtitle)
+                  : isSignup
+                  ? "Join KKTech and start reselling digital services"
+                  : l(t.login.subtitle)}
+              </p>
+            </motion.div>
+          </AnimatePresence>
 
           {/* Form Card */}
-          <div className="rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-[var(--shadow-elevated)]">
+          <motion.div
+            className="rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm p-6 sm:p-8 shadow-[var(--shadow-elevated)]"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+          >
             <form onSubmit={handleSubmit} className="space-y-5">
               {/* ───── Username (signup only) ───── */}
               {isSignup && (
-                <div className="space-y-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.05 }}
+                  className="space-y-2"
+                >
                   <Label htmlFor="name" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     Username
                   </Label>
@@ -234,11 +259,16 @@ export default function Login() {
                       <p className="text-[11px] font-medium">Username looks good!</p>
                     </div>
                   )}
-                </div>
+                </motion.div>
               )}
 
               {/* ───── Email ───── */}
-              <div className="space-y-2">
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: isSignup ? 0.1 : 0.05 }}
+                className="space-y-2"
+              >
                 <Label htmlFor="email" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                   Email Address
                 </Label>
@@ -254,11 +284,16 @@ export default function Login() {
                     className="bg-secondary/50 border-border/60 focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all h-12 text-base pl-10"
                   />
                 </div>
-              </div>
+              </motion.div>
 
               {/* ───── Password ───── */}
               {!isForgot && (
-                <div className="space-y-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: isSignup ? 0.15 : 0.1 }}
+                  className="space-y-2"
+                >
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                       Password
@@ -295,55 +330,71 @@ export default function Login() {
                   </div>
 
                   {/* Password Strength Meter (signup only) */}
-                  {isSignup && password.length > 0 && (
-                    <div className="space-y-2 pt-1">
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <div
-                            key={i}
-                            className={`h-1 flex-1 rounded-full transition-all duration-300 ${
-                              i <= strength.score ? strength.color : "bg-muted/30"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <p className={`text-[11px] font-semibold ${
-                          strength.score <= 2 ? "text-destructive" :
-                          strength.score <= 3 ? "text-warning" :
-                          strength.score <= 4 ? "text-primary" : "text-success"
-                        }`}>
-                          {strength.label}
-                        </p>
-                      </div>
-                      <div className="grid grid-cols-2 gap-x-3 gap-y-1">
-                        {[
-                          { met: password.length >= 8, label: "8+ characters" },
-                          { met: /[A-Z]/.test(password), label: "Uppercase" },
-                          { met: /[a-z]/.test(password), label: "Lowercase" },
-                          { met: /[0-9]/.test(password), label: "Number" },
-                          { met: /[^A-Za-z0-9]/.test(password), label: "Special char" },
-                        ].map((req) => (
-                          <div key={req.label} className="flex items-center gap-1.5">
-                            {req.met ? (
-                              <Check className="w-3 h-3 text-success shrink-0" />
-                            ) : (
-                              <X className="w-3 h-3 text-muted-foreground/30 shrink-0" />
-                            )}
-                            <span className={`text-[10px] font-medium ${req.met ? "text-success" : "text-muted-foreground/50"}`}>
-                              {req.label}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                  <AnimatePresence>
+                    {isSignup && password.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="space-y-2 pt-1 overflow-hidden"
+                      >
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map((i) => (
+                            <motion.div
+                              key={i}
+                              initial={{ scaleX: 0 }}
+                              animate={{ scaleX: 1 }}
+                              transition={{ duration: 0.3, delay: i * 0.05 }}
+                              className={`h-1 flex-1 rounded-full origin-left transition-colors duration-300 ${
+                                i <= strength.score ? strength.color : "bg-muted/30"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className={`text-[11px] font-semibold ${
+                            strength.score <= 2 ? "text-destructive" :
+                            strength.score <= 3 ? "text-warning" :
+                            strength.score <= 4 ? "text-primary" : "text-success"
+                          }`}>
+                            {strength.label}
+                          </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-x-3 gap-y-1">
+                          {[
+                            { met: password.length >= 8, label: "8+ characters" },
+                            { met: /[A-Z]/.test(password), label: "Uppercase" },
+                            { met: /[a-z]/.test(password), label: "Lowercase" },
+                            { met: /[0-9]/.test(password), label: "Number" },
+                            { met: /[^A-Za-z0-9]/.test(password), label: "Special char" },
+                          ].map((req) => (
+                            <div key={req.label} className="flex items-center gap-1.5">
+                              {req.met ? (
+                                <Check className="w-3 h-3 text-success shrink-0" />
+                              ) : (
+                                <X className="w-3 h-3 text-muted-foreground/30 shrink-0" />
+                              )}
+                              <span className={`text-[10px] font-medium ${req.met ? "text-success" : "text-muted-foreground/50"}`}>
+                                {req.label}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
               )}
 
               {/* ───── Confirm Password (signup only) ───── */}
               {isSignup && !isForgot && (
-                <div className="space-y-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.2 }}
+                  className="space-y-2"
+                >
                   <Label htmlFor="confirm-password" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     Confirm Password
                   </Label>
@@ -378,12 +429,17 @@ export default function Login() {
                       <p className="text-[11px] font-medium">Passwords match</p>
                     </div>
                   )}
-                </div>
+                </motion.div>
               )}
 
               {/* ───── Math Captcha (signup only) ───── */}
               {isSignup && !isForgot && (
-                <div className="space-y-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: 0.25 }}
+                  className="space-y-2"
+                >
                   <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
                     Verification
                   </Label>
@@ -427,96 +483,130 @@ export default function Login() {
                       )}
                     </div>
                   )}
-                </div>
+                </motion.div>
               )}
 
               {/* ───── Remember Me (login only) ───── */}
               {!isSignup && !isForgot && (
-                <label
-                  htmlFor="remember-me"
-                  className="group flex items-center gap-2.5 cursor-pointer select-none py-0.5"
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.15 }}
                 >
-                  <div className="relative flex items-center justify-center">
-                    <input
-                      type="checkbox"
-                      id="remember-me"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                      className="peer sr-only"
-                    />
-                    <div className="w-[18px] h-[18px] rounded-[5px] border border-border bg-secondary/50 transition-all duration-200 peer-checked:bg-primary peer-checked:border-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 group-hover:border-muted-foreground/50" />
-                    <Check className="absolute w-3 h-3 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity duration-150 pointer-events-none" />
-                  </div>
-                  <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                    Remember me
-                  </span>
-                </label>
+                  <label
+                    htmlFor="remember-me"
+                    className="group flex items-center gap-2.5 cursor-pointer select-none py-0.5"
+                  >
+                    <div className="relative flex items-center justify-center">
+                      <input
+                        type="checkbox"
+                        id="remember-me"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                        className="peer sr-only"
+                      />
+                      <div className="w-[18px] h-[18px] rounded-[5px] border border-border bg-secondary/50 transition-all duration-200 peer-checked:bg-primary peer-checked:border-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary/40 group-hover:border-muted-foreground/50" />
+                      <Check className="absolute w-3 h-3 text-primary-foreground opacity-0 peer-checked:opacity-100 transition-opacity duration-150 pointer-events-none" />
+                    </div>
+                    <span className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
+                      Remember me
+                    </span>
+                  </label>
+                </motion.div>
               )}
 
               {/* ───── Error / Success ───── */}
-              {error && (
-                <div className="bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
-                  <p className="text-destructive text-sm font-medium text-center">{error}</p>
-                </div>
-              )}
-              {success && (
-                <div className="bg-success/10 border border-success/20 rounded-xl px-4 py-3">
-                  <p className="text-success text-sm font-medium text-center">{success}</p>
-                </div>
-              )}
+              <AnimatePresence>
+                {error && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                    transition={{ duration: 0.2 }}
+                    className="bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3"
+                  >
+                    <p className="text-destructive text-sm font-medium text-center">{error}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <AnimatePresence>
+                {success && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -8, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -8, scale: 0.97 }}
+                    transition={{ duration: 0.2 }}
+                    className="bg-success/10 border border-success/20 rounded-xl px-4 py-3"
+                  >
+                    <p className="text-success text-sm font-medium text-center">{success}</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* ───── Submit Button ───── */}
-              <Button
-                type="submit"
-                className="w-full h-12 gap-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-primary to-[hsl(var(--primary-glow))] hover:shadow-[0_0_24px_hsl(var(--primary)/0.3)] transition-all duration-300"
-                disabled={loading || (isSignup && !canSubmitSignup)}
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: isSignup ? 0.3 : 0.2 }}
               >
-                {loading ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
-                    {l(t.login.pleaseWait)}
-                  </>
-                ) : (
-                  <>
-                    {isForgot ? l(t.login.sendResetLink) : isSignup ? "Create Account" : "Sign In"}
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </Button>
+                <Button
+                  type="submit"
+                  className="w-full h-12 gap-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-primary to-[hsl(var(--primary-glow))] hover:shadow-[0_0_24px_hsl(var(--primary)/0.3)] transition-all duration-300"
+                  disabled={loading || (isSignup && !canSubmitSignup)}
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                      {l(t.login.pleaseWait)}
+                    </>
+                  ) : (
+                    <>
+                      {isForgot ? l(t.login.sendResetLink) : isSignup ? "Create Account" : "Sign In"}
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </Button>
+              </motion.div>
 
               {/* ───── Toggle ───── */}
-              <div className="relative pt-2">
-                <div className="absolute inset-0 flex items-center pt-2">
-                  <div className="w-full border-t border-border/40" />
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: isSignup ? 0.35 : 0.25 }}
+              >
+                <div className="relative pt-2">
+                  <div className="absolute inset-0 flex items-center pt-2">
+                    <div className="w-full border-t border-border/40" />
+                  </div>
+                  <div className="relative flex justify-center text-sm pt-2">
+                    <span className="bg-card/80 px-4 text-muted-foreground text-xs font-medium">
+                      {isForgot ? "Remembered it?" : isSignup ? "Already have an account?" : "New to KKTech?"}
+                    </span>
+                  </div>
                 </div>
-                <div className="relative flex justify-center text-sm pt-2">
-                  <span className="bg-card/80 px-4 text-muted-foreground text-xs font-medium">
-                    {isForgot ? "Remembered it?" : isSignup ? "Already have an account?" : "New to KKTech?"}
-                  </span>
-                </div>
-              </div>
 
-              <p className="text-center text-sm">
-                {isForgot ? (
-                  <button
-                    type="button"
-                    onClick={() => { setIsForgot(false); setError(""); setSuccess(""); }}
-                    className="text-primary hover:text-primary/80 font-semibold transition-colors"
-                  >
-                    Back to Sign In
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={switchMode}
-                    className="text-primary hover:text-primary/80 font-semibold transition-colors"
-                  >
-                    {isSignup ? "Sign in instead" : "Create reseller account"}
-                  </button>
-                )}
-              </p>
+                <p className="text-center text-sm mt-5">
+                  {isForgot ? (
+                    <button
+                      type="button"
+                      onClick={() => { setIsForgot(false); setError(""); setSuccess(""); }}
+                      className="text-primary hover:text-primary/80 font-semibold transition-colors"
+                    >
+                      Back to Sign In
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={switchMode}
+                      className="text-primary hover:text-primary/80 font-semibold transition-colors"
+                    >
+                      {isSignup ? "Sign in instead" : "Create reseller account"}
+                    </button>
+                  )}
+                </p>
+              </motion.div>
             </form>
-          </div>
+          </motion.div>
 
           {/* Social proof */}
           <div className="mt-6 text-center">
@@ -528,7 +618,7 @@ export default function Login() {
           <p className="text-center text-[10px] text-muted-foreground/30 mt-4 font-medium">
             © {new Date().getFullYear()} KKTech. All rights reserved.
           </p>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
