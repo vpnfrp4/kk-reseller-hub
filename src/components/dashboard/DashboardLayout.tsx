@@ -18,20 +18,12 @@ import {
   ChevronsRight,
   Menu,
   X,
-  ClipboardList,
-  Shield,
-  Key,
-  Bell,
-  Headphones,
-  Bot,
-  CreditCard,
-  Smartphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
+
 import FloatingSupport from "@/components/shared/FloatingSupport";
 import BottomNav from "@/components/dashboard/BottomNav";
 import kkLogo from "@/assets/kkremote-logo.png";
@@ -54,7 +46,6 @@ const navGroups: NavGroup[] = [
     items: [
       { label: "Dashboard", icon: Home, path: "/dashboard" },
       { label: "Place Order", icon: ShoppingCart, path: "/dashboard/place-order" },
-      { label: "IMEI Services", icon: Smartphone, path: "/dashboard/imei-orders" },
     ],
   },
   {
@@ -73,14 +64,6 @@ const navGroups: NavGroup[] = [
     title: "ACCOUNT",
     items: [
       { label: "Profile", icon: User, path: "/dashboard/settings" },
-      { label: "Security", icon: Shield, path: "/dashboard/settings?tab=security" },
-      { label: "API Keys", icon: Key, path: "/dashboard/settings?tab=api-keys" },
-    ],
-  },
-  {
-    title: "SYSTEM",
-    items: [
-      { label: "Notifications", icon: Bell, path: "/dashboard/notifications" },
     ],
   },
 ];
@@ -397,7 +380,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           <div className="flex items-center gap-1.5 sm:gap-2 lg:gap-3">
             <WalletChip profile={profile} />
-            <NotificationDropdown />
             <button
               onClick={() => navigate("/dashboard/settings")}
               className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden transition-all hover:border-primary/40 shrink-0"
