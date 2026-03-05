@@ -40,9 +40,9 @@ export default function RouteProgressBar() {
   if (!visible && progress === 0) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[9999] h-[2.5px] pointer-events-none">
+    <div className="fixed top-0 left-0 right-0 z-[9999] h-[3.5px] pointer-events-none">
       <div
-        className="h-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.5)] rounded-r-full"
+        className="h-full bg-gradient-to-r from-primary via-[hsl(250_70%_55%)] to-primary rounded-r-full shadow-[0_0_12px_3px_hsl(var(--primary)/0.6),0_0_24px_6px_hsl(var(--primary)/0.3)]"
         style={{
           width: `${progress}%`,
           transition: progress === 0
