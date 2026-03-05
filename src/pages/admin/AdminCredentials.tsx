@@ -450,7 +450,7 @@ export default function AdminCredentials() {
   return (
     <div className="space-y-compact">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-fade-in">
         <div>
           <h1 className="text-h1 gradient-text">Credentials</h1>
           <p className="text-caption text-muted-foreground">

@@ -264,7 +264,7 @@ export default function AdminOrders() {
       </div>
 
       {/* Filters — wrapped in a card */}
-      <DataCard className="animate-fade-in">
+      <DataCard className="animate-fade-in [animation-delay:0.08s]">
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -336,7 +336,7 @@ export default function AdminOrders() {
       )}
 
       {/* Table */}
-      <DataCard noPadding className="animate-fade-in overflow-hidden" footer={paginationFooter}>
+      <DataCard noPadding className="animate-fade-in [animation-delay:0.15s] overflow-hidden" footer={paginationFooter}>
         <div className="overflow-x-auto -mx-px">
           <table className="premium-table min-w-[800px]">
             <thead>

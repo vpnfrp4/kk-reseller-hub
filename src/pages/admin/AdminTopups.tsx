@@ -274,7 +274,7 @@ export default function AdminTopups() {
       {/* Pending Requests */}
       <DataCard
         title={`Pending Requests (${pending.length})`}
-        className="animate-fade-in"
+        className="animate-fade-in [animation-delay:0.08s]"
         actions={<Clock className="w-4 h-4 text-warning" />}
       >
         {pending.length === 0 ? (
@@ -339,7 +339,7 @@ export default function AdminTopups() {
       </DataCard>
 
       {/* Processed History */}
-      <DataCard title="Processed History" noPadding className="animate-fade-in">
+      <DataCard title="Processed History" noPadding className="animate-fade-in [animation-delay:0.15s]">
         <ResponsiveTable
           columns={processedColumns}
           data={processed}

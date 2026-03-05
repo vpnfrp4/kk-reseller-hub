@@ -224,7 +224,7 @@ export default function AdminResellers() {
       </div>
 
       {/* Search & Filters — wrapped in a card for visual grouping */}
-      <DataCard className="animate-fade-in">
+      <DataCard className="animate-fade-in [animation-delay:0.08s]">
         <div className="space-y-3">
           {/* Search row */}
           <div className="relative">
@@ -310,7 +310,7 @@ export default function AdminResellers() {
       </DataCard>
 
       {/* Table */}
-      <DataCard noPadding className="animate-fade-in">
+      <DataCard noPadding className="animate-fade-in [animation-delay:0.15s]">
         <ResponsiveTable
           columns={columns}
           data={filtered}

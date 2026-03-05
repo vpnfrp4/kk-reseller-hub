@@ -196,7 +196,7 @@ export default function AdminMonitoring() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-fade-in">
         <div>
           <h1 className="text-xl font-bold gradient-text">Monitoring</h1>
           <p className="text-sm text-muted-foreground">API health, errors, and refund tracking</p>
@@ -208,7 +208,7 @@ export default function AdminMonitoring() {
       </div>
 
       {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 animate-fade-in [animation-delay:0.08s]">
         <Card>
           <CardContent className="pt-4 pb-3 px-4">
             <div className="flex items-center gap-3">
@@ -278,7 +278,7 @@ export default function AdminMonitoring() {
         </Card>
       </div>
 
-      <Tabs value={tab} onValueChange={setTab}>
+      <Tabs value={tab} onValueChange={setTab} className="animate-fade-in [animation-delay:0.15s]">
         <TabsList className="flex-wrap">
           <TabsTrigger value="errors">Failed Orders</TabsTrigger>
           <TabsTrigger value="api-errors">API Errors</TabsTrigger>
