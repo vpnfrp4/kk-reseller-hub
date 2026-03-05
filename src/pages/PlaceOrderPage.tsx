@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { sanitizeName } from "@/lib/sanitize-name";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,25 +7,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  ShoppingCart,
-  CheckCircle2,
-  Clock,
-  Zap,
-  Copy,
-  Eye,
-  X,
-  AlertTriangle,
-  Search,
-  Download,
-  ShieldAlert,
-  ArrowLeft,
-  Smartphone,
-  Globe,
-  Monitor,
-  Link2,
-  Package,
-  ChevronRight,
-  ArrowRight,
+  ShoppingCart, CheckCircle2, Clock, Zap, Copy, Eye, X,
+  AlertTriangle, Search, Download, ShieldAlert, ArrowLeft,
+  Smartphone, Link2, Package, ArrowRight, Star, Flame, Hash,
 } from "lucide-react";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 import { toast } from "sonner";
@@ -36,6 +20,9 @@ import Confetti from "@/components/Confetti";
 import { motion, AnimatePresence } from "framer-motion";
 import IFreeImeiCheck from "@/components/imei/IFreeImeiCheck";
 import IFreeCheckHistory from "@/components/imei/IFreeCheckHistory";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
+} from "@/components/ui/dialog";
 
 interface PurchaseResult {
   order_id: string;
@@ -45,8 +32,14 @@ interface PurchaseResult {
   quantity?: number;
 }
 
-/* ═══ CATEGORY CONFIG ═══ */
-// Now using shared getCategoryIcon from @/lib/category-icons
+/* ═══ FAVORITES STORAGE ═══ */
+const FAVORITES_KEY = "kktech_favorite_services";
+function getFavorites(): string[] {
+  try { return JSON.parse(localStorage.getItem(FAVORITES_KEY) || "[]"); } catch { return []; }
+}
+function setFavorites(ids: string[]) {
+  localStorage.setItem(FAVORITES_KEY, JSON.stringify(ids));
+}
 
 export default function PlaceOrderPage() {
   const { user, profile, refreshProfile } = useAuth();
@@ -60,6 +53,8 @@ export default function PlaceOrderPage() {
   const [result, setResult] = useState<PurchaseResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [favorites, setFavoritesState] = useState<string[]>(getFavorites);
+  const [quickOrderOpen, setQuickOrderOpen] = useState(false);
 
   // Realtime
   useEffect(() => {
@@ -77,7 +72,7 @@ export default function PlaceOrderPage() {
     return () => { supabase.removeChannel(channel); };
   }, [queryClient]);
 
-  const { data: products = [] } = useQuery({
+  const { data: products = [], isLoading: productsLoading } = useQuery({
     queryKey: ["products-for-order"],
     queryFn: async () => {
       const { data } = await supabase
@@ -134,24 +129,18 @@ export default function PlaceOrderPage() {
   const activeFields = customFields.filter((f: any) => f.linked_mode === defaultMode);
 
   const categories = useMemo(() => {
-    const cats = new Map<string, { count: number; minPrice: number }>();
+    const cats = new Map<string, number>();
     products.forEach((p: any) => {
       const cat = p.category || "Other";
-      const existing = cats.get(cat);
-      if (existing) {
-        existing.count++;
-        existing.minPrice = Math.min(existing.minPrice, p.wholesale_price || 0);
-      } else {
-        cats.set(cat, { count: 1, minPrice: p.wholesale_price || 0 });
-      }
+      cats.set(cat, (cats.get(cat) || 0) + 1);
     });
     return Array.from(cats.entries())
-      .sort((a, b) => b[1].count - a[1].count)
-      .map(([name, info]) => ({ name, ...info }));
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => ({ name, count }));
   }, [products]);
 
   const allCategories = useMemo(() => {
-    return [{ name: "All", count: products.length }, ...categories.map(c => ({ name: c.name, count: c.count }))];
+    return [{ name: "All", count: products.length }, ...categories];
   }, [categories, products.length]);
 
   const [activeCategory, setActiveCategory] = useState("All");
@@ -159,11 +148,36 @@ export default function PlaceOrderPage() {
   const filteredProducts = useMemo(() => {
     return products.filter((p: any) => {
       const matchCat = activeCategory === "All" || p.category === activeCategory;
-      const matchSearch = !searchQuery.trim() || p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) || String(p.display_id).includes(searchQuery.trim());
+      const q = searchQuery.trim().toLowerCase();
+      const matchSearch = !q ||
+        p.name.toLowerCase().includes(q) ||
+        String(p.display_id).includes(q) ||
+        (p.brand && p.brand.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q));
       return matchCat && matchSearch;
     });
   }, [products, searchQuery, activeCategory]);
 
+  // Favorites
+  const favoriteProducts = useMemo(() => {
+    return products.filter((p: any) => favorites.includes(p.id));
+  }, [products, favorites]);
+
+  const toggleFavorite = useCallback((id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setFavoritesState(prev => {
+      const next = prev.includes(id) ? prev.filter(f => f !== id) : [...prev, id];
+      setFavorites(next);
+      return next;
+    });
+  }, []);
+
+  // Popular services (top 6 by display_id which correlates with order frequency)
+  const popularProducts = useMemo(() => {
+    return [...products].sort((a: any, b: any) => (b.sort_order || 0) - (a.sort_order || 0)).slice(0, 6);
+  }, [products]);
+
+  // Pricing
   const unitPrice = useMemo(() => {
     if (!selectedProduct) return 0;
     if (isApiProduct && selectedProduct.api_rate && usdRate) {
@@ -191,17 +205,15 @@ export default function PlaceOrderPage() {
     setSelectedProductId(id);
     setCustomFieldValues({});
     setResult(null);
+    setQuickOrderOpen(true);
   };
 
-  const handleBack = () => {
-    setSelectedProductId("");
-    setCustomFieldValues({});
-    setResult(null);
-  };
-
-  const handleCategoryClick = (catName: string) => {
-    setActiveCategory(catName);
-    setSearchQuery("");
+  const handleCloseModal = () => {
+    setQuickOrderOpen(false);
+    setTimeout(() => {
+      setSelectedProductId("");
+      setCustomFieldValues({});
+    }, 200);
   };
 
   const handlePurchase = async () => {
@@ -227,6 +239,7 @@ export default function PlaceOrderPage() {
       if (error) throw new Error(error.message);
       if (data && !data.success) { toast.error(data.error as string); return; }
       setResult(data as PurchaseResult);
+      setQuickOrderOpen(false);
       queryClient.invalidateQueries({ queryKey: ["products-for-order"] });
       queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] });
       refreshProfile();
@@ -246,13 +259,10 @@ export default function PlaceOrderPage() {
 
   const credentialsList = result?.credentials?.split("\n").filter(Boolean) || [];
 
-  // Quick stats
-  const instantCount = useMemo(() => products.filter((p: any) => p.product_type === "digital").length, [products]);
-  const apiCount = useMemo(() => products.filter((p: any) => p.product_type === "api").length, [products]);
-
   return (
     <PageContainer maxWidth="max-w-5xl">
-      <div className="page-header-card mb-5">
+      {/* ═══ HEADER ═══ */}
+      <div className="page-header-card mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3.5">
             <div className="page-header-icon">
@@ -260,11 +270,9 @@ export default function PlaceOrderPage() {
             </div>
             <div>
               <h1 className="gradient-text">Place Order</h1>
-              <p className="page-header-subtitle">Search and order services quickly</p>
+              <p className="page-header-subtitle">Search and order services instantly</p>
             </div>
           </div>
-
-          {/* Tab Switcher */}
           <div className="flex gap-1 p-1 rounded-[var(--radius-btn)] bg-secondary/50 border border-border">
             <button
               onClick={() => setActiveTab("services")}
@@ -298,373 +306,476 @@ export default function PlaceOrderPage() {
           <IFreeCheckHistory />
         </div>
       ) : (
-      <AnimatePresence mode="wait">
-        {!selectedProduct ? (
-          <motion.div
-            key="marketplace"
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="space-y-5"
-          >
-            {/* ═══ QUICK STATS — dashboard-style stat cards ═══ */}
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { label: "Available Services", value: products.length, icon: Package, color: "text-primary", bg: "bg-primary/10", borderColor: "border-primary/10" },
-                { label: "Instant Services", value: instantCount, icon: Zap, color: "text-success", bg: "bg-success/10", borderColor: "border-success/10" },
-                { label: "API Services", value: apiCount, icon: Link2, color: "text-ice", bg: "bg-ice/10", borderColor: "border-ice/10" },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
+        <div className="space-y-5">
+          {/* ═══ SMART SEARCH BAR ═══ */}
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40 pointer-events-none transition-colors group-focus-within:text-primary/60" />
+            <input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search service name, ID or brand..."
+              className={cn(
+                "w-full pl-12 pr-12 py-4 rounded-2xl text-sm font-medium",
+                "bg-card border border-border/50 text-foreground placeholder:text-muted-foreground/40",
+                "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40",
+                "transition-all duration-300",
+                "shadow-[0_2px_12px_rgba(0,0,0,0.04)]",
+              )}
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-muted-foreground/50 hover:text-foreground hover:bg-secondary/60 transition-colors">
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+
+          {/* ═══ CATEGORY FILTER CHIPS ═══ */}
+          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
+            {allCategories.map((cat) => {
+              const CatIcon = cat.name === "All" ? Package : getCategoryIcon(cat.name, "");
+              const isActive = activeCategory === cat.name;
+              return (
+                <button
+                  key={cat.name}
+                  onClick={() => setActiveCategory(cat.name)}
                   className={cn(
-                    "rounded-[var(--radius-card)] border bg-card p-3.5 sm:p-4 transition-all duration-200",
-                    stat.borderColor
+                    "shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 text-[11px] font-bold rounded-full border transition-all duration-200",
+                    isActive
+                      ? "bg-primary text-primary-foreground border-primary shadow-[0_0_16px_hsl(var(--primary)/0.2)]"
+                      : "bg-card text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground hover:bg-card/80"
                   )}
-                  style={{ boxShadow: "var(--shadow-card)" }}
                 >
-                  <div className="flex items-center gap-2.5">
-                    <div className={cn("w-8 h-8 rounded-[var(--radius-btn)] flex items-center justify-center shrink-0", stat.bg)}>
-                      <stat.icon className={cn("w-4 h-4", stat.color)} />
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-lg sm:text-xl font-extrabold font-mono tabular-nums text-foreground leading-none">{stat.value}</p>
-                      <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{stat.label}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  <CatIcon className="w-3.5 h-3.5" />
+                  {cat.name}
+                  <span className={cn("font-mono text-[10px]", isActive ? "opacity-70" : "opacity-40")}>{cat.count}</span>
+                </button>
+              );
+            })}
+          </div>
 
-            {/* ═══ SEARCH + FILTERS + LIST — unified glass card ═══ */}
-            <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-              {/* Search Bar */}
-              <div className="px-4 sm:px-5 py-3.5 border-b border-border">
-                <div className="relative">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40 pointer-events-none" />
-                  <Input
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search by service name or #ID..."
-                    className="pl-10 pr-9 h-10 bg-secondary/30 border-border text-sm rounded-[var(--radius-input)] placeholder:text-muted-foreground/40 focus:bg-secondary/50 transition-colors"
-                  />
-                  {searchQuery && (
-                    <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full text-muted-foreground/50 hover:text-foreground hover:bg-secondary/50 transition-colors">
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Category Tabs */}
-              <div className="px-4 sm:px-5 py-2.5 border-b border-border flex gap-1.5 overflow-x-auto stool-scrollbar">
-                {allCategories.map((cat) => {
-                  const CatIcon = cat.name === "All" ? Package : getCategoryIcon(cat.name, "");
-                  return (
-                  <button
-                    key={cat.name}
-                    onClick={() => setActiveCategory(cat.name)}
-                    className={cn(
-                      "shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold rounded-full border transition-all duration-200",
-                      activeCategory === cat.name
-                        ? "bg-primary text-primary-foreground border-primary shadow-[0_0_12px_hsl(var(--primary)/0.15)]"
-                        : "bg-secondary/30 text-muted-foreground border-border hover:border-primary/20 hover:text-foreground"
-                    )}
-                  >
-                    <CatIcon className="w-3 h-3" />
-                    {cat.name}
-                    <span className="opacity-50 font-mono text-[10px]">{cat.count}</span>
-                  </button>
-                  );
-                })}
-              </div>
-
-              {/* Results bar */}
-              <div className="px-4 sm:px-5 py-2 border-b border-border/50 flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-muted-foreground/60">
-                  {activeCategory === "All" ? "All Services" : activeCategory}
-                </span>
-                <span className="text-[10px] font-mono text-muted-foreground/40">{filteredProducts.length} results</span>
-              </div>
-
-              {/* ═══ SERVICE LIST ═══ */}
-              <div className="max-h-[62vh] overflow-y-auto stool-scrollbar" style={{ WebkitOverflowScrolling: 'touch' }}>
-                {filteredProducts.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-20 text-muted-foreground/30">
-                    <Search className="w-8 h-8 mb-3" />
-                    <p className="text-sm font-medium">No services found</p>
-                    <p className="text-xs mt-1">Try adjusting your search or filters</p>
-                  </div>
-                ) : (
-                  <div className="p-3 sm:p-4 space-y-2.5">
-                    {filteredProducts.map((p: any) => {
-                      const pType = p.product_type;
-                      const isAuto = pType === "api" || pType === "digital";
-                      const isOutOfStock = pType === "digital" && p.stock === 0;
-                      const pTime = p.processing_time || (isAuto ? "Instant" : "1–24 Hours");
-
-                      let badgeLabel = "Manual";
-                      let badgeClass = "bg-warning/10 text-warning border-warning/20";
-                      let BadgeIcon = Clock;
-                      if (pType === "digital") {
-                        badgeLabel = "Instant";
-                        badgeClass = "bg-success/10 text-success border-success/20";
-                        BadgeIcon = Zap;
-                      } else if (pType === "api") {
-                        badgeLabel = "API";
-                        badgeClass = "bg-ice/10 text-ice border-ice/20";
-                        BadgeIcon = Link2;
-                      }
-
-                      return (
-                        <button
-                          key={p.id}
-                          onClick={() => !isOutOfStock && handleSelectProduct(p.id)}
-                          disabled={isOutOfStock}
-                          className={cn(
-                            "w-full text-left px-4 py-4 rounded-[var(--radius-card)] border transition-all duration-300 ease-out group/card",
-                            isOutOfStock
-                              ? "opacity-30 cursor-not-allowed border-border/30 bg-muted/5"
-                              : "border-border/40 bg-card/80 backdrop-blur-sm cursor-pointer",
-                            !isOutOfStock && "hover:border-primary/30 hover:bg-card hover:-translate-y-0.5 hover:shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.12)] active:scale-[0.995] active:shadow-none"
-                          )}
-                        >
-                          {/* Subtle top accent on hover */}
-                          <div className="absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-primary/0 to-transparent group-hover/card:via-primary/30 transition-all duration-500" />
-
-                          <div className="flex items-start gap-3.5">
-                            {/* Category Icon */}
-                            {(() => {
-                              const CatIcon = getCategoryIcon(p.category, p.name);
-                              const catColor = getCategoryIconColor(p.category, p.name);
-                              return (
-                                <div className={cn(
-                                  "shrink-0 w-10 h-10 rounded-xl flex items-center justify-center mt-0.5 transition-transform duration-300",
-                                  "group-hover/card:scale-110",
-                                  catColor
-                                )}>
-                                  <CatIcon className="w-4 h-4" />
-                                </div>
-                              );
-                            })()}
-                            {/* Left */}
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-start gap-2">
-                                <span className="shrink-0 font-mono text-[10px] font-bold text-primary bg-primary/8 px-1.5 py-0.5 rounded-[var(--radius-btn)] mt-0.5 border border-primary/10">
-                                  #{p.display_id}
-                                </span>
-                                <p className="text-[13px] text-foreground font-semibold leading-snug line-clamp-2 break-words group-hover/card:text-primary transition-colors duration-200">
-                                  {sanitizeName(p.name)}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2 mt-2.5 flex-wrap">
-                                <span className={cn(
-                                  "inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-0.5 border transition-colors duration-200",
-                                  badgeClass
-                                )}>
-                                  <BadgeIcon className="w-2.5 h-2.5" />
-                                  {badgeLabel}
-                                </span>
-                                <span className="text-[10px] text-muted-foreground/50 font-medium flex items-center gap-1">
-                                  <Clock className="w-2.5 h-2.5" />
-                                  {pTime}
-                                </span>
-                                {isOutOfStock && (
-                                  <span className="text-[10px] font-bold text-destructive">Out of Stock</span>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Right */}
-                            <div className="shrink-0 flex flex-col items-end gap-2.5 pt-0.5">
-                              <span className="text-sm font-bold font-mono tabular-nums text-foreground">
-                                <Money amount={p.wholesale_price} compact />
-                              </span>
-                              {!isOutOfStock && (
-                                <span className={cn(
-                                  "inline-flex items-center gap-1 text-[10px] font-bold text-primary-foreground px-3 py-1.5 rounded-full",
-                                  "bg-gradient-to-r from-primary to-primary/80",
-                                  "shadow-[0_2px_8px_hsl(var(--primary)/0.1)]",
-                                  "group-hover/card:shadow-[0_4px_20px_hsl(var(--primary)/0.25)] group-hover/card:scale-105 transition-all duration-300"
-                                )}>
-                                  Order <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover/card:translate-x-0.5" />
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        ) : (
-          /* ═══ MODE 2: SERVICE DETAIL ═══ */
-          <motion.div
-            key={`detail-${selectedProduct.id}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.22, ease: "easeOut" }}
-            className="space-y-4"
-          >
-            <button
-              onClick={handleBack}
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors duration-150"
+          {/* ═══ FAVORITE SERVICES ═══ */}
+          {favoriteProducts.length > 0 && !searchQuery && activeCategory === "All" && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-3"
             >
-              <ArrowLeft className="w-4 h-4" />
-              <span className="font-medium">Change Service</span>
-            </button>
+              <div className="flex items-center gap-2">
+                <Star className="w-4 h-4 text-warning fill-warning" />
+                <h2 className="text-sm font-bold text-foreground">Favorite Services</h2>
+                <span className="text-[10px] font-mono text-muted-foreground/40">{favoriteProducts.length}</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {favoriteProducts.map((p: any) => (
+                  <FavoriteCard
+                    key={p.id}
+                    product={p}
+                    isFavorite
+                    onToggleFavorite={toggleFavorite}
+                    onSelect={handleSelectProduct}
+                  />
+                ))}
+              </div>
+            </motion.div>
+          )}
 
-            <div className="rounded-[var(--radius-card)] border border-border bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
-              {/* Header */}
-              <div className="px-5 py-4 border-b border-border">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h2 className="text-lg font-bold text-foreground leading-tight">{selectedProduct.name}</h2>
-                    <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-                      <span className="font-mono text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-md font-bold">
-                        #{selectedProduct.display_id}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground font-medium">{selectedProduct.category}</span>
+          {/* ═══ POPULAR SERVICES ═══ */}
+          {!searchQuery && activeCategory === "All" && popularProducts.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 6 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="space-y-3"
+            >
+              <div className="flex items-center gap-2">
+                <Flame className="w-4 h-4 text-destructive" />
+                <h2 className="text-sm font-bold text-foreground">Popular Services</h2>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {popularProducts.map((p: any) => (
+                  <PopularCard key={p.id} product={p} onSelect={handleSelectProduct} />
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {/* ═══ ALL SERVICES ═══ */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Package className="w-4 h-4 text-muted-foreground/50" />
+                <h2 className="text-sm font-bold text-foreground">
+                  {activeCategory === "All" ? "All Services" : activeCategory}
+                </h2>
+              </div>
+              <span className="text-[10px] font-mono text-muted-foreground/40">{filteredProducts.length} results</span>
+            </div>
+
+            {productsLoading ? (
+              <div className="space-y-2">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div key={i} className="rounded-[var(--radius-card)] border border-border/30 bg-card p-4 animate-pulse">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-muted/30" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-3.5 bg-muted/30 rounded w-3/4" />
+                        <div className="h-2.5 bg-muted/20 rounded w-1/3" />
+                      </div>
+                      <div className="h-8 w-20 bg-muted/20 rounded-full" />
                     </div>
                   </div>
-                  <span className="text-2xl font-extrabold font-mono tabular-nums text-foreground shrink-0">
-                    <Money amount={totalPrice} />
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-2 mt-3 flex-wrap">
-                  <span className={cn(
-                    "inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-1 border",
-                    isInstant ? "bg-success/10 text-success border-success/20" : "bg-warning/10 text-warning border-warning/20"
-                  )}>
-                    {isInstant ? <Zap className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
-                    {isInstant ? "Auto Instant" : "Manual"}
-                  </span>
-                  {selectedProduct.product_type === "digital" && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-1 bg-primary/10 text-primary border border-primary/20">
-                      <Zap className="w-3 h-3" /> AUTO-INSTANT
-                    </span>
-                  )}
-                  {deliveryTime && deliveryTime !== "Instant" && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-1 bg-ice/10 text-ice border border-ice/20">
-                      <Clock className="w-3 h-3" /> {deliveryTime}
-                    </span>
-                  )}
-                  {selectedProduct.description?.toLowerCase().includes("no refund") && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2.5 py-1 bg-destructive/10 text-destructive border border-destructive/20">
-                      <ShieldAlert className="w-3 h-3" /> NO REFUND
-                    </span>
-                  )}
-                </div>
+                ))}
               </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/30">
+                <Search className="w-8 h-8 mb-3" />
+                <p className="text-sm font-medium">No services found</p>
+                <p className="text-xs mt-1">Try adjusting your search or filters</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredProducts.map((p: any, i: number) => (
+                  <ServiceCard
+                    key={p.id}
+                    product={p}
+                    index={i}
+                    isFavorite={favorites.includes(p.id)}
+                    onToggleFavorite={toggleFavorite}
+                    onSelect={handleSelectProduct}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ═══ QUICK ORDER MODAL ═══ */}
+      <Dialog open={quickOrderOpen && !!selectedProduct} onOpenChange={(open) => { if (!open) handleCloseModal(); }}>
+        <DialogContent className="max-w-md sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          {selectedProduct && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-lg font-bold leading-tight pr-6">
+                  {sanitizeName(selectedProduct.name)}
+                </DialogTitle>
+                <DialogDescription className="flex items-center gap-2 flex-wrap mt-1">
+                  <span className="font-mono text-[10px] text-primary bg-primary/10 px-2 py-0.5 rounded-md font-bold">
+                    #{selectedProduct.display_id}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{selectedProduct.category}</span>
+                  <DeliveryBadge product={selectedProduct} isInstant={isInstant} deliveryTime={deliveryTime} />
+                </DialogDescription>
+              </DialogHeader>
 
               {/* Description */}
-              <div className="px-5 py-4 border-b border-border stool-scrollbar max-h-[40vh] overflow-y-auto">
+              <div className="max-h-[25vh] overflow-y-auto stool-scrollbar rounded-xl bg-secondary/20 border border-border/30 p-3">
                 <ServiceDescription product={selectedProduct} />
               </div>
 
-              {/* Order Form */}
-              <div className="px-5 py-5 space-y-4">
-                <h3 className="text-[11px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50">
-                  Order Details
-                </h3>
-
-                {activeFields.length > 0 && (
-                  <div className="space-y-3">
-                    {activeFields.map((field: any) => (
-                      <div key={field.id} className="space-y-1.5">
-                        <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                          {field.field_name}
-                          {field.required && <span className="text-destructive ml-0.5">*</span>}
-                        </label>
-                        {field.field_type === "select" && Array.isArray(field.options) && field.options.length > 0 ? (
-                          <select
-                            value={customFieldValues[field.field_name] || ""}
-                            onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
-                            className="w-full h-10 rounded-[var(--radius-input)] bg-secondary/50 border border-border px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40"
-                          >
-                            <option value="">{field.placeholder || `Select ${field.field_name}`}</option>
-                            {(field.options as string[]).map((opt: string) => (
-                              <option key={opt} value={opt}>{opt}</option>
-                            ))}
-                          </select>
-                        ) : (
-                          <Input
-                            type={field.field_type === "number" || field.field_type === "quantity" ? "number" : field.field_type === "url" ? "url" : "text"}
-                            value={customFieldValues[field.field_name] || ""}
-                            onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
-                            placeholder={field.placeholder || `Enter ${field.field_name}`}
-                            className="bg-secondary/50 border-border font-mono text-sm rounded-[var(--radius-input)]"
-                            min={field.min_length || undefined}
-                            max={field.max_length || undefined}
-                          />
-                        )}
-                        {(field.field_type === "quantity" || field.field_type === "number") && (field.min_length || field.max_length) && (
-                          <p className="text-[10px] text-muted-foreground/50">
-                            {field.min_length ? `Min: ${field.min_length.toLocaleString()}` : ""}
-                            {field.min_length && field.max_length ? " · " : ""}
-                            {field.max_length ? `Max: ${field.max_length.toLocaleString()}` : ""}
-                          </p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Price Summary */}
-                <div className="rounded-[var(--radius-card)] bg-secondary/20 border border-border p-4 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Total Price</span>
-                    <span className="text-lg font-extrabold font-mono tabular-nums text-foreground">
-                      <Money amount={totalPrice} />
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Your Balance</span>
-                    <span className={cn("text-xs font-bold font-mono tabular-nums", hasInsufficientBalance ? "text-destructive" : "text-success")}>
-                      <Money amount={balance} />
-                    </span>
-                  </div>
+              {/* Custom Fields */}
+              {activeFields.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-[11px] uppercase tracking-[0.12em] font-bold text-muted-foreground/50">
+                    Order Details
+                  </h3>
+                  {activeFields.map((field: any) => (
+                    <div key={field.id} className="space-y-1.5">
+                      <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        {field.field_name}
+                        {field.required && <span className="text-destructive ml-0.5">*</span>}
+                      </label>
+                      {field.field_type === "select" && Array.isArray(field.options) && field.options.length > 0 ? (
+                        <select
+                          value={customFieldValues[field.field_name] || ""}
+                          onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
+                          className="w-full h-10 rounded-[var(--radius-input)] bg-secondary/50 border border-border px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/40"
+                        >
+                          <option value="">{field.placeholder || `Select ${field.field_name}`}</option>
+                          {(field.options as string[]).map((opt: string) => (
+                            <option key={opt} value={opt}>{opt}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <Input
+                          type={field.field_type === "number" || field.field_type === "quantity" ? "number" : field.field_type === "url" ? "url" : "text"}
+                          value={customFieldValues[field.field_name] || ""}
+                          onChange={(e) => setCustomFieldValues(prev => ({ ...prev, [field.field_name]: e.target.value }))}
+                          placeholder={field.placeholder || `Enter ${field.field_name}`}
+                          className="bg-secondary/50 border-border font-mono text-sm rounded-[var(--radius-input)]"
+                          min={field.min_length || undefined}
+                          max={field.max_length || undefined}
+                        />
+                      )}
+                      {(field.field_type === "quantity" || field.field_type === "number") && (field.min_length || field.max_length) && (
+                        <p className="text-[10px] text-muted-foreground/50">
+                          {field.min_length ? `Min: ${field.min_length.toLocaleString()}` : ""}
+                          {field.min_length && field.max_length ? " · " : ""}
+                          {field.max_length ? `Max: ${field.max_length.toLocaleString()}` : ""}
+                        </p>
+                      )}
+                    </div>
+                  ))}
                 </div>
+              )}
 
-                {hasInsufficientBalance && (
-                  <div className="flex items-center gap-2 text-xs bg-destructive/8 text-destructive px-3 py-2.5 rounded-[var(--radius-btn)] border border-destructive/15">
-                    <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-                    <span>Need <Money amount={totalPrice - balance} className="inline font-bold" /> more.</span>
-                    <button onClick={() => navigate("/dashboard/wallet")} className="text-primary font-semibold hover:underline ml-auto shrink-0">Top Up</button>
+              {/* Price Summary */}
+              <div className="rounded-xl bg-secondary/20 border border-border/30 p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Total Price</span>
+                  <span className="text-xl font-extrabold font-mono tabular-nums text-foreground">
+                    <Money amount={totalPrice} />
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-xs text-muted-foreground">Your Balance</span>
+                  <span className={cn("text-xs font-bold font-mono tabular-nums", hasInsufficientBalance ? "text-destructive" : "text-success")}>
+                    <Money amount={balance} />
+                  </span>
+                </div>
+                {tierDiscount > 0 && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-success">Tier Discount ({tierDiscount}%)</span>
+                    <span className="text-xs font-bold font-mono tabular-nums text-success">-<Money amount={discountAmount} /></span>
                   </div>
                 )}
-
-                <Button
-                  onClick={handlePurchase}
-                  disabled={!selectedProduct || purchasing || hasInsufficientBalance}
-                  className={cn(
-                    "w-full h-12 font-bold text-sm gap-2 rounded-[var(--radius-btn)]",
-                    "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground",
-                    "shadow-[0_0_20px_hsl(var(--primary)/0.25)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)]",
-                    "transition-all duration-300",
-                    hasInsufficientBalance && "opacity-40 shadow-none"
-                  )}
-                >
-                  {purchasing ? (
-                    <><div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" /> Processing...</>
-                  ) : (
-                    <><CheckCircle2 className="w-4 h-4" /> Place Order <ArrowRight className="w-4 h-4" /></>
-                  )}
-                </Button>
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      )}
 
+              {hasInsufficientBalance && (
+                <div className="flex items-center gap-2 text-xs bg-destructive/8 text-destructive px-3 py-2.5 rounded-xl border border-destructive/15">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  <span>Need <Money amount={totalPrice - balance} className="inline font-bold" /> more.</span>
+                  <button onClick={() => navigate("/dashboard/wallet")} className="text-primary font-semibold hover:underline ml-auto shrink-0">Top Up</button>
+                </div>
+              )}
+
+              <Button
+                onClick={handlePurchase}
+                disabled={!selectedProduct || purchasing || hasInsufficientBalance}
+                className={cn(
+                  "w-full h-12 font-bold text-sm gap-2 rounded-[var(--radius-btn)]",
+                  "bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground",
+                  "shadow-[0_0_20px_hsl(var(--primary)/0.25)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.4)]",
+                  "transition-all duration-300",
+                  hasInsufficientBalance && "opacity-40 shadow-none"
+                )}
+              >
+                {purchasing ? (
+                  <><div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" /> Processing...</>
+                ) : (
+                  <><CheckCircle2 className="w-4 h-4" /> Place Order <ArrowRight className="w-4 h-4" /></>
+                )}
+              </Button>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ═══ SUCCESS MODAL ═══ */}
       {result && <SuccessModal result={result} credentialsList={credentialsList} onCopy={copyCredentials} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
     </PageContainer>
+  );
+}
+
+/* ═══ SERVICE CARD ═══ */
+function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect }: {
+  product: any; index: number; isFavorite: boolean;
+  onToggleFavorite: (id: string, e?: React.MouseEvent) => void;
+  onSelect: (id: string) => void;
+}) {
+  const pType = p.product_type;
+  const isAuto = pType === "api" || pType === "digital";
+  const isOutOfStock = pType === "digital" && p.stock === 0;
+  const pTime = p.processing_time || (isAuto ? "Instant" : "1–24 Hours");
+  const CatIcon = getCategoryIcon(p.category, p.name);
+  const catColor = getCategoryIconColor(p.category, p.name);
+
+  let badgeLabel = "Manual";
+  let badgeClass = "bg-warning/10 text-warning border-warning/20";
+  let BadgeIcon = Clock;
+  if (pType === "digital") {
+    badgeLabel = "Instant";
+    badgeClass = "bg-success/10 text-success border-success/20";
+    BadgeIcon = Zap;
+  } else if (pType === "api") {
+    badgeLabel = "API";
+    badgeClass = "bg-ice/10 text-ice border-ice/20";
+    BadgeIcon = Link2;
+  }
+
+  return (
+    <motion.button
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.15, delay: Math.min(index * 0.02, 0.3) }}
+      onClick={() => !isOutOfStock && onSelect(p.id)}
+      disabled={isOutOfStock}
+      className={cn(
+        "w-full text-left rounded-[var(--radius-card)] border transition-all duration-200 ease-out group/card relative",
+        isOutOfStock
+          ? "opacity-30 cursor-not-allowed border-border/30 bg-muted/5 p-3.5"
+          : "border-border/40 bg-card cursor-pointer p-3.5",
+        !isOutOfStock && "hover:border-primary/30 hover:bg-card hover:-translate-y-px hover:shadow-[0_6px_24px_-6px_hsl(var(--primary)/0.1)] active:scale-[0.998]"
+      )}
+      style={{ boxShadow: "var(--shadow-card)" }}
+    >
+      <div className="flex items-center gap-3">
+        {/* Icon */}
+        <div className={cn(
+          "shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover/card:scale-105",
+          catColor
+        )}>
+          <CatIcon className="w-4.5 h-4.5" />
+        </div>
+
+        {/* Info */}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <span className="shrink-0 font-mono text-[10px] font-bold text-primary/70">#{p.display_id}</span>
+            <p className="text-[13px] text-foreground font-semibold leading-snug truncate group-hover/card:text-primary transition-colors duration-200">
+              {sanitizeName(p.name)}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border", badgeClass)}>
+              <BadgeIcon className="w-2.5 h-2.5" />
+              {badgeLabel}
+            </span>
+            <span className="text-[10px] text-muted-foreground/50 font-medium flex items-center gap-1">
+              <Clock className="w-2.5 h-2.5" />
+              {pTime}
+            </span>
+            {isOutOfStock && <span className="text-[10px] font-bold text-destructive">Out of Stock</span>}
+          </div>
+        </div>
+
+        {/* Right: Price + Actions */}
+        <div className="shrink-0 flex items-center gap-2">
+          <div className="text-right">
+            <span className="text-sm font-bold font-mono tabular-nums text-foreground block">
+              <Money amount={p.wholesale_price} compact />
+            </span>
+          </div>
+          {!isOutOfStock && (
+            <span className={cn(
+              "inline-flex items-center gap-1 text-[10px] font-bold text-primary-foreground px-3 py-1.5 rounded-full",
+              "bg-gradient-to-r from-primary to-primary/80",
+              "shadow-[0_2px_8px_hsl(var(--primary)/0.1)]",
+              "group-hover/card:shadow-[0_4px_16px_hsl(var(--primary)/0.2)] group-hover/card:scale-105 transition-all duration-200"
+            )}>
+              Order <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover/card:translate-x-0.5" />
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Favorite star */}
+      {!isOutOfStock && (
+        <button
+          onClick={(e) => onToggleFavorite(p.id, e)}
+          className={cn(
+            "absolute top-2.5 right-2.5 p-1 rounded-full transition-all duration-200 z-10",
+            isFavorite
+              ? "text-warning opacity-100"
+              : "text-muted-foreground/20 opacity-0 group-hover/card:opacity-100 hover:text-warning/60"
+          )}
+        >
+          <Star className={cn("w-3.5 h-3.5", isFavorite && "fill-warning")} />
+        </button>
+      )}
+    </motion.button>
+  );
+}
+
+/* ═══ FAVORITE CARD (compact) ═══ */
+function FavoriteCard({ product: p, isFavorite, onToggleFavorite, onSelect }: {
+  product: any; isFavorite: boolean;
+  onToggleFavorite: (id: string, e?: React.MouseEvent) => void;
+  onSelect: (id: string) => void;
+}) {
+  const CatIcon = getCategoryIcon(p.category, p.name);
+  const catColor = getCategoryIconColor(p.category, p.name);
+
+  return (
+    <button
+      onClick={() => onSelect(p.id)}
+      className={cn(
+        "w-full text-left rounded-xl border border-warning/20 bg-warning/[0.03] p-3 group/fav",
+        "hover:border-warning/40 hover:bg-warning/[0.06] transition-all duration-200 relative"
+      )}
+    >
+      <div className="flex items-center gap-2.5">
+        <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center", catColor)}>
+          <CatIcon className="w-3.5 h-3.5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold text-foreground truncate">{sanitizeName(p.name)}</p>
+          <p className="text-[10px] font-mono text-muted-foreground/50 mt-0.5">
+            <Money amount={p.wholesale_price} compact />
+          </p>
+        </div>
+      </div>
+      <button
+        onClick={(e) => onToggleFavorite(p.id, e)}
+        className="absolute top-2 right-2 p-0.5 text-warning opacity-60 hover:opacity-100 transition-opacity"
+      >
+        <Star className="w-3 h-3 fill-warning" />
+      </button>
+    </button>
+  );
+}
+
+/* ═══ POPULAR CARD ═══ */
+function PopularCard({ product: p, onSelect }: { product: any; onSelect: (id: string) => void }) {
+  const CatIcon = getCategoryIcon(p.category, p.name);
+  const catColor = getCategoryIconColor(p.category, p.name);
+
+  return (
+    <button
+      onClick={() => onSelect(p.id)}
+      className={cn(
+        "w-full text-left rounded-xl border border-border/40 bg-card p-3 group/pop",
+        "hover:border-primary/30 hover:-translate-y-px hover:shadow-[0_4px_16px_-4px_hsl(var(--primary)/0.08)] transition-all duration-200"
+      )}
+      style={{ boxShadow: "var(--shadow-card)" }}
+    >
+      <div className="flex items-center gap-2.5">
+        <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center", catColor)}>
+          <CatIcon className="w-3.5 h-3.5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold text-foreground truncate group-hover/pop:text-primary transition-colors">{sanitizeName(p.name)}</p>
+          <p className="text-[10px] font-mono text-success mt-0.5">
+            <Money amount={p.wholesale_price} compact />
+          </p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/* ═══ DELIVERY BADGE ═══ */
+function DeliveryBadge({ product, isInstant, deliveryTime }: { product: any; isInstant: boolean; deliveryTime: string }) {
+  return (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      <span className={cn(
+        "inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border",
+        isInstant ? "bg-success/10 text-success border-success/20" : "bg-warning/10 text-warning border-warning/20"
+      )}>
+        {isInstant ? <Zap className="w-3 h-3" /> : <Clock className="w-3 h-3" />}
+        {isInstant ? "Instant" : "Manual"}
+      </span>
+      {deliveryTime && deliveryTime !== "Instant" && (
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 bg-ice/10 text-ice border border-ice/20">
+          <Clock className="w-3 h-3" /> {deliveryTime}
+        </span>
+      )}
+      {product.description?.toLowerCase().includes("no refund") && (
+        <span className="inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 bg-destructive/10 text-destructive border border-destructive/20">
+          <ShieldAlert className="w-3 h-3" /> NO REFUND
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -694,33 +805,33 @@ function ServiceDescription({ product }: { product: any }) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2.5">
       {regularLines.length > 0 && (
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {regularLines.map((line, i) => {
             if (line.startsWith("**") && line.endsWith("**"))
-              return <p key={i} className="text-sm font-bold text-foreground">{line.replace(/\*\*/g, "")}</p>;
-            return <p key={i} className="text-[13px] text-muted-foreground leading-relaxed">{line}</p>;
+              return <p key={i} className="text-xs font-bold text-foreground">{line.replace(/\*\*/g, "")}</p>;
+            return <p key={i} className="text-xs text-muted-foreground leading-relaxed">{line}</p>;
           })}
         </div>
       )}
       {features.length > 0 && (
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {features.map((feat, i) => (
             <div key={i} className="flex items-start gap-2">
-              <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0 mt-0.5" />
-              <span className="text-[13px] text-foreground/90">{feat}</span>
+              <CheckCircle2 className="w-3 h-3 text-success shrink-0 mt-0.5" />
+              <span className="text-xs text-foreground/90">{feat}</span>
             </div>
           ))}
         </div>
       )}
       {warnings.length > 0 && (
-        <div className="rounded-[var(--radius-btn)] border border-destructive/20 bg-destructive/5 p-3 space-y-1">
+        <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-2.5 space-y-1">
           <div className="flex items-center gap-1.5 text-destructive font-bold text-[10px] uppercase tracking-wider">
-            <ShieldAlert className="w-3.5 h-3.5" /> Important Notice
+            <ShieldAlert className="w-3 h-3" /> Important
           </div>
           {warnings.map((warn, i) => (
-            <p key={i} className="text-xs text-destructive/80 font-medium">{warn}</p>
+            <p key={i} className="text-[11px] text-destructive/80 font-medium">{warn}</p>
           ))}
         </div>
       )}
@@ -728,13 +839,13 @@ function ServiceDescription({ product }: { product: any }) {
         <div className="space-y-1.5">
           {downloadLines.map((url, i) => (
             <a key={i} href={url} target="_blank" rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-2.5 rounded-[var(--radius-btn)] bg-primary/8 border border-primary/15 text-primary font-semibold text-xs hover:bg-primary/15 transition-all duration-200">
+              className="flex items-center justify-center gap-2 w-full py-2 rounded-lg bg-primary/8 border border-primary/15 text-primary font-semibold text-xs hover:bg-primary/15 transition-all duration-200">
               <Download className="w-3.5 h-3.5" /> Download Tool{downloadLines.length > 1 ? ` ${i + 1}` : ""}
             </a>
           ))}
         </div>
       )}
-      {!description && <p className="text-sm text-muted-foreground/50 italic">No description available.</p>}
+      {!description && <p className="text-xs text-muted-foreground/50 italic">No description available.</p>}
     </div>
   );
 }
