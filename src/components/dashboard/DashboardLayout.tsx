@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PrefetchLink from "@/components/PrefetchLink";
 import { AnimatePresence } from "framer-motion";
 import PageTransition from "@/components/dashboard/PageTransition";
+import PullToRefresh from "@/components/shared/PullToRefresh";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
 import {
@@ -99,6 +101,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, profile, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const handlePullRefresh = useCallback(async () => {
+    await queryClient.invalidateQueries();
+  }, [queryClient]);
 
   useEffect(() => {
     const handler = () => navigate("/dashboard/wallet");
@@ -384,11 +391,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           data-scroll-area
           style={{ paddingBottom: 'max(6rem, calc(5rem + env(safe-area-inset-bottom, 0px)))' }}
         >
-          <AnimatePresence mode="wait">
-            <PageTransition key={location.pathname}>
-              {children}
-            </PageTransition>
-          </AnimatePresence>
+          <PullToRefresh onRefresh={handlePullRefresh}>
+            <AnimatePresence mode="wait">
+              <PageTransition key={location.pathname}>
+                {children}
+              </PageTransition>
+            </AnimatePresence>
+          </PullToRefresh>
         </main>
       </div>
 
