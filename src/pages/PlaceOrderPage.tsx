@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   ShoppingCart, CheckCircle2, Clock, Zap, Copy, Eye, X,
-  AlertTriangle, Search, Download, ShieldAlert, ArrowLeft,
-  Smartphone, Link2, Package, ArrowRight, Star, Flame, Hash,
+  AlertTriangle, Search, Download, ShieldAlert, ArrowRight,
+  Smartphone, Link2, Package, Star, ChevronDown,
 } from "lucide-react";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 import { toast } from "sonner";
@@ -41,6 +41,15 @@ function setFavorites(ids: string[]) {
   localStorage.setItem(FAVORITES_KEY, JSON.stringify(ids));
 }
 
+/* ═══ EXPANDED GROUPS STORAGE ═══ */
+const EXPANDED_KEY = "kktech_expanded_groups";
+function getExpandedGroups(): string[] {
+  try { return JSON.parse(localStorage.getItem(EXPANDED_KEY) || "[]"); } catch { return []; }
+}
+function saveExpandedGroups(groups: string[]) {
+  localStorage.setItem(EXPANDED_KEY, JSON.stringify(groups));
+}
+
 export default function PlaceOrderPage() {
   const { user, profile, refreshProfile } = useAuth();
   const queryClient = useQueryClient();
@@ -55,6 +64,7 @@ export default function PlaceOrderPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavoritesState] = useState<string[]>(getFavorites);
   const [quickOrderOpen, setQuickOrderOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<string[]>(getExpandedGroups);
 
   // Realtime
   useEffect(() => {
@@ -128,35 +138,31 @@ export default function PlaceOrderPage() {
     : "instant";
   const activeFields = customFields.filter((f: any) => f.linked_mode === defaultMode);
 
-  const categories = useMemo(() => {
-    const cats = new Map<string, number>();
-    products.forEach((p: any) => {
-      const cat = p.category || "Other";
-      cats.set(cat, (cats.get(cat) || 0) + 1);
-    });
-    return Array.from(cats.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => ({ name, count }));
-  }, [products]);
-
-  const allCategories = useMemo(() => {
-    return [{ name: "All", count: products.length }, ...categories];
-  }, [categories, products.length]);
-
-  const [activeCategory, setActiveCategory] = useState("All");
-
+  // Filter products by search
   const filteredProducts = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return products;
     return products.filter((p: any) => {
-      const matchCat = activeCategory === "All" || p.category === activeCategory;
-      const q = searchQuery.trim().toLowerCase();
-      const matchSearch = !q ||
-        p.name.toLowerCase().includes(q) ||
+      return p.name.toLowerCase().includes(q) ||
         String(p.display_id).includes(q) ||
         (p.brand && p.brand.toLowerCase().includes(q)) ||
         (p.category && p.category.toLowerCase().includes(q));
-      return matchCat && matchSearch;
     });
-  }, [products, searchQuery, activeCategory]);
+  }, [products, searchQuery]);
+
+  // Group products by category
+  const groupedProducts = useMemo(() => {
+    const groups = new Map<string, any[]>();
+    filteredProducts.forEach((p: any) => {
+      const cat = p.category || "Other";
+      if (!groups.has(cat)) groups.set(cat, []);
+      groups.get(cat)!.push(p);
+    });
+    // Sort groups by count descending
+    return Array.from(groups.entries())
+      .sort((a, b) => b[1].length - a[1].length)
+      .map(([name, items]) => ({ name, items, count: items.length }));
+  }, [filteredProducts]);
 
   // Favorites
   const favoriteProducts = useMemo(() => {
@@ -172,10 +178,35 @@ export default function PlaceOrderPage() {
     });
   }, []);
 
-  // Popular services (top 6 by display_id which correlates with order frequency)
-  const popularProducts = useMemo(() => {
-    return [...products].sort((a: any, b: any) => (b.sort_order || 0) - (a.sort_order || 0)).slice(0, 6);
-  }, [products]);
+  // Accordion toggle
+  const toggleGroup = useCallback((groupName: string) => {
+    setExpandedGroups(prev => {
+      const next = prev.includes(groupName)
+        ? prev.filter(g => g !== groupName)
+        : [...prev, groupName];
+      saveExpandedGroups(next);
+      return next;
+    });
+  }, []);
+
+  const expandAll = useCallback(() => {
+    const all = groupedProducts.map(g => g.name);
+    setExpandedGroups(all);
+    saveExpandedGroups(all);
+  }, [groupedProducts]);
+
+  const collapseAll = useCallback(() => {
+    setExpandedGroups([]);
+    saveExpandedGroups([]);
+  }, []);
+
+  // When searching, auto-expand all matching groups
+  useEffect(() => {
+    if (searchQuery.trim()) {
+      const allGroups = groupedProducts.map(g => g.name);
+      setExpandedGroups(allGroups);
+    }
+  }, [searchQuery, groupedProducts]);
 
   // Pricing
   const unitPrice = useMemo(() => {
@@ -270,7 +301,7 @@ export default function PlaceOrderPage() {
             </div>
             <div>
               <h1 className="gradient-text">Place Order</h1>
-              <p className="page-header-subtitle">Search and order services instantly</p>
+              <p className="page-header-subtitle">Browse service groups and place orders</p>
             </div>
           </div>
           <div className="flex gap-1 p-1 rounded-[var(--radius-btn)] bg-secondary/50 border border-border">
@@ -307,7 +338,7 @@ export default function PlaceOrderPage() {
         </div>
       ) : (
         <div className="space-y-5">
-          {/* ═══ SMART SEARCH BAR ═══ */}
+          {/* ═══ SEARCH BAR ═══ */}
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40 pointer-events-none transition-colors group-focus-within:text-primary/60" />
             <input
@@ -329,38 +360,14 @@ export default function PlaceOrderPage() {
             )}
           </div>
 
-          {/* ═══ CATEGORY FILTER CHIPS ═══ */}
-          <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-1 px-1">
-            {allCategories.map((cat) => {
-              const CatIcon = cat.name === "All" ? Package : getCategoryIcon(cat.name, "");
-              const isActive = activeCategory === cat.name;
-              return (
-                <button
-                  key={cat.name}
-                  onClick={() => setActiveCategory(cat.name)}
-                  className={cn(
-                    "shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 text-[11px] font-bold rounded-full border transition-all duration-200",
-                    isActive
-                      ? "bg-primary text-primary-foreground border-primary shadow-[0_0_16px_hsl(var(--primary)/0.2)]"
-                      : "bg-card text-muted-foreground border-border/50 hover:border-primary/30 hover:text-foreground hover:bg-card/80"
-                  )}
-                >
-                  <CatIcon className="w-3.5 h-3.5" />
-                  {cat.name}
-                  <span className={cn("font-mono text-[10px]", isActive ? "opacity-70" : "opacity-40")}>{cat.count}</span>
-                </button>
-              );
-            })}
-          </div>
-
           {/* ═══ FAVORITE SERVICES ═══ */}
-          {favoriteProducts.length > 0 && !searchQuery && activeCategory === "All" && (
+          {favoriteProducts.length > 0 && !searchQuery && (
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               className="space-y-3"
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 px-1">
                 <Star className="w-4 h-4 text-warning fill-warning" />
                 <h2 className="text-sm font-bold text-foreground">Favorite Services</h2>
                 <span className="text-[10px] font-mono text-muted-foreground/40">{favoriteProducts.length}</span>
@@ -379,74 +386,142 @@ export default function PlaceOrderPage() {
             </motion.div>
           )}
 
-          {/* ═══ POPULAR SERVICES ═══ */}
-          {!searchQuery && activeCategory === "All" && popularProducts.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
-              className="space-y-3"
-            >
-              <div className="flex items-center gap-2">
-                <Flame className="w-4 h-4 text-destructive" />
-                <h2 className="text-sm font-bold text-foreground">Popular Services</h2>
-              </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                {popularProducts.map((p: any) => (
-                  <PopularCard key={p.id} product={p} onSelect={handleSelectProduct} />
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* ═══ ALL SERVICES ═══ */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Package className="w-4 h-4 text-muted-foreground/50" />
-                <h2 className="text-sm font-bold text-foreground">
-                  {activeCategory === "All" ? "All Services" : activeCategory}
-                </h2>
-              </div>
-              <span className="text-[10px] font-mono text-muted-foreground/40">{filteredProducts.length} results</span>
+          {/* ═══ GROUP SUMMARY + CONTROLS ═══ */}
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <Package className="w-4 h-4 text-muted-foreground/50" />
+              <h2 className="text-sm font-bold text-foreground">
+                {searchQuery ? "Search Results" : "Service Groups"}
+              </h2>
+              <span className="text-[10px] font-mono text-muted-foreground/40">
+                {filteredProducts.length} services · {groupedProducts.length} groups
+              </span>
             </div>
-
-            {productsLoading ? (
-              <div className="space-y-2">
-                {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="rounded-[var(--radius-card)] border border-border/30 bg-card p-4 animate-pulse">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-muted/30" />
-                      <div className="flex-1 space-y-2">
-                        <div className="h-3.5 bg-muted/30 rounded w-3/4" />
-                        <div className="h-2.5 bg-muted/20 rounded w-1/3" />
-                      </div>
-                      <div className="h-8 w-20 bg-muted/20 rounded-full" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : filteredProducts.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/30">
-                <Search className="w-8 h-8 mb-3" />
-                <p className="text-sm font-medium">No services found</p>
-                <p className="text-xs mt-1">Try adjusting your search or filters</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {filteredProducts.map((p: any, i: number) => (
-                  <ServiceCard
-                    key={p.id}
-                    product={p}
-                    index={i}
-                    isFavorite={favorites.includes(p.id)}
-                    onToggleFavorite={toggleFavorite}
-                    onSelect={handleSelectProduct}
-                  />
-                ))}
+            {groupedProducts.length > 1 && (
+              <div className="flex gap-1">
+                <button
+                  onClick={expandAll}
+                  className="text-[10px] font-semibold text-primary hover:text-primary/80 px-2 py-1 rounded-md hover:bg-primary/5 transition-colors"
+                >
+                  Expand all
+                </button>
+                <button
+                  onClick={collapseAll}
+                  className="text-[10px] font-semibold text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-secondary/40 transition-colors"
+                >
+                  Collapse all
+                </button>
               </div>
             )}
           </div>
+
+          {/* ═══ ACCORDION GROUPS ═══ */}
+          {productsLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="rounded-[var(--radius-card)] border border-border/30 bg-card animate-pulse">
+                  <div className="flex items-center gap-3 p-4">
+                    <div className="w-8 h-8 rounded-lg bg-muted/30" />
+                    <div className="flex-1 h-4 bg-muted/30 rounded w-1/3" />
+                    <div className="w-10 h-5 bg-muted/20 rounded-full" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : groupedProducts.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16 text-muted-foreground/30">
+              <Search className="w-8 h-8 mb-3" />
+              <p className="text-sm font-medium">No services found</p>
+              <p className="text-xs mt-1">Try adjusting your search</p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {groupedProducts.map((group, gi) => {
+                const isOpen = expandedGroups.includes(group.name);
+                const CatIcon = getCategoryIcon(group.name, "");
+                const catColor = getCategoryIconColor(group.name, "");
+
+                return (
+                  <motion.div
+                    key={group.name}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.2, delay: Math.min(gi * 0.03, 0.2) }}
+                    className={cn(
+                      "rounded-[var(--radius-card)] border overflow-hidden transition-all duration-200",
+                      isOpen
+                        ? "border-primary/20 bg-card shadow-[0_4px_24px_-8px_hsl(var(--primary)/0.08)]"
+                        : "border-border/40 bg-card hover:border-border/60"
+                    )}
+                    style={{ boxShadow: isOpen ? undefined : "var(--shadow-card)" }}
+                  >
+                    {/* Group Header */}
+                    <button
+                      onClick={() => toggleGroup(group.name)}
+                      className={cn(
+                        "w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors duration-200",
+                        "hover:bg-secondary/20 active:bg-secondary/30",
+                        isOpen && "border-b border-border/30"
+                      )}
+                    >
+                      <div className={cn(
+                        "shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-transform duration-200",
+                        catColor,
+                        isOpen && "scale-105"
+                      )}>
+                        <CatIcon className="w-4 h-4" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-[13px] font-bold text-foreground uppercase tracking-wide truncate">
+                          {group.name}
+                        </h3>
+                      </div>
+                      <span className={cn(
+                        "text-[10px] font-bold font-mono tabular-nums px-2.5 py-1 rounded-full border transition-colors",
+                        isOpen
+                          ? "bg-primary/10 text-primary border-primary/20"
+                          : "bg-secondary/60 text-muted-foreground border-border/30"
+                      )}>
+                        {group.count}
+                      </span>
+                      <ChevronDown
+                        className={cn(
+                          "w-4 h-4 text-muted-foreground/50 transition-transform duration-200 ease-out shrink-0",
+                          isOpen && "rotate-180 text-primary/60"
+                        )}
+                      />
+                    </button>
+
+                    {/* Group Content */}
+                    <AnimatePresence initial={false}>
+                      {isOpen && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: "easeOut" }}
+                          className="overflow-hidden"
+                        >
+                          <div className="divide-y divide-border/20">
+                            {group.items.map((p: any, i: number) => (
+                              <ServiceRow
+                                key={p.id}
+                                product={p}
+                                index={i}
+                                isFavorite={favorites.includes(p.id)}
+                                onToggleFavorite={toggleFavorite}
+                                onSelect={handleSelectProduct}
+                              />
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -577,16 +652,15 @@ export default function PlaceOrderPage() {
   );
 }
 
-/* ═══ SERVICE CARD ═══ */
-function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect }: {
+/* ═══ SERVICE ROW (inside accordion group) ═══ */
+function ServiceRow({ product: p, index, isFavorite, onToggleFavorite, onSelect }: {
   product: any; index: number; isFavorite: boolean;
   onToggleFavorite: (id: string, e?: React.MouseEvent) => void;
   onSelect: (id: string) => void;
 }) {
   const pType = p.product_type;
-  const isAuto = pType === "api" || pType === "digital";
   const isOutOfStock = pType === "digital" && p.stock === 0;
-  const pTime = p.processing_time || (isAuto ? "Instant" : "1–24 Hours");
+  const pTime = p.processing_time || (pType === "api" || pType === "digital" ? "Instant" : "1–24 Hours");
   const CatIcon = getCategoryIcon(p.category, p.name);
   const catColor = getCategoryIconColor(p.category, p.name);
 
@@ -604,39 +678,34 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
   }
 
   return (
-    <motion.button
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.15, delay: Math.min(index * 0.02, 0.3) }}
+    <button
       onClick={() => !isOutOfStock && onSelect(p.id)}
       disabled={isOutOfStock}
       className={cn(
-        "w-full text-left rounded-[var(--radius-card)] border transition-all duration-200 ease-out group/card relative",
+        "w-full text-left px-4 py-3 transition-colors duration-150 group/row relative",
         isOutOfStock
-          ? "opacity-30 cursor-not-allowed border-border/30 bg-muted/5 p-3.5"
-          : "border-border/40 bg-card cursor-pointer p-3.5",
-        !isOutOfStock && "hover:border-primary/30 hover:bg-card hover:-translate-y-px hover:shadow-[0_6px_24px_-6px_hsl(var(--primary)/0.1)] active:scale-[0.998]"
+          ? "opacity-30 cursor-not-allowed"
+          : "cursor-pointer hover:bg-secondary/15 active:bg-secondary/25"
       )}
-      style={{ boxShadow: "var(--shadow-card)" }}
     >
       <div className="flex items-center gap-3">
         {/* Icon */}
         <div className={cn(
-          "shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover/card:scale-105",
+          "shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover/row:scale-105",
           catColor
         )}>
-          <CatIcon className="w-4.5 h-4.5" />
+          <CatIcon className="w-4 h-4" />
         </div>
 
         {/* Info */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <span className="shrink-0 font-mono text-[10px] font-bold text-primary/70">#{p.display_id}</span>
-            <p className="text-[13px] text-foreground font-semibold leading-snug truncate group-hover/card:text-primary transition-colors duration-200">
+            <span className="shrink-0 font-mono text-[10px] font-bold text-primary/60">#{p.display_id}</span>
+            <p className="text-[13px] text-foreground font-semibold leading-snug truncate group-hover/row:text-primary transition-colors duration-150">
               {sanitizeName(p.name)}
             </p>
           </div>
-          <div className="flex items-center gap-2 mt-1.5">
+          <div className="flex items-center gap-2 mt-1">
             <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border", badgeClass)}>
               <BadgeIcon className="w-2.5 h-2.5" />
               {badgeLabel}
@@ -649,21 +718,19 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
           </div>
         </div>
 
-        {/* Right: Price + Actions */}
-        <div className="shrink-0 flex items-center gap-2">
-          <div className="text-right">
-            <span className="text-sm font-bold font-mono tabular-nums text-foreground block">
-              <Money amount={p.wholesale_price} compact />
-            </span>
-          </div>
+        {/* Right: Price + Order */}
+        <div className="shrink-0 flex items-center gap-2.5">
+          <span className="text-sm font-bold font-mono tabular-nums text-foreground">
+            <Money amount={p.wholesale_price} compact />
+          </span>
           {!isOutOfStock && (
             <span className={cn(
               "inline-flex items-center gap-1 text-[10px] font-bold text-primary-foreground px-3 py-1.5 rounded-full",
               "bg-gradient-to-r from-primary to-primary/80",
               "shadow-[0_2px_8px_hsl(var(--primary)/0.1)]",
-              "group-hover/card:shadow-[0_4px_16px_hsl(var(--primary)/0.2)] group-hover/card:scale-105 transition-all duration-200"
+              "group-hover/row:shadow-[0_4px_16px_hsl(var(--primary)/0.2)] group-hover/row:scale-105 transition-all duration-200"
             )}>
-              Order <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover/card:translate-x-0.5" />
+              Order <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover/row:translate-x-0.5" />
             </span>
           )}
         </div>
@@ -674,16 +741,16 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
         <button
           onClick={(e) => onToggleFavorite(p.id, e)}
           className={cn(
-            "absolute top-2.5 right-2.5 p-1 rounded-full transition-all duration-200 z-10",
+            "absolute top-2 right-2 p-1 rounded-full transition-all duration-200 z-10",
             isFavorite
               ? "text-warning opacity-100"
-              : "text-muted-foreground/20 opacity-0 group-hover/card:opacity-100 hover:text-warning/60"
+              : "text-muted-foreground/20 opacity-0 group-hover/row:opacity-100 hover:text-warning/60"
           )}
         >
           <Star className={cn("w-3.5 h-3.5", isFavorite && "fill-warning")} />
         </button>
       )}
-    </motion.button>
+    </button>
   );
 }
 
@@ -721,35 +788,6 @@ function FavoriteCard({ product: p, isFavorite, onToggleFavorite, onSelect }: {
       >
         <Star className="w-3 h-3 fill-warning" />
       </button>
-    </button>
-  );
-}
-
-/* ═══ POPULAR CARD ═══ */
-function PopularCard({ product: p, onSelect }: { product: any; onSelect: (id: string) => void }) {
-  const CatIcon = getCategoryIcon(p.category, p.name);
-  const catColor = getCategoryIconColor(p.category, p.name);
-
-  return (
-    <button
-      onClick={() => onSelect(p.id)}
-      className={cn(
-        "w-full text-left rounded-xl border border-border/40 bg-card p-3 group/pop",
-        "hover:border-primary/30 hover:-translate-y-px hover:shadow-[0_4px_16px_-4px_hsl(var(--primary)/0.08)] transition-all duration-200"
-      )}
-      style={{ boxShadow: "var(--shadow-card)" }}
-    >
-      <div className="flex items-center gap-2.5">
-        <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center", catColor)}>
-          <CatIcon className="w-3.5 h-3.5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-foreground truncate group-hover/pop:text-primary transition-colors">{sanitizeName(p.name)}</p>
-          <p className="text-[10px] font-mono text-success mt-0.5">
-            <Money amount={p.wholesale_price} compact />
-          </p>
-        </div>
-      </div>
     </button>
   );
 }
