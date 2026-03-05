@@ -788,6 +788,79 @@ html {
     padding: var(--space-card);
   }
 
+  /* ─── Mobile Stat Cards (compact, touch-optimized) ─── */
+  .mobile-stat-card {
+    @apply relative overflow-hidden text-left;
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-default);
+    transition: all var(--transition-base);
+    min-height: 48px;
+  }
+
+  .mobile-stat-card:active {
+    transform: scale(0.98);
+  }
+
+  .mobile-stat-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .mobile-stat-card {
+      padding: var(--space-card);
+    }
+    .mobile-stat-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+    }
+  }
+
+  /* ─── FAB (Place Order) ─── */
+  .fab-quick-order {
+    position: fixed;
+    bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+    right: 16px;
+    z-index: 45;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 9999px;
+    background: linear-gradient(135deg, hsl(217 91% 55%), hsl(250 70% 58%));
+    color: white;
+    font-weight: 700;
+    font-size: 13px;
+    box-shadow: 0 4px 20px rgba(59, 130, 246, 0.35), 0 0 40px rgba(99, 102, 241, 0.12);
+    transition: all var(--transition-base);
+    cursor: pointer;
+  }
+
+  .fab-quick-order:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 30px rgba(59, 130, 246, 0.45), 0 0 60px rgba(99, 102, 241, 0.18);
+  }
+
+  .fab-quick-order:active {
+    transform: scale(0.95);
+  }
+
+  @media (min-width: 1024px) {
+    .fab-quick-order {
+      bottom: 24px;
+      right: 24px;
+    }
+  }
+
   .success-modal-overlay {
     background: rgba(11, 14, 20, 0.8);
     backdrop-filter: blur(12px);

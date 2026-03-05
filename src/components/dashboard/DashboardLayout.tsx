@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PrefetchLink from "@/components/PrefetchLink";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import PageTransition from "@/components/dashboard/PageTransition";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +16,6 @@ import {
   Wallet,
   ChevronsLeft,
   ChevronsRight,
-  Menu,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,6 +26,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import FloatingSupport from "@/components/shared/FloatingSupport";
 import BottomNav from "@/components/dashboard/BottomNav";
 import kkLogo from "@/assets/kkremote-logo.png";
+import { Money } from "@/components/shared";
 
 /* ── Sidebar nav groups ── */
 interface NavItem {
@@ -70,6 +70,21 @@ const navGroups: NavGroup[] = [
 
 const SIDEBAR_COLLAPSED_KEY = "sidebar-collapsed";
 
+/* ── Wallet Chip ── */
+function WalletChip({ profile }: { profile: any }) {
+  const navigate = useNavigate();
+  const { convert } = useCurrency();
+  return (
+    <button
+      onClick={() => navigate("/dashboard/wallet")}
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/8 border border-primary/15 text-sm font-bold font-mono tabular-nums text-primary hover:bg-primary/12 transition-colors"
+    >
+      <Wallet className="w-3.5 h-3.5" />
+      <Money amount={convert(profile?.balance || 0)} raw className="text-sm" />
+    </button>
+  );
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "true");
@@ -111,7 +126,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return location.pathname.startsWith(path);
   };
 
-  // Flatten all items for the header title
   const allItems = navGroups.flatMap((g) => g.items);
 
   return (
@@ -125,7 +139,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* ═══ SIDEBAR ═══ */}
+      {/* ═══ SIDEBAR (Desktop only) ═══ */}
       <aside
         className={cn(
           "fixed lg:static inset-y-0 left-0 z-50 flex flex-col",
@@ -136,17 +150,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Subtle gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-accent/[0.02] pointer-events-none rounded-none" />
         <TooltipProvider delayDuration={0}>
           {/* Logo header */}
           <div className="h-14 px-4 border-b border-sidebar-border/30 flex items-center justify-between shrink-0">
             <Link to="/dashboard" className="flex items-center gap-3 group min-w-0" onClick={() => setSidebarOpen(false)}>
-              <img
-                src={kkLogo}
-                alt="KKTech"
-                className="w-8 h-8 rounded-xl object-contain shrink-0 transition-transform duration-200 group-hover:scale-105"
-              />
+              <img src={kkLogo} alt="KKTech" className="w-8 h-8 rounded-xl object-contain shrink-0 transition-transform duration-200 group-hover:scale-105" />
               {!collapsed && (
                 <div className="overflow-hidden">
                   <span className="text-[15px] font-bold text-foreground tracking-tight">
@@ -158,8 +167,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </div>
               )}
             </Link>
-
-            {/* Close button on mobile, collapse toggle on desktop */}
             <button
               onClick={() => {
                 if (window.innerWidth < 1024) setSidebarOpen(false);
@@ -181,7 +188,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <nav className="flex-1 overflow-y-auto px-3 pt-3 pb-2 sidebar-scroll">
             {navGroups.map((group, gi) => (
               <div key={group.title} className={cn(gi > 0 && "mt-4")}>
-                {/* Section label */}
                 {!collapsed && (
                   <div className="px-3 mb-1.5">
                     <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
@@ -192,11 +198,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 {collapsed && gi > 0 && (
                   <div className="mx-3 mb-2 border-t border-sidebar-border/40" />
                 )}
-
                 <div className="flex flex-col gap-0.5">
                   {group.items.map((item) => {
                     const active = isActive(item.path);
-
                     const linkEl = (
                       <PrefetchLink
                         key={item.path}
@@ -220,26 +224,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                             }}
                           />
                         )}
-                        <div
-                          className={cn(
-                            "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200",
-                            active
-                              ? "bg-gradient-to-br from-primary/20 to-accent/15 text-primary"
-                              : "text-muted-foreground group-hover:text-foreground group-hover:bg-secondary/60"
-                          )}
-                        >
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200",
+                          active
+                            ? "bg-gradient-to-br from-primary/20 to-accent/15 text-primary"
+                            : "text-muted-foreground group-hover:text-foreground group-hover:bg-secondary/60"
+                        )}>
                           <item.icon className="w-[16px] h-[16px]" strokeWidth={1.8} />
                         </div>
                         {!collapsed && <span className="flex-1 truncate">{item.label}</span>}
                       </PrefetchLink>
                     );
-
                     return collapsed ? (
                       <Tooltip key={item.path}>
                         <TooltipTrigger asChild>{linkEl}</TooltipTrigger>
-                        <TooltipContent side="right" sideOffset={8} className="text-xs font-medium">
-                          {item.label}
-                        </TooltipContent>
+                        <TooltipContent side="right" sideOffset={8} className="text-xs font-medium">{item.label}</TooltipContent>
                       </Tooltip>
                     ) : (
                       <span key={item.path}>{linkEl}</span>
@@ -254,9 +253,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="mt-4">
                 {!collapsed && (
                   <div className="px-3 mb-1.5">
-                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">
-                      ADMIN
-                    </span>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">ADMIN</span>
                   </div>
                 )}
                 {collapsed && <div className="mx-3 mb-2 border-t border-sidebar-border/40" />}
@@ -277,7 +274,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       {!collapsed && <span className="flex-1 truncate">Admin Panel</span>}
                     </Link>
                   );
-
                   return collapsed ? (
                     <Tooltip>
                       <TooltipTrigger asChild>{linkEl}</TooltipTrigger>
@@ -304,21 +300,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   )}
                 </button>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-semibold text-foreground truncate">
-                    {profile?.name || "Reseller"}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                    {profile?.tier || "Reseller"}
-                  </p>
+                  <p className="text-[13px] font-semibold text-foreground truncate">{profile?.name || "Reseller"}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{profile?.tier || "Reseller"}</p>
                 </div>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all shrink-0"
-                      onClick={handleLogout}
-                    >
+                    <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all shrink-0" onClick={handleLogout}>
                       <LogOut className="w-4 h-4" strokeWidth={1.8} />
                     </Button>
                   </TooltipTrigger>
@@ -344,12 +331,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </Tooltip>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-                      onClick={handleLogout}
-                    >
+                    <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all" onClick={handleLogout}>
                       <LogOut className="w-4 h-4" strokeWidth={1.8} />
                     </Button>
                   </TooltipTrigger>
@@ -363,16 +345,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* ═══ MAIN AREA ═══ */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        {/* Top Navbar */}
-        <header className="h-14 border-b border-border/30 flex items-center justify-between px-3 sm:px-4 lg:px-8 fixed top-0 left-0 right-0 lg:sticky lg:relative z-30 bg-card/70 backdrop-blur-2xl">
-          <div className="flex items-center gap-2 sm:gap-3">
-            {/* Hamburger for mobile */}
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
-            >
-              <Menu className="w-5 h-5" strokeWidth={1.5} />
-            </button>
+        {/* Top Navbar — minimal on mobile */}
+        <header className="h-12 lg:h-14 border-b border-border/30 flex items-center justify-between px-3 sm:px-4 lg:px-8 fixed top-0 left-0 right-0 lg:sticky lg:relative z-30 bg-card/80 backdrop-blur-2xl">
+          <div className="flex items-center gap-2">
             <Link to="/dashboard" className="lg:hidden flex items-center gap-2">
               <img src={kkLogo} alt="KKTech" className="w-7 h-7 rounded-lg object-contain" />
               <span className="text-sm font-bold text-foreground">KK<span className="text-primary">Tech</span></span>
@@ -390,7 +365,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <WalletChip profile={profile} />
             <button
               onClick={() => navigate("/dashboard/settings")}
-              className="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden transition-all hover:border-primary/40 shrink-0"
+              className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden transition-all hover:border-primary/40 shrink-0"
             >
               {profile?.avatar_url ? (
                 <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -402,7 +377,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </header>
 
         {/* Spacer for fixed header on mobile */}
-        <div className="h-14 shrink-0 lg:hidden" />
+        <div className="h-12 lg:h-0 shrink-0 lg:hidden" />
 
         <main
           className="flex-1 p-3 sm:p-4 lg:p-8 pb-24 lg:pb-8 lg:overflow-y-auto"
@@ -415,42 +390,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </PageTransition>
           </AnimatePresence>
         </main>
-
-        <footer className="hidden lg:block border-t border-border/30 px-4 lg:px-8 py-3 text-center">
-          <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-            Terms & Conditions
-          </Link>
-        </footer>
       </div>
 
       <BottomNav />
       <FloatingSupport />
-    </div>
-  );
-}
-
-function WalletChip({ profile }: { profile: any }) {
-  const { currency, convert } = useCurrency();
-  const balance = profile?.balance || 0;
-  const displayBalance = convert(balance);
-
-  return (
-    <div className="flex items-center gap-1.5 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-xl bg-secondary/60 border border-border/50 hover:border-primary/20 transition-all">
-      <Wallet className="w-4 h-4 text-primary/70" />
-      <span className="text-sm font-bold font-mono text-foreground tabular-nums">
-        {currency === "USD"
-          ? displayBalance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-          : displayBalance.toLocaleString()
-        }
-      </span>
-      <span className="text-[10px] text-muted-foreground font-semibold hidden sm:inline">{currency}</span>
-      <button
-        onClick={() => window.dispatchEvent(new CustomEvent("open-topup-dialog"))}
-        className="ml-0.5 w-6 h-6 rounded-md bg-primary/10 hover:bg-primary/20 flex items-center justify-center transition-colors"
-        title="Quick Top-up"
-      >
-        <span className="text-primary text-sm font-bold leading-none">+</span>
-      </button>
     </div>
   );
 }

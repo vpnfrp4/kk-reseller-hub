@@ -293,15 +293,15 @@ export default function PlaceOrderPage() {
   return (
     <PageContainer maxWidth="max-w-5xl">
       {/* ═══ HEADER ═══ */}
-      <div className="page-header-card mb-6">
+      <div className="page-header-card mb-4 lg:mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="page-header-icon">
+            <div className="page-header-icon hidden lg:flex">
               <ShoppingCart className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="gradient-text">Place Order</h1>
-              <p className="page-header-subtitle">Browse service groups and place orders</p>
+              <h1 className="gradient-text text-lg lg:text-xl">Place Order</h1>
+              <p className="page-header-subtitle hidden sm:block">Browse service groups and place orders</p>
             </div>
           </div>
           <div className="flex gap-1 p-1 rounded-[var(--radius-btn)] bg-secondary/50 border border-border">
@@ -338,26 +338,29 @@ export default function PlaceOrderPage() {
         </div>
       ) : (
         <div className="space-y-5">
-          {/* ═══ SEARCH BAR ═══ */}
-          <div className="relative group">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40 pointer-events-none transition-colors group-focus-within:text-primary/60" />
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search service name, ID or brand..."
-              className={cn(
-                "w-full pl-12 pr-12 py-4 rounded-2xl text-sm font-medium",
-                "bg-card border border-border/50 text-foreground placeholder:text-muted-foreground/40",
-                "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40",
-                "transition-all duration-300",
-                "shadow-[0_2px_12px_rgba(0,0,0,0.04)]",
+          {/* ═══ STICKY SEARCH BAR ═══ */}
+          <div className="sticky top-0 z-20 -mx-3 px-3 py-2 lg:static lg:mx-0 lg:px-0 lg:py-0"
+            style={{ background: 'hsl(var(--background) / 0.9)', backdropFilter: 'blur(16px)' }}>
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40 pointer-events-none transition-colors group-focus-within:text-primary/60" />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search service..."
+                className={cn(
+                  "w-full pl-12 pr-12 py-3.5 lg:py-4 rounded-2xl text-sm font-medium",
+                  "bg-card border border-border/50 text-foreground placeholder:text-muted-foreground/40",
+                  "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40",
+                  "transition-all duration-300",
+                  "shadow-[0_2px_12px_rgba(0,0,0,0.04)]",
+                )}
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-muted-foreground/50 hover:text-foreground hover:bg-secondary/60 transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
               )}
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-muted-foreground/50 hover:text-foreground hover:bg-secondary/60 transition-colors">
-                <X className="w-4 h-4" />
-              </button>
-            )}
+            </div>
           </div>
 
           {/* ═══ FAVORITE SERVICES ═══ */}
@@ -648,6 +651,21 @@ export default function PlaceOrderPage() {
 
       {/* ═══ SUCCESS MODAL ═══ */}
       {result && <SuccessModal result={result} credentialsList={credentialsList} onCopy={copyCredentials} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
+
+      {/* ═══ FAB — Quick Order (Mobile) ═══ */}
+      {activeTab === "services" && !quickOrderOpen && !result && (
+        <button
+          onClick={() => {
+            if (products.length > 0) {
+              handleSelectProduct(products[0].id);
+            }
+          }}
+          className="fab-quick-order lg:hidden"
+        >
+          <Zap className="w-4 h-4" />
+          Quick Order
+        </button>
+      )}
     </PageContainer>
   );
 }
