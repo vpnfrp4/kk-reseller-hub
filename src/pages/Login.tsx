@@ -16,6 +16,7 @@ import {
   generateCaptcha,
 } from "@/lib/username-validation";
 import AuthBrandPanel from "@/components/auth/AuthBrandPanel";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -180,6 +181,11 @@ export default function Login() {
 
       {/* ─── Form Panel (right on desktop, below on mobile) ─── */}
       <div className="flex-1 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-hidden">
+        {/* Theme toggle - top right */}
+        <div className="absolute top-4 right-4 z-20">
+          <ThemeToggle />
+        </div>
+
         {/* Subtle ambient blobs */}
         <div className="absolute top-[-15%] right-[-10%] w-[400px] h-[400px] rounded-full pointer-events-none"
           style={{ background: "radial-gradient(circle, hsl(217 91% 60% / 0.04), transparent 70%)", filter: "blur(80px)" }} />
