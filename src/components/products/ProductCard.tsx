@@ -68,12 +68,16 @@ export default function ProductCard({
     <div
       className={cn(
         "group relative opacity-0 animate-stagger-in flex flex-col",
-        "rounded-2xl bg-card border border-border/25",
+        "rounded-card bg-card/80 backdrop-blur-sm border border-border/30",
         "transition-all duration-300 ease-out",
-        "hover:border-primary/30 hover:shadow-[0_4px_24px_-6px_hsl(var(--primary)/0.12)]",
+        "hover:border-primary/25 hover:shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.15)]",
+        "hover:-translate-y-1",
       )}
       style={{ animationDelay: `${index * 0.04}s` }}
     >
+      {/* Top gradient accent line */}
+      <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+
       <div className="p-6 flex flex-col flex-1 gap-4">
         {/* ─── Name + Type badge ─── */}
         <div className="flex items-start justify-between gap-3">
@@ -83,7 +87,7 @@ export default function ProductCard({
               const IconComp = getCategoryIcon(product.category, product.name);
               const iconColor = getCategoryIconColor(product.category, product.name);
               return (
-                <div className={cn("shrink-0 w-9 h-9 rounded-xl flex items-center justify-center mt-0.5", iconColor)}>
+                <div className={cn("shrink-0 w-10 h-10 rounded-xl flex items-center justify-center mt-0.5", iconColor)}>
                   <IconComp className="w-4.5 h-4.5" />
                 </div>
               );
@@ -107,7 +111,7 @@ export default function ProductCard({
 
           <span
             className={cn(
-              "shrink-0 inline-flex items-center gap-1 px-2.5 py-1 text-[9px] font-bold uppercase tracking-wider rounded-lg",
+              "shrink-0 inline-flex items-center gap-1 px-3 py-1.5 text-[9px] font-bold uppercase tracking-wider rounded-pill",
               isInstant
                 ? "bg-primary/8 text-primary border border-primary/15"
                 : "bg-muted/15 text-muted-foreground border border-border/20"
@@ -162,9 +166,9 @@ export default function ProductCard({
           <Button
             size="sm"
             className={cn(
-              "h-9 px-6 text-[11px] font-bold rounded-xl",
-              "shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.3)]",
-              "hover:shadow-[0_4px_16px_-3px_hsl(var(--primary)/0.4)]",
+              "h-10 px-6 text-[11px] font-bold rounded-pill",
+              "shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.3)]",
+              "hover:shadow-[0_6px_24px_-4px_hsl(var(--primary)/0.4)]",
               "hover:scale-[1.02] active:scale-[0.98]",
               "transition-all duration-200",
             )}
