@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { User, Camera, Mail, Calendar, Loader2, Trash2, Send, Link2, Copy, CheckCircle2, Unlink } from "lucide-react";
 import { t, useT } from "@/lib/i18n";
 
-const BOT_USERNAME = "KKRemoteBot";
+const BOT_USERNAME = "karkar4store_bot";
 
 export default function ProfileTab() {
   const { profile, refreshProfile, user } = useAuth();
