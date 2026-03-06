@@ -286,16 +286,16 @@ export default function CategoryDetailPage() {
 
       {/* ═══ SERVICE LIST ═══ */}
       {isLoading ? (
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-card border border-border/30 bg-card p-4 animate-pulse">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-muted/30" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-muted/30 rounded w-2/3" />
-                  <div className="h-3 bg-muted/20 rounded w-1/3" />
+            <div key={i} className="rounded-xl border border-border/30 bg-card overflow-hidden animate-pulse">
+              <div className="w-full aspect-[5/3] bg-muted/20" />
+              <div className="px-3.5 py-3 space-y-2">
+                <div className="h-4 bg-muted/30 rounded w-3/4" />
+                <div className="flex justify-between">
+                  <div className="h-4 bg-muted/20 rounded w-1/4" />
+                  <div className="h-3 bg-muted/15 rounded w-1/5" />
                 </div>
-                <div className="w-20 h-8 bg-muted/20 rounded-full" />
               </div>
             </div>
           ))}
