@@ -252,8 +252,8 @@ export default function CategoryDetailPage() {
       {/* ═══ IMEI CHECK SPECIAL: iFree Interface ═══ */}
       {isImeiCheckCategory && (
         <div className="space-y-6 mb-6">
-          <IFreeImeiCheck />
-          <IFreeCheckHistory />
+          <IFreeImeiCheck ref={imeiCheckRef} />
+          <IFreeCheckHistory onCheckAgain={(imei, serviceId) => imeiCheckRef.current?.prefill(imei, serviceId)} />
         </div>
       )}
 
