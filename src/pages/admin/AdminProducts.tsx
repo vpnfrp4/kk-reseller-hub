@@ -135,6 +135,9 @@ export default function AdminProducts() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bulkImageInputRef = useRef<HTMLInputElement>(null);
+  const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
+  const [bulkImageUploading, setBulkImageUploading] = useState(false);
   const descManuallyEdited = useRef(false);
   const titleManuallyEdited = useRef(false);
   const [descMode, setDescMode] = useState<DescriptionMode>("ultra-short");
@@ -1056,6 +1059,7 @@ export default function AdminProducts() {
                   duration: p.duration,
                   status: p.type === "disabled" ? "Disabled" : "Active",
                   product_code: p.product_code,
+                  image_url: p.image_url || "",
                 }));
                 exportToCsv("products", rows, [
                   { key: "display_id", label: "ID" },
@@ -1068,6 +1072,7 @@ export default function AdminProducts() {
                   { key: "duration", label: "Duration" },
                   { key: "status", label: "Status" },
                   { key: "product_code", label: "Code" },
+                  { key: "image_url", label: "Image URL" },
                 ]);
                 toast.success(`Exported ${rows.length} products`);
               }}>
@@ -2168,6 +2173,48 @@ export default function AdminProducts() {
             <Trash2 className="w-3.5 h-3.5" />
             Delete
           </Button>
+          <div className="h-4 w-px bg-border" />
+          <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs"
+            disabled={bulkImageUploading}
+            onClick={() => bulkImageInputRef.current?.click()}>
+            <Upload className="w-3.5 h-3.5" />
+            {bulkImageUploading ? "Uploading…" : "Assign Image"}
+          </Button>
+          <input
+            ref={bulkImageInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+              if (!file.type.startsWith("image/")) { toast.error("Please select an image file"); return; }
+              setBulkImageUploading(true);
+              try {
+                const compressed = await compressImage(file);
+                const fileName = `${crypto.randomUUID()}.webp`;
+                const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, compressed, { contentType: "image/webp", upsert: true });
+                if (uploadError) throw uploadError;
+                const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(fileName);
+                const ids = Array.from(selectedIds);
+                const CHUNK = 50;
+                for (let i = 0; i < ids.length; i += CHUNK) {
+                  const chunk = ids.slice(i, i + CHUNK);
+                  await supabase.from("products").update({ image_url: urlData.publicUrl }).in("id", chunk);
+                }
+                toast.success(`Image assigned to ${ids.length} products`);
+                queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+                queryClient.invalidateQueries({ queryKey: ["products"] });
+                setSelectedIds(new Set());
+              } catch (err: any) {
+                toast.error(err.message || "Upload failed");
+              } finally {
+                setBulkImageUploading(false);
+                if (bulkImageInputRef.current) bulkImageInputRef.current.value = "";
+              }
+            }}
+          />
           <Button size="sm" variant="ghost" className="h-7 text-xs ml-auto"
             onClick={() => setSelectedIds(new Set())}>
             Clear
@@ -2245,13 +2292,17 @@ export default function AdminProducts() {
                               </td>
                               <td className="px-4 py-3.5">
                                 <div className="flex items-center gap-3">
-                                  <div className="shrink-0 w-9 h-9 rounded-xl border border-white/10 bg-[#1A1F2E] flex items-center justify-center overflow-hidden">
+                                  <button
+                                    type="button"
+                                    onClick={() => p.image_url && setPreviewImage({ url: p.image_url, name: p.name })}
+                                    className={`shrink-0 w-9 h-9 rounded-xl border border-white/10 bg-[#1A1F2E] flex items-center justify-center overflow-hidden ${p.image_url ? "cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all" : "cursor-default"}`}
+                                  >
                                     {p.image_url ? (
                                       <img src={p.image_url} alt={p.name} className="w-9 h-9 object-contain p-1 rounded-lg" onError={(e) => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('span'), { className: 'text-xs font-bold uppercase text-primary/60', textContent: (p.name || '?')[0] })); }} />
                                     ) : (
                                       <span className="text-lg">{p.icon}</span>
                                     )}
-                                  </div>
+                                  </button>
                                   <div className="min-w-0">
                                     <span className="text-[13px] font-medium text-foreground block truncate max-w-[220px]">{sanitizeName(p.name)}</span>
                                     {p.duration && <p className="text-[10px] text-muted-foreground/50 mt-0.5">{p.duration}</p>}
@@ -2418,6 +2469,24 @@ export default function AdminProducts() {
           </div>
         )}
       </DataCard>
+
+      {/* ── Image Preview Modal ── */}
+      {previewImage && (
+        <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+          <DialogContent className="bg-card border-border max-w-md p-0 overflow-hidden">
+            <DialogHeader className="px-4 pt-4 pb-2">
+              <DialogTitle className="text-foreground text-sm truncate">{previewImage.name}</DialogTitle>
+            </DialogHeader>
+            <div className="px-4 pb-4">
+              <img
+                src={previewImage.url}
+                alt={previewImage.name}
+                className="w-full rounded-lg border border-border object-contain max-h-[60vh] bg-muted/20"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
