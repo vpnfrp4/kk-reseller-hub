@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { sanitizeName } from "@/lib/sanitize-name";
 import { useAuth } from "@/contexts/AuthContext";
