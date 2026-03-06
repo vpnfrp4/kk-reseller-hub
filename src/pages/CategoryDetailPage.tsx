@@ -424,7 +424,7 @@ export default function CategoryDetailPage() {
       </Dialog>
 
       {/* ═══ SUCCESS MODAL ═══ */}
-      {result && <SuccessModal result={result} credentialsList={credentialsList} onCopy={copyCredentials} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
+      {result && <SuccessModal result={result} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
     </PageContainer>
   );
 }
