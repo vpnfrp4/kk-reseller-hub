@@ -96,33 +96,51 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
   const categories = (() => {
     if (!productCategories) return [];
 
-    const cats = [...productCategories];
+    // Build active set from managed categories
+    const managedMap = new Map((managedCategories || []).map(mc => [mc.name, mc]));
+    const activeSet = managedCategories?.length
+      ? new Set((managedCategories).filter(mc => mc.is_active).map(mc => mc.name))
+      : null; // null = no managed categories yet, show all
+
+    let cats = [...productCategories];
+
+    // Filter out inactive categories (only if we have managed categories)
+    if (activeSet) {
+      cats = cats.filter(c => activeSet.has(c.name) || !managedMap.has(c.name));
+    }
 
     // Find existing "IMEI Check" category from products
     const existingIdx = cats.findIndex((c) => c.name === "IMEI Check");
 
     if (ifreeCount > 0) {
-      if (existingIdx >= 0) {
-        // Merge iFree count into existing IMEI Check category
-        cats[existingIdx] = {
-          ...cats[existingIdx],
-          count: cats[existingIdx].count + ifreeCount,
-          sampleProducts: [...ifreeSamples, ...cats[existingIdx].sampleProducts].slice(0, 3),
-          isApi: true,
-        };
-      } else {
-        // Create new IMEI Check category at the top
-        cats.unshift({
-          name: "IMEI Check",
-          count: ifreeCount,
-          sampleProducts: ifreeSamples,
-          isApi: true,
-        });
+      // Skip if IMEI Check is explicitly inactive
+      const imeiCheckActive = !activeSet || activeSet.has("IMEI Check") || !managedMap.has("IMEI Check");
+      if (imeiCheckActive) {
+        if (existingIdx >= 0) {
+          cats[existingIdx] = {
+            ...cats[existingIdx],
+            count: cats[existingIdx].count + ifreeCount,
+            sampleProducts: [...ifreeSamples, ...cats[existingIdx].sampleProducts].slice(0, 3),
+            isApi: true,
+          };
+        } else {
+          cats.unshift({
+            name: "IMEI Check",
+            count: ifreeCount,
+            sampleProducts: ifreeSamples,
+            isApi: true,
+          });
+        }
       }
     }
 
-    // Sort: IMEI Check first, then by count
+    // Sort by managed sort_order, then IMEI Check first, then by count
     return cats.sort((a, b) => {
+      const aManaged = managedMap.get(a.name);
+      const bManaged = managedMap.get(b.name);
+      if (aManaged && bManaged) return aManaged.sort_order - bManaged.sort_order;
+      if (aManaged) return -1;
+      if (bManaged) return 1;
       if (a.name === "IMEI Check") return -1;
       if (b.name === "IMEI Check") return 1;
       return b.count - a.count;
