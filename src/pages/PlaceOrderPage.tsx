@@ -574,7 +574,8 @@ export default function PlaceOrderPage() {
           )}
             </>
           )}
-
+        </div>
+      )}
       {/* ═══ QUICK ORDER MODAL ═══ */}
       <Dialog open={quickOrderOpen && !!selectedProduct} onOpenChange={(open) => { if (!open) handleCloseModal(); }}>
         <DialogContent className="max-w-md sm:max-w-lg max-h-[90vh] overflow-y-auto">
