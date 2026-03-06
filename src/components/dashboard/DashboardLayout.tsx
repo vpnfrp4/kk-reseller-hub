@@ -212,14 +212,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link to="/dashboard" className="flex items-center gap-3 group min-w-0" onClick={() => setSidebarOpen(false)}>
               <img src={kkLogo} alt="KKTech" className="w-8 h-8 rounded-xl object-contain shrink-0 transition-transform duration-200 group-hover:scale-105" />
               {!collapsed && (
-                <div className="overflow-hidden">
-                  <span className="text-[15px] font-bold text-foreground tracking-tight">
-                    KK<span className="text-primary">Tech</span>
-                  </span>
-                  <span className="text-[9px] block text-primary/60 font-bold uppercase tracking-[0.15em]">
-                    Digital Unlock Hub
-                  </span>
-                </div>
+                <span className="text-[15px] font-bold text-foreground tracking-tight">
+                  KK<span className="text-primary">Tech</span>
+                </span>
               )}
             </Link>
             <button
