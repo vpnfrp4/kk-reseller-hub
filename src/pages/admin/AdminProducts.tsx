@@ -2056,7 +2056,7 @@ export default function AdminProducts() {
             })()}
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => setBulkPriceOpen(false)}>Cancel</Button>
-              <Button className="flex-1 btn-glow" onClick={async () => {
+              <Button className="flex-1" onClick={async () => {
                 const pct = parseFloat(bulkPricePercent);
                 if (isNaN(pct) || pct <= 0 || pct > 100) { toast.error("Enter a valid percentage (1-100)"); return; }
                 const targetProducts = (products || []).filter((p: any) =>
