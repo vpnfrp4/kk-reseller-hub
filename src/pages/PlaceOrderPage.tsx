@@ -12,6 +12,7 @@ import {
   Smartphone, Link2, Package, Star, ChevronDown,
 } from "lucide-react";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
+import ProductIcon from "@/components/products/ProductIcon";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Money } from "@/components/shared";
