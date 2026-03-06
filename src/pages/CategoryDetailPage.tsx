@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   ShoppingCart, CheckCircle2, Clock, Zap, Copy, Eye, X,
   AlertTriangle, Search, Download, ShieldAlert, ArrowRight, ArrowLeft,
-  Link2, Star, ChevronLeft,
+  Link2, Star, ChevronLeft, Wifi,
 } from "lucide-react";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 import ProductIcon from "@/components/products/ProductIcon";
@@ -22,6 +22,8 @@ import { motion } from "framer-motion";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
+import IFreeImeiCheck from "@/components/imei/IFreeImeiCheck";
+import IFreeCheckHistory from "@/components/imei/IFreeCheckHistory";
 
 interface PurchaseResult {
   order_id: string;
@@ -210,6 +212,7 @@ export default function CategoryDetailPage() {
   const credentialsList = result?.credentials?.split("\n").filter(Boolean) || [];
   const CatIcon = getCategoryIcon(decodedCategory, "");
   const catColor = getCategoryIconColor(decodedCategory, "");
+  const isImeiCheckCategory = decodedCategory === "IMEI Check";
 
   return (
     <PageContainer maxWidth="max-w-5xl">
@@ -243,30 +246,48 @@ export default function CategoryDetailPage() {
         </div>
       </div>
 
-      {/* ═══ SEARCH WITHIN CATEGORY ═══ */}
-      <div className="sticky top-0 z-20 -mx-3 px-3 py-2 lg:static lg:mx-0 lg:px-0 lg:py-0 mb-4"
-        style={{ background: 'hsl(var(--background) / 0.9)', backdropFilter: 'blur(16px)' }}>
-        <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40 pointer-events-none transition-colors group-focus-within:text-primary/60" />
-          <input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder={`Search in ${decodedCategory}...`}
-            className={cn(
-              "w-full pl-12 pr-12 py-3 lg:py-3.5 rounded-2xl text-sm font-medium",
-              "bg-card border border-border/50 text-foreground placeholder:text-muted-foreground/40",
-              "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40",
-              "transition-all duration-300",
-              "shadow-[0_2px_12px_rgba(0,0,0,0.04)]",
-            )}
-          />
-          {searchQuery && (
-            <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-muted-foreground/50 hover:text-foreground hover:bg-secondary/60 transition-colors">
-              <X className="w-4 h-4" />
-            </button>
-          )}
+      {/* ═══ IMEI CHECK SPECIAL: iFree Interface ═══ */}
+      {isImeiCheckCategory && (
+        <div className="space-y-6 mb-6">
+          {/* API connection badge */}
+          <div className="flex items-center gap-2 px-1">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 border border-success/20 text-[11px] font-bold text-success">
+              <Wifi className="w-3 h-3" />
+              Live API · iFreeCheck
+            </span>
+            <span className="text-[11px] text-muted-foreground/50">Instant IMEI lookup services</span>
+          </div>
+          <IFreeImeiCheck />
+          <IFreeCheckHistory />
         </div>
-      </div>
+      )}
+
+      {/* ═══ SEARCH WITHIN CATEGORY ═══ */}
+      {!isImeiCheckCategory && (
+        <>
+          <div className="sticky top-0 z-20 -mx-3 px-3 py-2 lg:static lg:mx-0 lg:px-0 lg:py-0 mb-4"
+            style={{ background: 'hsl(var(--background) / 0.9)', backdropFilter: 'blur(16px)' }}>
+            <div className="relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40 pointer-events-none transition-colors group-focus-within:text-primary/60" />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder={`Search in ${decodedCategory}...`}
+                className={cn(
+                  "w-full pl-12 pr-12 py-3 lg:py-3.5 rounded-2xl text-sm font-medium",
+                  "bg-card border border-border/50 text-foreground placeholder:text-muted-foreground/40",
+                  "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40",
+                  "transition-all duration-300",
+                  "shadow-[0_2px_12px_rgba(0,0,0,0.04)]",
+                )}
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-muted-foreground/50 hover:text-foreground hover:bg-secondary/60 transition-colors">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+          </div>
 
       {/* ═══ SERVICE LIST ═══ */}
       {isLoading ? (
@@ -425,6 +446,8 @@ export default function CategoryDetailPage() {
 
       {/* ═══ SUCCESS MODAL ═══ */}
       {result && <SuccessModal result={result} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
+        </>
+      )}
     </PageContainer>
   );
 }
