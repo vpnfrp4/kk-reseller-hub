@@ -369,17 +369,17 @@ export default function AdminOverview() {
       <div className="animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-tight mb-default">
           <div>
-            <h1 className="text-h1 gradient-text tracking-tight">Control Center</h1>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Control Center</h1>
             <p className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] mt-micro">Financial & Operations Overview</p>
           </div>
           <div className="flex items-center gap-tight">
             <Link to="/admin/credentials">
-              <Button size="sm" className="btn-glow gap-1.5 h-8 text-xs">
+              <Button size="sm" className="gap-1.5 h-8 text-xs">
                 <Plus className="w-3.5 h-3.5" />Credentials
               </Button>
             </Link>
             <Link to="/admin/topups">
-              <Button size="sm" variant="outline" className="btn-glass gap-1.5 h-8 text-xs relative">
+              <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs relative">
                 <CheckCircle2 className="w-3.5 h-3.5" />Top-ups
                 {(stats?.pendingTopups || 0) > 0 && (
                   <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1 animate-pulse">
@@ -391,13 +391,7 @@ export default function AdminOverview() {
           </div>
         </div>
 
-        <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-default">
-          {/* Floating orbs for visual depth */}
-          <div className="pointer-events-none absolute -inset-8 overflow-hidden -z-10" aria-hidden="true">
-            <div className="absolute top-1/2 left-1/4 w-32 h-32 rounded-full bg-primary/8 blur-3xl animate-float-gentle" />
-            <div className="absolute top-1/3 right-1/4 w-40 h-40 rounded-full bg-accent/6 blur-3xl animate-float-gentle" style={{ animationDelay: "-3s" }} />
-            <div className="absolute bottom-0 left-1/2 w-28 h-28 rounded-full bg-primary-glow/5 blur-2xl animate-float-gentle" style={{ animationDelay: "-5s" }} />
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-default">
           <HeroStat label="Wallet Liability" value={stats?.walletLiability || 0} icon={AlertTriangle} iconColor="text-warning" featured sparkData={sparkTopup} delay={0} />
           <HeroStat label="Revenue (30d)" value={stats?.monthRevenue || 0} icon={Wallet} iconColor="text-success" sparkData={sparkRevenue} delay={0.08} />
           <HeroStat label="Pending Top-ups" value={stats?.pendingTopups || 0} icon={Clock} iconColor="text-ice" suffix="" delay={0.16} />

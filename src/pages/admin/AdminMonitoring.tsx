@@ -198,7 +198,7 @@ export default function AdminMonitoring() {
     <div className="space-y-6">
       <div className="flex items-center justify-between animate-fade-in">
         <div>
-          <h1 className="text-xl font-bold gradient-text">Monitoring</h1>
+          <h1 className="text-xl font-bold text-foreground">Monitoring</h1>
           <p className="text-sm text-muted-foreground">API health, errors, and refund tracking</p>
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh}>
@@ -225,8 +225,8 @@ export default function AdminMonitoring() {
         <Card>
           <CardContent className="pt-4 pb-3 px-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <AlertTriangle className="w-4 h-4 text-orange-500" />
+              <div className="w-9 h-9 rounded-lg bg-warning/10 flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4 text-warning" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{apiErrors.length}</p>
@@ -251,8 +251,8 @@ export default function AdminMonitoring() {
         <Card>
           <CardContent className="pt-4 pb-3 px-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <Server className="w-4 h-4 text-green-500" />
+              <div className="w-9 h-9 rounded-lg bg-success/10 flex items-center justify-center">
+                <Server className="w-4 h-4 text-success" />
               </div>
               <div>
                 <p className="text-2xl font-bold">
@@ -434,7 +434,7 @@ export default function AdminMonitoring() {
                       <TableCell className="font-mono text-xs">{log.action}</TableCell>
                       <TableCell>
                         {log.success ? (
-                          <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          <CheckCircle2 className="w-4 h-4 text-success" />
                         ) : (
                           <XCircle className="w-4 h-4 text-destructive" />
                         )}
@@ -489,7 +489,7 @@ export default function AdminMonitoring() {
                         </TableCell>
                         <TableCell>
                           {check.success ? (
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                            <CheckCircle2 className="w-4 h-4 text-success" />
                           ) : (
                             <XCircle className="w-4 h-4 text-destructive" />
                           )}
