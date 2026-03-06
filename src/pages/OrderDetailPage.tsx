@@ -254,7 +254,7 @@ export default function OrderDetailPage() {
       if (!id) return null;
       const { data, error } = await supabase
         .from("orders")
-        .select("*")
+        .select("*, products:product_id(image_url, category)")
         .eq("id", id)
         .single();
       if (error) return null;
