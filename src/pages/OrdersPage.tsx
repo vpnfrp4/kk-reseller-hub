@@ -688,7 +688,7 @@ export default function OrdersPage() {
                       <ProductTypeBadge type={row.product_type} />
                       <span className="text-[11px] text-muted-foreground">{format(new Date(row.created_at), "MMM dd, yyyy")}</span>
                     </div>
-                    <Money amount={row.price} className="text-sm font-bold gold-text" />
+                    <Money amount={row.price} className="text-sm font-bold text-foreground" />
                   </div>
 
                   {/* Action row */}

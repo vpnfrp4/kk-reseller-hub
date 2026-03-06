@@ -404,10 +404,8 @@ export default function WalletPage() {
                           )}
                           style={{ boxShadow: "var(--shadow-card)" }}
                         >
-                          {/* Gradient bg */}
-                          <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300", meta.gradient)} />
-                          {/* Glow */}
-                          <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-primary/5 opacity-0 group-hover:opacity-100 blur-3xl transition-opacity duration-500" />
+                          {/* Subtle hover bg */}
+                          <div className="absolute inset-0 bg-primary/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                           <div className="relative z-10 space-y-4">
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
