@@ -253,6 +253,55 @@ export type Database = {
         }
         Relationships: []
       }
+      download_logs: {
+        Row: {
+          created_at: string
+          download_id: string
+          id: string
+          ip_address: string | null
+          order_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          download_id: string
+          id?: string
+          ip_address?: string | null
+          order_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          download_id?: string
+          id?: string
+          ip_address?: string | null
+          order_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "download_logs_download_id_fkey"
+            columns: ["download_id"]
+            isOneToOne: false
+            referencedRelation: "product_downloads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "download_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "download_logs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "recent_completions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ifree_checks: {
         Row: {
           account_balance: string | null
@@ -838,6 +887,103 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "product_custom_fields_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_download_settings: {
+        Row: {
+          created_at: string
+          download_expiry_days: number | null
+          download_limit: number | null
+          product_id: string
+          require_login: boolean | null
+          send_via_email: boolean | null
+          show_on_thankyou: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          download_expiry_days?: number | null
+          download_limit?: number | null
+          product_id: string
+          require_login?: boolean | null
+          send_via_email?: boolean | null
+          show_on_thankyou?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          download_expiry_days?: number | null
+          download_limit?: number | null
+          product_id?: string
+          require_login?: boolean | null
+          send_via_email?: boolean | null
+          show_on_thankyou?: boolean | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_download_settings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_downloads: {
+        Row: {
+          created_at: string
+          download_type: string
+          file_name: string
+          file_size: number | null
+          file_url: string
+          file_version: string | null
+          id: string
+          link_text: string | null
+          open_new_tab: boolean | null
+          product_id: string
+          release_date: string | null
+          sort_order: number | null
+          system_requirements: string | null
+        }
+        Insert: {
+          created_at?: string
+          download_type?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          file_version?: string | null
+          id?: string
+          link_text?: string | null
+          open_new_tab?: boolean | null
+          product_id: string
+          release_date?: string | null
+          sort_order?: number | null
+          system_requirements?: string | null
+        }
+        Update: {
+          created_at?: string
+          download_type?: string
+          file_name?: string
+          file_size?: number | null
+          file_url?: string
+          file_version?: string | null
+          id?: string
+          link_text?: string | null
+          open_new_tab?: boolean | null
+          product_id?: string
+          release_date?: string | null
+          sort_order?: number | null
+          system_requirements?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_downloads_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "products"

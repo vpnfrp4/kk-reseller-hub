@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo, type ReactNode } from "react";
+import ProductDownloadManager, { saveProductDownloads, loadProductDownloads } from "@/components/admin/ProductDownloadManager";
 import { sanitizeName } from "@/lib/sanitize-name";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -153,6 +154,8 @@ export default function AdminProducts() {
   const [bulkRefreshing, setBulkRefreshing] = useState(false);
   const [bulkRefreshProgress, setBulkRefreshProgress] = useState({ current: 0, total: 0 });
   const [showDescPreview, setShowDescPreview] = useState(false);
+  const [downloadFiles, setDownloadFiles] = useState<any[]>([]);
+  const [downloadSettings, setDownloadSettings] = useState({ require_login: true, show_on_thankyou: true, send_via_email: false, download_limit: null as number | null, download_expiry_days: null as number | null });
 
   const FORM_STORAGE_KEY = "admin-product-form-draft";
 
@@ -304,6 +307,8 @@ export default function AdminProducts() {
     setEditing(null);
     setImagePreview(null);
     setCustomFields([]);
+    setDownloadFiles([]);
+    setDownloadSettings({ require_login: true, show_on_thankyou: true, send_via_email: false, download_limit: null, download_expiry_days: null });
     descManuallyEdited.current = false;
     titleManuallyEdited.current = false;
     setOptimizedMeta(null);
@@ -644,6 +649,11 @@ export default function AdminProducts() {
     setImagePreview(p.image_url || null);
     descManuallyEdited.current = !!(p.description && p.description.trim());
     loadCustomFields(p.id);
+    // Load downloads
+    loadProductDownloads(p.id).then(({ files, settings }) => {
+      setDownloadFiles(files);
+      setDownloadSettings(settings);
+    });
     setApiServices([]);
     setApiServiceSearch("");
     setDialogOpen(true);
@@ -840,6 +850,7 @@ export default function AdminProducts() {
       const { error } = await supabase.from("products").update(payload).eq("id", editing.id);
       if (error) { toast.error(error.message); return; }
       await saveCustomFields(editing.id);
+      await saveProductDownloads(editing.id, downloadFiles, downloadSettings);
       toast.success("Product updated");
     } else {
       const { data, error } = await supabase.from("products").insert(payload).select("id").single();
@@ -851,7 +862,10 @@ export default function AdminProducts() {
         }
         return;
       }
-      if (data) await saveCustomFields(data.id);
+      if (data) {
+        await saveCustomFields(data.id);
+        await saveProductDownloads(data.id, downloadFiles, downloadSettings);
+      }
       toast.success("Product created");
     }
     queryClient.invalidateQueries({ queryKey: ["admin-products"] });
@@ -2045,6 +2059,16 @@ export default function AdminProducts() {
                     </div>
                   </>
                 )}
+
+                {/* ── Product Downloads ── */}
+                <Separator />
+                <ProductDownloadManager
+                  productId={editing?.id || null}
+                  files={downloadFiles}
+                  settings={downloadSettings}
+                  onFilesChange={setDownloadFiles}
+                  onSettingsChange={setDownloadSettings}
+                />
 
                 </div>
                 <div className="shrink-0 px-6 py-4 border-t border-border bg-card">

@@ -45,6 +45,7 @@ const InstallPage = lazy(() => import("./pages/InstallPage"));
 const BlogListPage = lazy(() => import("./pages/BlogListPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const MyDownloadsPage = lazy(() => import("./pages/MyDownloadsPage"));
 const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const AdminCredentials = lazy(() => import("./pages/admin/AdminCredentials"));
@@ -160,7 +161,8 @@ function AppRoutes() {
       <Route path="/dashboard/providers/:id" element={<ProtectedRoute><ProviderProfilePage /></ProtectedRoute>} />
       <Route path="/dashboard/orders" element={<ProtectedRoute skeleton={<OrdersSkeleton />}><OrdersPage /></ProtectedRoute>} />
       <Route path="/dashboard/orders/:id" element={<ProtectedRoute><OrderDetailPage /></ProtectedRoute>} />
-      <Route path="/dashboard/settings" element={<ProtectedRoute skeleton={<SettingsSkeleton />}><SettingsPage /></ProtectedRoute>} />
+        <Route path="/dashboard/settings" element={<ProtectedRoute skeleton={<SettingsSkeleton />}><SettingsPage /></ProtectedRoute>} />
+        <Route path="/dashboard/downloads" element={<ProtectedRoute><MyDownloadsPage /></ProtectedRoute>} />
       <Route path="/dashboard/notifications" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard/imei-orders" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard/*" element={<Navigate to="/dashboard" replace />} />
