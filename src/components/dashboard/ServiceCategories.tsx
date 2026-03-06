@@ -66,7 +66,7 @@ export default function ServiceCategories() {
           return (
             <button
               key={cat.name}
-              onClick={() => navigate("/dashboard/place-order")}
+              onClick={() => navigate(`/dashboard/place-order/${encodeURIComponent(cat.name)}`)}
               className={cn(
                 "relative overflow-hidden rounded-card border border-border/50 bg-card",
                 "p-4 text-left transition-all duration-300 group",
