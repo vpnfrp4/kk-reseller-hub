@@ -404,11 +404,11 @@ export default function OrdersPage() {
                 <Package className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold gradient-text">Order History</h1>
+                <h1 className="text-xl font-bold text-foreground">Order History</h1>
                 <p className="page-header-subtitle">View and manage all your previous service orders.</p>
               </div>
             </div>
-            <Button onClick={exportCSV} className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:brightness-110 text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all">
+            <Button onClick={exportCSV} variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/50 transition-all">
               <Download className="w-4 h-4" />
               Export CSV
             </Button>
