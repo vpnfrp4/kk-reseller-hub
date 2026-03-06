@@ -1250,8 +1250,20 @@ export default function AdminProducts() {
                           />
                         ) : (
                           <span className="text-[9px] text-muted-foreground/40">Preview</span>
-                        )}
-                      </div>
+                  )}
+                </div>
+
+                {/* ── Product Name Generator ── */}
+                <ProductNameGenerator
+                  currentName={form.name}
+                  onApply={(name) => {
+                    setForm((prev) => ({ ...prev, name }));
+                    titleManuallyEdited.current = false;
+                    manualOverrides.current.delete("name");
+                    const result = optimizeTitle(name);
+                    setOptimizedMeta({ shortTitle: result.shortTitle, seoSlug: result.seoSlug });
+                  }}
+                />
                     </div>
                   </div>
                 </div>
