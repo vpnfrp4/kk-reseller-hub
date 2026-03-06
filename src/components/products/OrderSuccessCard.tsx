@@ -12,6 +12,17 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { sanitizeName } from "@/lib/sanitize-name";
 
+const SPARKLES = [
+  { x: -32, y: -28, size: 12, opacity: 0.9 },
+  { x: 30, y: -30, size: 10, opacity: 0.8 },
+  { x: -38, y: 8, size: 8, opacity: 0.7 },
+  { x: 36, y: 12, size: 11, opacity: 0.85 },
+  { x: -18, y: -38, size: 7, opacity: 0.6 },
+  { x: 20, y: 34, size: 9, opacity: 0.75 },
+  { x: -28, y: 30, size: 8, opacity: 0.65 },
+  { x: 8, y: -40, size: 10, opacity: 0.8 },
+];
+
 export interface OrderSuccessData {
   order_id: string;
   credentials: string;
@@ -81,11 +92,50 @@ export default function OrderSuccessCard({
         transition={{ type: "spring", stiffness: 200, damping: 20 }}
         className="text-center space-y-3 pt-2"
       >
-        <div
-          className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center mx-auto ring-4 ring-success/5"
-          style={{ boxShadow: "0 0 40px hsl(var(--success) / 0.2)" }}
-        >
-          <CheckCircle2 className="w-10 h-10 text-success" />
+        <div className="relative w-20 h-20 mx-auto">
+          {/* Sparkle particles */}
+          {SPARKLES.map((s, i) => (
+            <motion.div
+              key={i}
+              initial={{ scale: 0, opacity: 0, x: 0, y: 0 }}
+              animate={{
+                scale: [0, 1.2, 0],
+                opacity: [0, 1, 0],
+                x: s.x,
+                y: s.y,
+              }}
+              transition={{ delay: 0.3 + i * 0.06, duration: 0.7, ease: "easeOut" }}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+            >
+              <svg width={s.size} height={s.size} viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M12 2L13.5 9.5L21 12L13.5 14.5L12 22L10.5 14.5L3 12L10.5 9.5L12 2Z"
+                  className="fill-success"
+                  opacity={s.opacity}
+                />
+              </svg>
+            </motion.div>
+          ))}
+          {/* Ring burst */}
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0.6 }}
+            animate={{ scale: 2.2, opacity: 0 }}
+            transition={{ delay: 0.2, duration: 0.8, ease: "easeOut" }}
+            className="absolute inset-0 rounded-full border-2 border-success/40"
+          />
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0.4 }}
+            animate={{ scale: 1.8, opacity: 0 }}
+            transition={{ delay: 0.35, duration: 0.7, ease: "easeOut" }}
+            className="absolute inset-0 rounded-full border border-success/25"
+          />
+          {/* Checkmark icon */}
+          <div
+            className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center ring-4 ring-success/5 relative z-10"
+            style={{ boxShadow: "0 0 40px hsl(var(--success) / 0.2)" }}
+          >
+            <CheckCircle2 className="w-10 h-10 text-success" />
+          </div>
         </div>
         <div>
           <h2 className="text-xl font-bold text-foreground">Order Placed Successfully!</h2>
