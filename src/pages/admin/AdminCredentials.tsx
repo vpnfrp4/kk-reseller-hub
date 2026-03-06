@@ -877,7 +877,7 @@ export default function AdminCredentials() {
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setBulkReassignOpen(false)}>Cancel</Button>
-            <Button onClick={handleBulkReassign} disabled={bulkReassigning || !bulkReassignProduct} className="btn-glow">
+            <Button onClick={handleBulkReassign} disabled={bulkReassigning || !bulkReassignProduct}>
               {bulkReassigning ? "Reassigning..." : `Reassign ${selectedIds.size} Credentials`}
             </Button>
           </DialogFooter>
