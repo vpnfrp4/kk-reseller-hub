@@ -62,6 +62,7 @@ const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const AdminReports = lazy(() => import("./pages/admin/AdminReports"));
 const AdminPopularServices = lazy(() => import("./pages/admin/AdminPopularServices"));
+const AdminCategories = lazy(() => import("./pages/admin/AdminCategories"));
 const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 
 function PageLoader() {
