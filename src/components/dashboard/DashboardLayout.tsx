@@ -198,17 +198,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside
         className={cn(
           "fixed lg:static inset-y-0 left-0 z-50 flex flex-col",
-          "bg-sidebar/70 backdrop-blur-2xl border-r border-sidebar-border/30",
+          "bg-card border-r border-border",
           "transition-all duration-300 ease-out",
           collapsed ? "lg:w-[72px]" : "lg:w-[240px]",
           "w-[260px]",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-accent/[0.02] pointer-events-none rounded-none" />
         <TooltipProvider delayDuration={0}>
           {/* Logo header */}
-          <div className="h-14 px-4 border-b border-sidebar-border/30 flex items-center justify-between shrink-0">
+          <div className="h-14 px-4 border-b border-border flex items-center justify-between shrink-0">
             <Link to="/dashboard" className="flex items-center gap-3 group min-w-0" onClick={() => setSidebarOpen(false)}>
               <img src={kkLogo} alt="KKTech" className="w-8 h-8 rounded-xl object-contain shrink-0 transition-transform duration-200 group-hover:scale-105" />
               {!collapsed && (
@@ -267,17 +266,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       >
                         {active && (
                           <span
-                            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
-                            style={{
-                              background: 'linear-gradient(180deg, hsl(217 91% 60%), hsl(250 70% 60%))',
-                              boxShadow: '0 0 10px hsl(217 91% 60% / 0.5), 0 0 20px hsl(250 70% 60% / 0.2)',
-                            }}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary"
                           />
                         )}
                         <div className={cn(
                           "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200",
                           active
-                            ? "bg-gradient-to-br from-primary/20 to-accent/15 text-primary"
+                            ? "bg-primary/10 text-primary"
                             : "text-muted-foreground group-hover:text-foreground group-hover:bg-secondary/60"
                         )}>
                           <item.icon className="w-[16px] h-[16px]" strokeWidth={1.8} />
@@ -337,7 +332,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </nav>
 
-          <div className="mt-auto border-t border-sidebar-border/30 px-3 py-3 shrink-0">
+          <div className="mt-auto border-t border-border px-3 py-3 shrink-0">
             {!collapsed ? (
               <button
                 onClick={() => { navigate("/dashboard/settings"); setSidebarOpen(false); }}
@@ -381,7 +376,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ═══ MAIN AREA ═══ */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         {/* Top Navbar — streamlined */}
-        <header className="h-12 lg:h-14 border-b border-border/30 flex items-center justify-between px-3 sm:px-4 lg:px-8 fixed top-0 left-0 right-0 lg:sticky lg:relative z-30 bg-card/80 backdrop-blur-2xl">
+        <header className="h-12 lg:h-14 border-b border-border flex items-center justify-between px-3 sm:px-4 lg:px-8 fixed top-0 left-0 right-0 lg:sticky lg:relative z-30 bg-card/95 backdrop-blur-xl">
           <div className="flex items-center gap-2">
             <Link to="/dashboard" className="lg:hidden flex items-center gap-2">
               <img src={kkLogo} alt="KKTech" className="w-7 h-7 rounded-lg object-contain" />

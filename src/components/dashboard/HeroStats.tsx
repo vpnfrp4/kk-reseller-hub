@@ -20,32 +20,28 @@ const STATS_CONFIG = [
     key: "balance",
     label: "Current Balance",
     icon: Wallet,
-    gradient: "from-primary to-primary-glow",
-    iconBg: "bg-primary/15",
+    iconBg: "bg-primary/10",
     iconColor: "text-primary",
   },
   {
     key: "today",
     label: "Today's Orders",
     icon: ShoppingCart,
-    gradient: "from-accent to-purple-500",
-    iconBg: "bg-accent/15",
-    iconColor: "text-accent",
+    iconBg: "bg-primary/10",
+    iconColor: "text-primary",
   },
   {
     key: "success",
     label: "Success Rate",
     icon: CheckCircle2,
-    gradient: "from-success to-emerald-400",
-    iconBg: "bg-success/15",
+    iconBg: "bg-success/10",
     iconColor: "text-success",
   },
   {
     key: "processing",
     label: "Processing",
     icon: Server,
-    gradient: "from-warning to-amber-400",
-    iconBg: "bg-warning/15",
+    iconBg: "bg-warning/10",
     iconColor: "text-warning",
   },
 ] as const;
@@ -80,20 +76,14 @@ export default function HeroStats({
             key={stat.key}
             onClick={isBalance ? onWalletClick : undefined}
             className={cn(
-              "relative overflow-hidden rounded-card border border-border/50 bg-card p-4 lg:p-5",
-              "text-left transition-all duration-300",
-              "hover:border-primary/20 hover:shadow-elevated hover:-translate-y-0.5",
+              "relative overflow-hidden rounded-card border border-border bg-card p-4 lg:p-5",
+              "text-left transition-all duration-200",
+              "hover:border-primary/15 hover:shadow-elevated hover:-translate-y-0.5",
               "active:scale-[0.98] group",
               "opacity-0 animate-stagger-in"
             )}
             style={{ animationDelay: `${i * 0.08}s` }}
           >
-            {/* Top gradient line */}
-            <div className={cn("absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r opacity-60", stat.gradient)} />
-
-            {/* Ambient glow */}
-            <div className={cn("absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-[0.07] blur-2xl", `bg-gradient-to-br ${stat.gradient}`)} />
-
             <div className="relative z-10">
               <div className="flex items-center gap-2.5 mb-3">
                 <div className={cn("w-9 h-9 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 group-hover:scale-105", stat.iconBg)}>
@@ -123,7 +113,7 @@ export default function HeroStats({
                 <Button
                   size="sm"
                   onClick={(e) => { e.stopPropagation(); navigate("/dashboard/wallet"); }}
-                  className="mt-3 h-8 gap-1.5 text-xs w-full bg-gradient-to-r from-primary to-primary/80 hover:brightness-110 text-primary-foreground shadow-lg shadow-primary/20 btn-glow"
+                  className="mt-3 h-8 gap-1.5 text-xs w-full"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Add Funds

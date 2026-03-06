@@ -23,16 +23,15 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 /* ── Feature items ── */
 const FEATURES = [
-  { icon: Zap, label: "Instant Ordering", color: "text-primary" },
-  { icon: BarChart3, label: "Real-time Tracking", color: "text-accent" },
-  { icon: Wallet, label: "Secure Wallet", color: "text-success" },
-  { icon: Send, label: "Telegram Bot", color: "text-[hsl(200,80%,55%)]" },
+  { icon: Zap, label: "Instant Delivery" },
+  { icon: BarChart3, label: "Real-time Tracking" },
+  { icon: Wallet, label: "Secure Wallet" },
+  { icon: Send, label: "Telegram Bot" },
 ];
 
-/* ── Trust stats ── */
 const STATS = [
-  { value: "200+", label: "Active Services" },
-  { value: "50K+", label: "Orders Processed" },
+  { value: "200+", label: "Services" },
+  { value: "50K+", label: "Orders" },
   { value: "99.9%", label: "Uptime" },
 ];
 
@@ -159,14 +158,10 @@ export default function Login() {
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center bg-background relative overflow-hidden px-4 py-8 sm:py-12">
-      {/* ── Background ambient effects ── */}
+      {/* ── Minimal background ── */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[50%] -translate-x-1/2 w-[600px] h-[600px] rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(217 91% 60% / 0.06), transparent 70%)", filter: "blur(100px)" }} />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(250 70% 60% / 0.04), transparent 70%)", filter: "blur(80px)" }} />
-        <div className="absolute top-[20%] right-[-10%] w-[350px] h-[350px] rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(160 60% 50% / 0.03), transparent 70%)", filter: "blur(80px)" }} />
+        <div className="absolute top-[-15%] left-[50%] -translate-x-1/2 w-[500px] h-[500px] rounded-full"
+          style={{ background: "radial-gradient(circle, hsl(174 62% 41% / 0.04), transparent 70%)", filter: "blur(100px)" }} />
       </div>
 
       {/* Theme toggle */}
@@ -189,8 +184,7 @@ export default function Login() {
             transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="relative">
-              <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl scale-150" />
-              <img src={kkLogo} alt="KKTech" className="relative w-14 h-14 rounded-2xl" />
+              <img src={kkLogo} alt="KKTech" className="relative w-12 h-12 rounded-xl" />
             </div>
           </motion.div>
 
@@ -221,16 +215,16 @@ export default function Login() {
           transition={{ duration: 0.4, delay: 0.25 }}
         >
           {STATS.map((stat) => (
-            <div key={stat.label} className="text-center py-3 px-2 rounded-xl bg-card/60 border border-border/40 backdrop-blur-sm">
-              <p className="text-lg sm:text-xl font-extrabold font-mono tabular-nums text-primary tracking-tight">{stat.value}</p>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-0.5">{stat.label}</p>
+            <div key={stat.label} className="text-center py-3 px-2 rounded-xl bg-card border border-border/60">
+              <p className="text-lg sm:text-xl font-extrabold font-mono tabular-nums text-foreground tracking-tight">{stat.value}</p>
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-0.5">{stat.label}</p>
             </div>
           ))}
         </motion.div>
 
         {/* ═══ FORM CARD ═══ */}
         <motion.div
-          className="rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm shadow-[0_8px_40px_-12px_hsl(var(--primary)/0.1)]"
+          className="rounded-2xl border border-border bg-card shadow-card"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
@@ -571,7 +565,7 @@ export default function Login() {
               >
                 <Button
                   type="submit"
-                  className="w-full h-11 gap-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-primary to-[hsl(var(--primary-glow))] hover:shadow-[0_0_24px_hsl(var(--primary)/0.3)] transition-all duration-300"
+                  className="w-full h-11 gap-2 text-sm font-semibold rounded-xl"
                   disabled={loading || (isSignup && !canSubmitSignup)}
                 >
                   {loading ? (
@@ -623,11 +617,11 @@ export default function Login() {
           transition={{ duration: 0.4, delay: 0.45 }}
         >
           {FEATURES.map((feat) => (
-            <div key={feat.label} className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl bg-card/40 border border-border/30 backdrop-blur-sm">
-              <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center">
-                <feat.icon className={`w-4 h-4 ${feat.color}`} strokeWidth={1.8} />
+            <div key={feat.label} className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl bg-card border border-border/50">
+              <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center">
+                <feat.icon className="w-4 h-4 text-primary" strokeWidth={1.8} />
               </div>
-              <span className="text-[10px] font-semibold text-muted-foreground text-center leading-tight">{feat.label}</span>
+              <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">{feat.label}</span>
             </div>
           ))}
         </motion.div>
