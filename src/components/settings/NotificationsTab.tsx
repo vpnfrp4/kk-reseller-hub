@@ -25,6 +25,7 @@ import { t, useT } from "@/lib/i18n";
 export default function NotificationsTab() {
   const [notifPrefs, setNotifPrefsState] = useState<NotificationPrefs>(getNotificationPrefs);
   const l = useT();
+  const { user } = useAuth();
   const {
     isSubscribed,
     isSupported,
