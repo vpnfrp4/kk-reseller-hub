@@ -2331,6 +2331,42 @@ export default function AdminProducts() {
                                       {isActive ? <EyeOff className="w-3.5 h-3.5 mr-2" /> : <Eye className="w-3.5 h-3.5 mr-2" />}
                                       {isActive ? "Disable" : "Enable"}
                                     </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => {
+                                      // Duplicate product
+                                      const dup = {
+                                        ...form,
+                                        name: p.name + " (Copy)",
+                                        icon: p.icon,
+                                        category: p.category,
+                                        description: p.description || "",
+                                        retail_price: p.retail_price?.toString() || "",
+                                        wholesale_price: p.wholesale_price?.toString() || "",
+                                        duration: p.duration,
+                                        stock: p.stock?.toString() || "0",
+                                        image_url: p.image_url || "",
+                                        product_type: p.product_type || "digital",
+                                        brand_id: p.brand_id || "",
+                                        country_id: p.country_id || "",
+                                        carrier_id: p.carrier_id || "",
+                                        provider_id: p.provider_id || "",
+                                        provider_price: (p.provider_price || 0).toString(),
+                                        margin_percent: (p.margin_percent || 30).toString(),
+                                        processing_time: p.processing_time || "1-3 Days",
+                                        fulfillment_mode: (p.fulfillment_modes as any)?.[0] || "manual",
+                                        base_currency: p.base_currency || "MMK",
+                                        base_price: (p.base_price || 0).toString(),
+                                        api_service_id: p.api_service_id || "",
+                                        api_min_quantity: (p.api_min_quantity || 1).toString(),
+                                        api_max_quantity: (p.api_max_quantity || "").toString(),
+                                      };
+                                      setEditing(null);
+                                      setForm(dup);
+                                      initialFormRef.current = JSON.stringify(dup);
+                                      setDialogOpen(true);
+                                      toast.info("Duplicating product — edit and save");
+                                    }}>
+                                      <Files className="w-3.5 h-3.5 mr-2" /> Duplicate
+                                    </DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={() => handleDelete(p.id)} className="text-destructive focus:text-destructive">
                                       <Trash2 className="w-3.5 h-3.5 mr-2" /> Delete
