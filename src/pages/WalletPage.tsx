@@ -305,7 +305,7 @@ export default function WalletPage() {
               </div>
             )}
             <div>
-              <h1 className="text-lg font-bold gradient-text">
+              <h1 className="text-lg font-bold text-foreground">
                 {step === "select" ? "Payment Gateway" : step === "details" ? "Payment Details" : "Upload Proof"}
               </h1>
               <p className="text-xs text-muted-foreground">
