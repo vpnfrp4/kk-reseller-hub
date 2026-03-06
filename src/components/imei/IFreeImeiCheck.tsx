@@ -567,4 +567,6 @@ const IFreeImeiCheck = forwardRef<IFreeImeiCheckHandle>(function IFreeImeiCheck(
       </motion.div>
     </div>
   );
-}
+});
+
+export default IFreeImeiCheck;
