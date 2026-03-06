@@ -286,16 +286,16 @@ export default function CategoryDetailPage() {
 
       {/* ═══ SERVICE LIST ═══ */}
       {isLoading ? (
-        <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-card border border-border/30 bg-card p-4 animate-pulse">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-muted/30" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-muted/30 rounded w-2/3" />
-                  <div className="h-3 bg-muted/20 rounded w-1/3" />
+            <div key={i} className="rounded-xl border border-border/30 bg-card overflow-hidden animate-pulse">
+              <div className="w-full aspect-[5/3] bg-muted/20" />
+              <div className="px-3.5 py-3 space-y-2">
+                <div className="h-4 bg-muted/30 rounded w-3/4" />
+                <div className="flex justify-between">
+                  <div className="h-4 bg-muted/20 rounded w-1/4" />
+                  <div className="h-3 bg-muted/15 rounded w-1/5" />
                 </div>
-                <div className="w-20 h-8 bg-muted/20 rounded-full" />
               </div>
             </div>
           ))}
@@ -307,9 +307,9 @@ export default function CategoryDetailPage() {
           <p className="text-xs mt-1">{searchQuery ? "Try adjusting your search" : "This category is empty"}</p>
         </div>
       ) : (
-        <div className="rounded-card border border-border/40 bg-card overflow-hidden divide-y divide-border/20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredProducts.map((p: any, i: number) => (
-            <ServiceRow
+            <ServiceCard
               key={p.id}
               product={p}
               index={i}
@@ -447,12 +447,15 @@ export default function CategoryDetailPage() {
   );
 }
 
-/* ═══ SERVICE ROW ═══ */
-function ServiceRow({ product: p, index, isFavorite, onToggleFavorite, onSelect }: {
+/* ═══ SERVICE CARD (Grid) ═══ */
+function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect }: {
   product: any; index: number; isFavorite: boolean;
   onToggleFavorite: (id: string, e?: React.MouseEvent) => void;
   onSelect: (id: string) => void;
 }) {
+  const [imgStatus, setImgStatus] = useState<"loading" | "loaded" | "error">(
+    p.image_url ? "loading" : "error"
+  );
   const pType = p.product_type;
   const isOutOfStock = pType === "digital" && p.stock === 0;
   const pTime = p.processing_time || (pType === "api" || pType === "digital" ? "Instant" : "1–24 Hours");
@@ -460,65 +463,96 @@ function ServiceRow({ product: p, index, isFavorite, onToggleFavorite, onSelect 
   if (pType === "digital") { badgeLabel = "Instant"; badgeClass = "bg-success/10 text-success border-success/20"; BadgeIcon = Zap; }
   else if (pType === "api") { badgeLabel = "API"; badgeClass = "bg-ice/10 text-ice border-ice/20"; BadgeIcon = Link2; }
 
+  const CategoryIcon = getCategoryIcon(p.category, p.name);
+  const iconColor = getCategoryIconColor(p.category, p.name);
+
   return (
     <motion.button
-      initial={{ opacity: 0, y: 6 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.15, delay: Math.min(index * 0.03, 0.3) }}
+      transition={{ duration: 0.2, delay: Math.min(index * 0.04, 0.3) }}
       onClick={() => !isOutOfStock && onSelect(p.id)}
       disabled={isOutOfStock}
       className={cn(
-        "w-full text-left px-4 py-3.5 transition-colors duration-150 group/row relative",
-        isOutOfStock ? "opacity-30 cursor-not-allowed" : "cursor-pointer hover:bg-secondary/15 active:bg-secondary/25"
+        "w-full text-left rounded-xl border border-border/40 bg-card overflow-hidden group/card transition-all duration-200 relative",
+        isOutOfStock
+          ? "opacity-40 cursor-not-allowed"
+          : "cursor-pointer hover:border-primary/30 hover:shadow-[0_4px_20px_hsl(var(--primary)/0.08)] active:scale-[0.98]"
       )}
     >
-      <div className="flex items-center gap-3">
-        <ProductIcon imageUrl={p.image_url} name={p.name} category={p.category} size="md"
-          className="transition-transform duration-200 group-hover/row:scale-105" />
-
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1.5">
-            <span className="shrink-0 font-mono text-[10px] font-bold text-primary/60">#{p.display_id}</span>
-            <p className="text-[13px] text-foreground font-semibold leading-snug truncate group-hover/row:text-primary transition-colors duration-150">
-              {sanitizeName(p.name)}
-            </p>
-          </div>
-          <div className="flex items-center gap-2 mt-1">
-            <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border", badgeClass)}>
-              <BadgeIcon className="w-2.5 h-2.5" />{badgeLabel}
+      {/* Image area — fixed aspect ratio */}
+      <div className="relative w-full aspect-[5/3] bg-[#1A1F2E] overflow-hidden">
+        {p.image_url && imgStatus !== "error" ? (
+          <>
+            {imgStatus === "loading" && (
+              <div className="absolute inset-0 bg-muted/20 animate-pulse" />
+            )}
+            <img
+              src={p.image_url}
+              alt={sanitizeName(p.name)}
+              className={cn(
+                "w-full h-full object-cover transition-transform duration-300 group-hover/card:scale-105",
+                imgStatus === "loaded" ? "opacity-100" : "opacity-0"
+              )}
+              loading="lazy"
+              onLoad={() => setImgStatus("loaded")}
+              onError={() => setImgStatus("error")}
+            />
+          </>
+        ) : (
+          /* Placeholder fallback */
+          <div className={cn("w-full h-full flex flex-col items-center justify-center gap-2", iconColor)}>
+            <CategoryIcon className="w-10 h-10 opacity-60" />
+            <span className="text-[10px] font-medium uppercase tracking-widest opacity-40">
+              {p.category}
             </span>
-            <span className="text-[10px] text-muted-foreground/50 font-medium flex items-center gap-1">
-              <Clock className="w-2.5 h-2.5" />{pTime}
-            </span>
-            {isOutOfStock && <span className="text-[10px] font-bold text-destructive">Out of Stock</span>}
           </div>
-        </div>
+        )}
 
-        <div className="shrink-0 flex items-center gap-2.5">
-          <span className="text-sm font-bold font-mono tabular-nums text-foreground">
-            <Money amount={p.wholesale_price} compact />
+        {/* Favorite star */}
+        {!isOutOfStock && (
+          <button
+            onClick={(e) => onToggleFavorite(p.id, e)}
+            className={cn(
+              "absolute top-2 right-2 p-1.5 rounded-full bg-black/30 backdrop-blur-sm transition-all duration-200 z-10",
+              isFavorite ? "text-warning opacity-100" : "text-white/50 opacity-0 group-hover/card:opacity-100 hover:text-warning/80"
+            )}
+          >
+            <Star className={cn("w-3.5 h-3.5", isFavorite && "fill-warning")} />
+          </button>
+        )}
+
+        {/* Badge overlay */}
+        <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
+          <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border backdrop-blur-sm", badgeClass)}>
+            <BadgeIcon className="w-2.5 h-2.5" />{badgeLabel}
           </span>
-          {!isOutOfStock && (
-            <span className={cn(
-              "inline-flex items-center gap-1 text-[10px] font-bold text-primary-foreground px-3.5 py-1.5 rounded-full",
-              "bg-gradient-to-r from-primary to-primary/80",
-              "shadow-[0_2px_8px_hsl(var(--primary)/0.1)]",
-              "group-hover/row:shadow-[0_4px_16px_hsl(var(--primary)/0.2)] group-hover/row:scale-105 transition-all duration-200"
-            )}>
-              Order Now <ArrowRight className="w-3 h-3" />
+          {isOutOfStock && (
+            <span className="text-[10px] font-bold text-destructive-foreground bg-destructive px-2 py-0.5 rounded-full">
+              Out of Stock
             </span>
           )}
         </div>
       </div>
 
-      {!isOutOfStock && (
-        <button onClick={(e) => onToggleFavorite(p.id, e)}
-          className={cn("absolute top-2 right-2 p-1 rounded-full transition-all duration-200 z-10",
-            isFavorite ? "text-warning opacity-100" : "text-muted-foreground/20 opacity-0 group-hover/row:opacity-100 hover:text-warning/60"
-          )}>
-          <Star className={cn("w-3.5 h-3.5", isFavorite && "fill-warning")} />
-        </button>
-      )}
+      {/* Card body */}
+      <div className="px-3.5 py-3 space-y-2">
+        <div className="flex items-start gap-1.5">
+          <span className="shrink-0 font-mono text-[10px] font-bold text-primary/50 mt-0.5">#{p.display_id}</span>
+          <p className="text-[13px] text-foreground font-semibold leading-snug line-clamp-2 group-hover/card:text-primary transition-colors duration-150">
+            {sanitizeName(p.name)}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-bold font-mono tabular-nums text-foreground">
+            <Money amount={p.wholesale_price} compact />
+          </span>
+          <span className="text-[10px] text-muted-foreground/50 font-medium flex items-center gap-1">
+            <Clock className="w-2.5 h-2.5" />{pTime}
+          </span>
+        </div>
+      </div>
     </motion.button>
   );
 }
