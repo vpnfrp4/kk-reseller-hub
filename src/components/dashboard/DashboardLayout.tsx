@@ -392,8 +392,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
 
-          <div className="flex items-center gap-2 lg:gap-3">
+          <div className="flex items-center gap-1.5 lg:gap-2.5">
             <WalletChip profile={profile} />
+            <NotificationDropdown />
             <UserAvatarDropdown profile={profile} isAdmin={isAdmin} onLogout={handleLogout} />
           </div>
         </header>
