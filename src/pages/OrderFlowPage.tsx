@@ -1040,10 +1040,9 @@ export default function OrderFlowPage() {
             delivery_time: deliveryTimeConfig[effectiveMode] || undefined,
           }}
           showConfetti={showConfetti}
-          previousBalance={previousBalance}
-          currentBalance={balance}
           onViewOrders={() => navigate("/dashboard/orders")}
           onNewOrder={() => navigate("/dashboard/place-order")}
+          onClose={() => navigate("/dashboard/place-order")}
         />
       )}
 
