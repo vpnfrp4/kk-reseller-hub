@@ -22,7 +22,7 @@ import { motion } from "framer-motion";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
-import IFreeImeiCheck from "@/components/imei/IFreeImeiCheck";
+import IFreeImeiCheck, { type IFreeImeiCheckHandle } from "@/components/imei/IFreeImeiCheck";
 import IFreeCheckHistory from "@/components/imei/IFreeCheckHistory";
 
 interface PurchaseResult {
