@@ -212,9 +212,6 @@ export default function LandingPage() {
             <a href="#faq" className="transition-colors hover:text-foreground">FAQ</a>
           </nav>
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={toggleLang} className="h-9 w-9 text-muted-foreground hover:text-foreground" aria-label="Toggle language">
-              <Languages className="h-4 w-4" />
-            </Button>
             <ThemeToggle />
             <Button variant="ghost" size="sm" className="text-sm font-medium" asChild>
               <Link to="/login">Log In</Link>
