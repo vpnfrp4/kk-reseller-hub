@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import ProductIcon from "@/components/products/ProductIcon";
 import { sanitizeName } from "@/lib/sanitize-name";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -254,7 +255,7 @@ export default function OrderDetailPage() {
       if (!id) return null;
       const { data, error } = await supabase
         .from("orders")
-        .select("*")
+        .select("*, products:product_id(image_url, category)")
         .eq("id", id)
         .single();
       if (error) return null;
@@ -489,20 +490,28 @@ export default function OrderDetailPage() {
           {/* ═══ 1. ORDER HEADER ═══ */}
           <GlassSection>
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-              <div className="space-y-2">
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
-                  {sanitizeName(order.product_name)}
-                </h1>
-                <div className="flex flex-wrap items-center gap-3">
-                  <StatusBadge status={order.status} />
-                  <ProductTypeBadge type={order.product_type} />
-                  <span className="text-xs text-muted-foreground font-mono">
-                    {(order as any).order_code || order.id.slice(0, 8)}
-                  </span>
+              <div className="flex items-start gap-3">
+                <ProductIcon
+                  imageUrl={(order as any).products?.image_url}
+                  name={order.product_name}
+                  category={(order as any).products?.category || order.product_type || "General"}
+                  size="lg"
+                />
+                <div className="space-y-2">
+                  <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
+                    {sanitizeName(order.product_name)}
+                  </h1>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <StatusBadge status={order.status} />
+                    <ProductTypeBadge type={order.product_type} />
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {(order as any).order_code || order.id.slice(0, 8)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(order.created_at), "PPP 'at' HH:mm")}
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {format(new Date(order.created_at), "PPP 'at' HH:mm")}
-                </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <Button

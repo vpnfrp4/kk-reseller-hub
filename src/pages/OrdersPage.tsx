@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import ProductIcon from "@/components/products/ProductIcon";
 import { sanitizeName } from "@/lib/sanitize-name";
 import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
@@ -293,7 +294,7 @@ export default function OrdersPage() {
     queryFn: async () => {
       const from = page * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
+      let q = supabase.from("orders").select("*, products:product_id(image_url, category)").order("created_at", { ascending: false });
       q = buildQuery(q);
       q = q.range(from, to);
       const { data } = await q;
@@ -309,7 +310,7 @@ export default function OrdersPage() {
   };
 
   const exportCSV = async () => {
-    let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
+    let q = supabase.from("orders").select("*, products:product_id(image_url, category)").order("created_at", { ascending: false });
     q = buildQuery(q);
     const { data: allOrders } = await q;
     if (!allOrders || allOrders.length === 0) {
@@ -561,7 +562,15 @@ export default function OrdersPage() {
                         <span className="font-mono text-xs text-muted-foreground">{row.order_code || row.id.slice(0, 8)}</span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className="text-sm font-medium text-foreground">{sanitizeName(row.product_name)}</span>
+                        <div className="flex items-center gap-2.5">
+                          <ProductIcon
+                            imageUrl={row.products?.image_url}
+                            name={row.product_name}
+                            category={row.products?.category || row.product_type || "General"}
+                            size="sm"
+                          />
+                          <span className="text-sm font-medium text-foreground">{sanitizeName(row.product_name)}</span>
+                        </div>
                       </td>
                       <td className="px-5 py-3.5">
                         <ProductTypeBadge type={row.product_type} />
@@ -664,9 +673,17 @@ export default function OrdersPage() {
                 >
                   {/* Top row */}
                   <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-foreground line-clamp-1">{sanitizeName(row.product_name)}</p>
-                      <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{row.order_code || row.id.slice(0, 8)}</p>
+                    <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                      <ProductIcon
+                        imageUrl={row.products?.image_url}
+                        name={row.product_name}
+                        category={row.products?.category || row.product_type || "General"}
+                        size="sm"
+                      />
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground line-clamp-1">{sanitizeName(row.product_name)}</p>
+                        <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{row.order_code || row.id.slice(0, 8)}</p>
+                      </div>
                     </div>
                     <StatusBadge status={row.status} />
                   </div>
