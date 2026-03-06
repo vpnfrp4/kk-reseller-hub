@@ -37,6 +37,7 @@ import { Money, QuantitySelector } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
 import Confetti from "@/components/Confetti";
 import { useCountUp } from "@/hooks/use-count-up";
+import OrderSuccessCard from "@/components/products/OrderSuccessCard";
 
 const MODE_ICONS: Record<string, any> = {
   instant: Zap,
