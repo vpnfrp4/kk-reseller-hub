@@ -293,7 +293,7 @@ export default function OrdersPage() {
     queryFn: async () => {
       const from = page * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
+      let q = supabase.from("orders").select("*, products:product_id(image_url, category)").order("created_at", { ascending: false });
       q = buildQuery(q);
       q = q.range(from, to);
       const { data } = await q;
