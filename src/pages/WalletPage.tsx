@@ -344,15 +344,12 @@ export default function WalletPage() {
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative",
                     isDone
-                      ? "bg-primary text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.3)]"
+                      ? "bg-primary text-primary-foreground"
                       : isActive
-                        ? "bg-primary/10 border-2 border-primary text-primary shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
+                        ? "bg-primary/10 border-2 border-primary text-primary"
                         : "bg-secondary border border-border text-muted-foreground"
                   )}>
                     {isDone ? <CheckCircle2 className="w-5 h-5" /> : <StepIcon className="w-4 h-4" />}
-                    {isActive && (
-                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-primary animate-ping opacity-40" />
-                    )}
                   </div>
                   <span className={cn(
                     "text-[10px] sm:text-xs font-semibold transition-colors text-center",
