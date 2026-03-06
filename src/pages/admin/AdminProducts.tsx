@@ -154,6 +154,8 @@ export default function AdminProducts() {
   const [bulkRefreshing, setBulkRefreshing] = useState(false);
   const [bulkRefreshProgress, setBulkRefreshProgress] = useState({ current: 0, total: 0 });
   const [showDescPreview, setShowDescPreview] = useState(false);
+  const [downloadFiles, setDownloadFiles] = useState<any[]>([]);
+  const [downloadSettings, setDownloadSettings] = useState({ require_login: true, show_on_thankyou: true, send_via_email: false, download_limit: null as number | null, download_expiry_days: null as number | null });
 
   const FORM_STORAGE_KEY = "admin-product-form-draft";
 
