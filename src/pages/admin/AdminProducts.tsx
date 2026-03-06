@@ -1059,6 +1059,7 @@ export default function AdminProducts() {
                   duration: p.duration,
                   status: p.type === "disabled" ? "Disabled" : "Active",
                   product_code: p.product_code,
+                  image_url: p.image_url || "",
                 }));
                 exportToCsv("products", rows, [
                   { key: "display_id", label: "ID" },
@@ -1071,6 +1072,7 @@ export default function AdminProducts() {
                   { key: "duration", label: "Duration" },
                   { key: "status", label: "Status" },
                   { key: "product_code", label: "Code" },
+                  { key: "image_url", label: "Image URL" },
                 ]);
                 toast.success(`Exported ${rows.length} products`);
               }}>
