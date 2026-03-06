@@ -283,7 +283,7 @@ export default function AdminProfitDashboard() {
 
         {/* Margin Config Display */}
         {marginConfig && (
-          <div className="glass-card p-5 space-y-3">
+          <div className="bg-card border border-border rounded-[var(--radius-card)] p-5 space-y-3">
             <h2 className="text-sm font-semibold text-foreground">Margin Configuration</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="rounded-[var(--radius-card)] bg-muted/10 border border-border/20 p-4">
