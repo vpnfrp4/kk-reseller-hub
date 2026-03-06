@@ -23,16 +23,15 @@ import ThemeToggle from "@/components/ThemeToggle";
 
 /* ── Feature items ── */
 const FEATURES = [
-  { icon: Zap, label: "Instant Ordering", color: "text-primary" },
-  { icon: BarChart3, label: "Real-time Tracking", color: "text-accent" },
-  { icon: Wallet, label: "Secure Wallet", color: "text-success" },
-  { icon: Send, label: "Telegram Bot", color: "text-[hsl(200,80%,55%)]" },
+  { icon: Zap, label: "Instant Delivery" },
+  { icon: BarChart3, label: "Real-time Tracking" },
+  { icon: Wallet, label: "Secure Wallet" },
+  { icon: Send, label: "Telegram Bot" },
 ];
 
-/* ── Trust stats ── */
 const STATS = [
-  { value: "200+", label: "Active Services" },
-  { value: "50K+", label: "Orders Processed" },
+  { value: "200+", label: "Services" },
+  { value: "50K+", label: "Orders" },
   { value: "99.9%", label: "Uptime" },
 ];
 
