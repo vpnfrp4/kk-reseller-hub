@@ -8,9 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   ShoppingCart, CheckCircle2, Clock, Zap, Copy, Eye, X,
-  AlertTriangle, Search, Download, ShieldAlert, ArrowRight,
-  Smartphone, Link2, Package, Star, ChevronDown,
+  AlertTriangle, Search, Download, ShieldAlert, ArrowRight, ArrowLeft,
+  Smartphone, Link2, Package, Star, ChevronDown, LayoutGrid, List,
 } from "lucide-react";
+import CategoryCardsOverview from "@/components/products/CategoryCardsOverview";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 import ProductIcon from "@/components/products/ProductIcon";
 import { toast } from "sonner";
