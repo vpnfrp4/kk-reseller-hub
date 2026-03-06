@@ -35,8 +35,8 @@ export default function SettingsPage() {
         { label: l(t.nav.settings) },
       ]} />
 
-      <div className="animate-fade-in space-y-micro">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">
+      <div className="animate-fade-in space-y-1">
+        <h1 className="text-xl font-bold text-foreground tracking-tight">
           <MmLabel mm={t.settings.title.mm} en={t.settings.title.en} />
         </h1>
         <p className="text-muted-foreground text-sm">{l(t.settings.subtitle)}</p>
