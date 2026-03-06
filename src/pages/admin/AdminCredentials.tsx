@@ -510,7 +510,7 @@ export default function AdminCredentials() {
                 </div>
               </div>
               <div className="shrink-0 px-6 py-4 border-t border-border/30 bg-card">
-                <Button type="submit" className="w-full btn-glow shadow-[0_0_20px_-4px_hsl(var(--primary)/0.3)]" disabled={!selectedProduct || !bulkCredentials.trim()}>
+                <Button type="submit" className="w-full" disabled={!selectedProduct || !bulkCredentials.trim()}>
                   Add {bulkCredentials.trim() ? bulkCredentials.trim().split("\n").filter(Boolean).length : 0} Credential(s)
                 </Button>
               </div>
