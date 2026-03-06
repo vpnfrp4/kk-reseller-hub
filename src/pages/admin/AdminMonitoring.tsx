@@ -434,7 +434,7 @@ export default function AdminMonitoring() {
                       <TableCell className="font-mono text-xs">{log.action}</TableCell>
                       <TableCell>
                         {log.success ? (
-                          <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          <CheckCircle2 className="w-4 h-4 text-success" />
                         ) : (
                           <XCircle className="w-4 h-4 text-destructive" />
                         )}
