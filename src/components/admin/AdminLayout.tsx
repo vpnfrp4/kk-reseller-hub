@@ -21,6 +21,7 @@ import {
   Shield,
   ClipboardList,
   Download,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
