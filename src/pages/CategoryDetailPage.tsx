@@ -239,9 +239,11 @@ export default function CategoryDetailPage() {
           </div>
           <div className="min-w-0">
             <h1 className="gradient-text text-lg lg:text-xl truncate">{decodedCategory}</h1>
-            <p className="page-header-subtitle">
-              {products.length} {products.length === 1 ? "service" : "services"} available
-            </p>
+            {!isImeiCheckCategory && (
+              <p className="page-header-subtitle">
+                {products.length} {products.length === 1 ? "service" : "services"} available
+              </p>
+            )}
           </div>
         </div>
       </div>

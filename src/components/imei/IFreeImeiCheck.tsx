@@ -263,12 +263,9 @@ export default function IFreeImeiCheck() {
               <Smartphone className="w-4 h-4 text-primary" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-foreground">iFreeICloud Check</h2>
+              <h2 className="text-sm font-bold text-foreground">IMEI Lookup</h2>
               <p className="text-[10px] text-muted-foreground/60">
-                IMEI lookup via ifreeicloud API
-                {servicesSource === "fallback" && (
-                  <span className="ml-1 text-warning">(cached list)</span>
-                )}
+                Select a service and enter an IMEI to check
               </p>
             </div>
           </div>
