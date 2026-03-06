@@ -466,11 +466,11 @@ export async function loadProductDownloads(productId: string): Promise<{
       release_date: d.release_date || "",
     })),
     settings: {
-      require_login: settingsData?.require_login ?? true,
-      show_on_thankyou: settingsData?.show_on_thankyou ?? true,
-      send_via_email: settingsData?.send_via_email ?? false,
-      download_limit: settingsData?.download_limit ?? null,
-      download_expiry_days: settingsData?.download_expiry_days ?? null,
+      require_login: (settingsData as any)?.require_login ?? true,
+      show_on_thankyou: (settingsData as any)?.show_on_thankyou ?? true,
+      send_via_email: (settingsData as any)?.send_via_email ?? false,
+      download_limit: (settingsData as any)?.download_limit ?? null,
+      download_expiry_days: (settingsData as any)?.download_expiry_days ?? null,
     },
   };
 }
