@@ -205,7 +205,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-accent/[0.02] pointer-events-none rounded-none" />
         <TooltipProvider delayDuration={0}>
           {/* Logo header */}
           <div className="h-14 px-4 border-b border-sidebar-border/30 flex items-center justify-between shrink-0">
