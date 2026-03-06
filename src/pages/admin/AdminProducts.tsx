@@ -2325,7 +2325,7 @@ export default function AdminProducts() {
                 else { page = currentPage - 2 + i; }
                 return (
                   <Button key={page} variant={currentPage === page ? "default" : "outline"} size="sm"
-                    className={`h-7 w-7 text-xs p-0 ${currentPage === page ? "btn-glow" : ""}`}
+                    className="h-7 w-7 text-xs p-0"
                     onClick={() => setCurrentPage(page)}>{page}</Button>
                 );
               })}

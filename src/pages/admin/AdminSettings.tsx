@@ -1633,7 +1633,7 @@ function TelegramSection() {
 export default function AdminSettings() {
   return (
     <div className="max-w-2xl space-y-6">
-      <h1 className="text-h1 gradient-text">Settings</h1>
+      <h1 className="text-xl font-bold text-foreground">Settings</h1>
       <ThemeSection />
       <ApiProvidersSection />
       <ExchangeRateSection />

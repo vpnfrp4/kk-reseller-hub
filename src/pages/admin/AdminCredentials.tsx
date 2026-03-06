@@ -886,10 +886,10 @@ export default function AdminCredentials() {
 
       {/* Floating selection bar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 glass-card border-primary/20 px-5 py-3 flex items-center gap-3 animate-fade-in" style={{ boxShadow: '0 0 30px hsl(43 76% 47% / 0.15), 0 20px 40px -10px hsl(0 0% 0% / 0.4)' }}>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-card border border-border rounded-xl shadow-lg px-5 py-3 flex items-center gap-3 animate-fade-in">
           <span className="text-sm font-medium text-foreground">{selectedIds.size} selected</span>
           <div className="w-px h-5 bg-border" />
-          <Button size="sm" className="gap-1.5 btn-glow h-8" onClick={() => setBulkExpiryOpen(true)}>
+          <Button size="sm" className="gap-1.5 h-8" onClick={() => setBulkExpiryOpen(true)}>
             <Pencil className="w-3.5 h-3.5" />Set Expiry
           </Button>
           <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setBulkReassignOpen(true)}>
