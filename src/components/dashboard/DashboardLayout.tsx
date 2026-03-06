@@ -207,7 +207,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         <TooltipProvider delayDuration={0}>
           {/* Logo header */}
-          <div className="h-14 px-4 border-b border-sidebar-border/30 flex items-center justify-between shrink-0">
+          <div className="h-14 px-4 border-b border-border flex items-center justify-between shrink-0">
             <Link to="/dashboard" className="flex items-center gap-3 group min-w-0" onClick={() => setSidebarOpen(false)}>
               <img src={kkLogo} alt="KKTech" className="w-8 h-8 rounded-xl object-contain shrink-0 transition-transform duration-200 group-hover:scale-105" />
               {!collapsed && (
