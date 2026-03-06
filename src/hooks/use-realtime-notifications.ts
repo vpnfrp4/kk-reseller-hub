@@ -12,7 +12,6 @@ function playNotificationSound() {
     const ctx = new AudioContext();
     const now = ctx.currentTime;
 
-    // Two-tone chime: C5 → E5
     [523.25, 659.25].forEach((freq, i) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -25,13 +24,13 @@ function playNotificationSound() {
       osc.stop(now + i * 0.12 + 0.3);
     });
   } catch {
-    // Audio not available — silently skip
+    // Audio not available
   }
 }
 
 /**
- * Global realtime listener – shows a sonner toast whenever a new
- * notification row is inserted for the current user.
+ * Global realtime listener – shows a discreet auto-dismissing toast
+ * (bottom-right, 2s duration) whenever a new notification is inserted.
  */
 export function useRealtimeNotifications() {
   const { user } = useAuth();
@@ -40,8 +39,6 @@ export function useRealtimeNotifications() {
   const navRef = useRef(navigate);
   navRef.current = navigate;
 
-  // Track whether we already showed a low-balance alert this session
-  // to avoid spamming on every profile update
   const lowBalanceShownRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -65,11 +62,13 @@ export function useRealtimeNotifications() {
           }
           toast(n.title || "New Notification", {
             description: n.body || undefined,
+            duration: 2000,
             action: n.link
               ? { label: "View", onClick: () => navRef.current(n.link!) }
               : undefined,
           });
           queryClient.invalidateQueries({ queryKey: ["notifications"] });
+          queryClient.invalidateQueries({ queryKey: ["notif-dropdown"] });
         }
       )
       .on(
@@ -89,7 +88,6 @@ export function useRealtimeNotifications() {
           const threshold = prefs.lowBalanceThreshold || 5000;
           const balance = Number(profile.balance);
 
-          // Only alert once per threshold crossing (not on every update)
           if (balance < threshold && lowBalanceShownRef.current !== threshold) {
             lowBalanceShownRef.current = threshold;
 
@@ -97,7 +95,6 @@ export function useRealtimeNotifications() {
 
             const body = `Your balance is ${balance.toLocaleString()} MMK — below your ${threshold.toLocaleString()} MMK threshold.`;
 
-            // Persist to DB for notification history
             supabase.from("notifications").insert({
               user_id: user.id,
               title: "Low Balance Alert",
@@ -106,15 +103,15 @@ export function useRealtimeNotifications() {
               link: "/dashboard/wallet",
             }).then(() => {
               queryClient.invalidateQueries({ queryKey: ["notifications"] });
+              queryClient.invalidateQueries({ queryKey: ["notif-dropdown"] });
             });
 
             toast.warning("Low Balance Alert", {
               description: body,
+              duration: 3000,
               action: { label: "Top Up", onClick: () => navRef.current("/dashboard/wallet") },
-              duration: 8000,
             });
           } else if (balance >= threshold) {
-            // Reset so it can fire again next time balance drops
             lowBalanceShownRef.current = null;
           }
         }
