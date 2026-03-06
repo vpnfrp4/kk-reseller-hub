@@ -495,7 +495,7 @@ export default function WalletPage() {
                 {/* LEFT: Account Details */}
                 <div className="space-y-5">
                   {/* Official Account Card */}
-                  <div className="rounded-[var(--radius-card)] border border-primary/20 bg-card overflow-hidden" style={{ boxShadow: "0 0 40px hsl(var(--primary) / 0.06)" }}>
+                  <div className="rounded-[var(--radius-card)] border border-primary/20 bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
                     <div className="px-6 py-4 border-b border-border/20 bg-primary/[0.03]">
                       <div className="flex items-center gap-2">
                         <BadgeCheck className="w-5 h-5 text-primary" />
