@@ -2,6 +2,8 @@ import { useState, useRef, useCallback, useEffect, useMemo, type ReactNode } fro
 import { sanitizeName } from "@/lib/sanitize-name";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { exportToCsv } from "@/lib/csv-export";
+import ProductNameGenerator from "@/components/admin/ProductNameGenerator";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
