@@ -212,6 +212,7 @@ export default function CategoryDetailPage() {
   const credentialsList = result?.credentials?.split("\n").filter(Boolean) || [];
   const CatIcon = getCategoryIcon(decodedCategory, "");
   const catColor = getCategoryIconColor(decodedCategory, "");
+  const isImeiCheckCategory = decodedCategory === "IMEI Check";
 
   return (
     <PageContainer maxWidth="max-w-5xl">
