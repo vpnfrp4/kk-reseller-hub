@@ -388,11 +388,36 @@ ${result.quantity && result.quantity > 1 ? `<div style="font-size:12px;color:#88
         </motion.div>
       )}
 
+      {/* ── SHARE / DOWNLOAD ── */}
+      <motion.div
+        initial={{ y: 16, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.32 }}
+        className="flex gap-2.5"
+      >
+        <Button
+          variant="outline"
+          className="flex-1 h-10 gap-2 text-sm border-border/40"
+          onClick={handleShare}
+        >
+          <Share2 className="w-4 h-4" />
+          Share Receipt
+        </Button>
+        <Button
+          variant="outline"
+          className="flex-1 h-10 gap-2 text-sm border-border/40"
+          onClick={generateReceiptImage}
+        >
+          <Download className="w-4 h-4" />
+          Download Receipt
+        </Button>
+      </motion.div>
+
       {/* ── CTA BUTTONS ── */}
       <motion.div
         initial={{ y: 16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.35 }}
+        transition={{ delay: 0.38 }}
         className="flex flex-col sm:flex-row gap-2.5"
       >
         <Button
