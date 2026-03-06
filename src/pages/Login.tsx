@@ -158,14 +158,10 @@ export default function Login() {
 
   return (
     <div className="min-h-[100dvh] flex items-center justify-center bg-background relative overflow-hidden px-4 py-8 sm:py-12">
-      {/* ── Background ambient effects ── */}
+      {/* ── Minimal background ── */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[50%] -translate-x-1/2 w-[600px] h-[600px] rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(217 91% 60% / 0.06), transparent 70%)", filter: "blur(100px)" }} />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[400px] h-[400px] rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(250 70% 60% / 0.04), transparent 70%)", filter: "blur(80px)" }} />
-        <div className="absolute top-[20%] right-[-10%] w-[350px] h-[350px] rounded-full"
-          style={{ background: "radial-gradient(circle, hsl(160 60% 50% / 0.03), transparent 70%)", filter: "blur(80px)" }} />
+        <div className="absolute top-[-15%] left-[50%] -translate-x-1/2 w-[500px] h-[500px] rounded-full"
+          style={{ background: "radial-gradient(circle, hsl(174 62% 41% / 0.04), transparent 70%)", filter: "blur(100px)" }} />
       </div>
 
       {/* Theme toggle */}
