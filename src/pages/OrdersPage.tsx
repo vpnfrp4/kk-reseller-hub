@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import ProductIcon from "@/components/products/ProductIcon";
 import { sanitizeName } from "@/lib/sanitize-name";
 import Breadcrumb from "@/components/Breadcrumb";
 import { supabase } from "@/integrations/supabase/client";
