@@ -501,16 +501,17 @@ export default function OrderDetailPage() {
                   <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
                     {sanitizeName(order.product_name)}
                   </h1>
-                <div className="flex flex-wrap items-center gap-3">
-                  <StatusBadge status={order.status} />
-                  <ProductTypeBadge type={order.product_type} />
-                  <span className="text-xs text-muted-foreground font-mono">
-                    {(order as any).order_code || order.id.slice(0, 8)}
-                  </span>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <StatusBadge status={order.status} />
+                    <ProductTypeBadge type={order.product_type} />
+                    <span className="text-xs text-muted-foreground font-mono">
+                      {(order as any).order_code || order.id.slice(0, 8)}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    {format(new Date(order.created_at), "PPP 'at' HH:mm")}
+                  </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {format(new Date(order.created_at), "PPP 'at' HH:mm")}
-                </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 <Button
