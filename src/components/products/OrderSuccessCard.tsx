@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CheckCircle2, Copy, Eye, ShoppingCart, Clock,
-  Hash, Calendar, Wallet, Bell, Check,
+  Hash, Calendar, Wallet, Bell, Check, Download, Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Money } from "@/components/shared";
@@ -80,6 +80,73 @@ export default function OrderSuccessCard({
 
   const handleViewOrders = onViewOrders || (() => navigate("/dashboard/orders"));
   const handleNewOrder = onNewOrder || (() => navigate("/dashboard/place-order"));
+
+  const generateReceiptImage = () => {
+    const creds = credentialsList.length > 0
+      ? credentialsList.map((c, i) => `<div style="background:#c9a22708;border:1px solid #c9a22720;border-radius:8px;padding:8px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#c9a227;word-break:break-all;">${credentialsList.length > 1 ? `<span style="color:#888;margin-right:6px;">#${i+1}</span>` : ""}${c}</div>`).join("")
+      : `<div style="background:#f59e0b10;border:1px solid #f59e0b25;border-radius:8px;padding:12px;color:#f59e0b;font-size:13px;text-align:center;">⏳ Manual fulfillment — credentials will be delivered soon</div>`;
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"/><title>Order Receipt</title>
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#e5e5e5;padding:40px}
+.r{max-width:440px;margin:0 auto;background:linear-gradient(145deg,#111118,#0d0d14);border:1px solid #c9a22730;border-radius:16px;padding:32px;position:relative;overflow:hidden}
+.r::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#c9a227,#ffd700,#c9a227)}
+.hd{text-align:center;margin-bottom:24px}.logo{font-size:22px;font-weight:700;background:linear-gradient(135deg,#c9a227,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{font-size:11px;color:#666;margin-top:4px;letter-spacing:2px;text-transform:uppercase}
+.ok{display:inline-flex;align-items:center;gap:6px;background:#16a34a18;color:#4ade80;font-size:12px;font-weight:600;padding:5px 14px;border-radius:20px;margin-top:12px;border:1px solid #4ade8025}
+.dv{border:none;border-top:1px dashed #ffffff0d;margin:20px 0}
+.rw{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px}.rw .l{color:#888}.rw .v{font-weight:500;text-align:right;max-width:60%}
+.amt .v{font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;background:linear-gradient(135deg,#c9a227,#ffd700);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.pn{font-size:14px;font-weight:600;color:#e5e5e5;line-height:1.5;margin-bottom:4px}
+.creds{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+.ft{text-align:center;margin-top:24px;font-size:10px;color:#444}
+</style></head><body><div class="r">
+<div class="hd"><div class="logo">KK Reseller Hub</div><div class="sub">Order Receipt</div><div class="ok">✓ Order Confirmed</div></div>
+<hr class="dv"/>
+<div class="pn">${sanitizeName(result.product_name)}</div>
+${result.quantity && result.quantity > 1 ? `<div style="font-size:12px;color:#888;margin-bottom:4px">${result.quantity} accounts</div>` : ""}
+<hr class="dv"/>
+<div class="rw amt"><span class="l">Amount</span><span class="v">${result.price.toLocaleString()} MMK</span></div>
+<div class="rw"><span class="l">Order ID</span><span class="v" style="font-family:'JetBrains Mono',monospace;font-size:12px">#${orderId}</span></div>
+<div class="rw"><span class="l">Date</span><span class="v">${formattedDate}, ${formattedTime}</span></div>
+<div class="rw"><span class="l">Status</span><span class="v" style="color:#4ade80">${isManual ? "Processing" : "Delivered"}</span></div>
+<hr class="dv"/>
+<div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">${credentialsList.length > 0 ? "Credentials" : "Delivery"}</div>
+<div class="creds">${creds}</div>
+<hr class="dv"/>
+<div class="ft"><p>Thank you for your order</p><p style="margin-top:4px">© ${new Date().getFullYear()} KKTech · kk-reseller-hub.lovable.app</p></div>
+</div></body></html>`;
+
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `order-receipt-${orderId}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleShare = async () => {
+    const text = [
+      `✅ Order Confirmed — KK Reseller Hub`,
+      ``,
+      `📦 ${sanitizeName(result.product_name)}`,
+      `💰 ${result.price.toLocaleString()} MMK`,
+      `🔖 Order ID: #${orderId}`,
+      `📅 ${formattedDate}, ${formattedTime}`,
+      ...(credentialsList.length > 0 ? [``, `🔑 Credentials:`, ...credentialsList] : []),
+    ].join("\n");
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: `Order #${orderId}`, text });
+        return;
+      } catch { /* user cancelled */ }
+    }
+    // Fallback: copy to clipboard
+    navigator.clipboard.writeText(text);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2000);
+  };
 
   return (
     <div className={cn("space-y-5", className)}>
@@ -321,11 +388,36 @@ export default function OrderSuccessCard({
         </motion.div>
       )}
 
+      {/* ── SHARE / DOWNLOAD ── */}
+      <motion.div
+        initial={{ y: 16, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.32 }}
+        className="flex gap-2.5"
+      >
+        <Button
+          variant="outline"
+          className="flex-1 h-10 gap-2 text-sm border-border/40"
+          onClick={handleShare}
+        >
+          <Share2 className="w-4 h-4" />
+          Share Receipt
+        </Button>
+        <Button
+          variant="outline"
+          className="flex-1 h-10 gap-2 text-sm border-border/40"
+          onClick={generateReceiptImage}
+        >
+          <Download className="w-4 h-4" />
+          Download Receipt
+        </Button>
+      </motion.div>
+
       {/* ── CTA BUTTONS ── */}
       <motion.div
         initial={{ y: 16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.35 }}
+        transition={{ delay: 0.38 }}
         className="flex flex-col sm:flex-row gap-2.5"
       >
         <Button
