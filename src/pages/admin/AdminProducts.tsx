@@ -1193,18 +1193,33 @@ export default function AdminProducts() {
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                   {/* ── Image URL (paste link) ── */}
                   <div className="mt-2">
-                    <Label className="text-muted-foreground text-xs">Or paste Image URL</Label>
-                    <Input
-                      type="url"
-                      placeholder="https://example.com/icon.png"
-                      value={form.image_url}
-                      onChange={(e) => {
-                        const url = e.target.value;
-                        setForm((prev) => ({ ...prev, image_url: url }));
-                        setImagePreview(url || null);
-                      }}
-                      className="bg-muted/50 border-border mt-1 text-xs"
-                    />
+                    <Label className="text-muted-foreground text-xs">Product Image URL</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Input
+                        type="url"
+                        placeholder="https://example.com/icon.png"
+                        value={form.image_url}
+                        onChange={(e) => {
+                          const url = e.target.value;
+                          setForm((prev) => ({ ...prev, image_url: url }));
+                          setImagePreview(url || null);
+                        }}
+                        className="bg-muted/50 border-border text-xs flex-1"
+                      />
+                      {/* Live preview box */}
+                      <div className="shrink-0 w-10 h-10 rounded-xl border border-white/10 bg-[#1A1F2E] flex items-center justify-center overflow-hidden">
+                        {form.image_url ? (
+                          <img
+                            src={form.image_url}
+                            alt="Preview"
+                            className="w-10 h-10 object-contain p-1.5 rounded-lg"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <span className="text-[9px] text-muted-foreground/40">Preview</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
