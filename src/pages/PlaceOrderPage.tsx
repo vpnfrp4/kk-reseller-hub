@@ -572,8 +572,8 @@ export default function PlaceOrderPage() {
               })}
             </div>
           )}
-        </div>
-      )}
+            </>
+          )}
 
       {/* ═══ QUICK ORDER MODAL ═══ */}
       <Dialog open={quickOrderOpen && !!selectedProduct} onOpenChange={(open) => { if (!open) handleCloseModal(); }}>
