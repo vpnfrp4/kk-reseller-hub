@@ -76,8 +76,8 @@ export default function SettingsPage() {
                     className={cn(
                       "w-full flex items-center gap-compact px-compact py-2.5 rounded-btn text-sm font-medium transition-all text-left",
                       isActive
-                        ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_12px_-4px_hsl(var(--primary)/0.15)]"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/20 border border-transparent"
+                        ? "bg-primary/8 text-primary border border-primary/15"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-transparent"
                     )}
                   >
                     <tab.icon className={cn("w-4 h-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />

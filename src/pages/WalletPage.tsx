@@ -466,7 +466,7 @@ export default function WalletPage() {
                 )}
 
                 {/* Auto-Verify */}
-                <div className="rounded-[var(--radius-card)] border bg-card p-5 space-y-3" style={{ borderColor: "hsl(var(--primary) / 0.15)", boxShadow: "0 0 30px hsl(var(--primary) / 0.03)" }}>
+                <div className="rounded-[var(--radius-card)] border border-primary/15 bg-card p-5 space-y-3" style={{ boxShadow: "var(--shadow-card)" }}>
                   <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Search className="w-4 h-4 text-primary" />
                     Verify Payment
