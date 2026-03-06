@@ -587,7 +587,7 @@ export default function OrdersPage() {
                         <span className="text-xs text-muted-foreground">{format(new Date(row.created_at), "MMM dd, yyyy")}</span>
                       </td>
                       <td className="px-5 py-3.5 text-right">
-                        <Money amount={row.price} className="text-sm font-semibold gold-text" />
+                        <Money amount={row.price} className="text-sm font-semibold text-foreground" />
                       </td>
                       <td className="px-5 py-3.5 text-center">
                         <StatusBadge status={row.status} />
