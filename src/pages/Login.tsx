@@ -565,7 +565,7 @@ export default function Login() {
               >
                 <Button
                   type="submit"
-                  className="w-full h-11 gap-2 text-sm font-semibold rounded-xl bg-gradient-to-r from-primary to-[hsl(var(--primary-glow))] hover:shadow-[0_0_24px_hsl(var(--primary)/0.3)] transition-all duration-300"
+                  className="w-full h-11 gap-2 text-sm font-semibold rounded-xl"
                   disabled={loading || (isSignup && !canSubmitSignup)}
                 >
                   {loading ? (
