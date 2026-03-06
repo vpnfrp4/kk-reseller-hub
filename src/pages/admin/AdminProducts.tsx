@@ -850,6 +850,7 @@ export default function AdminProducts() {
       const { error } = await supabase.from("products").update(payload).eq("id", editing.id);
       if (error) { toast.error(error.message); return; }
       await saveCustomFields(editing.id);
+      await saveProductDownloads(editing.id, downloadFiles, downloadSettings);
       toast.success("Product updated");
     } else {
       const { data, error } = await supabase.from("products").insert(payload).select("id").single();
@@ -861,7 +862,10 @@ export default function AdminProducts() {
         }
         return;
       }
-      if (data) await saveCustomFields(data.id);
+      if (data) {
+        await saveCustomFields(data.id);
+        await saveProductDownloads(data.id, downloadFiles, downloadSettings);
+      }
       toast.success("Product created");
     }
     queryClient.invalidateQueries({ queryKey: ["admin-products"] });
