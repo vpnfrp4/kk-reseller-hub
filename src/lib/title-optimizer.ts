@@ -1,11 +1,11 @@
 /**
  * Product Name Optimization Engine
  * 
- * Takes raw admin-entered service names and produces:
- * - Clean Display Title (marketplace-ready)
- * - Short Title (compact variant)
- * - SEO Slug
- * - Auto-detected metadata (category, duration, delivery time, warranty, icon)
+ * Standardized format: [Brand/Carrier] [Device/Model] [Core Function] - [Key Features] [Delivery Method] [Warranty]
+ * Examples:
+ *   "Apple iPhone iCloud Unlock - Clean IMEI, Instant Delivery, Lifetime Warranty"
+ *   "AT&T Samsung Galaxy SIM Unlock - All Models, 1-6 Hours, 30 Days Warranty"
+ *   "Netflix Premium Account - 1 Year, No 2FA, Instant Delivery"
  */
 
 export interface OptimizedTitle {
@@ -69,6 +69,34 @@ const KEYWORD_MAP: Record<string, string> = {
   "api": "API",
 };
 
+/* ─── Brand/Carrier Detection ─── */
+const KNOWN_BRANDS = [
+  "Apple", "Samsung", "iPhone", "iPad", "MacBook", "Google", "Pixel",
+  "Huawei", "Xiaomi", "OnePlus", "LG", "Motorola", "Sony", "Nokia",
+  "Oppo", "Vivo", "Realme", "ZTE", "Alcatel", "HTC",
+  "Netflix", "Spotify", "Canva", "CapCut", "ChatGPT", "Adobe",
+  "Microsoft", "Windows", "Office", "NordVPN", "ExpressVPN", "Surfshark",
+];
+
+const KNOWN_CARRIERS = [
+  "AT&T", "T-Mobile", "Sprint", "Verizon", "Cricket", "MetroPCS",
+  "Boost", "US Cellular", "Tracfone", "Straight Talk", "Xfinity",
+  "EE", "Vodafone", "O2", "Three", "Rogers", "Bell", "Telus",
+];
+
+const CORE_FUNCTIONS = [
+  "Unlock", "Check", "Remove", "Reset", "Bypass", "Activation",
+  "Account", "Subscription", "Premium", "Pro", "License", "Key",
+  "Followers", "Likes", "Views", "Comments", "Members", "Subscribers",
+];
+
+const DELIVERY_KEYWORDS: Record<string, string> = {
+  "instant": "Instant Delivery",
+  "24/7": "24/7 Delivery",
+  "automatic": "Auto Delivery",
+  "auto": "Auto Delivery",
+};
+
 function normalizeKeywords(name: string): string {
   let result = name;
   for (const [raw, normalized] of Object.entries(KEYWORD_MAP)) {
@@ -79,7 +107,6 @@ function normalizeKeywords(name: string): string {
 }
 
 function removeDuplicateWords(name: string): string {
-  // Tokenize preserving compound terms like AT&T
   const tokens = name.match(/\S+&\S+|\S+/g) || [];
   const seen = new Set<string>();
   const result: string[] = [];
@@ -104,8 +131,8 @@ function removeStopWords(name: string): string {
 
 function cleanPunctuation(name: string): string {
   return name
-    .replace(/[^\w\s\-/&().+#']/g, "")
-    .replace(/\s*[-–—]\s*[-–—]\s*/g, " – ")
+    .replace(/[^\w\s\-/&().+#',]/g, "")
+    .replace(/\s*[-–—]\s*[-–—]\s*/g, " - ")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -131,10 +158,98 @@ function generateSlug(title: string): string {
     .replace(/^-|-$/g, "");
 }
 
+/**
+ * Extract structured parts from a raw product name and reassemble
+ * into the standardized format:
+ * [Brand/Carrier] [Device/Model] [Core Function] - [Key Features], [Delivery], [Warranty]
+ */
+function structureName(cleanedName: string, rawName: string): string {
+  const lower = rawName.toLowerCase();
+  const words = cleanedName.split(/\s+/);
+
+  // Extract brand
+  const brand = KNOWN_BRANDS.find(b =>
+    lower.includes(b.toLowerCase())
+  ) || "";
+
+  // Extract carrier
+  const carrier = KNOWN_CARRIERS.find(c =>
+    lower.includes(c.toLowerCase())
+  ) || "";
+
+  // Extract core function
+  const coreFunction = CORE_FUNCTIONS.find(f =>
+    lower.includes(f.toLowerCase())
+  ) || "";
+
+  // Extract delivery method
+  let delivery = "";
+  for (const [kw, label] of Object.entries(DELIVERY_KEYWORDS)) {
+    if (lower.includes(kw)) {
+      delivery = label;
+      break;
+    }
+  }
+
+  // Extract duration
+  const durationMatch = lower.match(/(\d+)\s*(year|month|week|day)s?/i);
+  const duration = durationMatch
+    ? `${durationMatch[1]} ${durationMatch[2].charAt(0).toUpperCase() + durationMatch[2].slice(1)}${parseInt(durationMatch[1]) > 1 ? "s" : ""}`
+    : /\blifetime\b/i.test(lower) ? "Lifetime" : "";
+
+  // Extract warranty
+  const warrantyMatch = lower.match(/(\d+)\s*(hour|day|month|year)s?\s*warranty/i);
+  const warranty = warrantyMatch
+    ? `${warrantyMatch[1]} ${warrantyMatch[2].charAt(0).toUpperCase() + warrantyMatch[2].slice(1)}${parseInt(warrantyMatch[1]) > 1 ? "s" : ""} Warranty`
+    : /\blifetime\s*warranty\b/i.test(lower) ? "Lifetime Warranty"
+    : /\bwarranty\b/i.test(lower) ? "Warranty Included" : "";
+
+  // Collect remaining meaningful words not already captured
+  const usedTerms = new Set<string>();
+  [brand, carrier, coreFunction, delivery, duration, warranty].forEach(term => {
+    if (term) term.split(/\s+/).forEach(w => usedTerms.add(w.toLowerCase()));
+  });
+  // Also mark DELIVERY_KEYWORDS keys
+  Object.keys(DELIVERY_KEYWORDS).forEach(k => usedTerms.add(k));
+
+  const remaining = words.filter(w => !usedTerms.has(w.toLowerCase()) && w.length > 1);
+
+  // Build primary part: [Brand/Carrier] [remaining context] [Core Function]
+  const primaryParts: string[] = [];
+  if (carrier) primaryParts.push(carrier);
+  if (brand && brand.toLowerCase() !== carrier.toLowerCase()) primaryParts.push(brand);
+  if (remaining.length > 0) primaryParts.push(...remaining.slice(0, 3));
+  if (coreFunction && !primaryParts.some(p => p.toLowerCase() === coreFunction.toLowerCase())) {
+    primaryParts.push(coreFunction);
+  }
+
+  // Build feature suffix
+  const featureParts: string[] = [];
+  if (duration) featureParts.push(duration);
+  if (delivery) featureParts.push(delivery);
+  if (warranty) featureParts.push(warranty);
+
+  const primary = primaryParts.join(" ");
+
+  if (featureParts.length > 0) {
+    return `${primary} - ${featureParts.join(", ")}`;
+  }
+
+  return primary;
+}
+
 function generateShortTitle(displayTitle: string): string {
+  // For structured names, use the part before the dash
+  const dashIndex = displayTitle.indexOf(" - ");
+  if (dashIndex > 0) {
+    const primary = displayTitle.substring(0, dashIndex);
+    const words = primary.split(/\s+/);
+    return words.length <= 5 ? primary : words.slice(0, 4).join(" ");
+  }
+
   const words = displayTitle.split(/\s+/);
   if (words.length <= 4) return displayTitle;
-  
+
   const importantPatterns = [
     /^\d+/,
     /^(USA|API|VPN|FRP|IMEI|SIM|PC|2FA|iCloud|Pro|Premium|Clean)$/i,
@@ -145,11 +260,11 @@ function generateShortTitle(displayTitle: string): string {
   ];
 
   const important = words.filter(w => importantPatterns.some(p => p.test(w)));
-  
+
   if (important.length >= 2 && important.length <= 5) {
     return important.join(" ");
   }
-  
+
   return words.slice(0, 4).join(" ");
 }
 
@@ -166,7 +281,8 @@ export function optimizeTitle(rawName: string): OptimizedTitle {
   title = capitalizeWords(title);
   title = title.replace(/\s+/g, " ").trim();
 
-  const displayTitle = title;
+  // Apply standardized structuring
+  const displayTitle = structureName(title, rawName);
   const shortTitle = generateShortTitle(displayTitle);
   const seoSlug = generateSlug(displayTitle);
 
@@ -188,34 +304,29 @@ function generateProductCode(): string {
 function detectCategory(raw: string): { category: string; productType: "digital" | "imei" | "manual" | "api"; icon: string } {
   const lower = raw.toLowerCase();
 
-  // IMEI / Unlock
   if (/\b(imei|unlock|carrier|network unlock|sim unlock|frp|icloud|bypass)\b/i.test(lower)) {
-    return { category: "IMEI Unlock", productType: "imei", icon: "📱" };
+    return { category: "IMEI Unlock", productType: "imei", icon: "phone" };
   }
 
-  // API
   if (/\b(api|dhru|server|endpoint|credit)\b/i.test(lower)) {
-    return { category: "API Services", productType: "api", icon: "🔌" };
+    return { category: "API Services", productType: "api", icon: "plug" };
   }
 
-  // Hardware / Tools / License
   if (/\b(license|activation|dongle|tool|box|key|pc|hardware|umt|octoplus|z3x|miracle|chimera|unlocktool)\b/i.test(lower)) {
-    return { category: "Hardware Tools", productType: "manual", icon: "🔧" };
+    return { category: "Hardware Tools", productType: "manual", icon: "wrench" };
   }
 
-  // Digital Accounts
   if (/\b(account|subscription|premium|pro|vpn|netflix|spotify|canva|capcut|chatgpt|2fa|usa|email|id)\b/i.test(lower)) {
-    return { category: "Digital Accounts", productType: "digital", icon: "💻" };
+    return { category: "Digital Accounts", productType: "digital", icon: "monitor" };
   }
 
-  return { category: "General", productType: "digital", icon: "📦" };
+  return { category: "General", productType: "digital", icon: "package" };
 }
 
 /* ─── Duration Detection ─── */
 function detectDuration(raw: string): string {
   const lower = raw.toLowerCase();
 
-  // Direct patterns: "1 Year", "3 Month", "6 Month", "12 Month", "Lifetime"
   const durationMatch = lower.match(/(\d+)\s*(year|month|week|day|hour)s?/i);
   if (durationMatch) {
     const num = durationMatch[1];
@@ -237,8 +348,7 @@ function detectDeliveryTime(raw: string): string {
 
   if (/\binstant\b/i.test(lower)) return "Instant";
   if (/\b24\s*\/?\s*7\b/.test(lower)) return "Instant - 24/7";
-  
-  // Range patterns: "0-6 Hours", "1-24 Hours", "1-3 Days"
+
   const rangeMatch = lower.match(/(\d+)\s*[-–]\s*(\d+)\s*(hour|minute|day|hr|min)s?/i);
   if (rangeMatch) {
     const unit = rangeMatch[3].replace(/^hr$/i, "Hour").replace(/^min$/i, "Minute");
@@ -246,7 +356,6 @@ function detectDeliveryTime(raw: string): string {
     return `${rangeMatch[1]}-${rangeMatch[2]} ${unitCap}s`;
   }
 
-  // Single time patterns: "48 Hours", "24 Hours"
   const singleMatch = lower.match(/(\d+)\s*(hour|minute|day|hr|min)s?/i);
   if (singleMatch) {
     const num = parseInt(singleMatch[1]);
