@@ -198,7 +198,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <aside
         className={cn(
           "fixed lg:static inset-y-0 left-0 z-50 flex flex-col",
-          "bg-sidebar/70 backdrop-blur-2xl border-r border-sidebar-border/30",
+          "bg-card border-r border-border",
           "transition-all duration-300 ease-out",
           collapsed ? "lg:w-[72px]" : "lg:w-[240px]",
           "w-[260px]",
