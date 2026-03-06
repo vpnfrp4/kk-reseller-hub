@@ -133,7 +133,7 @@ export default function AdminProfitDashboard() {
       <div className="space-y-8">
         {/* Header */}
         <div className="animate-fade-in">
-          <h1 className="text-h1 gradient-text tracking-tight">Profit Analytics</h1>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">Profit Analytics</h1>
           <p className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] mt-1">
             Revenue, Cost & Margin Tracking
           </p>
