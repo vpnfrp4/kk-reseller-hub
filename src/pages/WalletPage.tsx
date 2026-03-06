@@ -265,7 +265,7 @@ export default function WalletPage() {
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div>
-              <h1 className="text-lg font-bold gradient-text">Transaction History</h1>
+              <h1 className="text-lg font-bold text-foreground">Transaction History</h1>
               <p className="text-xs text-muted-foreground">View all wallet transactions</p>
             </div>
           </div>
