@@ -66,7 +66,7 @@ export default function SettingsPage() {
           </div>
         ) : (
           <nav className="w-56 shrink-0">
-            <div className="glass-card p-tight space-y-0.5 sticky top-24">
+            <div className="rounded-[var(--radius-card)] border border-border/50 bg-card p-2 space-y-0.5 sticky top-24" style={{ boxShadow: "var(--shadow-card)" }}>
               {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
