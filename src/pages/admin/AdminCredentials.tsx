@@ -459,7 +459,7 @@ export default function AdminCredentials() {
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="btn-glow gap-2 shadow-[0_0_20px_-4px_hsl(var(--primary)/0.3)]"><Plus className="w-4 h-4" />Add Credentials</Button>
+            <Button className="gap-2"><Plus className="w-4 h-4" />Add Credentials</Button>
           </DialogTrigger>
           <DialogContent className="bg-card border-border max-w-lg max-h-[90vh] flex flex-col p-0" onInteractOutside={(e) => e.preventDefault()}>
             <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
