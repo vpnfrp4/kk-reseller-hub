@@ -2292,13 +2292,17 @@ export default function AdminProducts() {
                               </td>
                               <td className="px-4 py-3.5">
                                 <div className="flex items-center gap-3">
-                                  <div className="shrink-0 w-9 h-9 rounded-xl border border-white/10 bg-[#1A1F2E] flex items-center justify-center overflow-hidden">
+                                  <button
+                                    type="button"
+                                    onClick={() => p.image_url && setPreviewImage({ url: p.image_url, name: p.name })}
+                                    className={`shrink-0 w-9 h-9 rounded-xl border border-white/10 bg-[#1A1F2E] flex items-center justify-center overflow-hidden ${p.image_url ? "cursor-pointer hover:ring-2 hover:ring-primary/40 transition-all" : "cursor-default"}`}
+                                  >
                                     {p.image_url ? (
                                       <img src={p.image_url} alt={p.name} className="w-9 h-9 object-contain p-1 rounded-lg" onError={(e) => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('span'), { className: 'text-xs font-bold uppercase text-primary/60', textContent: (p.name || '?')[0] })); }} />
                                     ) : (
                                       <span className="text-lg">{p.icon}</span>
                                     )}
-                                  </div>
+                                  </button>
                                   <div className="min-w-0">
                                     <span className="text-[13px] font-medium text-foreground block truncate max-w-[220px]">{sanitizeName(p.name)}</span>
                                     {p.duration && <p className="text-[10px] text-muted-foreground/50 mt-0.5">{p.duration}</p>}
