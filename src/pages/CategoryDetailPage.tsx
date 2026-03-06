@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Money, PageContainer } from "@/components/shared";
 import Confetti from "@/components/Confetti";
+import OrderSuccessCard from "@/components/products/OrderSuccessCard";
 import { motion } from "framer-motion";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
