@@ -147,7 +147,7 @@ export default function AdminProfitDashboard() {
             { label: "Net Profit", value: stats.totalProfit, icon: TrendingUp, color: "text-chart-2" },
             { label: "Profit Margin", value: Math.round(stats.profitPercent), icon: Percent, color: "text-chart-3", isSuffix: true },
           ].map((kpi) => (
-            <div key={kpi.label} className="stat-card">
+            <div key={kpi.label} className="bg-card border border-border rounded-[var(--radius-card)] p-4">
               <div className="flex items-center gap-2 mb-2">
                 <div
                   className="w-8 h-8 rounded-[var(--radius-btn)] flex items-center justify-center"
