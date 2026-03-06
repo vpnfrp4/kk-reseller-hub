@@ -12,6 +12,17 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { sanitizeName } from "@/lib/sanitize-name";
 
+const SPARKLES = [
+  { x: -32, y: -28, size: 12, opacity: 0.9 },
+  { x: 30, y: -30, size: 10, opacity: 0.8 },
+  { x: -38, y: 8, size: 8, opacity: 0.7 },
+  { x: 36, y: 12, size: 11, opacity: 0.85 },
+  { x: -18, y: -38, size: 7, opacity: 0.6 },
+  { x: 20, y: 34, size: 9, opacity: 0.75 },
+  { x: -28, y: 30, size: 8, opacity: 0.65 },
+  { x: 8, y: -40, size: 10, opacity: 0.8 },
+];
+
 export interface OrderSuccessData {
   order_id: string;
   credentials: string;
