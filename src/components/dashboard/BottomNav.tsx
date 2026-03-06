@@ -15,11 +15,12 @@ export default function BottomNav() {
   const location = useLocation();
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 lg:hidden border-t border-border/40 pb-safe"
+    <nav className="fixed bottom-0 inset-x-0 z-50 lg:hidden border-t border-border/40"
       style={{
         background: 'hsl(var(--card) / 0.92)',
         backdropFilter: 'blur(24px) saturate(1.8)',
         WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
+        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
     >
       <div className="flex items-stretch justify-around h-16">
