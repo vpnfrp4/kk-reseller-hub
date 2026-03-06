@@ -132,9 +132,7 @@ export default function IFreeImeiCheck() {
         setServices(parsed);
         setLastSynced(new Date());
         if (source === "fallback" || source === "cache") {
-          toast.info("Using cached service list. Live sync may be unavailable.", { duration: 4000 });
-        } else {
-          toast.success(`Loaded ${parsed.length} services from provider`, { duration: 2000 });
+          toast.info("Using cached services. Reconnecting…", { duration: 3000 });
         }
       } else if (data?.error) {
         toast.error(data.error);
