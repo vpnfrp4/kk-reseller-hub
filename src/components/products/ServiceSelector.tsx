@@ -12,6 +12,7 @@ interface ServiceItem {
   product_type: string;
   stock: number;
   type: string;
+  image_url?: string | null;
 }
 
 interface ServiceSelectorProps {
@@ -162,10 +163,21 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
                           : "hover:bg-primary/5 cursor-pointer"
                       )}
                     >
-                      {/* Category Icon */}
-                      <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center", iconColor)}>
-                        <IconComp className="w-4 h-4" />
-                      </div>
+                      {/* Product Icon / Image */}
+                      {(service as any).image_url ? (
+                        <div className="shrink-0 w-8 h-8 rounded-lg border border-border/30 bg-[hsl(220,13%,7%)] flex items-center justify-center overflow-hidden">
+                          <img
+                            src={(service as any).image_url}
+                            alt={service.name}
+                            className="w-8 h-8 object-contain rounded-lg"
+                            loading="lazy"
+                          />
+                        </div>
+                      ) : (
+                        <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center", iconColor)}>
+                          <IconComp className="w-4 h-4" />
+                        </div>
+                      )}
 
                       <div className="min-w-0 flex-1">
                         <p className="text-sm text-foreground truncate leading-snug">
