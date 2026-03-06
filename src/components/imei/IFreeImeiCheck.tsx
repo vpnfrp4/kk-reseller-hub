@@ -345,29 +345,27 @@ export default function IFreeImeiCheck() {
               </PopoverContent>
             </Popover>
 
-            {/* Service status indicators */}
+            {/* Service status */}
             {services.length > 0 && (
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground/60">
-                  <Hash className="w-3 h-3" />
-                  {services.length} services available
+              <div className="flex items-center gap-2.5">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/8 text-[10px] font-semibold text-primary border border-primary/10">
+                  {services.length} Services
                 </span>
                 {servicesSource && servicesSource !== "unknown" && (
-                  <span className="inline-flex items-center gap-1.5 text-[10px]">
-                    {servicesSource === "cache" || servicesSource === "fallback" ? (
-                      <WifiOff className="w-3 h-3 text-warning" />
-                    ) : (
-                      <Wifi className="w-3 h-3 text-success" />
-                    )}
-                    <span className={servicesSource === "cache" || servicesSource === "fallback" ? "text-warning" : "text-success"}>
-                      {servicesSource === "cache" || servicesSource === "fallback" ? "Cached" : "Live API connection"}
+                  <span className="relative group inline-flex items-center gap-1.5 text-[10px] text-muted-foreground/50 cursor-default">
+                    <span className={cn(
+                      "w-1.5 h-1.5 rounded-full",
+                      servicesSource === "cache" || servicesSource === "fallback"
+                        ? "bg-warning animate-pulse"
+                        : "bg-success"
+                    )} />
+                    <span className="sr-only">
+                      {servicesSource === "cache" || servicesSource === "fallback" ? "Cached data" : "Live data — updated in real-time"}
                     </span>
-                  </span>
-                )}
-                {lastSynced && (
-                  <span className="inline-flex items-center gap-1.5 text-[10px] text-muted-foreground/50">
-                    <Clock className="w-3 h-3" />
-                    Synced {formatTimeAgo(lastSynced)}
+                    {/* Tooltip */}
+                    <span className="absolute bottom-full left-0 mb-1.5 hidden group-hover:block whitespace-nowrap px-2.5 py-1 rounded-lg bg-popover border border-border text-[10px] text-popover-foreground shadow-md z-50">
+                      {servicesSource === "cache" || servicesSource === "fallback" ? "Cached data" : "Live data — updated in real-time"}
+                    </span>
                   </span>
                 )}
               </div>
