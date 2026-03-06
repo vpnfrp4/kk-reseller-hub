@@ -2173,6 +2173,48 @@ export default function AdminProducts() {
             <Trash2 className="w-3.5 h-3.5" />
             Delete
           </Button>
+          <div className="h-4 w-px bg-border" />
+          <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs"
+            disabled={bulkImageUploading}
+            onClick={() => bulkImageInputRef.current?.click()}>
+            <Upload className="w-3.5 h-3.5" />
+            {bulkImageUploading ? "Uploading…" : "Assign Image"}
+          </Button>
+          <input
+            ref={bulkImageInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+              if (!file.type.startsWith("image/")) { toast.error("Please select an image file"); return; }
+              setBulkImageUploading(true);
+              try {
+                const compressed = await compressImage(file);
+                const fileName = `${crypto.randomUUID()}.webp`;
+                const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, compressed, { contentType: "image/webp", upsert: true });
+                if (uploadError) throw uploadError;
+                const { data: urlData } = supabase.storage.from("product-images").getPublicUrl(fileName);
+                const ids = Array.from(selectedIds);
+                const CHUNK = 50;
+                for (let i = 0; i < ids.length; i += CHUNK) {
+                  const chunk = ids.slice(i, i + CHUNK);
+                  await supabase.from("products").update({ image_url: urlData.publicUrl }).in("id", chunk);
+                }
+                toast.success(`Image assigned to ${ids.length} products`);
+                queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+                queryClient.invalidateQueries({ queryKey: ["products"] });
+                setSelectedIds(new Set());
+              } catch (err: any) {
+                toast.error(err.message || "Upload failed");
+              } finally {
+                setBulkImageUploading(false);
+                if (bulkImageInputRef.current) bulkImageInputRef.current.value = "";
+              }
+            }}
+          />
           <Button size="sm" variant="ghost" className="h-7 text-xs ml-auto"
             onClick={() => setSelectedIds(new Set())}>
             Clear
