@@ -57,6 +57,8 @@ const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const AdminProfitDashboard = lazy(() => import("./pages/admin/AdminProfitDashboard"));
 const AdminMonitoring = lazy(() => import("./pages/admin/AdminMonitoring"));
 const AdminImeiServices = lazy(() => import("./pages/admin/AdminImeiServices"));
+const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
+const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 
 function PageLoader() {
