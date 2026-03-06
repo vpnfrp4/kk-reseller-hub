@@ -128,6 +128,9 @@ export default function AdminProducts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 25;
+  const [bulkCategoryOpen, setBulkCategoryOpen] = useState(false);
+  const [bulkCategoryTarget, setBulkCategoryTarget] = useState("");
+  const [bulkCategoryUpdating, setBulkCategoryUpdating] = useState(false);
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
   const [bulkPricePercent, setBulkPricePercent] = useState("10");
   const [bulkPriceDirection, setBulkPriceDirection] = useState<"increase" | "decrease">("increase");
