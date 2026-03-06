@@ -34,7 +34,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-import FloatingSupport from "@/components/shared/FloatingSupport";
+
 import BottomNav from "@/components/dashboard/BottomNav";
 import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import kkLogo from "@/assets/kkremote-logo.png";
