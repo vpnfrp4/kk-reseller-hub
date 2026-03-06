@@ -358,82 +358,112 @@ export default function PlaceOrderPage() {
           {/* ═══ STICKY SEARCH BAR ═══ */}
           <div className="sticky top-0 z-20 -mx-3 px-3 py-2 lg:static lg:mx-0 lg:px-0 lg:py-0"
             style={{ background: 'hsl(var(--background) / 0.9)', backdropFilter: 'blur(16px)' }}>
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40 pointer-events-none transition-colors group-focus-within:text-primary/60" />
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search service..."
-                className={cn(
-                  "w-full pl-12 pr-12 py-3.5 lg:py-4 rounded-2xl text-sm font-medium",
-                  "bg-card border border-border/50 text-foreground placeholder:text-muted-foreground/40",
-                  "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40",
-                  "transition-all duration-300",
-                  "shadow-[0_2px_12px_rgba(0,0,0,0.04)]",
+            <div className="flex gap-2">
+              <div className="relative group flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground/40 pointer-events-none transition-colors group-focus-within:text-primary/60" />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    if (e.target.value.trim()) setViewMode("list");
+                  }}
+                  placeholder="Search IMEI service, iPhone unlock, Samsung FRP..."
+                  className={cn(
+                    "w-full pl-12 pr-12 py-3.5 lg:py-4 rounded-2xl text-sm font-medium",
+                    "bg-card border border-border/50 text-foreground placeholder:text-muted-foreground/40",
+                    "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40",
+                    "transition-all duration-300",
+                    "shadow-[0_2px_12px_rgba(0,0,0,0.04)]",
+                  )}
+                />
+                {searchQuery && (
+                  <button onClick={() => { setSearchQuery(""); if (!selectedCategory) setViewMode("categories"); }} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-muted-foreground/50 hover:text-foreground hover:bg-secondary/60 transition-colors">
+                    <X className="w-4 h-4" />
+                  </button>
                 )}
-              />
-              {searchQuery && (
-                <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-muted-foreground/50 hover:text-foreground hover:bg-secondary/60 transition-colors">
-                  <X className="w-4 h-4" />
+              </div>
+              {/* View mode toggle */}
+              <div className="flex items-center gap-0.5 p-1 rounded-xl bg-secondary/50 border border-border/40 shrink-0">
+                <button
+                  onClick={handleBackToCategories}
+                  className={cn(
+                    "p-2.5 rounded-lg transition-all duration-200",
+                    viewMode === "categories" && !searchQuery ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  )}
+                  title="Category cards"
+                >
+                  <LayoutGrid className="w-4 h-4" />
                 </button>
-              )}
+                <button
+                  onClick={() => setViewMode("list")}
+                  className={cn(
+                    "p-2.5 rounded-lg transition-all duration-200",
+                    viewMode === "list" || searchQuery ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                  )}
+                  title="List view"
+                >
+                  <List className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* ═══ FAVORITE SERVICES ═══ */}
-          {favoriteProducts.length > 0 && !searchQuery && (
-            <motion.div
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="space-y-3"
-            >
+          {/* ═══ CATEGORY CARDS VIEW ═══ */}
+          {viewMode === "categories" && !searchQuery && (
+            <div className="space-y-4">
+              {favoriteProducts.length > 0 && (
+                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
+                  <div className="flex items-center gap-2 px-1">
+                    <Star className="w-4 h-4 text-warning fill-warning" />
+                    <h2 className="text-sm font-bold text-foreground">Favorite Services</h2>
+                    <span className="text-[10px] font-mono text-muted-foreground/40">{favoriteProducts.length}</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {favoriteProducts.map((p: any) => (
+                      <FavoriteCard key={p.id} product={p} isFavorite onToggleFavorite={toggleFavorite} onSelect={handleSelectProduct} />
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+
               <div className="flex items-center gap-2 px-1">
-                <Star className="w-4 h-4 text-warning fill-warning" />
-                <h2 className="text-sm font-bold text-foreground">Favorite Services</h2>
-                <span className="text-[10px] font-mono text-muted-foreground/40">{favoriteProducts.length}</span>
+                <div className="w-1 h-5 rounded-full bg-gradient-to-b from-primary to-accent" />
+                <h2 className="text-sm font-bold text-foreground">Browse Categories</h2>
+                <span className="text-[10px] font-mono text-muted-foreground/40">{products.length} services</span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {favoriteProducts.map((p: any) => (
-                  <FavoriteCard
-                    key={p.id}
-                    product={p}
-                    isFavorite
-                    onToggleFavorite={toggleFavorite}
-                    onSelect={handleSelectProduct}
-                  />
-                ))}
-              </div>
-            </motion.div>
+              <CategoryCardsOverview onCategoryClick={handleCategoryClick} />
+            </div>
           )}
 
-          {/* ═══ GROUP SUMMARY + CONTROLS ═══ */}
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-2">
-              <Package className="w-4 h-4 text-muted-foreground/50" />
-              <h2 className="text-sm font-bold text-foreground">
-                {searchQuery ? "Search Results" : "Service Groups"}
-              </h2>
-              <span className="text-[10px] font-mono text-muted-foreground/40">
-                {filteredProducts.length} services · {groupedProducts.length} groups
-              </span>
-            </div>
-            {groupedProducts.length > 1 && (
-              <div className="flex gap-1">
-                <button
-                  onClick={expandAll}
-                  className="text-[10px] font-semibold text-primary hover:text-primary/80 px-2 py-1 rounded-md hover:bg-primary/5 transition-colors"
-                >
-                  Expand all
-                </button>
-                <button
-                  onClick={collapseAll}
-                  className="text-[10px] font-semibold text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-secondary/40 transition-colors"
-                >
-                  Collapse all
-                </button>
+          {/* ═══ LIST VIEW (SERVICE GROUPS) ═══ */}
+          {(viewMode === "list" || !!searchQuery) && (
+            <>
+              <div className="flex items-center justify-between px-1">
+                <div className="flex items-center gap-2">
+                  {selectedCategory && !searchQuery && (
+                    <button onClick={handleBackToCategories} className="p-1.5 rounded-lg bg-secondary/50 border border-border/30 text-muted-foreground hover:text-foreground transition-colors mr-1">
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <Package className="w-4 h-4 text-muted-foreground/50" />
+                  <h2 className="text-sm font-bold text-foreground">
+                    {searchQuery ? "Search Results" : selectedCategory || "All Services"}
+                  </h2>
+                  <span className="text-[10px] font-mono text-muted-foreground/40">
+                    {filteredProducts.length} services · {groupedProducts.length} groups
+                  </span>
+                </div>
+                {groupedProducts.length > 1 && (
+                  <div className="flex gap-1">
+                    <button onClick={expandAll} className="text-[10px] font-semibold text-primary hover:text-primary/80 px-2 py-1 rounded-md hover:bg-primary/5 transition-colors">
+                      Expand all
+                    </button>
+                    <button onClick={collapseAll} className="text-[10px] font-semibold text-muted-foreground hover:text-foreground px-2 py-1 rounded-md hover:bg-secondary/40 transition-colors">
+                      Collapse all
+                    </button>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
 
           {/* ═══ ACCORDION GROUPS ═══ */}
           {productsLoading ? (
