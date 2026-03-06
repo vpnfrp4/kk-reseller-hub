@@ -2344,9 +2344,9 @@ export default function AdminProducts() {
                 Update category for <span className="font-bold text-foreground">{selectedIds.size}</span> selected products
               </p>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-2">
               <Label className="text-muted-foreground text-xs">New Category</Label>
-              <Select value={bulkCategoryTarget} onValueChange={setBulkCategoryTarget}>
+              <Select value={bulkCategoryTarget} onValueChange={(v) => { if (v === "__new__") return; setBulkCategoryTarget(v); }}>
                 <SelectTrigger className="bg-muted/50 border-border"><SelectValue placeholder="Select category" /></SelectTrigger>
                 <SelectContent>
                   {dynamicCategories.filter(c => c !== "All").map((c) => (
@@ -2354,6 +2354,28 @@ export default function AdminProducts() {
                   ))}
                 </SelectContent>
               </Select>
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="Or type a new category…"
+                  className="bg-muted/50 border-border text-xs flex-1 h-8"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const val = (e.target as HTMLInputElement).value.trim();
+                      if (val) { setBulkCategoryTarget(val); (e.target as HTMLInputElement).value = ""; }
+                    }
+                  }}
+                  onBlur={(e) => {
+                    const val = e.target.value.trim();
+                    if (val) { setBulkCategoryTarget(val); e.target.value = ""; }
+                  }}
+                />
+              </div>
+              {bulkCategoryTarget && !dynamicCategories.includes(bulkCategoryTarget) && (
+                <p className="text-[10px] text-primary flex items-center gap-1">
+                  <Plus className="w-3 h-3" /> New category: <span className="font-semibold">{bulkCategoryTarget}</span>
+                </p>
+              )}
             </div>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => setBulkCategoryOpen(false)}>Cancel</Button>
