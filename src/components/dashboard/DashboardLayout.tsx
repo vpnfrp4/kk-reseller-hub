@@ -272,7 +272,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                         <div className={cn(
                           "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200",
                           active
-                            ? "bg-gradient-to-br from-primary/20 to-accent/15 text-primary"
+                            ? "bg-primary/10 text-primary"
                             : "text-muted-foreground group-hover:text-foreground group-hover:bg-secondary/60"
                         )}>
                           <item.icon className="w-[16px] h-[16px]" strokeWidth={1.8} />
