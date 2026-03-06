@@ -649,6 +649,11 @@ export default function AdminProducts() {
     setImagePreview(p.image_url || null);
     descManuallyEdited.current = !!(p.description && p.description.trim());
     loadCustomFields(p.id);
+    // Load downloads
+    loadProductDownloads(p.id).then(({ files, settings }) => {
+      setDownloadFiles(files);
+      setDownloadSettings(settings);
+    });
     setApiServices([]);
     setApiServiceSearch("");
     setDialogOpen(true);
