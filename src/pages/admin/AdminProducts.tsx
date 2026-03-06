@@ -668,17 +668,12 @@ export default function AdminProducts() {
     });
   }, []);
 
-  const uploadFile = useCallback(async (file: File) => {
-    if (!file.type.startsWith("image/")) { toast.error("Please select an image file"); return; }
-    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
-    setUploading(true); setUploadProgress(0); setUploadStage("compressing");
+  const uploadBlob = useCallback(async (blob: Blob) => {
+    setUploading(true); setUploadProgress(0); setUploadStage("uploading");
     const fileName = `${crypto.randomUUID()}.webp`;
     try {
-      const progressInterval = setInterval(() => { setUploadProgress((prev) => Math.min(prev + 8, 40)); }, 80);
-      const compressed = await compressImage(file);
-      clearInterval(progressInterval); setUploadProgress(50); setUploadStage("uploading");
-      const uploadInterval = setInterval(() => { setUploadProgress((prev) => Math.min(prev + 5, 90)); }, 100);
-      const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, compressed, { contentType: "image/webp", upsert: true });
+      const uploadInterval = setInterval(() => { setUploadProgress((prev) => Math.min(prev + 6, 90)); }, 100);
+      const { error: uploadError } = await supabase.storage.from("product-images").upload(fileName, blob, { contentType: "image/webp", upsert: true });
       clearInterval(uploadInterval);
       if (uploadError) throw uploadError;
       setUploadProgress(100);
@@ -687,11 +682,45 @@ export default function AdminProducts() {
       setImagePreview(urlData.publicUrl);
       toast.success("Image uploaded");
     } catch (err: any) { toast.error(err.message || "Upload failed"); }
-    finally { setUploading(false); setUploadStage("idle"); setUploadProgress(0); if (fileInputRef.current) fileInputRef.current.value = ""; }
-  }, [compressImage]);
+    finally { setUploading(false); setUploadStage("idle"); setUploadProgress(0); }
+  }, []);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) uploadFile(file); };
-  const handleDrop = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); const file = e.dataTransfer.files?.[0]; if (file) uploadFile(file); }, [uploadFile]);
+  const openCropDialog = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) { toast.error("Please select an image file"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Image must be under 5MB"); return; }
+    const url = URL.createObjectURL(file);
+    setCropImageSrc(url);
+    setCropDialogOpen(true);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, []);
+
+  const handleCropComplete = useCallback((croppedBlob: Blob) => {
+    setCropDialogOpen(false);
+    if (cropImageSrc) URL.revokeObjectURL(cropImageSrc);
+    setCropImageSrc("");
+    uploadBlob(croppedBlob);
+  }, [cropImageSrc, uploadBlob]);
+
+  const handleCropSkip = useCallback(async () => {
+    setCropDialogOpen(false);
+    if (!cropImageSrc) return;
+    // Upload original with compression
+    const response = await fetch(cropImageSrc);
+    const blob = await response.blob();
+    URL.revokeObjectURL(cropImageSrc);
+    setCropImageSrc("");
+    setUploading(true); setUploadProgress(0); setUploadStage("compressing");
+    try {
+      const file = new File([blob], "image.webp", { type: blob.type });
+      const progressInterval = setInterval(() => { setUploadProgress((prev) => Math.min(prev + 8, 40)); }, 80);
+      const compressed = await compressImage(file);
+      clearInterval(progressInterval);
+      await uploadBlob(compressed);
+    } catch (err: any) { toast.error(err.message || "Upload failed"); setUploading(false); setUploadStage("idle"); setUploadProgress(0); }
+  }, [cropImageSrc, compressImage, uploadBlob]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; if (file) openCropDialog(file); };
+  const handleDrop = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); const file = e.dataTransfer.files?.[0]; if (file) openCropDialog(file); }, [openCropDialog]);
   const handleDragOver = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(true); }, []);
   const handleDragLeave = useCallback((e: React.DragEvent) => { e.preventDefault(); setIsDragging(false); }, []);
   const removeImage = () => { setForm((prev) => ({ ...prev, image_url: "" })); setImagePreview(null); };
