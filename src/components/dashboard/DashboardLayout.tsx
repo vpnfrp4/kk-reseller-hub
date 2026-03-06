@@ -266,11 +266,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       >
                         {active && (
                           <span
-                            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
-                            style={{
-                              background: 'linear-gradient(180deg, hsl(217 91% 60%), hsl(250 70% 60%))',
-                              boxShadow: '0 0 10px hsl(217 91% 60% / 0.5), 0 0 20px hsl(250 70% 60% / 0.2)',
-                            }}
+                            className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary"
                           />
                         )}
                         <div className={cn(
