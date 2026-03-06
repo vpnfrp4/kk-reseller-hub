@@ -332,7 +332,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </nav>
 
-          <div className="mt-auto border-t border-sidebar-border/30 px-3 py-3 shrink-0">
+          <div className="mt-auto border-t border-border px-3 py-3 shrink-0">
             {!collapsed ? (
               <button
                 onClick={() => { navigate("/dashboard/settings"); setSidebarOpen(false); }}
