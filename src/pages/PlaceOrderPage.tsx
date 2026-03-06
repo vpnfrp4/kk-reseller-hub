@@ -707,19 +707,13 @@ function ServiceRow({ product: p, index, isFavorite, onToggleFavorite, onSelect 
       )}
     >
       <div className="flex items-center gap-3">
-        {/* Icon / Image */}
-        {p.image_url ? (
-          <div className="shrink-0 w-9 h-9 rounded-xl border border-border/30 bg-[hsl(220,13%,7%)] flex items-center justify-center overflow-hidden transition-transform duration-200 group-hover/row:scale-105">
-            <img src={p.image_url} alt={p.name} className="w-9 h-9 object-contain rounded-xl" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-          </div>
-        ) : (
-          <div className={cn(
-            "shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover/row:scale-105",
-            catColor
-          )}>
-            <CatIcon className="w-4 h-4" />
-          </div>
-        )}
+        <ProductIcon
+          imageUrl={p.image_url}
+          name={p.name}
+          category={p.category}
+          size="sm"
+          className="transition-transform duration-200 group-hover/row:scale-105"
+        />
 
         {/* Info */}
         <div className="min-w-0 flex-1">
