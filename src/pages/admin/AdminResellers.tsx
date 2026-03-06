@@ -216,12 +216,28 @@ export default function AdminResellers() {
   return (
     <div className="space-y-6 lg:space-y-8">
       {/* Header */}
-      <div className="animate-fade-in">
-        <h1 className="text-h1 gradient-text">Resellers</h1>
-        <p className="text-caption text-muted-foreground mt-1">
-          Manage registered resellers
-          {resellers?.length ? ` · ${filtered.length} of ${resellers.length}` : ""}
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 animate-fade-in">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">Resellers</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Manage registered resellers
+            {resellers?.length ? ` · ${filtered.length} of ${resellers.length}` : ""}
+          </p>
+        </div>
+        <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs" onClick={() => {
+          exportToCsv("resellers", filtered, [
+            { key: "name", label: "Name" },
+            { key: "email", label: "Email" },
+            { key: "balance", label: "Balance" },
+            { key: "total_spent", label: "Total Spent" },
+            { key: "total_orders", label: "Orders" },
+            { key: "tier", label: "Tier" },
+            { key: "status", label: "Status" },
+            { key: "created_at", label: "Joined" },
+          ]);
+        }}>
+          <Download className="w-3.5 h-3.5" /> Export CSV
+        </Button>
       </div>
 
       {/* Search & Filters — wrapped in a card for visual grouping */}

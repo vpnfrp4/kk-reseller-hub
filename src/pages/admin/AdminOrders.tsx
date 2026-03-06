@@ -260,8 +260,23 @@ export default function AdminOrders() {
     <div className="space-y-6 lg:space-y-8">
       {/* Header */}
       <div className="animate-fade-in">
-        <h1 className="text-h1 gradient-text">Order Management</h1>
-        <p className="text-caption text-muted-foreground mt-1">Search, filter, and manage all orders</p>
+        <h1 className="text-xl font-bold text-foreground">Order Management</h1>
+        <p className="text-xs text-muted-foreground mt-0.5">Search, filter, and manage all orders</p>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs" onClick={() => {
+          exportToCsv("orders", filtered, [
+            { key: "order_code", label: "Order Code" },
+            { key: "product_name", label: "Product" },
+            { key: "product_type", label: "Type" },
+            { key: "price", label: "Price" },
+            { key: "status", label: "Status" },
+            { key: "created_at", label: "Date" },
+          ]);
+        }}>
+          <Download className="w-3.5 h-3.5" /> Export
+        </Button>
+      </div>
       </div>
 
       {/* Filters — wrapped in a card */}
