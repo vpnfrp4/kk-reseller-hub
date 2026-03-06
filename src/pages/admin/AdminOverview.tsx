@@ -369,7 +369,7 @@ export default function AdminOverview() {
       <div className="animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-tight mb-default">
           <div>
-            <h1 className="text-h1 gradient-text tracking-tight">Control Center</h1>
+            <h1 className="text-xl font-bold text-foreground tracking-tight">Control Center</h1>
             <p className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] mt-micro">Financial & Operations Overview</p>
           </div>
           <div className="flex items-center gap-tight">
