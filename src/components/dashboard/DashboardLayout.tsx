@@ -376,7 +376,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* ═══ MAIN AREA ═══ */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
         {/* Top Navbar — streamlined */}
-        <header className="h-12 lg:h-14 border-b border-border/30 flex items-center justify-between px-3 sm:px-4 lg:px-8 fixed top-0 left-0 right-0 lg:sticky lg:relative z-30 bg-card/80 backdrop-blur-2xl">
+        <header className="h-12 lg:h-14 border-b border-border flex items-center justify-between px-3 sm:px-4 lg:px-8 fixed top-0 left-0 right-0 lg:sticky lg:relative z-30 bg-card/95 backdrop-blur-xl">
           <div className="flex items-center gap-2">
             <Link to="/dashboard" className="lg:hidden flex items-center gap-2">
               <img src={kkLogo} alt="KKTech" className="w-7 h-7 rounded-lg object-contain" />
