@@ -66,6 +66,21 @@ export default function PlaceOrderPage() {
   const [favorites, setFavoritesState] = useState<string[]>(getFavorites);
   const [quickOrderOpen, setQuickOrderOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(getExpandedGroups);
+  const [viewMode, setViewMode] = useState<"categories" | "list">("categories");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  const handleCategoryClick = useCallback((category: string) => {
+    setSelectedCategory(category);
+    setViewMode("list");
+    setExpandedGroups([category]);
+    saveExpandedGroups([category]);
+    setSearchQuery("");
+  }, []);
+
+  const handleBackToCategories = useCallback(() => {
+    setViewMode("categories");
+    setSelectedCategory(null);
+  }, []);
 
   // Realtime
   useEffect(() => {
