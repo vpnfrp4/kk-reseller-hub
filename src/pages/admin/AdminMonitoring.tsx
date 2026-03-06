@@ -489,7 +489,7 @@ export default function AdminMonitoring() {
                         </TableCell>
                         <TableCell>
                           {check.success ? (
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
+                            <CheckCircle2 className="w-4 h-4 text-success" />
                           ) : (
                             <XCircle className="w-4 h-4 text-destructive" />
                           )}
