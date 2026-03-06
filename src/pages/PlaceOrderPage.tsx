@@ -707,13 +707,19 @@ function ServiceRow({ product: p, index, isFavorite, onToggleFavorite, onSelect 
       )}
     >
       <div className="flex items-center gap-3">
-        {/* Icon */}
-        <div className={cn(
-          "shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover/row:scale-105",
-          catColor
-        )}>
-          <CatIcon className="w-4 h-4" />
-        </div>
+        {/* Icon / Image */}
+        {p.image_url ? (
+          <div className="shrink-0 w-9 h-9 rounded-xl border border-border/30 bg-[hsl(220,13%,7%)] flex items-center justify-center overflow-hidden transition-transform duration-200 group-hover/row:scale-105">
+            <img src={p.image_url} alt={p.name} className="w-9 h-9 object-contain rounded-xl" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          </div>
+        ) : (
+          <div className={cn(
+            "shrink-0 w-9 h-9 rounded-xl flex items-center justify-center transition-transform duration-200 group-hover/row:scale-105",
+            catColor
+          )}>
+            <CatIcon className="w-4 h-4" />
+          </div>
+        )}
 
         {/* Info */}
         <div className="min-w-0 flex-1">
@@ -790,9 +796,15 @@ function FavoriteCard({ product: p, isFavorite, onToggleFavorite, onSelect }: {
       )}
     >
       <div className="flex items-center gap-2.5">
-        <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center", catColor)}>
-          <CatIcon className="w-3.5 h-3.5" />
-        </div>
+        {p.image_url ? (
+          <div className="shrink-0 w-8 h-8 rounded-lg border border-border/30 bg-[hsl(220,13%,7%)] flex items-center justify-center overflow-hidden">
+            <img src={p.image_url} alt={p.name} className="w-8 h-8 object-contain rounded-lg" loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+          </div>
+        ) : (
+          <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center", catColor)}>
+            <CatIcon className="w-3.5 h-3.5" />
+          </div>
+        )}
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold text-foreground truncate">{sanitizeName(p.name)}</p>
           <p className="text-[10px] font-mono text-muted-foreground/50 mt-0.5">

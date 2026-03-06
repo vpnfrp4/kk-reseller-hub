@@ -164,10 +164,10 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
                       )}
                     >
                       {/* Product Icon / Image */}
-                      {(service as any).image_url ? (
+                      {service.image_url ? (
                         <div className="shrink-0 w-8 h-8 rounded-lg border border-border/30 bg-[hsl(220,13%,7%)] flex items-center justify-center overflow-hidden">
                           <img
-                            src={(service as any).image_url}
+                            src={service.image_url}
                             alt={service.name}
                             className="w-8 h-8 object-contain rounded-lg"
                             loading="lazy"
