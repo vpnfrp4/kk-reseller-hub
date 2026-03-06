@@ -1930,7 +1930,7 @@ export default function AdminProducts() {
 
                 </div>
                 <div className="shrink-0 px-6 py-4 border-t border-border bg-card">
-                  <Button type="submit" className="w-full btn-glow">{editing ? "Update" : "Create"} Product</Button>
+                  <Button type="submit" className="w-full">{editing ? "Update" : "Create"} Product</Button>
                 </div>
               </form>
             </DialogContent>
