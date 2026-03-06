@@ -16,7 +16,6 @@ async function fetchWithRetry(
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       const response = await fetch(url, options);
-      // Only retry on 429 (rate limit) or 5xx server errors
       if (response.status === 429 || response.status >= 500) {
         if (attempt < maxRetries) {
           const delay = Math.min(1000 * Math.pow(2, attempt), 8000);
@@ -58,7 +57,7 @@ serve(async (req) => {
 
     const modeInstructions: Record<string, string> = {
       "ultra-short": `Generate a VERY SHORT product description (max 7 lines). Format:
-Line 1: Clean product title (NO emojis)
+Line 1: Clean product title in standardized format: [Brand/Carrier] [Device/Model] [Core Function] - [Key Features], [Delivery Method], [Warranty]
 Line 2: empty
 Lines 3-7: Bullet points using plain dashes (e.g. "- Type:", "- Processing:", "- Key Feature:", "- Warranty:")
 No headings, no paragraphs. Max 7 lines total. ABSOLUTELY NO EMOJIS anywhere in the output.`,
@@ -91,6 +90,18 @@ Use uppercase section headers. Use plain dashes for bullets. Professional tone. 
 
     const systemPrompt = `You are a product description writer for KKTech, a wholesale digital services marketplace for resellers in Myanmar. You write professional, informative descriptions for services including digital accounts, IMEI unlocks, VPN keys, API services, and software licenses.
 
+PRODUCT NAMING STANDARD:
+All product names MUST follow this standardized format:
+[Brand/Carrier] [Device/Model] [Core Function] - [Key Features], [Delivery Method], [Warranty]
+
+Examples:
+- "Apple iPhone iCloud Unlock - Clean IMEI, Instant Delivery, Lifetime Warranty"
+- "AT&T Samsung Galaxy SIM Unlock - All Models, 1-6 Hours, 30 Days Warranty"
+- "Netflix Premium Account - 1 Year, No 2FA, Instant Delivery"
+- "NordVPN Premium Key - 2 Year, 5 Devices, Auto Delivery"
+- "Microsoft Office 365 License - 1 Year, PC/Mac, Instant Delivery"
+- "TikTok Followers - Real Users, Auto Delivery, Refill Guaranteed"
+
 CRITICAL RULES:
 - ABSOLUTELY DO NOT USE ANY EMOJIS. No checkmarks, no warning signs, no sparkles, no icons of any kind.
 - Use plain dashes "-" for bullet points
@@ -111,6 +122,8 @@ Category: ${category || "Auto-detect"}
 Product Type: ${product_type || "digital"}
 Duration: ${duration || "Not specified"}
 Processing Time: ${processing_time || "Not specified"}
+
+IMPORTANT: If the service name doesn't follow the standard format ([Brand/Carrier] [Device/Model] [Core Function] - [Key Features], [Delivery], [Warranty]), please also suggest a properly formatted name on the first line of your response.
 
 ${modeInstructions[mode] || modeInstructions["ultra-short"]}`;
 
