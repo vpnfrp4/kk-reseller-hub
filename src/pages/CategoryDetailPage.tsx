@@ -289,7 +289,7 @@ export default function CategoryDetailPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="rounded-xl border border-border/30 bg-card overflow-hidden animate-pulse">
-              <div className="w-full aspect-[5/3] bg-muted/20" />
+              <div className="w-full aspect-[5/3] bg-muted/10" />
               <div className="px-3.5 py-3 space-y-2">
                 <div className="h-4 bg-muted/30 rounded w-3/4" />
                 <div className="flex justify-between">
