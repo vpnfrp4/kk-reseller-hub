@@ -47,6 +47,7 @@ const navSections = [
       { label: "Resellers", icon: Users, path: "/admin/resellers" },
       { label: "Top-ups", icon: Wallet, path: "/admin/topups" },
       { label: "Profit", icon: TrendingUp, path: "/admin/profit" },
+      { label: "Reports", icon: Download, path: "/admin/reports" },
     ],
   },
   {
