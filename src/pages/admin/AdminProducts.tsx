@@ -307,6 +307,8 @@ export default function AdminProducts() {
     setEditing(null);
     setImagePreview(null);
     setCustomFields([]);
+    setDownloadFiles([]);
+    setDownloadSettings({ require_login: true, show_on_thankyou: true, send_via_email: false, download_limit: null, download_expiry_days: null });
     descManuallyEdited.current = false;
     titleManuallyEdited.current = false;
     setOptimizedMeta(null);
