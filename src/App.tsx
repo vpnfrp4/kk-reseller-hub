@@ -45,6 +45,7 @@ const InstallPage = lazy(() => import("./pages/InstallPage"));
 const BlogListPage = lazy(() => import("./pages/BlogListPage"));
 const BlogPostPage = lazy(() => import("./pages/BlogPostPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const MyDownloadsPage = lazy(() => import("./pages/MyDownloadsPage"));
 const AdminOverview = lazy(() => import("./pages/admin/AdminOverview"));
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
 const AdminCredentials = lazy(() => import("./pages/admin/AdminCredentials"));
