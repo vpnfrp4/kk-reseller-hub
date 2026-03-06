@@ -562,7 +562,15 @@ export default function OrdersPage() {
                         <span className="font-mono text-xs text-muted-foreground">{row.order_code || row.id.slice(0, 8)}</span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className="text-sm font-medium text-foreground">{sanitizeName(row.product_name)}</span>
+                        <div className="flex items-center gap-2.5">
+                          <ProductIcon
+                            imageUrl={row.products?.image_url}
+                            name={row.product_name}
+                            category={row.products?.category || row.product_type || "General"}
+                            size="sm"
+                          />
+                          <span className="text-sm font-medium text-foreground">{sanitizeName(row.product_name)}</span>
+                        </div>
                       </td>
                       <td className="px-5 py-3.5">
                         <ProductTypeBadge type={row.product_type} />

@@ -490,10 +490,17 @@ export default function OrderDetailPage() {
           {/* ═══ 1. ORDER HEADER ═══ */}
           <GlassSection>
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-              <div className="space-y-2">
-                <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
-                  {sanitizeName(order.product_name)}
-                </h1>
+              <div className="flex items-start gap-3">
+                <ProductIcon
+                  imageUrl={(order as any).products?.image_url}
+                  name={order.product_name}
+                  category={(order as any).products?.category || order.product_type || "General"}
+                  size="lg"
+                />
+                <div className="space-y-2">
+                  <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
+                    {sanitizeName(order.product_name)}
+                  </h1>
                 <div className="flex flex-wrap items-center gap-3">
                   <StatusBadge status={order.status} />
                   <ProductTypeBadge type={order.product_type} />
