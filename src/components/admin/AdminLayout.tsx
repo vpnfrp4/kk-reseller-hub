@@ -4,7 +4,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Navigate, Link, useLocation, useNavigate } from "react-router-dom";
 import {
-  // ShieldCheck removed — using logo image instead
   Package,
   KeyRound,
   Wallet,
@@ -14,12 +13,14 @@ import {
   Users,
   ShoppingCart,
   ArrowLeftRight,
-  X,
   Settings,
   Database,
   FileText,
   TrendingUp,
   Activity,
+  Shield,
+  ClipboardList,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
@@ -30,20 +31,44 @@ import { notifyEvent } from "@/lib/notifications";
 import { cn } from "@/lib/utils";
 import kkLogo from "@/assets/kkremote-logo.png";
 
-const navItems = [
-  { label: "Overview", icon: LayoutDashboard, path: "/admin", accent: "text-sky-400" },
-  { label: "Products", icon: Package, path: "/admin/products", accent: "text-violet-400" },
-  { label: "Providers", icon: Database, path: "/admin/providers", accent: "text-cyan-400" },
-  { label: "Credentials", icon: KeyRound, path: "/admin/credentials", accent: "text-amber-400" },
-  { label: "Top-ups", icon: Wallet, path: "/admin/topups", accent: "text-emerald-400" },
-  { label: "Orders", icon: ShoppingCart, path: "/admin/orders", accent: "text-orange-400" },
-  { label: "Resellers", icon: Users, path: "/admin/resellers", accent: "text-pink-400" },
-  { label: "Settings", icon: Settings, path: "/admin/settings", accent: "text-muted-foreground" },
-  { label: "Profit", icon: TrendingUp, path: "/admin/profit", accent: "text-lime-400" },
-  { label: "Monitoring", icon: Activity, path: "/admin/monitoring", accent: "text-rose-400" },
-  { label: "IMEI Services", icon: Database, path: "/admin/imei-services", accent: "text-cyan-400" },
-  { label: "Blog", icon: FileText, path: "/admin/blog", accent: "text-teal-400" },
+const navSections = [
+  {
+    label: "Main",
+    items: [
+      { label: "Overview", icon: LayoutDashboard, path: "/admin" },
+      { label: "Orders", icon: ShoppingCart, path: "/admin/orders" },
+      { label: "Products", icon: Package, path: "/admin/products" },
+      { label: "Credentials", icon: KeyRound, path: "/admin/credentials" },
+    ],
+  },
+  {
+    label: "Users & Finance",
+    items: [
+      { label: "Resellers", icon: Users, path: "/admin/resellers" },
+      { label: "Top-ups", icon: Wallet, path: "/admin/topups" },
+      { label: "Profit", icon: TrendingUp, path: "/admin/profit" },
+    ],
+  },
+  {
+    label: "Services",
+    items: [
+      { label: "Providers", icon: Database, path: "/admin/providers" },
+      { label: "IMEI Services", icon: Database, path: "/admin/imei-services" },
+    ],
+  },
+  {
+    label: "System",
+    items: [
+      { label: "Roles & Access", icon: Shield, path: "/admin/roles" },
+      { label: "Audit Logs", icon: ClipboardList, path: "/admin/audit-logs" },
+      { label: "Monitoring", icon: Activity, path: "/admin/monitoring" },
+      { label: "Settings", icon: Settings, path: "/admin/settings" },
+      { label: "Blog", icon: FileText, path: "/admin/blog" },
+    ],
+  },
 ];
+
+const allNavItems = navSections.flatMap((s) => s.items);
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
@@ -52,7 +77,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Badge counts
   const { data: pendingTopups = 0 } = useQuery({
     queryKey: ["sidebar-pending-topups"],
     queryFn: async () => {
@@ -96,7 +120,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     checkAdmin();
   }, [user]);
 
-  // Check for credentials expiring within 3 days
   const expiryChecked = useRef(false);
   useEffect(() => {
     if (!isAdmin || expiryChecked.current) return;
@@ -133,7 +156,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (loading || isAdmin === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background admin-theme">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -147,8 +170,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     navigate("/login");
   };
 
+  const currentPage = allNavItems.find((i) => i.path === location.pathname)?.label || "Admin";
+
   return (
-    <div className="admin-theme min-h-[100dvh] lg:h-screen flex flex-col lg:flex-row bg-background lg:overflow-hidden">
+    <div className="min-h-[100dvh] lg:h-screen flex flex-col lg:flex-row bg-background lg:overflow-hidden">
       {/* Mobile overlay */}
       <div
         className={cn(
@@ -158,96 +183,87 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         onClick={() => setSidebarOpen(false)}
       />
 
-      {/* Sidebar — premium glassmorphism */}
+      {/* Sidebar */}
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 w-[260px] flex flex-col",
-          "bg-sidebar/70 backdrop-blur-2xl border-r border-sidebar-border/30",
+          "fixed lg:static inset-y-0 left-0 z-50 w-[248px] flex flex-col",
+          "bg-card border-r border-border",
           "transition-transform duration-300 ease-out",
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        {/* Subtle gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.02] via-transparent to-accent/[0.02] pointer-events-none" />
-
         {/* Logo */}
-        <div className="relative px-5 py-5 border-b border-sidebar-border/30">
+        <div className="px-5 py-4 border-b border-border">
           <Link to="/admin" className="flex items-center gap-3 group">
             <img
               src={kkLogo}
               alt="KKTech"
-              className="w-9 h-9 rounded-xl object-contain neon-logo-glow transition-transform duration-200 group-hover:scale-105"
+              className="w-8 h-8 rounded-lg object-contain transition-transform duration-200 group-hover:scale-105"
             />
             <div>
-              <span className="text-[15px] font-bold text-foreground tracking-tight">KK<span className="neon-text" style={{ fontSize: 'inherit', textShadow: '0 0 8px rgba(57,255,20,0.3)' }}>Tech</span></span>
-              <span className="text-[10px] block text-[#39FF14]/70 font-bold uppercase tracking-[0.2em]">Command Center</span>
+              <span className="text-sm font-bold text-foreground tracking-tight">KKTech</span>
+              <span className="text-[10px] block text-primary font-semibold uppercase tracking-[0.15em]">Admin Panel</span>
             </div>
           </Link>
         </div>
 
         {/* Navigation */}
-        <nav className="relative flex-1 px-3 pt-4 pb-2 flex flex-col gap-0.5">
-          {navItems.map((item) => {
-            const active = location.pathname === item.path;
-            const badge = badgeMap[item.path] || 0;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                onClick={() => setSidebarOpen(false)}
-                className={cn(
-                  "group relative flex items-center gap-3 h-[44px] rounded-xl text-[13px] tracking-wide",
-                  "pl-5 pr-3 transition-all duration-200",
-                  active
-                    ? "bg-primary/10 text-foreground font-semibold shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary/40 hover:scale-[1.01] active:scale-[0.98]"
-                )}
-              >
-                {active && (
-                  <span
-                    className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full"
-                    style={{
-                      background: 'linear-gradient(180deg, hsl(217 91% 60%), hsl(250 70% 60%))',
-                      boxShadow: '0 0 10px hsl(217 91% 60% / 0.5), 0 0 20px hsl(250 70% 60% / 0.2)',
-                    }}
-                  />
-                )}
-                <div
-                  className={cn(
-                    "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-all duration-200",
-                    active
-                      ? "bg-gradient-to-br from-primary/20 to-accent/15 text-primary"
-                      : "text-muted-foreground group-hover:text-foreground group-hover:bg-secondary/60"
-                  )}
-                >
-                  <item.icon className="w-[16px] h-[16px]" strokeWidth={1.5} />
-                </div>
-                <span className="flex-1 truncate">{item.label}</span>
-                {badge > 0 && (
-                  <span className="min-w-[22px] h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1.5">
-                    {badge}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-3 pt-3 pb-2 overflow-y-auto space-y-4">
+          {navSections.map((section) => (
+            <div key={section.label}>
+              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] px-3 mb-1">
+                {section.label}
+              </p>
+              <div className="space-y-0.5">
+                {section.items.map((item) => {
+                  const active = location.pathname === item.path;
+                  const badge = badgeMap[item.path] || 0;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setSidebarOpen(false)}
+                      className={cn(
+                        "group relative flex items-center gap-3 h-9 rounded-lg text-[13px]",
+                        "pl-3 pr-3 transition-all duration-150",
+                        active
+                          ? "bg-primary/10 text-primary font-semibold"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                      )}
+                    >
+                      {active && (
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-primary" />
+                      )}
+                      <item.icon className={cn("w-4 h-4 shrink-0", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} strokeWidth={1.5} />
+                      <span className="flex-1 truncate">{item.label}</span>
+                      {badge > 0 && (
+                        <span className="min-w-[20px] h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1.5">
+                          {badge}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* Footer */}
-        <div className="relative mt-auto border-t border-sidebar-border/30 px-3 pt-3 pb-3 space-y-1">
+        <div className="border-t border-border px-3 py-2 space-y-0.5">
           <Link
             to="/dashboard"
-            className="flex items-center gap-3 h-[44px] pl-5 pr-3 rounded-xl text-[13px] tracking-wide text-muted-foreground hover:text-foreground hover:bg-secondary/40 hover:scale-[1.01] active:scale-[0.98] transition-all duration-200"
+            className="flex items-center gap-3 h-9 pl-3 pr-3 rounded-lg text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-150"
           >
-            <ArrowLeftRight className="w-[18px] h-[18px] shrink-0" strokeWidth={1.5} />
+            <ArrowLeftRight className="w-4 h-4 shrink-0" strokeWidth={1.5} />
             Reseller Panel
           </Link>
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-[44px] pl-5 text-[13px] tracking-wide rounded-xl hover:scale-[1.01] active:scale-[0.98] transition-all duration-200"
+            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-9 pl-3 text-[13px] rounded-lg"
             onClick={handleLogout}
           >
-            <LogOut className="w-[18px] h-[18px] mr-3 shrink-0 text-destructive/60" strokeWidth={1.5} />
+            <LogOut className="w-4 h-4 mr-3 shrink-0 text-destructive/60" strokeWidth={1.5} />
             Sign Out
           </Button>
         </div>
@@ -255,30 +271,26 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Main Area */}
       <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        <header className="h-14 border-b border-border/30 flex items-center justify-between px-4 lg:px-8 sticky top-0 z-30 bg-card/70 backdrop-blur-2xl admin-header">
+        <header className="h-14 border-b border-border flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 bg-card/95 backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
               <Menu className="w-5 h-5" strokeWidth={1.5} />
             </button>
-            <div>
-              <h2 className="text-sm font-semibold text-secondary-foreground tracking-wide uppercase">
-                {navItems.find((i) => i.path === location.pathname)?.label || "Admin"}
-              </h2>
-            </div>
+            <h2 className="text-sm font-semibold text-foreground">{currentPage}</h2>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <SoundToggle />
             <ThemeToggle />
             <AdminNotificationBell />
-            <span className="admin-badge text-[10px] uppercase tracking-[0.15em] px-3 py-1.5 rounded-pill font-mono font-semibold">
+            <span className="text-[10px] uppercase tracking-[0.1em] px-2.5 py-1 rounded-full font-semibold bg-primary/10 text-primary border border-primary/20">
               Admin
             </span>
           </div>
         </header>
 
-        <main className="flex-1 p-4 lg:p-8 overflow-y-auto" data-scroll-area style={{ WebkitOverflowScrolling: 'touch' as any }}>{children}</main>
+        <main className="flex-1 p-4 lg:p-6 overflow-y-auto" data-scroll-area style={{ WebkitOverflowScrolling: 'touch' as any }}>{children}</main>
 
-        <footer className="border-t border-border px-4 lg:px-8 py-4 text-center">
+        <footer className="border-t border-border px-4 lg:px-6 py-3 text-center">
           <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200">
             Terms and Conditions
           </Link>

@@ -57,6 +57,8 @@ const AdminBlog = lazy(() => import("./pages/admin/AdminBlog"));
 const AdminProfitDashboard = lazy(() => import("./pages/admin/AdminProfitDashboard"));
 const AdminMonitoring = lazy(() => import("./pages/admin/AdminMonitoring"));
 const AdminImeiServices = lazy(() => import("./pages/admin/AdminImeiServices"));
+const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
+const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 
 function PageLoader() {
@@ -172,6 +174,8 @@ function AppRoutes() {
         <Route path="/admin/profit" element={<AdminRoute><AdminProfitDashboard /></AdminRoute>} />
         <Route path="/admin/monitoring" element={<AdminRoute><AdminMonitoring /></AdminRoute>} />
         <Route path="/admin/imei-services" element={<AdminRoute><AdminImeiServices /></AdminRoute>} />
+        <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
+        <Route path="/admin/roles" element={<AdminRoute><AdminRoles /></AdminRoute>} />
         <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
         <Route path="*" element={<NotFound />} />
     </Routes>
