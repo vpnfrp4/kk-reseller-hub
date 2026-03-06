@@ -130,10 +130,18 @@ function ExpandedOrderDetail({ order }: { order: any }) {
     >
       <div className="px-5 py-4 bg-muted/30 border-t border-border/20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-          <div className="space-y-1.5">
-            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Service Details</span>
-            <p className="text-sm font-medium text-foreground">{sanitizeName(order.product_name)}</p>
-            <p className="text-xs text-muted-foreground font-mono">{order.order_code || order.id.slice(0, 8)}</p>
+          <div className="flex items-start gap-3">
+            <ProductIcon
+              imageUrl={order.products?.image_url}
+              name={order.product_name}
+              category={order.products?.category || order.product_type || "General"}
+              size="lg"
+            />
+            <div className="space-y-1.5 min-w-0">
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Service Details</span>
+              <p className="text-sm font-medium text-foreground">{sanitizeName(order.product_name)}</p>
+              <p className="text-xs text-muted-foreground font-mono">{order.order_code || order.id.slice(0, 8)}</p>
+            </div>
           </div>
           <div className="space-y-1.5">
             <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Processing</span>
