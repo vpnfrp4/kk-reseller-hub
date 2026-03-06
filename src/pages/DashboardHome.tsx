@@ -72,6 +72,11 @@ export default function DashboardHome() {
 
   // Stats
   const totalOrders = orders?.length || 0;
+  const todayOrders = orders?.filter((o: any) => {
+    const d = new Date(o.created_at);
+    const now = new Date();
+    return d.toDateString() === now.toDateString();
+  }).length || 0;
   const successOrders = orders?.filter((o: any) => o.status === "delivered" || o.status === "completed").length || 0;
   const processingOrders = orders?.filter((o: any) => ["processing", "pending", "pending_creation", "pending_review", "api_pending"].includes(o.status)).length || 0;
   const successRate = totalOrders > 0 ? Math.round((successOrders / totalOrders) * 100) : 0;
