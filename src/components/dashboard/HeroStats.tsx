@@ -113,7 +113,7 @@ export default function HeroStats({
                 <Button
                   size="sm"
                   onClick={(e) => { e.stopPropagation(); navigate("/dashboard/wallet"); }}
-                  className="mt-3 h-8 gap-1.5 text-xs w-full bg-gradient-to-r from-primary to-primary/80 hover:brightness-110 text-primary-foreground shadow-lg shadow-primary/20 btn-glow"
+                  className="mt-3 h-8 gap-1.5 text-xs w-full"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Add Funds

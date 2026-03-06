@@ -42,18 +42,12 @@ export default function BottomNav() {
               <div className="relative">
                 {active && (
                   <span
-                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-[3px] rounded-full"
-                    style={{
-                      background: 'linear-gradient(90deg, hsl(217 91% 60%), hsl(250 70% 60%))',
-                      boxShadow: '0 2px 8px hsl(217 91% 60% / 0.4)',
-                    }}
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-[3px] rounded-full bg-primary"
                   />
                 )}
                 <div className={cn(
                   "w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200",
-                  active
-                    ? "bg-primary/10 shadow-[0_0_12px_hsl(var(--primary)/0.15)]"
-                    : ""
+                  active ? "bg-primary/8" : ""
                 )}>
                   <item.icon
                     className={cn("w-5 h-5 transition-all duration-200")}
