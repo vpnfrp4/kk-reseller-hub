@@ -790,13 +790,13 @@ function ServiceRow({ product: p, index, isFavorite, onToggleFavorite, onSelect 
             <Money amount={p.wholesale_price} compact />
           </span>
           {!isOutOfStock && (
-            <span className={cn(
-              "inline-flex items-center gap-1 text-[10px] font-bold text-primary-foreground px-3 py-1.5 rounded-full",
+              <span className={cn(
+              "inline-flex items-center gap-1 text-[10px] font-bold text-primary-foreground px-3.5 py-1.5 rounded-full",
               "bg-gradient-to-r from-primary to-primary/80",
               "shadow-[0_2px_8px_hsl(var(--primary)/0.1)]",
               "group-hover/row:shadow-[0_4px_16px_hsl(var(--primary)/0.2)] group-hover/row:scale-105 transition-all duration-200"
             )}>
-              Order <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover/row:translate-x-0.5" />
+              Order Now <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover/row:translate-x-0.5" />
             </span>
           )}
         </div>
