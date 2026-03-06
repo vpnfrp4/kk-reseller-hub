@@ -1204,34 +1204,71 @@ export default function AdminProducts() {
                 </div>
 
                 {/* ── Image Upload ── */}
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <Label className="text-muted-foreground text-xs">Product Image</Label>
-                  {imagePreview ? (
-                    <div className="relative rounded-lg overflow-hidden border border-border bg-muted/30">
-                      <img src={imagePreview} alt="Preview" className="w-full aspect-[16/9] object-cover" />
-                      <button type="button" onClick={removeImage} className="absolute top-2 right-2 p-1.5 rounded-full bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-destructive border border-border/50 transition-colors">
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button type="button" onClick={() => fileInputRef.current?.click()} onDrop={handleDrop} onDragOver={handleDragOver} onDragLeave={handleDragLeave} disabled={uploading}
-                      className={`w-full flex flex-col items-center justify-center gap-2 py-4 rounded-lg border-2 border-dashed bg-muted/30 text-muted-foreground hover:text-foreground transition-all duration-200 ${isDragging ? "border-primary bg-primary/5 text-foreground" : "border-border hover:border-primary/50"}`}>
-                      {uploading ? (
-                        <div className="w-full px-6 space-y-2">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-foreground font-medium">{uploadStage === "compressing" ? "Compressing…" : "Uploading…"}</span>
-                            <span className="text-muted-foreground font-mono">{uploadProgress}%</span>
-                          </div>
-                          <Progress value={uploadProgress} className="h-1.5" />
+                  <div
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    className={`relative rounded-lg border-2 border-dashed transition-all duration-200 ${
+                      isDragging
+                        ? "border-primary bg-primary/5"
+                        : imagePreview
+                          ? "border-border bg-muted/20"
+                          : "border-border hover:border-primary/50 bg-muted/30"
+                    }`}
+                  >
+                    {imagePreview ? (
+                      <>
+                        <img src={imagePreview} alt="Preview" className="w-full aspect-[16/9] object-cover rounded-md" />
+                        {/* Overlay controls */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-card/90 via-transparent to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200 rounded-md flex items-end justify-between p-3">
+                          <Button type="button" size="sm" variant="secondary" className="h-7 gap-1.5 text-xs" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+                            <Upload className="w-3 h-3" />
+                            Replace
+                          </Button>
+                          <Button type="button" size="sm" variant="destructive" className="h-7 gap-1.5 text-xs" onClick={removeImage}>
+                            <X className="w-3 h-3" />
+                            Remove
+                          </Button>
                         </div>
-                      ) : <Upload className="w-5 h-5" />}
-                      {!uploading && <span className="text-xs">{isDragging ? "Drop image here" : "Click or drag image"}</span>}
-                    </button>
-                  )}
-                  <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                        {/* Drag overlay */}
+                        {isDragging && (
+                          <div className="absolute inset-0 bg-primary/10 backdrop-blur-sm rounded-md flex items-center justify-center">
+                            <span className="text-sm font-medium text-primary">Drop to replace</span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                        className="w-full flex flex-col items-center justify-center gap-2 py-6 text-muted-foreground hover:text-foreground transition-colors">
+                        {uploading ? (
+                          <div className="w-full px-6 space-y-2">
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-foreground font-medium">{uploadStage === "compressing" ? "Compressing…" : "Uploading…"}</span>
+                              <span className="text-muted-foreground font-mono">{uploadProgress}%</span>
+                            </div>
+                            <Progress value={uploadProgress} className="h-1.5" />
+                          </div>
+                        ) : (
+                          <>
+                            <div className="w-10 h-10 rounded-full bg-muted/50 flex items-center justify-center">
+                              <Upload className="w-5 h-5" />
+                            </div>
+                            <div className="text-center">
+                              <span className="text-xs font-medium block">{isDragging ? "Drop image here" : "Click or drag image"}</span>
+                              <span className="text-[10px] text-muted-foreground/60 mt-0.5 block">JPG, PNG, GIF, WebP · Max 5MB</span>
+                            </div>
+                          </>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" className="hidden" onChange={handleImageUpload} />
+
                   {/* ── Image URL (paste link) ── */}
-                  <div className="mt-2">
-                    <Label className="text-muted-foreground text-xs">Product Image URL</Label>
+                  <div>
+                    <Label className="text-muted-foreground text-xs">Or paste image URL</Label>
                     <div className="flex items-center gap-2 mt-1">
                       <Input
                         type="url"
@@ -1244,8 +1281,7 @@ export default function AdminProducts() {
                         }}
                         className="bg-muted/50 border-border text-xs flex-1"
                       />
-                      {/* Live preview box */}
-                      <div className="shrink-0 w-10 h-10 rounded-xl border border-white/10 bg-[#1A1F2E] flex items-center justify-center overflow-hidden">
+                      <div className="shrink-0 w-10 h-10 rounded-xl border border-white/10 bg-[hsl(var(--muted))] flex items-center justify-center overflow-hidden">
                         {form.image_url ? (
                           <img
                             src={form.image_url}
