@@ -850,33 +850,6 @@ html {
   .label-active { color: hsl(var(--primary)); background: hsl(var(--primary) / 0.1); }
   .label-instant { color: hsl(var(--success)); background: hsl(var(--success) / 0.1); }
   .label-manual { color: hsl(var(--warning)); background: hsl(var(--warning) / 0.1); }
-
-  /* ─── Floating Support ─── */
-  .floating-support {
-    position: fixed;
-    bottom: 80px;
-    @media (min-width: 1024px) {
-      bottom: 24px;
-    }
-    right: 24px;
-    z-index: 50;
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    background: hsl(var(--primary));
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 16px rgba(45, 149, 136, 0.25);
-    transition: all var(--transition-base);
-    cursor: pointer;
-  }
-
-  .floating-support:hover {
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 6px 24px rgba(45, 149, 136, 0.35);
-  }
 }
 
 @layer utilities {
