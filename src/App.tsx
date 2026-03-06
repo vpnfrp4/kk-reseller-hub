@@ -183,6 +183,7 @@ function AppRoutes() {
         <Route path="/admin/roles" element={<AdminRoute><AdminRoles /></AdminRoute>} />
         <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
         <Route path="/admin/popular-services" element={<AdminRoute><AdminPopularServices /></AdminRoute>} />
+        <Route path="/admin/categories" element={<AdminRoute><AdminCategories /></AdminRoute>} />
         <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
         <Route path="*" element={<NotFound />} />
     </Routes>

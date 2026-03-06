@@ -22,6 +22,7 @@ import {
   ClipboardList,
   Download,
   Star,
+  FolderOpen,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
