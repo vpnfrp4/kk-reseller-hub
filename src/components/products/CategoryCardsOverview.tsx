@@ -78,24 +78,29 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
             className={cn(
               "relative overflow-hidden rounded-card border border-border/40 bg-card",
               "p-4 sm:p-5 text-left transition-all duration-300 group",
-              "hover:border-primary/25 hover:shadow-elevated hover:-translate-y-1",
+              "hover:border-primary/30 hover:-translate-y-1",
+              "hover:shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.15),0_0_0_1px_hsl(var(--primary)/0.08)]",
               "active:scale-[0.97]",
               "opacity-0 animate-stagger-in",
               "min-h-[140px] sm:min-h-[160px] flex flex-col"
             )}
             style={{ animationDelay: `${i * 0.04}s` }}
           >
+            {/* Ambient glow orb — visible on hover */}
+            <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-primary/[0.06] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            <div className="absolute -bottom-10 -left-10 w-24 h-24 rounded-full bg-accent/[0.05] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+
             {/* Top gradient accent bar */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary/50 via-accent/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary/60 via-accent/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
             {/* Badge — top-right */}
-            <span className="absolute top-3 right-3 inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-primary/10 text-[11px] font-bold font-mono tabular-nums text-primary border border-primary/15">
+            <span className="absolute top-3 right-3 inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-primary/10 text-[11px] font-bold font-mono tabular-nums text-primary border border-primary/15 group-hover:bg-primary/15 group-hover:border-primary/25 transition-colors duration-300">
               {cat.count}
             </span>
 
             <div className={cn(
               "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3",
-              "transition-all duration-200 group-hover:scale-110",
+              "transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)]",
               iconColor
             )}>
               <IconComp className="w-5.5 h-5.5 sm:w-6 sm:h-6" strokeWidth={1.8} />
@@ -120,7 +125,7 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
             )}
 
             {/* Hover arrow */}
-            <div className="absolute bottom-3 right-3 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200">
+            <div className="absolute bottom-3 right-3 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:translate-x-0 -translate-x-1 transition-all duration-300">
               <ArrowRight className="w-3.5 h-3.5 text-primary" />
             </div>
           </button>
