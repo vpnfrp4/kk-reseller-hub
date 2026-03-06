@@ -1313,31 +1313,38 @@ export default function AdminProducts() {
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" className="hidden" onChange={handleImageUpload} />
 
-                  {/* ── Image URL (paste link) ── */}
-                  <div>
-                    <Label className="text-muted-foreground text-xs">Or paste image URL</Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Input
-                        type="url"
-                        placeholder="https://example.com/icon.png"
-                        value={form.image_url}
-                        onChange={(e) => {
-                          const url = e.target.value;
-                          setForm((prev) => ({ ...prev, image_url: url }));
-                          setImagePreview(url || null);
-                        }}
-                        className="bg-muted/50 border-border text-xs flex-1"
-                      />
-                      <div className="shrink-0 w-10 h-10 rounded-xl border border-white/10 bg-[hsl(var(--muted))] flex items-center justify-center overflow-hidden">
-                        {form.image_url ? (
-                          <img
-                            src={form.image_url}
-                            alt="Preview"
-                            className="w-10 h-10 object-contain p-1.5 rounded-lg"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                          />
-                        ) : (
-                          <span className="text-[9px] text-muted-foreground/40">Preview</span>
+                  {/* ── Image URL (paste link or pick icon) ── */}
+                   <div>
+                     <Label className="text-muted-foreground text-xs">Or paste image URL</Label>
+                     <div className="flex items-center gap-2 mt-1">
+                       <Input
+                         type="url"
+                         placeholder="https://example.com/icon.png"
+                         value={form.image_url}
+                         onChange={(e) => {
+                           const url = e.target.value;
+                           setForm((prev) => ({ ...prev, image_url: url }));
+                           setImagePreview(url || null);
+                         }}
+                         className="bg-muted/50 border-border text-xs flex-1"
+                       />
+                       <IconPicker
+                         value={form.image_url}
+                         onChange={(url) => {
+                           setForm((prev) => ({ ...prev, image_url: url }));
+                           setImagePreview(url || null);
+                         }}
+                       />
+                       <div className="shrink-0 w-10 h-10 rounded-xl border border-white/10 bg-[hsl(var(--muted))] flex items-center justify-center overflow-hidden">
+                         {form.image_url ? (
+                           <img
+                             src={form.image_url}
+                             alt="Preview"
+                             className="w-10 h-10 object-contain p-1.5 rounded-lg"
+                             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                           />
+                         ) : (
+                           <span className="text-[9px] text-muted-foreground/40">Preview</span>
                   )}
                 </div>
 
