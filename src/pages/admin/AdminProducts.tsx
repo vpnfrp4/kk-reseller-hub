@@ -2200,9 +2200,9 @@ export default function AdminProducts() {
                               </td>
                               <td className="px-4 py-3.5">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-lg border border-border/40 bg-muted/30 flex items-center justify-center overflow-hidden shrink-0">
+                                  <div className="shrink-0 w-9 h-9 rounded-xl border border-white/10 bg-[#1A1F2E] flex items-center justify-center overflow-hidden">
                                     {p.image_url ? (
-                                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                                      <img src={p.image_url} alt={p.name} className="w-9 h-9 object-contain p-1 rounded-lg" onError={(e) => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('span'), { className: 'text-xs font-bold uppercase text-primary/60', textContent: (p.name || '?')[0] })); }} />
                                     ) : (
                                       <span className="text-lg">{p.icon}</span>
                                     )}
