@@ -146,6 +146,7 @@ function AppRoutes() {
       <Route path="/notifications" element={<Navigate to="/dashboard" replace />} />
       <Route path="/dashboard" element={<ProtectedRoute skeleton={<HomeSkeleton />}><DashboardHome /></ProtectedRoute>} />
       <Route path="/dashboard/place-order" element={<ProtectedRoute skeleton={<PlaceOrderSkeleton />}><PlaceOrderPage /></ProtectedRoute>} />
+      <Route path="/dashboard/place-order/:category" element={<ProtectedRoute skeleton={<PlaceOrderSkeleton />}><CategoryDetailPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet" element={<ProtectedRoute skeleton={<WalletSkeleton />}><WalletPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet/topup-status" element={<WalletTopupRedirect />} />
       <Route path="/dashboard/topup-status/:id" element={<ProtectedRoute><TopUpStatusPage /></ProtectedRoute>} />
