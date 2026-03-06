@@ -307,9 +307,9 @@ export default function CategoryDetailPage() {
           <p className="text-xs mt-1">{searchQuery ? "Try adjusting your search" : "This category is empty"}</p>
         </div>
       ) : (
-        <div className="rounded-card border border-border/40 bg-card overflow-hidden divide-y divide-border/20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {filteredProducts.map((p: any, i: number) => (
-            <ServiceRow
+            <ServiceCard
               key={p.id}
               product={p}
               index={i}
