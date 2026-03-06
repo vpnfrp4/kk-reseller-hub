@@ -225,8 +225,8 @@ export default function AdminMonitoring() {
         <Card>
           <CardContent className="pt-4 pb-3 px-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <AlertTriangle className="w-4 h-4 text-orange-500" />
+              <div className="w-9 h-9 rounded-lg bg-warning/10 flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4 text-warning" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{apiErrors.length}</p>
