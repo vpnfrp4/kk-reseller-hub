@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useT, t } from "@/lib/i18n";
 import { Clock, Zap, ShieldCheck } from "lucide-react";
-import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
+import ProductIcon from "@/components/products/ProductIcon";
 
 interface PricingTier {
   min_qty: number;
