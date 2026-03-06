@@ -1193,18 +1193,33 @@ export default function AdminProducts() {
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                   {/* ── Image URL (paste link) ── */}
                   <div className="mt-2">
-                    <Label className="text-muted-foreground text-xs">Or paste Image URL</Label>
-                    <Input
-                      type="url"
-                      placeholder="https://example.com/icon.png"
-                      value={form.image_url}
-                      onChange={(e) => {
-                        const url = e.target.value;
-                        setForm((prev) => ({ ...prev, image_url: url }));
-                        setImagePreview(url || null);
-                      }}
-                      className="bg-muted/50 border-border mt-1 text-xs"
-                    />
+                    <Label className="text-muted-foreground text-xs">Product Image URL</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Input
+                        type="url"
+                        placeholder="https://example.com/icon.png"
+                        value={form.image_url}
+                        onChange={(e) => {
+                          const url = e.target.value;
+                          setForm((prev) => ({ ...prev, image_url: url }));
+                          setImagePreview(url || null);
+                        }}
+                        className="bg-muted/50 border-border text-xs flex-1"
+                      />
+                      {/* Live preview box */}
+                      <div className="shrink-0 w-10 h-10 rounded-xl border border-white/10 bg-[#1A1F2E] flex items-center justify-center overflow-hidden">
+                        {form.image_url ? (
+                          <img
+                            src={form.image_url}
+                            alt="Preview"
+                            className="w-10 h-10 object-contain p-1.5 rounded-lg"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <span className="text-[9px] text-muted-foreground/40">Preview</span>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
@@ -2185,9 +2200,9 @@ export default function AdminProducts() {
                               </td>
                               <td className="px-4 py-3.5">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-9 h-9 rounded-lg border border-border/40 bg-muted/30 flex items-center justify-center overflow-hidden shrink-0">
+                                  <div className="shrink-0 w-9 h-9 rounded-xl border border-white/10 bg-[#1A1F2E] flex items-center justify-center overflow-hidden">
                                     {p.image_url ? (
-                                      <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                                      <img src={p.image_url} alt={p.name} className="w-9 h-9 object-contain p-1 rounded-lg" onError={(e) => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('span'), { className: 'text-xs font-bold uppercase text-primary/60', textContent: (p.name || '?')[0] })); }} />
                                     ) : (
                                       <span className="text-lg">{p.icon}</span>
                                     )}
