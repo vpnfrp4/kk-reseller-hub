@@ -374,7 +374,7 @@ export default function AdminOverview() {
           </div>
           <div className="flex items-center gap-tight">
             <Link to="/admin/credentials">
-              <Button size="sm" className="btn-glow gap-1.5 h-8 text-xs">
+              <Button size="sm" className="gap-1.5 h-8 text-xs">
                 <Plus className="w-3.5 h-3.5" />Credentials
               </Button>
             </Link>
