@@ -137,6 +137,8 @@ export default function AdminProducts() {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const bulkImageInputRef = useRef<HTMLInputElement>(null);
+  const [cropDialogOpen, setCropDialogOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string>("");
   const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
   const [bulkImageUploading, setBulkImageUploading] = useState(false);
   const descManuallyEdited = useRef(false);
