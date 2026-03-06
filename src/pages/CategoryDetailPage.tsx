@@ -17,6 +17,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Money, PageContainer } from "@/components/shared";
 import Confetti from "@/components/Confetti";
+import OrderSuccessCard from "@/components/products/OrderSuccessCard";
 import { motion } from "framer-motion";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
@@ -423,7 +424,7 @@ export default function CategoryDetailPage() {
       </Dialog>
 
       {/* ═══ SUCCESS MODAL ═══ */}
-      {result && <SuccessModal result={result} credentialsList={credentialsList} onCopy={copyCredentials} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
+      {result && <SuccessModal result={result} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
     </PageContainer>
   );
 }
@@ -556,53 +557,21 @@ function ServiceDescription({ product }: { product: any }) {
 }
 
 /* ═══ SUCCESS MODAL ═══ */
-function SuccessModal({ result, credentialsList, onCopy, onClose, onNewOrder, navigate }: {
-  result: PurchaseResult; credentialsList: string[];
-  onCopy: (s: string) => void; onClose: () => void; onNewOrder: () => void; navigate: (path: string) => void;
+function SuccessModal({ result, onClose, onNewOrder, navigate }: {
+  result: PurchaseResult;
+  onClose: () => void; onNewOrder: () => void; navigate: (path: string) => void;
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-fade-in">
-      <div className="rounded-modal border border-border bg-card max-w-md w-full mx-4 p-8 space-y-6 relative shadow-elevated">
-        <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors"><X className="w-5 h-5" /></button>
-        <Confetti />
-        <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto shadow-[0_0_30px_hsl(var(--success)/0.15)]">
-            <CheckCircle2 className="w-8 h-8 text-success" />
-          </div>
-          <h2 className="text-lg font-bold text-foreground">Order Successful!</h2>
-          <p className="text-sm text-muted-foreground">Your order has been placed successfully</p>
-        </div>
-        <div className="space-y-2 bg-secondary/30 rounded-card p-4">
-          <DetailRow label="Product" value={sanitizeName(result.product_name)} />
-          <DetailRow label="Amount" value={<Money amount={result.price} />} />
-          <DetailRow label="Order ID" value={result.order_id.slice(0, 8).toUpperCase()} mono />
-          <DetailRow label="Status" value={<span className="bg-success/15 text-success px-2 py-0.5 rounded-full text-xs font-semibold">Processing</span>} />
-        </div>
-        {credentialsList.length > 0 && (
-          <div className="space-y-2">
-            <p className="text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">Credentials</p>
-            {credentialsList.map((cred, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <code className="flex-1 text-xs font-mono text-primary bg-primary/5 border border-primary/10 px-3 py-2 rounded-lg break-all">{cred}</code>
-                <button onClick={() => onCopy(cred)} className="p-1.5 rounded-lg hover:bg-muted transition-colors"><Copy className="w-3.5 h-3.5 text-muted-foreground" /></button>
-              </div>
-            ))}
-          </div>
-        )}
-        <div className="flex gap-3">
-          <Button className="flex-1 h-10 gap-2" onClick={() => navigate("/dashboard/orders")}><Eye className="w-4 h-4" /> View Orders</Button>
-          <Button variant="outline" className="flex-1 h-10" onClick={onNewOrder}>New Order</Button>
-        </div>
+      <div className="rounded-modal border border-border bg-card max-w-md w-full mx-4 p-6 relative shadow-elevated max-h-[90vh] overflow-y-auto">
+        <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors z-10"><X className="w-5 h-5" /></button>
+        <OrderSuccessCard
+          result={result}
+          showConfetti
+          onViewOrders={() => navigate("/dashboard/orders")}
+          onNewOrder={onNewOrder}
+        />
       </div>
-    </div>
-  );
-}
-
-function DetailRow({ label, value, mono }: { label: string; value: React.ReactNode; mono?: boolean }) {
-  return (
-    <div className="flex items-center justify-between text-sm">
-      <span className="text-muted-foreground">{label}</span>
-      <span className={cn("text-foreground font-medium", mono && "font-mono text-xs")}>{value}</span>
     </div>
   );
 }

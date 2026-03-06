@@ -37,6 +37,7 @@ import { Money, QuantitySelector } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
 import Confetti from "@/components/Confetti";
 import { useCountUp } from "@/hooks/use-count-up";
+import OrderSuccessCard from "@/components/products/OrderSuccessCard";
 
 const MODE_ICONS: Record<string, any> = {
   instant: Zap,
@@ -1032,125 +1033,18 @@ export default function OrderFlowPage() {
            STEP: CONFIRMATION
          ════════════════════════════════════════ */}
       {currentStepKey === "confirm" && result && (
-        <div className="space-y-6 animate-fade-in">
-          {showConfetti && <Confetti />}
-
-          {/* Success icon */}
-          <div className="text-center space-y-3">
-            <div
-              className="w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mx-auto"
-              style={{ boxShadow: "0 0 30px hsl(var(--success) / 0.15)" }}
-            >
-              <CheckCircle2 className="w-8 h-8 text-success" />
-            </div>
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Order Submitted</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                {deliveryTimeConfig[effectiveMode] || "Delivered instantly"}
-              </p>
-            </div>
-          </div>
-
-          {/* Order info */}
-          <div
-            className="rounded-[var(--radius-card)] border border-border/40 p-5 space-y-3"
-            style={{ background: "linear-gradient(145deg, #15151C 0%, #111116 100%)" }}
-          >
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Order ID</span>
-              <span className="font-mono text-xs text-foreground">{result.order_id.slice(0, 8).toUpperCase()}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Product</span>
-              <span className="text-foreground text-right max-w-[60%] truncate">{sanitizeName(result.product_name)}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Amount</span>
-              <Money amount={result.price} className="text-foreground font-semibold" />
-            </div>
-          </div>
-
-          {/* Credentials */}
-          {credentialsList.length > 0 && (
-            <div
-              className="rounded-[var(--radius-card)] border border-border/40 p-5 space-y-2"
-              style={{ background: "linear-gradient(145deg, #15151C 0%, #111116 100%)" }}
-            >
-              <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">
-                Credentials {credentialsList.length > 1 ? `(${credentialsList.length})` : ""}
-              </p>
-              <div className="space-y-1.5 max-h-36 overflow-y-auto">
-                {credentialsList.map((cred, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <code className="flex-1 text-xs font-mono text-primary bg-primary/5 border border-primary/10 px-3 py-2 rounded-lg break-all">
-                      {cred}
-                    </code>
-                    <button
-                      onClick={() => copyCredentials(cred)}
-                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              {credentialsList.length > 1 && (
-                <button
-                  onClick={() => copyCredentials(result.credentials)}
-                  className="text-xs text-primary hover:text-primary/80 font-medium"
-                >
-                  {copied ? "Copied all!" : "Copy all"}
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Balance update */}
-          <div
-            className="rounded-[var(--radius-card)] border border-border/40 p-5"
-            style={{ background: "linear-gradient(145deg, #15151C 0%, #111116 100%)" }}
-          >
-            <div className="flex items-center gap-1.5 mb-3">
-              <Wallet className="w-3.5 h-3.5 text-muted-foreground" />
-              <p className="text-[9px] uppercase tracking-[0.1em] text-muted-foreground font-medium">Balance</p>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="text-center flex-1">
-                <p className="text-[10px] text-muted-foreground mb-0.5">Previous</p>
-                <p className="font-mono text-sm text-muted-foreground tabular-nums line-through decoration-muted-foreground/30">
-                  {previousBalance.toLocaleString()}
-                </p>
-              </div>
-              <div className="text-muted-foreground/30 text-lg px-2">→</div>
-              <div className="text-center flex-1">
-                <p className="text-[10px] text-muted-foreground mb-0.5">Current</p>
-                <p className="font-mono text-lg font-bold text-foreground tabular-nums">
-                  {animatedBalance.toLocaleString()}
-                  <span className="text-xs text-muted-foreground ml-1">MMK</span>
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row gap-2.5">
-            <Button
-              className="flex-1 h-11 gap-2 font-medium"
-              onClick={() => navigate("/dashboard/orders")}
-            >
-              <Eye className="w-4 h-4" />
-              View Orders
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 h-11 gap-2 font-medium border-border/40"
-              onClick={() => navigate("/dashboard/products")}
-            >
-              <ShoppingCart className="w-4 h-4" />
-              Continue Shopping
-            </Button>
-          </div>
-        </div>
+        <OrderSuccessCard
+          result={{
+            ...result,
+            fulfillment_mode: effectiveMode,
+            delivery_time: deliveryTimeConfig[effectiveMode] || undefined,
+          }}
+          showConfetti={showConfetti}
+          previousBalance={previousBalance}
+          currentBalance={balance}
+          onViewOrders={() => navigate("/dashboard/orders")}
+          onNewOrder={() => navigate("/dashboard/place-order")}
+        />
       )}
 
     </div>
