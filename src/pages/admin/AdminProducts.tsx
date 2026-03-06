@@ -1017,8 +1017,8 @@ export default function AdminProducts() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in">
         <div>
-          <h1 className="text-h1 gradient-text flex items-center gap-2.5">
-            <Package className="w-6 h-6 text-primary" />
+          <h1 className="text-xl font-bold text-foreground flex items-center gap-2.5">
+            <Package className="w-5 h-5 text-primary" />
             Products
           </h1>
           <p className="text-caption text-muted-foreground mt-1">
@@ -1069,7 +1069,7 @@ export default function AdminProducts() {
           <BulkImageUpload products={(products || []).map((p: any) => ({ id: p.id, name: p.name, icon: p.icon, image_url: p.image_url }))} />
           <Dialog open={dialogOpen} onOpenChange={(v) => { if (!v) { handleDialogClose(); return; } setDialogOpen(v); initialFormRef.current = JSON.stringify(form); }}>
             <DialogTrigger asChild>
-              <Button size="default" className="btn-glow gap-2 h-10 px-5 text-sm font-semibold shadow-md" onClick={() => { resetForm(); initialFormRef.current = JSON.stringify(defaultForm); }}>
+              <Button size="default" className="gap-2 h-10 px-5 text-sm font-semibold" onClick={() => { resetForm(); initialFormRef.current = JSON.stringify(defaultForm); }}>
                 <Plus className="w-4 h-4" />Add Product
               </Button>
             </DialogTrigger>
@@ -1239,7 +1239,7 @@ export default function AdminProducts() {
                     <Input value={form.name} onChange={(e) => { setForm({ ...form, name: e.target.value }); titleManuallyEdited.current = true; setOptimizedMeta(null); manualOverrides.current.add("name"); }} required
                       placeholder="e.g. YouTube Premium 1 Month"
                       className={`flex-1 bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("name") ? "ring-1 ring-primary/40" : ""}`} />
-                    <Button type="button" onClick={handleAutoBuild} disabled={aiGenerating || !form.name.trim()} className="h-9 gap-1.5 px-3 text-sm font-semibold shrink-0 btn-glow">
+                    <Button type="button" onClick={handleAutoBuild} disabled={aiGenerating || !form.name.trim()} className="h-9 gap-1.5 px-3 text-sm font-semibold shrink-0">
                       {aiGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                       {aiGenerating ? "AI Thinking…" : "AI Magic"}
                     </Button>
@@ -1930,7 +1930,7 @@ export default function AdminProducts() {
 
                 </div>
                 <div className="shrink-0 px-6 py-4 border-t border-border bg-card">
-                  <Button type="submit" className="w-full btn-glow">{editing ? "Update" : "Create"} Product</Button>
+                  <Button type="submit" className="w-full">{editing ? "Update" : "Create"} Product</Button>
                 </div>
               </form>
             </DialogContent>
@@ -2056,7 +2056,7 @@ export default function AdminProducts() {
             })()}
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => setBulkPriceOpen(false)}>Cancel</Button>
-              <Button className="flex-1 btn-glow" onClick={async () => {
+              <Button className="flex-1" onClick={async () => {
                 const pct = parseFloat(bulkPricePercent);
                 if (isNaN(pct) || pct <= 0 || pct > 100) { toast.error("Enter a valid percentage (1-100)"); return; }
                 const targetProducts = (products || []).filter((p: any) =>
@@ -2325,7 +2325,7 @@ export default function AdminProducts() {
                 else { page = currentPage - 2 + i; }
                 return (
                   <Button key={page} variant={currentPage === page ? "default" : "outline"} size="sm"
-                    className={`h-7 w-7 text-xs p-0 ${currentPage === page ? "btn-glow" : ""}`}
+                    className="h-7 w-7 text-xs p-0"
                     onClick={() => setCurrentPage(page)}>{page}</Button>
                 );
               })}

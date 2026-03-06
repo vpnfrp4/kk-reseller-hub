@@ -452,14 +452,14 @@ export default function AdminCredentials() {
       {/* Header */}
       <div className="flex items-center justify-between animate-fade-in">
         <div>
-          <h1 className="text-h1 gradient-text">Credentials</h1>
+          <h1 className="text-xl font-bold text-foreground">Credentials</h1>
           <p className="text-caption text-muted-foreground">
             {(credentials || []).length} total · {soldCount} sold · {expiringCount} expiring
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="btn-glow gap-2 shadow-[0_0_20px_-4px_hsl(var(--primary)/0.3)]"><Plus className="w-4 h-4" />Add Credentials</Button>
+            <Button className="gap-2"><Plus className="w-4 h-4" />Add Credentials</Button>
           </DialogTrigger>
           <DialogContent className="bg-card border-border max-w-lg max-h-[90vh] flex flex-col p-0" onInteractOutside={(e) => e.preventDefault()}>
             <DialogHeader className="px-6 pt-6 pb-2 shrink-0">
@@ -510,7 +510,7 @@ export default function AdminCredentials() {
                 </div>
               </div>
               <div className="shrink-0 px-6 py-4 border-t border-border/30 bg-card">
-                <Button type="submit" className="w-full btn-glow shadow-[0_0_20px_-4px_hsl(var(--primary)/0.3)]" disabled={!selectedProduct || !bulkCredentials.trim()}>
+                <Button type="submit" className="w-full" disabled={!selectedProduct || !bulkCredentials.trim()}>
                   Add {bulkCredentials.trim() ? bulkCredentials.trim().split("\n").filter(Boolean).length : 0} Credential(s)
                 </Button>
               </div>
@@ -822,7 +822,7 @@ export default function AdminCredentials() {
           <Input type="date" value={bulkExpiryDate} onChange={(e) => setBulkExpiryDate(e.target.value)} className="bg-muted/50 border-border text-sm" min={new Date().toISOString().slice(0, 10)} />
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setBulkExpiryOpen(false)}>Cancel</Button>
-            <Button onClick={handleBulkExpiryUpdate} disabled={bulkExpiryUpdating} className="btn-glow">
+            <Button onClick={handleBulkExpiryUpdate} disabled={bulkExpiryUpdating}>
               {bulkExpiryUpdating ? "Updating..." : `Update ${selectedIds.size} Credentials`}
             </Button>
           </DialogFooter>
@@ -877,7 +877,7 @@ export default function AdminCredentials() {
           </div>
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setBulkReassignOpen(false)}>Cancel</Button>
-            <Button onClick={handleBulkReassign} disabled={bulkReassigning || !bulkReassignProduct} className="btn-glow">
+            <Button onClick={handleBulkReassign} disabled={bulkReassigning || !bulkReassignProduct}>
               {bulkReassigning ? "Reassigning..." : `Reassign ${selectedIds.size} Credentials`}
             </Button>
           </DialogFooter>
@@ -886,10 +886,10 @@ export default function AdminCredentials() {
 
       {/* Floating selection bar */}
       {selectedIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 glass-card border-primary/20 px-5 py-3 flex items-center gap-3 animate-fade-in" style={{ boxShadow: '0 0 30px hsl(43 76% 47% / 0.15), 0 20px 40px -10px hsl(0 0% 0% / 0.4)' }}>
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-card border border-border rounded-xl shadow-lg px-5 py-3 flex items-center gap-3 animate-fade-in">
           <span className="text-sm font-medium text-foreground">{selectedIds.size} selected</span>
           <div className="w-px h-5 bg-border" />
-          <Button size="sm" className="gap-1.5 btn-glow h-8" onClick={() => setBulkExpiryOpen(true)}>
+          <Button size="sm" className="gap-1.5 h-8" onClick={() => setBulkExpiryOpen(true)}>
             <Pencil className="w-3.5 h-3.5" />Set Expiry
           </Button>
           <Button size="sm" variant="outline" className="gap-1.5 h-8" onClick={() => setBulkReassignOpen(true)}>

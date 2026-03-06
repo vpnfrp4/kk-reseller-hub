@@ -133,7 +133,7 @@ export default function AdminProfitDashboard() {
       <div className="space-y-8">
         {/* Header */}
         <div className="animate-fade-in">
-          <h1 className="text-h1 gradient-text tracking-tight">Profit Analytics</h1>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">Profit Analytics</h1>
           <p className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] mt-1">
             Revenue, Cost & Margin Tracking
           </p>
@@ -147,7 +147,7 @@ export default function AdminProfitDashboard() {
             { label: "Net Profit", value: stats.totalProfit, icon: TrendingUp, color: "text-chart-2" },
             { label: "Profit Margin", value: Math.round(stats.profitPercent), icon: Percent, color: "text-chart-3", isSuffix: true },
           ].map((kpi) => (
-            <div key={kpi.label} className="stat-card">
+            <div key={kpi.label} className="bg-card border border-border rounded-[var(--radius-card)] p-4">
               <div className="flex items-center gap-2 mb-2">
                 <div
                   className="w-8 h-8 rounded-[var(--radius-btn)] flex items-center justify-center"
@@ -173,7 +173,7 @@ export default function AdminProfitDashboard() {
         </div>
 
         {/* 30-Day Profit Chart */}
-        <div className="glass-card p-6 space-y-4 animate-fade-in [animation-delay:0.15s]">
+        <div className="bg-card border border-border rounded-[var(--radius-card)] p-6 space-y-4 animate-fade-in [animation-delay:0.15s]">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-foreground">30-Day Profit Trend</h2>
@@ -216,8 +216,8 @@ export default function AdminProfitDashboard() {
         </div>
 
         {/* Service-Level Profit Table */}
-        <div className="glass-card overflow-hidden animate-fade-in [animation-delay:0.22s]">
-          <div className="p-5 border-b border-border/30">
+        <div className="bg-card border border-border rounded-[var(--radius-card)] overflow-hidden animate-fade-in [animation-delay:0.22s]">
+          <div className="p-5 border-b border-border">
             <h2 className="text-sm font-semibold text-foreground">Service Profit Breakdown</h2>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
               Per-1000 pricing analysis {exchangeRate ? `(Rate: ${exchangeRate.toLocaleString()} MMK/USD)` : ""}
@@ -283,7 +283,7 @@ export default function AdminProfitDashboard() {
 
         {/* Margin Config Display */}
         {marginConfig && (
-          <div className="glass-card p-5 space-y-3">
+          <div className="bg-card border border-border rounded-[var(--radius-card)] p-5 space-y-3">
             <h2 className="text-sm font-semibold text-foreground">Margin Configuration</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="rounded-[var(--radius-card)] bg-muted/10 border border-border/20 p-4">
