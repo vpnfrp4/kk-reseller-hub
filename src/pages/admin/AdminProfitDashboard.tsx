@@ -216,8 +216,8 @@ export default function AdminProfitDashboard() {
         </div>
 
         {/* Service-Level Profit Table */}
-        <div className="glass-card overflow-hidden animate-fade-in [animation-delay:0.22s]">
-          <div className="p-5 border-b border-border/30">
+        <div className="bg-card border border-border rounded-[var(--radius-card)] overflow-hidden animate-fade-in [animation-delay:0.22s]">
+          <div className="p-5 border-b border-border">
             <h2 className="text-sm font-semibold text-foreground">Service Profit Breakdown</h2>
             <p className="text-[10px] text-muted-foreground uppercase tracking-wider mt-0.5">
               Per-1000 pricing analysis {exchangeRate ? `(Rate: ${exchangeRate.toLocaleString()} MMK/USD)` : ""}
