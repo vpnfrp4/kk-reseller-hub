@@ -2469,6 +2469,24 @@ export default function AdminProducts() {
           </div>
         )}
       </DataCard>
+
+      {/* ── Image Preview Modal ── */}
+      {previewImage && (
+        <Dialog open={!!previewImage} onOpenChange={() => setPreviewImage(null)}>
+          <DialogContent className="bg-card border-border max-w-md p-0 overflow-hidden">
+            <DialogHeader className="px-4 pt-4 pb-2">
+              <DialogTitle className="text-foreground text-sm truncate">{previewImage.name}</DialogTitle>
+            </DialogHeader>
+            <div className="px-4 pb-4">
+              <img
+                src={previewImage.url}
+                alt={previewImage.name}
+                className="w-full rounded-lg border border-border object-contain max-h-[60vh] bg-muted/20"
+              />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
