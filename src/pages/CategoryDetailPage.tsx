@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { sanitizeName } from "@/lib/sanitize-name";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,7 +22,7 @@ import { motion } from "framer-motion";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
-import IFreeImeiCheck from "@/components/imei/IFreeImeiCheck";
+import IFreeImeiCheck, { type IFreeImeiCheckHandle } from "@/components/imei/IFreeImeiCheck";
 import IFreeCheckHistory from "@/components/imei/IFreeCheckHistory";
 
 interface PurchaseResult {
@@ -56,6 +56,7 @@ export default function CategoryDetailPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavoritesState] = useState<string[]>(getFavorites);
   const [quickOrderOpen, setQuickOrderOpen] = useState(false);
+  const imeiCheckRef = useRef<IFreeImeiCheckHandle>(null);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["category-products", decodedCategory],
@@ -251,8 +252,8 @@ export default function CategoryDetailPage() {
       {/* ═══ IMEI CHECK SPECIAL: iFree Interface ═══ */}
       {isImeiCheckCategory && (
         <div className="space-y-6 mb-6">
-          <IFreeImeiCheck />
-          <IFreeCheckHistory />
+          <IFreeImeiCheck ref={imeiCheckRef} />
+          <IFreeCheckHistory onCheckAgain={(imei, serviceId) => imeiCheckRef.current?.prefill(imei, serviceId)} />
         </div>
       )}
 

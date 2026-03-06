@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, forwardRef, useImperativeHandle } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -71,7 +71,11 @@ function formatTimeAgo(date: Date): string {
   return `${hrs}h ago`;
 }
 
-export default function IFreeImeiCheck() {
+export interface IFreeImeiCheckHandle {
+  prefill: (imei: string, serviceId?: string) => void;
+}
+
+const IFreeImeiCheck = forwardRef<IFreeImeiCheckHandle>(function IFreeImeiCheck(_props, ref) {
   const queryClient = useQueryClient();
   const [imei, setImei] = useState("");
   const [serviceId, setServiceId] = useState("");
@@ -82,6 +86,16 @@ export default function IFreeImeiCheck() {
   const [servicesSource, setServicesSource] = useState<string>("");
   const [serviceOpen, setServiceOpen] = useState(false);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
+
+  useImperativeHandle(ref, () => ({
+    prefill: (newImei: string, newServiceId?: string) => {
+      setImei(newImei);
+      if (newServiceId) setServiceId(newServiceId);
+      setResult(null);
+      // Scroll to top of form
+      document.getElementById("imei-check-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    },
+  }));
 
   const selectedService = useMemo(
     () => services.find((s) => s.id === serviceId),
@@ -250,6 +264,7 @@ export default function IFreeImeiCheck() {
 
       {/* ═══ MAIN FORM CARD ═══ */}
       <motion.div
+        id="imei-check-form"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, delay: 0.1 }}
@@ -553,4 +568,6 @@ export default function IFreeImeiCheck() {
       </motion.div>
     </div>
   );
-}
+});
+
+export default IFreeImeiCheck;
