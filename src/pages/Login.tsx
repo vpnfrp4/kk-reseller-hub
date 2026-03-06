@@ -184,8 +184,7 @@ export default function Login() {
             transition={{ duration: 0.5, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="relative">
-              <div className="absolute inset-0 rounded-2xl bg-primary/20 blur-xl scale-150" />
-              <img src={kkLogo} alt="KKTech" className="relative w-14 h-14 rounded-2xl" />
+              <img src={kkLogo} alt="KKTech" className="relative w-12 h-12 rounded-xl" />
             </div>
           </motion.div>
 
