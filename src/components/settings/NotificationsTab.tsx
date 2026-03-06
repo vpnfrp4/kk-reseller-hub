@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import {
   Bell, Volume2, Globe, Wallet, ShoppingBag,
   AlertTriangle, ClipboardList, Smartphone, Loader2,
+  Send, CheckCircle2, ShoppingCart, CreditCard, Megaphone, ExternalLink,
 } from "lucide-react";
 import {
   getNotificationPrefs,
@@ -16,11 +17,15 @@ import {
   type NotificationPrefs,
 } from "@/lib/notifications";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { t, useT } from "@/lib/i18n";
 
 export default function NotificationsTab() {
   const [notifPrefs, setNotifPrefsState] = useState<NotificationPrefs>(getNotificationPrefs);
   const l = useT();
+  const { user } = useAuth();
   const {
     isSubscribed,
     isSupported,
@@ -105,8 +110,86 @@ export default function NotificationsTab() {
     </div>
   );
 
+  const { data: telegramConnection } = useQuery({
+    queryKey: ["telegram-connection", user?.id],
+    queryFn: async () => {
+      if (!user) return null;
+      const { data } = await supabase.from("telegram_connections").select("*").eq("user_id", user.id).limit(1);
+      return data?.[0] || null;
+    },
+    enabled: !!user,
+  });
+
+  const TELEGRAM_ALERTS = [
+    { icon: ShoppingCart, label: "Order Placed", desc: "When you place a new order" },
+    { icon: CheckCircle2, label: "Order Completed", desc: "When your order is fulfilled" },
+    { icon: AlertTriangle, label: "Order Rejected", desc: "If an order is rejected or cancelled" },
+    { icon: CreditCard, label: "Top-up Approved", desc: "When wallet top-up is approved" },
+    { icon: Megaphone, label: "System Announcements", desc: "Important platform updates" },
+  ];
+
   return (
     <div className="space-y-default">
+      {/* ═══ TELEGRAM BOT NOTIFICATIONS ═══ */}
+      <div className="relative overflow-hidden rounded-card border-2 border-[hsl(200_80%_55%/0.3)] bg-gradient-to-br from-[hsl(200_80%_55%/0.05)] to-[hsl(200_80%_55%/0.02)]" style={{ boxShadow: "0 0 30px -10px hsl(200 80% 55% / 0.15)" }}>
+        {/* Decorative gradient */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-[hsl(200_80%_55%/0.08)] rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+        <div className="relative p-5 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-[hsl(200_80%_55%/0.15)] flex items-center justify-center">
+                <Send className="w-5 h-5 text-[hsl(200_80%_55%)]" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-foreground">Telegram Bot Notifications</h3>
+                <p className="text-xs text-muted-foreground">
+                  {telegramConnection ? "Connected — receiving alerts via Telegram" : "Connect to receive real-time alerts"}
+                </p>
+              </div>
+            </div>
+            {telegramConnection ? (
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-success bg-success/10 border border-success/20 px-3 py-1.5 rounded-full">
+                <span className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                Connected
+              </span>
+            ) : (
+              <a
+                href={`https://t.me/karkar4store_bot?start=${user?.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs font-semibold text-[hsl(200_80%_55%)] bg-[hsl(200_80%_55%/0.1)] border border-[hsl(200_80%_55%/0.2)] px-3 py-1.5 rounded-full hover:bg-[hsl(200_80%_55%/0.15)] transition-colors"
+              >
+                Connect Bot
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+          </div>
+
+          {/* Alert types grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {TELEGRAM_ALERTS.map((alert) => (
+              <div key={alert.label} className="flex items-center gap-3 p-3 rounded-xl bg-card/50 border border-border/30">
+                <alert.icon className="w-4 h-4 text-[hsl(200_80%_55%)] shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-foreground">{alert.label}</p>
+                  <p className="text-[10px] text-muted-foreground">{alert.desc}</p>
+                </div>
+                <div className="ml-auto shrink-0">
+                  <span className={`w-2 h-2 rounded-full block ${telegramConnection ? "bg-success" : "bg-muted-foreground/30"}`} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {telegramConnection?.telegram_username && (
+            <p className="text-[11px] text-muted-foreground">
+              Linked to <span className="font-semibold text-foreground">@{telegramConnection.telegram_username}</span>
+            </p>
+          )}
+        </div>
+      </div>
+
       {/* Push Notifications */}
       {isSupported && (
         <div className="glass-card p-card space-y-default">

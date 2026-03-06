@@ -538,10 +538,10 @@ export default function OrdersPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border/20">
-                  {["Order ID", "Service", "Type", "Credentials", "Price", "Date", "Status", "Action"].map((h) => (
+                  {["Order ID", "Service", "Date", "Amount", "Status"].map((h) => (
                     <th key={h} className={cn(
                       "text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3.5 text-left",
-                      (h === "Price" || h === "Action") && "text-right",
+                      h === "Amount" && "text-right",
                       h === "Status" && "text-center",
                     )}>
                       {h}
@@ -577,40 +577,26 @@ export default function OrdersPage() {
                             category={row.products?.category || row.product_type || "General"}
                             size="sm"
                           />
-                          <span className="text-sm font-medium text-foreground">{sanitizeName(row.product_name)}</span>
+                          <div className="min-w-0">
+                            <span className="text-sm font-medium text-foreground block truncate max-w-[280px]">{sanitizeName(row.product_name)}</span>
+                            <span className="text-[10px] text-muted-foreground">{row.product_type === "imei" ? "IMEI" : row.product_type === "api" ? "API" : row.product_type === "manual" ? "Manual" : "Instant"}</span>
+                          </div>
                         </div>
-                      </td>
-                      <td className="px-5 py-3.5">
-                        <ProductTypeBadge type={row.product_type} />
-                      </td>
-                      <td className="px-5 py-3.5">
-                        {renderCredentials(row)}
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <Money amount={row.price} className="text-sm font-semibold gold-text" />
                       </td>
                       <td className="px-5 py-3.5">
                         <span className="text-xs text-muted-foreground">{format(new Date(row.created_at), "MMM dd, yyyy")}</span>
                       </td>
+                      <td className="px-5 py-3.5 text-right">
+                        <Money amount={row.price} className="text-sm font-semibold gold-text" />
+                      </td>
                       <td className="px-5 py-3.5 text-center">
                         <StatusBadge status={row.status} />
-                      </td>
-                      <td className="px-5 py-3.5 text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="gap-1.5 text-xs text-muted-foreground hover:text-primary group-hover:text-primary transition-colors h-8"
-                          onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/orders/${row.id}`); }}
-                        >
-                          View
-                          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
-                        </Button>
                       </td>
                     </tr>
                     <AnimatePresence>
                       {expandedId === row.id && (
                         <tr>
-                          <td colSpan={8} className="p-0">
+                          <td colSpan={5} className="p-0">
                             <ExpandedOrderDetail order={row} />
                           </td>
                         </tr>
