@@ -71,7 +71,11 @@ function formatTimeAgo(date: Date): string {
   return `${hrs}h ago`;
 }
 
-export default function IFreeImeiCheck() {
+export interface IFreeImeiCheckHandle {
+  prefill: (imei: string, serviceId?: string) => void;
+}
+
+const IFreeImeiCheck = forwardRef<IFreeImeiCheckHandle>(function IFreeImeiCheck(_props, ref) {
   const queryClient = useQueryClient();
   const [imei, setImei] = useState("");
   const [serviceId, setServiceId] = useState("");
