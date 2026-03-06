@@ -224,7 +224,7 @@ export default function Login() {
 
         {/* ═══ FORM CARD ═══ */}
         <motion.div
-          className="rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm shadow-[0_8px_40px_-12px_hsl(var(--primary)/0.1)]"
+          className="rounded-2xl border border-border bg-card shadow-card"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
