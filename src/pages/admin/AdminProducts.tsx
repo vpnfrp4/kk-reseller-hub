@@ -2060,6 +2060,16 @@ export default function AdminProducts() {
                   </>
                 )}
 
+                {/* ── Product Downloads ── */}
+                <Separator />
+                <ProductDownloadManager
+                  productId={editing?.id || null}
+                  files={downloadFiles}
+                  settings={downloadSettings}
+                  onFilesChange={setDownloadFiles}
+                  onSettingsChange={setDownloadSettings}
+                />
+
                 </div>
                 <div className="shrink-0 px-6 py-4 border-t border-border bg-card">
                   <Button type="submit" className="w-full">{editing ? "Update" : "Create"} Product</Button>
