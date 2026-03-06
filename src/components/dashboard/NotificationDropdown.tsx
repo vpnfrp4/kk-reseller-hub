@@ -48,11 +48,19 @@ const iconMap: Record<NType, typeof Bell> = {
 };
 
 const colorMap: Record<NType, string> = {
-  success: "text-success",
-  info: "text-ice",
-  warning: "text-warning",
-  error: "text-destructive",
-  order: "text-primary",
+  success: "text-emerald-400",
+  info: "text-sky-400",
+  warning: "text-amber-400",
+  error: "text-red-400",
+  order: "text-teal-400",
+};
+
+const bgMap: Record<NType, string> = {
+  success: "rgba(16,185,129,0.1)",
+  info: "rgba(56,189,248,0.1)",
+  warning: "rgba(245,158,11,0.1)",
+  error: "rgba(239,68,68,0.1)",
+  order: "rgba(13,148,136,0.1)",
 };
 
 function timeAgo(dateStr: string): string {
@@ -67,10 +75,9 @@ function timeAgo(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString();
 }
 
-/** Group identical notifications (same title+type within 5 min window) */
 function groupNotifications(notifications: Notif[]): GroupedNotif[] {
   const groups: GroupedNotif[] = [];
-  const WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+  const WINDOW_MS = 5 * 60 * 1000;
 
   for (const n of notifications) {
     const existing = groups.find(
@@ -84,7 +91,6 @@ function groupNotifications(notifications: Notif[]): GroupedNotif[] {
       existing.count += 1;
       existing.groupedIds.push(n.id);
       if (!n.is_read) existing.is_read = false;
-      // Keep the most recent timestamp
       if (new Date(n.created_at) > new Date(existing.created_at)) {
         existing.created_at = n.created_at;
       }
@@ -117,10 +123,8 @@ export default function NotificationDropdown() {
     refetchInterval: 30000,
   });
 
-  // Deduplicate and group
   const grouped = useMemo(() => groupNotifications(notifications), [notifications]);
 
-  // Realtime subscription
   useEffect(() => {
     if (!user) return;
     const channel = supabase
@@ -150,7 +154,6 @@ export default function NotificationDropdown() {
   const handleClick = useCallback(
     async (n: GroupedNotif) => {
       if (!n.is_read) {
-        // Mark all grouped notifications as read
         await supabase
           .from("notifications")
           .update({ is_read: true })
@@ -180,12 +183,10 @@ export default function NotificationDropdown() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className="relative p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200">
+        <button className="relative p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-all duration-200">
           <Bell className="w-[18px] h-[18px]" strokeWidth={1.5} />
           {unreadCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 rounded-full bg-primary text-primary-foreground text-[9px] font-bold flex items-center justify-center px-1 shadow-[0_0_8px_hsl(var(--primary)/0.4)]">
-              {unreadCount > 9 ? "9+" : unreadCount}
-            </span>
+            <span className="absolute top-0.5 right-0.5 min-w-[8px] h-2 rounded-full bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.6)]" />
           )}
         </button>
       </PopoverTrigger>
@@ -193,21 +194,26 @@ export default function NotificationDropdown() {
       <PopoverContent
         align="end"
         sideOffset={8}
-        className="w-[calc(100vw-2rem)] sm:w-[360px] max-w-[360px] p-0 bg-card/80 backdrop-blur-xl border border-border/60 shadow-[var(--shadow-elevated)] rounded-xl overflow-hidden z-50 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200"
+        className="w-[calc(100vw-2rem)] sm:w-[360px] max-w-[360px] p-0 border-0 shadow-2xl overflow-hidden z-50 animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200"
+        style={{
+          background: "#0D1117",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "12px",
+        }}
       >
         {/* Header */}
-        <div className="px-4 py-3 border-b border-border flex items-center justify-between bg-secondary/30">
+        <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <div>
-            <p className="text-sm font-semibold text-foreground">Notifications</p>
-            <p className="text-[11px] text-muted-foreground">
-              {unreadCount > 0 ? `${unreadCount} unread` : "All caught up ✓"}
+            <p className="text-sm font-semibold text-white">Notifications</p>
+            <p className="text-[11px]" style={{ color: "#8b949e" }}>
+              {unreadCount > 0 ? `${unreadCount} unread` : "All caught up"}
             </p>
           </div>
           {unreadCount > 0 && (
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-[11px] text-primary hover:text-primary hover:bg-primary/10 gap-1.5 px-2.5 rounded-lg"
+              className="h-7 text-[11px] text-teal-400 hover:text-teal-300 hover:bg-teal-400/10 gap-1.5 px-2.5 rounded-lg"
               onClick={markAllRead}
             >
               <CheckCheck className="w-3.5 h-3.5" />
@@ -222,44 +228,46 @@ export default function NotificationDropdown() {
             <div className="p-3 space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="flex items-start gap-3 p-3">
-                  <Skeleton className="w-9 h-9 rounded-lg shrink-0" />
+                  <Skeleton className="w-9 h-9 rounded-lg shrink-0" style={{ background: "rgba(255,255,255,0.06)" }} />
                   <div className="flex-1 space-y-2">
-                    <Skeleton className="h-3.5 w-2/5 rounded" />
-                    <Skeleton className="h-3 w-4/5 rounded" />
-                    <Skeleton className="h-2.5 w-1/4 rounded" />
+                    <Skeleton className="h-3.5 w-2/5 rounded" style={{ background: "rgba(255,255,255,0.06)" }} />
+                    <Skeleton className="h-3 w-4/5 rounded" style={{ background: "rgba(255,255,255,0.06)" }} />
+                    <Skeleton className="h-2.5 w-1/4 rounded" style={{ background: "rgba(255,255,255,0.06)" }} />
                   </div>
                 </div>
               ))}
             </div>
           ) : grouped.length === 0 ? (
             <div className="py-12 text-center">
-              <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center mx-auto mb-3">
-                <Bell className="w-5 h-5 text-muted-foreground/30" />
+              <div className="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ background: "rgba(255,255,255,0.04)" }}>
+                <Bell className="w-5 h-5" style={{ color: "#484f58" }} />
               </div>
-              <p className="text-sm font-medium text-muted-foreground">No notifications yet</p>
+              <p className="text-sm font-medium" style={{ color: "#8b949e" }}>No notifications yet</p>
             </div>
           ) : (
             grouped.slice(0, 20).map((n) => {
               const Icon = iconMap[n.type] || Info;
-              const color = colorMap[n.type] || "text-muted-foreground";
+              const color = colorMap[n.type] || "text-gray-400";
 
               return (
                 <button
                   key={n.id}
                   onClick={() => handleClick(n)}
                   className={cn(
-                    "w-full text-left flex items-start gap-3 px-4 py-3 transition-all duration-200 border-b border-border/30 last:border-0 group",
-                    !n.is_read
-                      ? "bg-secondary/40 border-l-[3px] border-l-primary"
-                      : "bg-card hover:bg-secondary/30 border-l-[3px] border-l-transparent"
+                    "w-full text-left flex items-start gap-3 px-4 py-3 transition-all duration-200 group",
+                    !n.is_read ? "border-l-2 border-l-teal-400" : "border-l-2 border-l-transparent"
                   )}
+                  style={{
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    background: !n.is_read ? "rgba(13,148,136,0.04)" : "transparent",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = !n.is_read ? "rgba(13,148,136,0.04)" : "transparent"; }}
                 >
                   {/* Icon */}
                   <div
-                    className={cn(
-                      "mt-0.5 w-9 h-9 rounded-lg flex items-center justify-center shrink-0 transition-colors",
-                      !n.is_read ? "bg-primary/10" : "bg-secondary"
-                    )}
+                    className="mt-0.5 w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                    style={{ background: bgMap[n.type] || "rgba(255,255,255,0.06)" }}
                   >
                     <Icon className={cn("w-4 h-4", color)} strokeWidth={1.5} />
                   </div>
@@ -270,34 +278,36 @@ export default function NotificationDropdown() {
                       <p
                         className={cn(
                           "text-[13px] leading-snug truncate",
-                          !n.is_read
-                            ? "font-semibold text-foreground"
-                            : "font-medium text-muted-foreground"
+                          !n.is_read ? "font-semibold text-white" : "font-medium"
                         )}
+                        style={{ color: n.is_read ? "#8b949e" : undefined }}
                       >
                         {n.title}
                       </p>
                       {n.count > 1 && (
-                        <span className="shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full bg-muted text-[10px] font-bold text-muted-foreground px-1">
-                          ×{n.count}
+                        <span
+                          className="shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] rounded-full text-[10px] font-bold px-1"
+                          style={{ background: "rgba(255,255,255,0.06)", color: "#8b949e" }}
+                        >
+                          x{n.count}
                         </span>
                       )}
                     </div>
                     {n.body && (
-                      <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
+                      <p className="text-[11px] mt-0.5 line-clamp-2 leading-relaxed" style={{ color: "#6e7681" }}>
                         {n.count > 1
                           ? `${n.body} (and ${n.count - 1} more)`
                           : n.body}
                       </p>
                     )}
-                    <p className="text-[10px] text-muted-foreground/60 mt-1 font-mono">
+                    <p className="text-[10px] mt-1 font-mono" style={{ color: "#484f58" }}>
                       {timeAgo(n.created_at)}
                     </p>
                   </div>
 
                   {/* Unread dot */}
                   {!n.is_read && (
-                    <span className="mt-2 w-2 h-2 rounded-full bg-primary shrink-0 shadow-[0_0_6px_hsl(var(--primary)/0.5)]" />
+                    <span className="mt-2 w-2 h-2 rounded-full bg-red-500 shrink-0 shadow-[0_0_6px_rgba(239,68,68,0.5)]" />
                   )}
                 </button>
               );
@@ -307,13 +317,16 @@ export default function NotificationDropdown() {
 
         {/* Footer */}
         {grouped.length > 0 && (
-          <div className="border-t border-border">
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
             <button
               onClick={() => {
                 setOpen(false);
                 navigate("/dashboard/notifications");
               }}
-              className="w-full py-2.5 text-[12px] font-semibold text-primary hover:bg-primary/5 transition-colors"
+              className="w-full py-2.5 text-[12px] font-semibold transition-colors"
+              style={{ color: "#0d9488" }}
+              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(13,148,136,0.06)"; }}
+              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
             >
               View all notifications
             </button>

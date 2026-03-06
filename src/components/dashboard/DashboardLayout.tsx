@@ -36,6 +36,7 @@ import {
 
 import FloatingSupport from "@/components/shared/FloatingSupport";
 import BottomNav from "@/components/dashboard/BottomNav";
+import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import kkLogo from "@/assets/kkremote-logo.png";
 import { Money } from "@/components/shared";
 
@@ -391,8 +392,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </div>
 
-          <div className="flex items-center gap-2 lg:gap-3">
+          <div className="flex items-center gap-1.5 lg:gap-2.5">
             <WalletChip profile={profile} />
+            <NotificationDropdown />
             <UserAvatarDropdown profile={profile} isAdmin={isAdmin} onLogout={handleLogout} />
           </div>
         </header>
