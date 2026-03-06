@@ -131,6 +131,7 @@ export default function DashboardHome() {
           <HeroStats
             balance={displayBalance}
             totalOrders={totalOrders}
+            todayOrders={todayOrders}
             successRate={successRate}
             processingOrders={processingOrders}
             loading={statsLoading}

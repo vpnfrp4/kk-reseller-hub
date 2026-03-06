@@ -1,11 +1,14 @@
-import { Wallet, ShoppingCart, CheckCircle2, Server } from "lucide-react";
+import { Wallet, ShoppingCart, CheckCircle2, Server, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Money } from "@/components/shared";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface HeroStatsProps {
   balance: number;
   totalOrders: number;
+  todayOrders: number;
   successRate: number;
   processingOrders: number;
   loading: boolean;
@@ -15,15 +18,15 @@ interface HeroStatsProps {
 const STATS_CONFIG = [
   {
     key: "balance",
-    label: "Wallet Balance",
+    label: "Current Balance",
     icon: Wallet,
     gradient: "from-primary to-primary-glow",
     iconBg: "bg-primary/15",
     iconColor: "text-primary",
   },
   {
-    key: "orders",
-    label: "Total Orders",
+    key: "today",
+    label: "Today's Orders",
     icon: ShoppingCart,
     gradient: "from-accent to-purple-500",
     iconBg: "bg-accent/15",
@@ -50,14 +53,16 @@ const STATS_CONFIG = [
 export default function HeroStats({
   balance,
   totalOrders,
+  todayOrders,
   successRate,
   processingOrders,
   loading,
   onWalletClick,
 }: HeroStatsProps) {
+  const navigate = useNavigate();
   const values = {
     balance,
-    orders: totalOrders,
+    today: todayOrders,
     success: successRate,
     processing: processingOrders,
   };
@@ -84,30 +89,14 @@ export default function HeroStats({
             style={{ animationDelay: `${i * 0.08}s` }}
           >
             {/* Top gradient line */}
-            <div
-              className={cn(
-                "absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r opacity-60",
-                stat.gradient
-              )}
-            />
+            <div className={cn("absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r opacity-60", stat.gradient)} />
 
             {/* Ambient glow */}
-            <div
-              className={cn(
-                "absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-[0.07] blur-2xl",
-                `bg-gradient-to-br ${stat.gradient}`
-              )}
-            />
+            <div className={cn("absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-[0.07] blur-2xl", `bg-gradient-to-br ${stat.gradient}`)} />
 
             <div className="relative z-10">
               <div className="flex items-center gap-2.5 mb-3">
-                <div
-                  className={cn(
-                    "w-9 h-9 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center shrink-0",
-                    "transition-all duration-200 group-hover:scale-105",
-                    stat.iconBg
-                  )}
-                >
+                <div className={cn("w-9 h-9 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 group-hover:scale-105", stat.iconBg)}>
                   <Icon className={cn("w-4 h-4 lg:w-5 lg:h-5", stat.iconColor)} strokeWidth={1.8} />
                 </div>
                 <span className="text-[10px] lg:text-[11px] font-bold text-muted-foreground uppercase tracking-[0.12em]">
@@ -127,6 +116,18 @@ export default function HeroStats({
                     value.toLocaleString()
                   )}
                 </p>
+              )}
+
+              {/* Add Funds button on balance card */}
+              {isBalance && !loading && (
+                <Button
+                  size="sm"
+                  onClick={(e) => { e.stopPropagation(); navigate("/dashboard/wallet"); }}
+                  className="mt-3 h-8 gap-1.5 text-xs w-full bg-gradient-to-r from-primary to-primary/80 hover:brightness-110 text-primary-foreground shadow-lg shadow-primary/20 btn-glow"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add Funds
+                </Button>
               )}
             </div>
           </button>
