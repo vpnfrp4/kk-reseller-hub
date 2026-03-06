@@ -617,11 +617,11 @@ export default function Login() {
           transition={{ duration: 0.4, delay: 0.45 }}
         >
           {FEATURES.map((feat) => (
-            <div key={feat.label} className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl bg-card/40 border border-border/30 backdrop-blur-sm">
-              <div className="w-8 h-8 rounded-lg bg-muted/30 flex items-center justify-center">
-                <feat.icon className={`w-4 h-4 ${feat.color}`} strokeWidth={1.8} />
+            <div key={feat.label} className="flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl bg-card border border-border/50">
+              <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center">
+                <feat.icon className="w-4 h-4 text-primary" strokeWidth={1.8} />
               </div>
-              <span className="text-[10px] font-semibold text-muted-foreground text-center leading-tight">{feat.label}</span>
+              <span className="text-[10px] font-medium text-muted-foreground text-center leading-tight">{feat.label}</span>
             </div>
           ))}
         </motion.div>
