@@ -4,12 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Wifi } from "lucide-react";
 
 interface CategoryCardData {
   name: string;
   count: number;
   sampleProducts: string[];
+  isApi?: boolean;
 }
 
 interface CategoryCardsOverviewProps {
@@ -17,7 +18,8 @@ interface CategoryCardsOverviewProps {
 }
 
 export default function CategoryCardsOverview({ onCategoryClick }: CategoryCardsOverviewProps) {
-  const { data: categories, isLoading } = useQuery({
+  // Fetch product categories
+  const { data: productCategories, isLoading: productsLoading } = useQuery({
     queryKey: ["place-order-categories"],
     queryFn: async () => {
       const { data } = await supabase
@@ -48,6 +50,72 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
     },
     staleTime: 60000,
   });
+
+  // Fetch iFree IMEI services count
+  const { data: ifreeCount = 0 } = useQuery({
+    queryKey: ["ifree-services-count"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("ifree_services_cache")
+        .select("id, name, is_enabled")
+        .eq("is_enabled", true);
+      return data?.length || 0;
+    },
+    staleTime: 60000,
+  });
+
+  // Fetch a few sample iFree service names
+  const { data: ifreeSamples = [] } = useQuery({
+    queryKey: ["ifree-services-samples"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("ifree_services_cache")
+        .select("name")
+        .eq("is_enabled", true)
+        .limit(3);
+      return (data || []).map((s) => s.name);
+    },
+    staleTime: 60000,
+  });
+
+  const isLoading = productsLoading;
+
+  // Merge: inject IMEI Check category with iFree services
+  const categories = (() => {
+    if (!productCategories) return [];
+
+    const cats = [...productCategories];
+
+    // Find existing "IMEI Check" category from products
+    const existingIdx = cats.findIndex((c) => c.name === "IMEI Check");
+
+    if (ifreeCount > 0) {
+      if (existingIdx >= 0) {
+        // Merge iFree count into existing IMEI Check category
+        cats[existingIdx] = {
+          ...cats[existingIdx],
+          count: cats[existingIdx].count + ifreeCount,
+          sampleProducts: [...ifreeSamples, ...cats[existingIdx].sampleProducts].slice(0, 3),
+          isApi: true,
+        };
+      } else {
+        // Create new IMEI Check category at the top
+        cats.unshift({
+          name: "IMEI Check",
+          count: ifreeCount,
+          sampleProducts: ifreeSamples,
+          isApi: true,
+        });
+      }
+    }
+
+    // Sort: IMEI Check first, then by count
+    return cats.sort((a, b) => {
+      if (a.name === "IMEI Check") return -1;
+      if (b.name === "IMEI Check") return 1;
+      return b.count - a.count;
+    });
+  })();
 
   if (isLoading) {
     return (
@@ -94,9 +162,17 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
             <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary/60 via-accent/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
             {/* Badge — top-right */}
-            <span className="absolute top-3 right-3 inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-primary/10 text-[11px] font-bold font-mono tabular-nums text-primary border border-primary/15 group-hover:bg-primary/15 group-hover:border-primary/25 transition-colors duration-300">
-              {cat.count}
-            </span>
+            <div className="absolute top-3 right-3 flex items-center gap-1.5">
+              {cat.isApi && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-success/10 border border-success/20 text-[9px] font-bold text-success uppercase tracking-wider">
+                  <Wifi className="w-2.5 h-2.5" />
+                  API
+                </span>
+              )}
+              <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-primary/10 text-[11px] font-bold font-mono tabular-nums text-primary border border-primary/15 group-hover:bg-primary/15 group-hover:border-primary/25 transition-colors duration-300">
+                {cat.count}
+              </span>
+            </div>
 
             <div className={cn(
               "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3",
