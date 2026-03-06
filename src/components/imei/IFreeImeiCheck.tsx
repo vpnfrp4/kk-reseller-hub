@@ -87,6 +87,16 @@ const IFreeImeiCheck = forwardRef<IFreeImeiCheckHandle>(function IFreeImeiCheck(
   const [serviceOpen, setServiceOpen] = useState(false);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
 
+  useImperativeHandle(ref, () => ({
+    prefill: (newImei: string, newServiceId?: string) => {
+      setImei(newImei);
+      if (newServiceId) setServiceId(newServiceId);
+      setResult(null);
+      // Scroll to top of form
+      document.getElementById("imei-check-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
+    },
+  }));
+
   const selectedService = useMemo(
     () => services.find((s) => s.id === serviceId),
     [services, serviceId]
