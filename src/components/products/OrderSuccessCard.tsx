@@ -285,7 +285,8 @@ export default function OrderSuccessCard({
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.45 }}
-              className="mx-5 mb-5 space-y-2.5"
+              className="mx-5 space-y-2.5"
+              style={{ paddingBottom: "calc(20px + env(safe-area-inset-bottom, 0px))" }}
             >
               <button
                 onClick={handleViewOrders}
