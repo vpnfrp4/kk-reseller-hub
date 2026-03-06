@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import {
   Bell, Volume2, Globe, Wallet, ShoppingBag,
   AlertTriangle, ClipboardList, Smartphone, Loader2,
+  Send, CheckCircle2, ShoppingCart, CreditCard, Megaphone, ExternalLink,
 } from "lucide-react";
 import {
   getNotificationPrefs,
@@ -16,6 +17,9 @@ import {
   type NotificationPrefs,
 } from "@/lib/notifications";
 import { usePushNotifications } from "@/hooks/use-push-notifications";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { t, useT } from "@/lib/i18n";
 
 export default function NotificationsTab() {
