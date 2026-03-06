@@ -5,7 +5,7 @@ import { exportToCsv } from "@/lib/csv-export";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, X, ShieldCheck, Ban, UserCheck, User } from "lucide-react";
+import { Search, X, ShieldCheck, Ban, UserCheck, User, Download } from "lucide-react";
 import ResellerDetailModal from "@/components/admin/ResellerDetailModal";
 import { DataCard, Money, ResponsiveTable, StatusBadge } from "@/components/shared";
 import type { Column } from "@/components/shared";
