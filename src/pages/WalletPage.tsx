@@ -265,7 +265,7 @@ export default function WalletPage() {
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div>
-              <h1 className="text-lg font-bold gradient-text">Transaction History</h1>
+              <h1 className="text-lg font-bold text-foreground">Transaction History</h1>
               <p className="text-xs text-muted-foreground">View all wallet transactions</p>
             </div>
           </div>
@@ -305,7 +305,7 @@ export default function WalletPage() {
               </div>
             )}
             <div>
-              <h1 className="text-lg font-bold gradient-text">
+              <h1 className="text-lg font-bold text-foreground">
                 {step === "select" ? "Payment Gateway" : step === "details" ? "Payment Details" : "Upload Proof"}
               </h1>
               <p className="text-xs text-muted-foreground">
@@ -344,15 +344,12 @@ export default function WalletPage() {
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative",
                     isDone
-                      ? "bg-primary text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.3)]"
+                      ? "bg-primary text-primary-foreground"
                       : isActive
-                        ? "bg-primary/10 border-2 border-primary text-primary shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
+                        ? "bg-primary/10 border-2 border-primary text-primary"
                         : "bg-secondary border border-border text-muted-foreground"
                   )}>
                     {isDone ? <CheckCircle2 className="w-5 h-5" /> : <StepIcon className="w-4 h-4" />}
-                    {isActive && (
-                      <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-primary animate-ping opacity-40" />
-                    )}
                   </div>
                   <span className={cn(
                     "text-[10px] sm:text-xs font-semibold transition-colors text-center",
@@ -407,10 +404,8 @@ export default function WalletPage() {
                           )}
                           style={{ boxShadow: "var(--shadow-card)" }}
                         >
-                          {/* Gradient bg */}
-                          <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-300", meta.gradient)} />
-                          {/* Glow */}
-                          <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-primary/5 opacity-0 group-hover:opacity-100 blur-3xl transition-opacity duration-500" />
+                          {/* Subtle hover bg */}
+                          <div className="absolute inset-0 bg-primary/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
                           <div className="relative z-10 space-y-4">
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
@@ -471,7 +466,7 @@ export default function WalletPage() {
                 )}
 
                 {/* Auto-Verify */}
-                <div className="rounded-[var(--radius-card)] border bg-card p-5 space-y-3" style={{ borderColor: "hsl(var(--primary) / 0.15)", boxShadow: "0 0 30px hsl(var(--primary) / 0.03)" }}>
+                <div className="rounded-[var(--radius-card)] border border-primary/15 bg-card p-5 space-y-3" style={{ boxShadow: "var(--shadow-card)" }}>
                   <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                     <Search className="w-4 h-4 text-primary" />
                     Verify Payment
@@ -500,7 +495,7 @@ export default function WalletPage() {
                 {/* LEFT: Account Details */}
                 <div className="space-y-5">
                   {/* Official Account Card */}
-                  <div className="rounded-[var(--radius-card)] border border-primary/20 bg-card overflow-hidden" style={{ boxShadow: "0 0 40px hsl(var(--primary) / 0.06)" }}>
+                  <div className="rounded-[var(--radius-card)] border border-primary/20 bg-card overflow-hidden" style={{ boxShadow: "var(--shadow-card)" }}>
                     <div className="px-6 py-4 border-b border-border/20 bg-primary/[0.03]">
                       <div className="flex items-center gap-2">
                         <BadgeCheck className="w-5 h-5 text-primary" />

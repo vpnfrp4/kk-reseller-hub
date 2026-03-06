@@ -187,9 +187,9 @@ function ExpandedOrderDetail({ order }: { order: any }) {
 /* ── Stat Mini Card ── */
 function MiniStat({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: string }) {
   return (
-    <div className="glass-card p-4 flex items-center gap-3 group hover:border-primary/20 transition-all">
+    <div className="rounded-[var(--radius-card)] border border-border/50 bg-card p-4 flex items-center gap-3 hover:border-primary/20 transition-all" style={{ boxShadow: "var(--shadow-card)" }}>
       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0")}
-        style={{ background: `hsl(var(--${color}) / 0.1)` }}>
+        style={{ background: `hsl(var(--${color}) / 0.08)` }}>
         <Icon className={cn("w-[18px] h-[18px]", `text-${color}`)} strokeWidth={1.5} />
       </div>
       <div>
@@ -404,11 +404,11 @@ export default function OrdersPage() {
                 <Package className="w-5 h-5 text-primary" />
               </div>
               <div>
-                <h1 className="text-xl font-bold gradient-text">Order History</h1>
+                <h1 className="text-xl font-bold text-foreground">Order History</h1>
                 <p className="page-header-subtitle">View and manage all your previous service orders.</p>
               </div>
             </div>
-            <Button onClick={exportCSV} className="gap-2 bg-gradient-to-r from-primary to-primary/80 hover:brightness-110 text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all">
+            <Button onClick={exportCSV} variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/50 transition-all">
               <Download className="w-4 h-4" />
               Export CSV
             </Button>
@@ -587,7 +587,7 @@ export default function OrdersPage() {
                         <span className="text-xs text-muted-foreground">{format(new Date(row.created_at), "MMM dd, yyyy")}</span>
                       </td>
                       <td className="px-5 py-3.5 text-right">
-                        <Money amount={row.price} className="text-sm font-semibold gold-text" />
+                        <Money amount={row.price} className="text-sm font-semibold text-foreground" />
                       </td>
                       <td className="px-5 py-3.5 text-center">
                         <StatusBadge status={row.status} />
@@ -688,7 +688,7 @@ export default function OrdersPage() {
                       <ProductTypeBadge type={row.product_type} />
                       <span className="text-[11px] text-muted-foreground">{format(new Date(row.created_at), "MMM dd, yyyy")}</span>
                     </div>
-                    <Money amount={row.price} className="text-sm font-bold gold-text" />
+                    <Money amount={row.price} className="text-sm font-bold text-foreground" />
                   </div>
 
                   {/* Action row */}

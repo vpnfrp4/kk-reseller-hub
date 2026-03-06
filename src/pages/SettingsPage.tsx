@@ -35,8 +35,8 @@ export default function SettingsPage() {
         { label: l(t.nav.settings) },
       ]} />
 
-      <div className="animate-fade-in space-y-micro">
-        <h1 className="text-2xl font-bold text-foreground tracking-tight">
+      <div className="animate-fade-in space-y-1">
+        <h1 className="text-xl font-bold text-foreground tracking-tight">
           <MmLabel mm={t.settings.title.mm} en={t.settings.title.en} />
         </h1>
         <p className="text-muted-foreground text-sm">{l(t.settings.subtitle)}</p>
@@ -66,7 +66,7 @@ export default function SettingsPage() {
           </div>
         ) : (
           <nav className="w-56 shrink-0">
-            <div className="glass-card p-tight space-y-0.5 sticky top-24">
+            <div className="rounded-[var(--radius-card)] border border-border/50 bg-card p-2 space-y-0.5 sticky top-24" style={{ boxShadow: "var(--shadow-card)" }}>
               {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -76,8 +76,8 @@ export default function SettingsPage() {
                     className={cn(
                       "w-full flex items-center gap-compact px-compact py-2.5 rounded-btn text-sm font-medium transition-all text-left",
                       isActive
-                        ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_12px_-4px_hsl(var(--primary)/0.15)]"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/20 border border-transparent"
+                        ? "bg-primary/8 text-primary border border-primary/15"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-transparent"
                     )}
                   >
                     <tab.icon className={cn("w-4 h-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
