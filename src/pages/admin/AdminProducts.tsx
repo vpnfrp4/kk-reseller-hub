@@ -35,7 +35,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import ConfirmModal from "@/components/shared/ConfirmModal";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, FileText, Sparkles, Zap, Loader2, Search, RefreshCw, Eye, EyeOff, Copy, ClipboardPaste, TrendingUp, Percent, AlertTriangle, MoreHorizontal, Layers, Package, Download, Files } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, FileText, Sparkles, Zap, Loader2, Search, RefreshCw, Eye, EyeOff, Copy, ClipboardPaste, TrendingUp, Percent, AlertTriangle, MoreHorizontal, Layers, Package, Download, Files, FolderEdit } from "lucide-react";
 import { generateProductDescription, type DescriptionMode } from "@/lib/description-templates";
 import { optimizeTitle, autoBuildProduct, type AutoBuildResult } from "@/lib/title-optimizer";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
@@ -128,6 +128,9 @@ export default function AdminProducts() {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 25;
+  const [bulkCategoryOpen, setBulkCategoryOpen] = useState(false);
+  const [bulkCategoryTarget, setBulkCategoryTarget] = useState("");
+  const [bulkCategoryUpdating, setBulkCategoryUpdating] = useState(false);
   const [bulkPriceOpen, setBulkPriceOpen] = useState(false);
   const [bulkPricePercent, setBulkPricePercent] = useState("10");
   const [bulkPriceDirection, setBulkPriceDirection] = useState<"increase" | "decrease">("increase");
@@ -2315,12 +2318,76 @@ export default function AdminProducts() {
               }
             }}
           />
+          <Button size="sm" variant="outline" className="h-7 gap-1.5 text-xs"
+            onClick={() => { setBulkCategoryTarget(""); setBulkCategoryOpen(true); }}>
+            <FolderEdit className="w-3.5 h-3.5" />
+            Change Category
+          </Button>
           <Button size="sm" variant="ghost" className="h-7 text-xs ml-auto"
             onClick={() => setSelectedIds(new Set())}>
             Clear
           </Button>
         </div>
       )}
+
+      {/* ── Bulk Category Change Dialog ── */}
+      <Dialog open={bulkCategoryOpen} onOpenChange={setBulkCategoryOpen}>
+        <DialogContent className="bg-card border-border max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-foreground flex items-center gap-2">
+              <FolderEdit className="w-5 h-5 text-primary" /> Change Category
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-2">
+            <div className="rounded-lg border border-border/50 bg-muted/20 p-3">
+              <p className="text-xs text-muted-foreground">
+                Update category for <span className="font-bold text-foreground">{selectedIds.size}</span> selected products
+              </p>
+            </div>
+            <div className="space-y-1">
+              <Label className="text-muted-foreground text-xs">New Category</Label>
+              <Select value={bulkCategoryTarget} onValueChange={setBulkCategoryTarget}>
+                <SelectTrigger className="bg-muted/50 border-border"><SelectValue placeholder="Select category" /></SelectTrigger>
+                <SelectContent>
+                  {dynamicCategories.filter(c => c !== "All").map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setBulkCategoryOpen(false)}>Cancel</Button>
+              <Button className="flex-1" disabled={!bulkCategoryTarget || bulkCategoryUpdating}
+                onClick={async () => {
+                  if (!bulkCategoryTarget) { toast.error("Select a category"); return; }
+                  setBulkCategoryUpdating(true);
+                  try {
+                    const ids = Array.from(selectedIds);
+                    const CHUNK = 50;
+                    let updated = 0;
+                    for (let i = 0; i < ids.length; i += CHUNK) {
+                      const chunk = ids.slice(i, i + CHUNK);
+                      const { error } = await supabase.from("products").update({ category: bulkCategoryTarget }).in("id", chunk);
+                      if (!error) updated += chunk.length;
+                    }
+                    toast.success(`Category updated to "${bulkCategoryTarget}" for ${updated} products`);
+                    queryClient.invalidateQueries({ queryKey: ["admin-products"] });
+                    queryClient.invalidateQueries({ queryKey: ["products"] });
+                    setSelectedIds(new Set());
+                    setBulkCategoryOpen(false);
+                  } catch (err: any) {
+                    toast.error(err.message || "Failed to update categories");
+                  } finally {
+                    setBulkCategoryUpdating(false);
+                  }
+                }}>
+                {bulkCategoryUpdating ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : null}
+                {bulkCategoryUpdating ? "Updating…" : "Apply"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Product Table ── */}
       <DataCard noPadding className="animate-fade-in">
