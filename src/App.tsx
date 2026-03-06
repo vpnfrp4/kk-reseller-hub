@@ -177,6 +177,7 @@ function AppRoutes() {
         <Route path="/admin/imei-services" element={<AdminRoute><AdminImeiServices /></AdminRoute>} />
         <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
         <Route path="/admin/roles" element={<AdminRoute><AdminRoles /></AdminRoute>} />
+        <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
         <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
         <Route path="*" element={<NotFound />} />
     </Routes>
