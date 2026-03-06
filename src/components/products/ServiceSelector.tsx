@@ -164,21 +164,12 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
                           : "hover:bg-primary/5 cursor-pointer"
                       )}
                     >
-                      {/* Product Icon / Image */}
-                      {service.image_url ? (
-                        <div className="shrink-0 w-8 h-8 rounded-lg border border-border/30 bg-[hsl(220,13%,7%)] flex items-center justify-center overflow-hidden">
-                          <img
-                            src={service.image_url}
-                            alt={service.name}
-                            className="w-8 h-8 object-contain rounded-lg"
-                            loading="lazy"
-                          />
-                        </div>
-                      ) : (
-                        <div className={cn("shrink-0 w-8 h-8 rounded-lg flex items-center justify-center", iconColor)}>
-                          <IconComp className="w-4 h-4" />
-                        </div>
-                      )}
+                      <ProductIcon
+                        imageUrl={service.image_url}
+                        name={service.name}
+                        category={service.category}
+                        size="sm"
+                      />
 
                       <div className="min-w-0 flex-1">
                         <p className="text-sm text-foreground truncate leading-snug">
