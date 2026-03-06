@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   CheckCircle2, Copy, Eye, ShoppingCart, Clock,
-  Hash, Calendar, Wallet, Bell, Check,
+  Hash, Calendar, Wallet, Bell, Check, Download, Share2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Money } from "@/components/shared";
