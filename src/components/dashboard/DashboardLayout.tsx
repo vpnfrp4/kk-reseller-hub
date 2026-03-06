@@ -212,14 +212,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <Link to="/dashboard" className="flex items-center gap-3 group min-w-0" onClick={() => setSidebarOpen(false)}>
               <img src={kkLogo} alt="KKTech" className="w-8 h-8 rounded-xl object-contain shrink-0 transition-transform duration-200 group-hover:scale-105" />
               {!collapsed && (
-                <div className="overflow-hidden">
-                  <span className="text-[15px] font-bold text-foreground tracking-tight">
-                    KK<span className="text-primary">Tech</span>
-                  </span>
-                  <span className="text-[9px] block text-primary/60 font-bold uppercase tracking-[0.15em]">
-                    Digital Unlock Hub
-                  </span>
-                </div>
+                <span className="text-[15px] font-bold text-foreground tracking-tight">
+                  KK<span className="text-primary">Tech</span>
+                </span>
               )}
             </Link>
             <button
@@ -342,35 +337,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             )}
           </nav>
 
-          {/* User profile footer — simplified */}
           <div className="mt-auto border-t border-sidebar-border/30 px-3 py-3 shrink-0">
             {!collapsed ? (
-              <div className="flex items-center gap-3 px-2">
-                <button
-                  onClick={() => { navigate("/dashboard/settings"); setSidebarOpen(false); }}
-                  className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden transition-all hover:border-primary/40 shrink-0"
-                >
+              <button
+                onClick={() => { navigate("/dashboard/settings"); setSidebarOpen(false); }}
+                className="flex items-center gap-3 px-2 w-full rounded-xl hover:bg-secondary/40 transition-colors py-1.5"
+              >
+                <div className="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden transition-all hover:border-primary/40 shrink-0">
                   {profile?.avatar_url ? (
                     <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                   ) : (
                     profile?.name?.charAt(0)?.toUpperCase() || "R"
                   )}
-                </button>
-                <div className="flex-1 min-w-0">
+                </div>
+                <div className="flex-1 min-w-0 text-left">
                   <p className="text-[13px] font-semibold text-foreground truncate">{profile?.name || "Reseller"}</p>
                   <p className="text-[10px] text-muted-foreground uppercase tracking-wider">{profile?.tier || "Reseller"}</p>
                 </div>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all shrink-0" onClick={handleLogout}>
-                      <LogOut className="w-4 h-4" strokeWidth={1.8} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="text-xs">Sign Out</TooltipContent>
-                </Tooltip>
-              </div>
+              </button>
             ) : (
-              <div className="flex flex-col items-center gap-2">
+              <div className="flex flex-col items-center">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button
@@ -385,14 +371,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="right" className="text-xs">{profile?.name || "Profile"}</TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-8 h-8 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all" onClick={handleLogout}>
-                      <LogOut className="w-4 h-4" strokeWidth={1.8} />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="text-xs">Sign Out</TooltipContent>
                 </Tooltip>
               </div>
             )}
