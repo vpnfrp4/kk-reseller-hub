@@ -309,7 +309,7 @@ export default function OrdersPage() {
   };
 
   const exportCSV = async () => {
-    let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
+    let q = supabase.from("orders").select("*, products:product_id(image_url, category)").order("created_at", { ascending: false });
     q = buildQuery(q);
     const { data: allOrders } = await q;
     if (!allOrders || allOrders.length === 0) {
