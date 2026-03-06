@@ -2555,6 +2555,14 @@ export default function AdminProducts() {
           </DialogContent>
         </Dialog>
       )}
+
+      {/* ── Image Crop Dialog ── */}
+      <ImageCropDialog
+        open={cropDialogOpen}
+        imageSrc={cropImageSrc}
+        onClose={handleCropSkip}
+        onCropComplete={handleCropComplete}
+      />
     </div>
   );
 }
