@@ -215,9 +215,9 @@ export default function Login() {
           transition={{ duration: 0.4, delay: 0.25 }}
         >
           {STATS.map((stat) => (
-            <div key={stat.label} className="text-center py-3 px-2 rounded-xl bg-card/60 border border-border/40 backdrop-blur-sm">
-              <p className="text-lg sm:text-xl font-extrabold font-mono tabular-nums text-primary tracking-tight">{stat.value}</p>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mt-0.5">{stat.label}</p>
+            <div key={stat.label} className="text-center py-3 px-2 rounded-xl bg-card border border-border/60">
+              <p className="text-lg sm:text-xl font-extrabold font-mono tabular-nums text-foreground tracking-tight">{stat.value}</p>
+              <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mt-0.5">{stat.label}</p>
             </div>
           ))}
         </motion.div>
