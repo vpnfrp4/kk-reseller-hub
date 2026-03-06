@@ -1191,6 +1191,21 @@ export default function AdminProducts() {
                     </button>
                   )}
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                  {/* ── Image URL (paste link) ── */}
+                  <div className="mt-2">
+                    <Label className="text-muted-foreground text-xs">Or paste Image URL</Label>
+                    <Input
+                      type="url"
+                      placeholder="https://example.com/icon.png"
+                      value={form.image_url}
+                      onChange={(e) => {
+                        const url = e.target.value;
+                        setForm((prev) => ({ ...prev, image_url: url }));
+                        setImagePreview(url || null);
+                      }}
+                      className="bg-muted/50 border-border mt-1 text-xs"
+                    />
+                  </div>
                 </div>
 
                 {/* ── Service Name + Auto-Build ── */}
