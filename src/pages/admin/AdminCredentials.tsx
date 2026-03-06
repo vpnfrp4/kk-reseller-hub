@@ -822,7 +822,7 @@ export default function AdminCredentials() {
           <Input type="date" value={bulkExpiryDate} onChange={(e) => setBulkExpiryDate(e.target.value)} className="bg-muted/50 border-border text-sm" min={new Date().toISOString().slice(0, 10)} />
           <DialogFooter className="gap-2">
             <Button variant="outline" onClick={() => setBulkExpiryOpen(false)}>Cancel</Button>
-            <Button onClick={handleBulkExpiryUpdate} disabled={bulkExpiryUpdating} className="btn-glow">
+            <Button onClick={handleBulkExpiryUpdate} disabled={bulkExpiryUpdating}>
               {bulkExpiryUpdating ? "Updating..." : `Update ${selectedIds.size} Credentials`}
             </Button>
           </DialogFooter>
