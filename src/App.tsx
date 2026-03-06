@@ -60,6 +60,7 @@ const AdminImeiServices = lazy(() => import("./pages/admin/AdminImeiServices"));
 const AdminAuditLogs = lazy(() => import("./pages/admin/AdminAuditLogs"));
 const AdminRoles = lazy(() => import("./pages/admin/AdminRoles"));
 const AdminReports = lazy(() => import("./pages/admin/AdminReports"));
+const AdminPopularServices = lazy(() => import("./pages/admin/AdminPopularServices"));
 const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 
 function PageLoader() {
@@ -178,6 +179,7 @@ function AppRoutes() {
         <Route path="/admin/audit-logs" element={<AdminRoute><AdminAuditLogs /></AdminRoute>} />
         <Route path="/admin/roles" element={<AdminRoute><AdminRoles /></AdminRoute>} />
         <Route path="/admin/reports" element={<AdminRoute><AdminReports /></AdminRoute>} />
+        <Route path="/admin/popular-services" element={<AdminRoute><AdminPopularServices /></AdminRoute>} />
         <Route path="/admin/*" element={<Navigate to="/admin" replace />} />
         <Route path="*" element={<NotFound />} />
     </Routes>

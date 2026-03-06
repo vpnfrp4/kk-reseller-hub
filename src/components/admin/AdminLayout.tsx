@@ -21,6 +21,7 @@ import {
   Shield,
   ClipboardList,
   Download,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
@@ -55,6 +56,7 @@ const navSections = [
     items: [
       { label: "Providers", icon: Database, path: "/admin/providers" },
       { label: "IMEI Services", icon: Database, path: "/admin/imei-services" },
+      { label: "Popular Services", icon: Star, path: "/admin/popular-services" },
     ],
   },
   {

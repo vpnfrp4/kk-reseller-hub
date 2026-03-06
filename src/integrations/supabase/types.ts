@@ -872,8 +872,10 @@ export type Database = {
           icon: string
           id: string
           image_url: string | null
+          is_popular: boolean
           margin_percent: number | null
           name: string
+          popular_sort_order: number
           processing_time: string | null
           product_code: string
           product_type: string
@@ -912,8 +914,10 @@ export type Database = {
           icon?: string
           id?: string
           image_url?: string | null
+          is_popular?: boolean
           margin_percent?: number | null
           name: string
+          popular_sort_order?: number
           processing_time?: string | null
           product_code?: string
           product_type?: string
@@ -952,8 +956,10 @@ export type Database = {
           icon?: string
           id?: string
           image_url?: string | null
+          is_popular?: boolean
           margin_percent?: number | null
           name?: string
+          popular_sort_order?: number
           processing_time?: string | null
           product_code?: string
           product_type?: string

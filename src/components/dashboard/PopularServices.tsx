@@ -10,16 +10,41 @@ import ProductIcon from "@/components/products/ProductIcon";
 export default function PopularServices() {
   const navigate = useNavigate();
 
+  const { data: config } = useQuery({
+    queryKey: ["popular-services-config-display"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("system_settings")
+        .select("value")
+        .eq("key", "popular_services_config")
+        .single();
+      return (data?.value as any)?.max_display ?? 6;
+    },
+    staleTime: 300000,
+  });
+
+  const maxDisplay = config ?? 6;
+
   const { data: products, isLoading } = useQuery({
     queryKey: ["popular-services-dashboard"],
     queryFn: async () => {
       const { data } = await supabase
         .from("products")
-        .select("id, name, category, wholesale_price, processing_time, image_url, fulfillment_modes, product_type, slug")
-        .gt("stock", 0)
-        .order("sort_order")
-        .limit(6);
-      return data || [];
+        .select("id, name, category, wholesale_price, processing_time, image_url, fulfillment_modes, product_type, slug, is_popular, popular_sort_order")
+        .eq("is_popular", true)
+        .order("popular_sort_order")
+        .limit(maxDisplay);
+      // Fallback: if no popular services flagged, show top by sort_order
+      if (!data || data.length === 0) {
+        const { data: fallback } = await supabase
+          .from("products")
+          .select("id, name, category, wholesale_price, processing_time, image_url, fulfillment_modes, product_type, slug")
+          .neq("type", "disabled")
+          .order("sort_order")
+          .limit(maxDisplay);
+        return fallback || [];
+      }
+      return data;
     },
     staleTime: 60000,
   });
