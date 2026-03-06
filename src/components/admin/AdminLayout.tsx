@@ -57,6 +57,7 @@ const navSections = [
       { label: "Providers", icon: Database, path: "/admin/providers" },
       { label: "IMEI Services", icon: Database, path: "/admin/imei-services" },
       { label: "Popular Services", icon: Star, path: "/admin/popular-services" },
+      { label: "Categories", icon: FolderOpen, path: "/admin/categories" },
     ],
   },
   {
