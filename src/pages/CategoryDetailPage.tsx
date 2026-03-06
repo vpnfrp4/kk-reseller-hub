@@ -249,14 +249,6 @@ export default function CategoryDetailPage() {
       {/* ═══ IMEI CHECK SPECIAL: iFree Interface ═══ */}
       {isImeiCheckCategory && (
         <div className="space-y-6 mb-6">
-          {/* API connection badge */}
-          <div className="flex items-center gap-2 px-1">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-success/10 border border-success/20 text-[11px] font-bold text-success">
-              <Wifi className="w-3 h-3" />
-              Live API · iFreeCheck
-            </span>
-            <span className="text-[11px] text-muted-foreground/50">Instant IMEI lookup services</span>
-          </div>
           <IFreeImeiCheck />
           <IFreeCheckHistory />
         </div>
