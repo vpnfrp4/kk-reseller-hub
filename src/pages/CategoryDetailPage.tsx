@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   ShoppingCart, CheckCircle2, Clock, Zap, Copy, Eye, X,
   AlertTriangle, Search, Download, ShieldAlert, ArrowRight, ArrowLeft,
-  Link2, Star, ChevronLeft,
+  Link2, Star, ChevronLeft, Wifi,
 } from "lucide-react";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 import ProductIcon from "@/components/products/ProductIcon";
@@ -22,6 +22,8 @@ import { motion } from "framer-motion";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
+import IFreeImeiCheck from "@/components/imei/IFreeImeiCheck";
+import IFreeCheckHistory from "@/components/imei/IFreeCheckHistory";
 
 interface PurchaseResult {
   order_id: string;
