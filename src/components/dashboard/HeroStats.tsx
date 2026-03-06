@@ -76,20 +76,14 @@ export default function HeroStats({
             key={stat.key}
             onClick={isBalance ? onWalletClick : undefined}
             className={cn(
-              "relative overflow-hidden rounded-card border border-border/50 bg-card p-4 lg:p-5",
-              "text-left transition-all duration-300",
-              "hover:border-primary/20 hover:shadow-elevated hover:-translate-y-0.5",
+              "relative overflow-hidden rounded-card border border-border bg-card p-4 lg:p-5",
+              "text-left transition-all duration-200",
+              "hover:border-primary/15 hover:shadow-elevated hover:-translate-y-0.5",
               "active:scale-[0.98] group",
               "opacity-0 animate-stagger-in"
             )}
             style={{ animationDelay: `${i * 0.08}s` }}
           >
-            {/* Top gradient line */}
-            <div className={cn("absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r opacity-60", stat.gradient)} />
-
-            {/* Ambient glow */}
-            <div className={cn("absolute -top-8 -right-8 w-24 h-24 rounded-full opacity-[0.07] blur-2xl", `bg-gradient-to-br ${stat.gradient}`)} />
-
             <div className="relative z-10">
               <div className="flex items-center gap-2.5 mb-3">
                 <div className={cn("w-9 h-9 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 group-hover:scale-105", stat.iconBg)}>
