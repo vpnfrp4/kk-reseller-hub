@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Search, ChevronDown, Zap, Clock, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
+import ProductIcon from "@/components/products/ProductIcon";
 
 interface ServiceItem {
   id: string;
