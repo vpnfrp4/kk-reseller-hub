@@ -56,6 +56,7 @@ export default function CategoryDetailPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [favorites, setFavoritesState] = useState<string[]>(getFavorites);
   const [quickOrderOpen, setQuickOrderOpen] = useState(false);
+  const imeiCheckRef = useRef<IFreeImeiCheckHandle>(null);
 
   const { data: products = [], isLoading } = useQuery({
     queryKey: ["category-products", decodedCategory],
