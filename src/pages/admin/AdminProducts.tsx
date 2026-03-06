@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect, useMemo, type ReactNode } from "react";
+import ProductDownloadManager, { saveProductDownloads, loadProductDownloads } from "@/components/admin/ProductDownloadManager";
 import { sanitizeName } from "@/lib/sanitize-name";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
