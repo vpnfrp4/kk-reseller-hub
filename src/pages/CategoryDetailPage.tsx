@@ -580,16 +580,12 @@ function SuccessModal({ result, onClose, onNewOrder, navigate }: {
   onClose: () => void; onNewOrder: () => void; navigate: (path: string) => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm animate-fade-in">
-      <div className="rounded-modal border border-border bg-card max-w-md w-full mx-4 p-6 relative shadow-elevated max-h-[90vh] overflow-y-auto">
-        <button onClick={onClose} className="absolute top-4 right-4 p-1 rounded-lg hover:bg-secondary text-muted-foreground hover:text-foreground transition-colors z-10"><X className="w-5 h-5" /></button>
-        <OrderSuccessCard
-          result={result}
-          showConfetti
-          onViewOrders={() => navigate("/dashboard/orders")}
-          onNewOrder={onNewOrder}
-        />
-      </div>
-    </div>
+    <OrderSuccessCard
+      result={result}
+      showConfetti
+      onViewOrders={() => navigate("/dashboard/orders")}
+      onNewOrder={onNewOrder}
+      onClose={onClose}
+    />
   );
 }
