@@ -187,9 +187,9 @@ function ExpandedOrderDetail({ order }: { order: any }) {
 /* ── Stat Mini Card ── */
 function MiniStat({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: string }) {
   return (
-    <div className="glass-card p-4 flex items-center gap-3 group hover:border-primary/20 transition-all">
+    <div className="rounded-[var(--radius-card)] border border-border/50 bg-card p-4 flex items-center gap-3 hover:border-primary/20 transition-all" style={{ boxShadow: "var(--shadow-card)" }}>
       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0")}
-        style={{ background: `hsl(var(--${color}) / 0.1)` }}>
+        style={{ background: `hsl(var(--${color}) / 0.08)` }}>
         <Icon className={cn("w-[18px] h-[18px]", `text-${color}`)} strokeWidth={1.5} />
       </div>
       <div>
