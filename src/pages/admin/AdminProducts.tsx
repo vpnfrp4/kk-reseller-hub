@@ -1069,7 +1069,7 @@ export default function AdminProducts() {
           <BulkImageUpload products={(products || []).map((p: any) => ({ id: p.id, name: p.name, icon: p.icon, image_url: p.image_url }))} />
           <Dialog open={dialogOpen} onOpenChange={(v) => { if (!v) { handleDialogClose(); return; } setDialogOpen(v); initialFormRef.current = JSON.stringify(form); }}>
             <DialogTrigger asChild>
-              <Button size="default" className="btn-glow gap-2 h-10 px-5 text-sm font-semibold shadow-md" onClick={() => { resetForm(); initialFormRef.current = JSON.stringify(defaultForm); }}>
+              <Button size="default" className="gap-2 h-10 px-5 text-sm font-semibold" onClick={() => { resetForm(); initialFormRef.current = JSON.stringify(defaultForm); }}>
                 <Plus className="w-4 h-4" />Add Product
               </Button>
             </DialogTrigger>
