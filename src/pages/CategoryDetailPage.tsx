@@ -446,6 +446,8 @@ export default function CategoryDetailPage() {
 
       {/* ═══ SUCCESS MODAL ═══ */}
       {result && <SuccessModal result={result} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
+        </>
+      )}
     </PageContainer>
   );
 }
