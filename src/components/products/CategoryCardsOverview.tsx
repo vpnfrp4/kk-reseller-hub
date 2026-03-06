@@ -18,6 +18,19 @@ interface CategoryCardsOverviewProps {
 }
 
 export default function CategoryCardsOverview({ onCategoryClick }: CategoryCardsOverviewProps) {
+  // Fetch admin-managed categories for ordering & visibility
+  const { data: managedCategories } = useQuery({
+    queryKey: ["managed-categories"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("categories")
+        .select("name, sort_order, is_active, image_url")
+        .order("sort_order", { ascending: true });
+      return data || [];
+    },
+    staleTime: 60000,
+  });
+
   // Fetch product categories
   const { data: productCategories, isLoading: productsLoading } = useQuery({
     queryKey: ["place-order-categories"],
@@ -41,7 +54,6 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
       });
 
       return Object.entries(catMap)
-        .sort(([, a], [, b]) => b.count - a.count)
         .map(([name, data]): CategoryCardData => ({
           name,
           count: data.count,
