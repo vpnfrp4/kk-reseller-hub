@@ -135,6 +135,9 @@ export default function AdminProducts() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const bulkImageInputRef = useRef<HTMLInputElement>(null);
+  const [previewImage, setPreviewImage] = useState<{ url: string; name: string } | null>(null);
+  const [bulkImageUploading, setBulkImageUploading] = useState(false);
   const descManuallyEdited = useRef(false);
   const titleManuallyEdited = useRef(false);
   const [descMode, setDescMode] = useState<DescriptionMode>("ultra-short");
