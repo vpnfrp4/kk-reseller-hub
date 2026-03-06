@@ -289,7 +289,7 @@ export default function CategoryDetailPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="rounded-xl border border-border/30 bg-card overflow-hidden animate-pulse">
-              <div className="w-full aspect-[5/3] bg-muted/20" />
+              <div className="w-full aspect-[5/3] bg-muted/10" />
               <div className="px-3.5 py-3 space-y-2">
                 <div className="h-4 bg-muted/30 rounded w-3/4" />
                 <div className="flex justify-between">
@@ -481,11 +481,11 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
       )}
     >
       {/* Image area — fixed aspect ratio */}
-      <div className="relative w-full aspect-[5/3] bg-[#1A1F2E] overflow-hidden">
+      <div className="relative w-full aspect-[5/3] overflow-hidden">
         {p.image_url && imgStatus !== "error" ? (
           <>
             {imgStatus === "loading" && (
-              <div className="absolute inset-0 bg-muted/20 animate-pulse" />
+              <div className="absolute inset-0 bg-muted/30 animate-pulse" />
             )}
             <img
               src={p.image_url}
@@ -500,10 +500,12 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
             />
           </>
         ) : (
-          /* Placeholder fallback */
-          <div className={cn("w-full h-full flex flex-col items-center justify-center gap-2", iconColor)}>
-            <CategoryIcon className="w-10 h-10 opacity-60" />
-            <span className="text-[10px] font-medium uppercase tracking-widest opacity-40">
+          /* Polished placeholder with category icon */
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2.5 bg-gradient-to-br from-primary/[0.06] to-primary/[0.02] dark:from-primary/[0.1] dark:to-primary/[0.04]">
+            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: iconColor.replace('text-', '').includes('[') ? undefined : `hsl(var(--primary) / 0.1)` }}>
+              <CategoryIcon className="w-7 h-7 text-primary/60" strokeWidth={1.5} />
+            </div>
+            <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/40 px-4 text-center line-clamp-1">
               {p.category}
             </span>
           </div>
