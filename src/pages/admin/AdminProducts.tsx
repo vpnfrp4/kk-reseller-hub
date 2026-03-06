@@ -1043,6 +1043,37 @@ export default function AdminProducts() {
               <DropdownMenuItem onClick={() => setBulkPriceOpen(true)}>
                 <Percent className="w-3.5 h-3.5 mr-2" /> Adjust Prices
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                if (!products || products.length === 0) { toast.error("No products to export"); return; }
+                const rows = (products as any[]).map((p) => ({
+                  display_id: p.display_id,
+                  name: p.name,
+                  category: p.category,
+                  product_type: p.product_type,
+                  wholesale_price: p.wholesale_price,
+                  retail_price: p.retail_price,
+                  stock: p.stock,
+                  duration: p.duration,
+                  status: p.type === "disabled" ? "Disabled" : "Active",
+                  product_code: p.product_code,
+                }));
+                exportToCsv("products", rows, [
+                  { key: "display_id", label: "ID" },
+                  { key: "name", label: "Product Name" },
+                  { key: "category", label: "Category" },
+                  { key: "product_type", label: "Type" },
+                  { key: "wholesale_price", label: "Wholesale (MMK)" },
+                  { key: "retail_price", label: "Retail (MMK)" },
+                  { key: "stock", label: "Stock" },
+                  { key: "duration", label: "Duration" },
+                  { key: "status", label: "Status" },
+                  { key: "product_code", label: "Code" },
+                ]);
+                toast.success(`Exported ${rows.length} products`);
+              }}>
+                <Download className="w-3.5 h-3.5 mr-2" /> Export CSV
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={async () => {
                 if (!products || !confirm("Reset product order to alphabetical?")) return;
                 const previousOrder = products.map((p: any) => ({ id: p.id, sort_order: p.sort_order }));
