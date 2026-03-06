@@ -173,7 +173,7 @@ export default function AdminProfitDashboard() {
         </div>
 
         {/* 30-Day Profit Chart */}
-        <div className="glass-card p-6 space-y-4 animate-fade-in [animation-delay:0.15s]">
+        <div className="bg-card border border-border rounded-[var(--radius-card)] p-6 space-y-4 animate-fade-in [animation-delay:0.15s]">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-foreground">30-Day Profit Trend</h2>
