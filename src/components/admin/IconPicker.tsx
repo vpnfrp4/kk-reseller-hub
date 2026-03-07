@@ -100,6 +100,13 @@ const ICON_LIBRARY: IconEntry[] = [
   { name: "digital-microsoft", label: "Microsoft", category: "Digital", url: `${BUCKET_URL}/digital-microsoft.png` },
   { name: "digital-windows", label: "Windows", category: "Digital", url: `${BUCKET_URL}/digital-windows.png` },
   { name: "digital-office", label: "Office", category: "Digital", url: `${BUCKET_URL}/digital-office.png` },
+  { name: "digital-playstation", label: "PlayStation", category: "Digital", url: `${BUCKET_URL}/digital-playstation.png` },
+  { name: "digital-discord", label: "Discord", category: "Digital", url: `${BUCKET_URL}/digital-discord.png` },
+  { name: "digital-whatsapp", label: "WhatsApp", category: "Digital", url: `${BUCKET_URL}/digital-whatsapp.png` },
+  { name: "digital-bitcoin", label: "Bitcoin", category: "Digital", url: `${BUCKET_URL}/digital-bitcoin.png` },
+  { name: "digital-steam", label: "Steam", category: "Digital", url: `${BUCKET_URL}/digital-steam.png` },
+  { name: "digital-amazon", label: "Amazon", category: "Digital", url: `${BUCKET_URL}/digital-amazon.png` },
+  { name: "digital-paypal", label: "PayPal", category: "Digital", url: `${BUCKET_URL}/digital-paypal.png` },
   // System
   { name: "system-dashboard", label: "Dashboard", category: "System", url: `${BUCKET_URL}/system-dashboard.png` },
   { name: "system-orders", label: "Orders", category: "System", url: `${BUCKET_URL}/system-orders.png` },
