@@ -135,6 +135,7 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
             count: ifreeCount,
             sampleProducts: ifreeSamples,
             isApi: true,
+            image_url: managedMap.get("IMEI Check")?.image_url || null,
           });
         }
       }
