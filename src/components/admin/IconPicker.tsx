@@ -110,6 +110,10 @@ const ICON_LIBRARY: IconEntry[] = [
   { name: "digital-steam", label: "Steam", category: "Digital", url: `${BUCKET_URL}/digital-steam.png` },
   { name: "digital-amazon", label: "Amazon", category: "Digital", url: `${BUCKET_URL}/digital-amazon.png` },
   { name: "digital-paypal", label: "PayPal", category: "Digital", url: `${BUCKET_URL}/digital-paypal.png` },
+  { name: "digital-stripe", label: "Stripe", category: "Digital", url: `${BUCKET_URL}/digital-stripe.png` },
+  { name: "digital-ethereum", label: "Ethereum", category: "Digital", url: `${BUCKET_URL}/digital-ethereum.png` },
+  { name: "digital-usdt", label: "USDT", category: "Digital", url: `${BUCKET_URL}/digital-usdt.png` },
+  { name: "digital-binance", label: "Binance", category: "Digital", url: `${BUCKET_URL}/digital-binance.png` },
   // System
   { name: "system-dashboard", label: "Dashboard", category: "System", url: `${BUCKET_URL}/system-dashboard.png` },
   { name: "system-orders", label: "Orders", category: "System", url: `${BUCKET_URL}/system-orders.png` },
