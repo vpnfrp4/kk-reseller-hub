@@ -169,6 +169,40 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
     );
   }
 
+  // Helper: category icon with image fallback
+  const CategoryIcon = ({ imageUrl, iconColor, IconComp }: { imageUrl?: string | null; iconColor: string; IconComp: any }) => {
+    const [imgError, setImgError] = useState(false);
+    const handleError = useCallback(() => setImgError(true), []);
+
+    if (imageUrl && !imgError) {
+      return (
+        <div className={cn(
+          "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3 overflow-hidden",
+          "transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)]",
+          "bg-card border border-border/20"
+        )}>
+          <img
+            src={imageUrl}
+            alt=""
+            className="w-full h-full object-contain p-1.5 rounded-2xl"
+            onError={handleError}
+            loading="lazy"
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className={cn(
+        "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3",
+        "transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)]",
+        iconColor
+      )}>
+        <IconComp className="w-5.5 h-5.5 sm:w-6 sm:h-6" strokeWidth={1.8} />
+      </div>
+    );
+  };
+
   if (!categories || categories.length === 0) return null;
 
   return (
