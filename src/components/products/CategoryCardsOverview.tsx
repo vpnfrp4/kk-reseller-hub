@@ -104,7 +104,11 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
       ? new Set((managedCategories).filter(mc => mc.is_active).map(mc => mc.name))
       : null; // null = no managed categories yet, show all
 
-    let cats = [...productCategories];
+    // Enrich with managed category image_url
+    let cats = productCategories.map(c => {
+      const managed = managedMap.get(c.name);
+      return { ...c, image_url: managed?.image_url || null };
+    });
 
     // Filter out inactive categories (only if we have managed categories)
     if (activeSet) {
