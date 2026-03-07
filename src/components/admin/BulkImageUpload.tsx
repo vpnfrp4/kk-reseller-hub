@@ -254,7 +254,6 @@ export default function BulkImageUpload({ products }: { products: Product[] }) {
                             <SelectItem key={p.id} value={p.id} className="text-xs">
                               {p.name}
                               {p.image_url && " (has image)"}
-                              {p.image_url && " (has image)"}
                             </SelectItem>
                           ))}
                         </SelectContent>
