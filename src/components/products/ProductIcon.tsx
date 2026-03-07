@@ -71,8 +71,10 @@ export default function ProductIcon({
           status === "loaded" ? "block" : "hidden"
         )}
         loading="lazy"
+        decoding="async"
         onLoad={handleLoad}
         onError={handleError}
+        referrerPolicy="no-referrer"
       />
 
       {/* Error fallback: stylized first letter */}

@@ -421,10 +421,9 @@ export default function AdminCategories() {
 
                           {/* Icon */}
                           {cat.image_url ? (
-                            <img src={cat.image_url} alt="" className="w-9 h-9 rounded-lg object-cover" />
-                          ) : (
-                            <span className="text-xl w-9 h-9 flex items-center justify-center">{cat.icon}</span>
-                          )}
+                            <img src={cat.image_url} alt="" className="w-9 h-9 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.querySelector('.cat-icon-fallback')?.classList.remove('hidden'); }} />
+                          ) : null}
+                          <span className={cn("text-xl w-9 h-9 flex items-center justify-center cat-icon-fallback", cat.image_url ? "hidden" : "")}>{cat.icon}</span>
 
                           {/* Name & meta */}
                           <div className="flex-1 min-w-0">
@@ -500,7 +499,7 @@ export default function AdminCategories() {
               </div>
               {editCat?.image_url && (
                 <div className="mt-2 flex items-center gap-2">
-                  <img src={editCat.image_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                  <img src={editCat.image_url} alt="" className="w-8 h-8 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }} />
                   <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setEditCat(prev => ({ ...prev, image_url: null }))}>
                     <X className="w-3 h-3 mr-1" /> Clear image
                   </Button>

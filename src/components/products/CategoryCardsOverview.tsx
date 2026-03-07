@@ -1,3 +1,4 @@
+import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +12,7 @@ interface CategoryCardData {
   count: number;
   sampleProducts: string[];
   isApi?: boolean;
+  image_url?: string | null;
 }
 
 interface CategoryCardsOverviewProps {
@@ -58,6 +60,7 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
           name,
           count: data.count,
           sampleProducts: data.samples,
+          image_url: null,
         }));
     },
     staleTime: 60000,
@@ -97,12 +100,16 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
     if (!productCategories) return [];
 
     // Build active set from managed categories
-    const managedMap = new Map((managedCategories || []).map(mc => [mc.name, mc]));
+    const managedMap = new Map((managedCategories || []).map(mc => [mc.name, mc as { name: string; sort_order: number; is_active: boolean; image_url: string | null }]));
     const activeSet = managedCategories?.length
       ? new Set((managedCategories).filter(mc => mc.is_active).map(mc => mc.name))
       : null; // null = no managed categories yet, show all
 
-    let cats = [...productCategories];
+    // Enrich with managed category image_url
+    let cats = productCategories.map(c => {
+      const managed = managedMap.get(c.name);
+      return { ...c, image_url: managed?.image_url || null };
+    });
 
     // Filter out inactive categories (only if we have managed categories)
     if (activeSet) {
@@ -129,6 +136,7 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
             count: ifreeCount,
             sampleProducts: ifreeSamples,
             isApi: true,
+            image_url: managedMap.get("IMEI Check")?.image_url || null,
           });
         }
       }
@@ -160,6 +168,40 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
       </div>
     );
   }
+
+  // Helper: category icon with image fallback
+  const CategoryIcon = ({ imageUrl, iconColor, IconComp }: { imageUrl?: string | null; iconColor: string; IconComp: any }) => {
+    const [imgError, setImgError] = useState(false);
+    const handleError = useCallback(() => setImgError(true), []);
+
+    if (imageUrl && !imgError) {
+      return (
+        <div className={cn(
+          "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3 overflow-hidden",
+          "transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)]",
+          "bg-card border border-border/20"
+        )}>
+          <img
+            src={imageUrl}
+            alt=""
+            className="w-full h-full object-contain p-1.5 rounded-2xl"
+            onError={handleError}
+            loading="lazy"
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className={cn(
+        "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3",
+        "transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)]",
+        iconColor
+      )}>
+        <IconComp className="w-5.5 h-5.5 sm:w-6 sm:h-6" strokeWidth={1.8} />
+      </div>
+    );
+  };
 
   if (!categories || categories.length === 0) return null;
 
@@ -204,13 +246,7 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
               </span>
             </div>
 
-            <div className={cn(
-              "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3",
-              "transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)]",
-              iconColor
-            )}>
-              <IconComp className="w-5.5 h-5.5 sm:w-6 sm:h-6" strokeWidth={1.8} />
-            </div>
+            <CategoryIcon imageUrl={cat.image_url} iconColor={iconColor} IconComp={IconComp} />
 
             <p className="text-sm sm:text-[15px] font-bold text-foreground line-clamp-2 mb-auto leading-snug">{cat.name}</p>
 
