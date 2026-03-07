@@ -98,7 +98,7 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
     if (!productCategories) return [];
 
     // Build active set from managed categories
-    const managedMap = new Map((managedCategories || []).map(mc => [mc.name, mc]));
+    const managedMap = new Map((managedCategories || []).map(mc => [mc.name, mc as { name: string; sort_order: number; is_active: boolean; image_url: string | null }]));
     const activeSet = managedCategories?.length
       ? new Set((managedCategories).filter(mc => mc.is_active).map(mc => mc.name))
       : null; // null = no managed categories yet, show all
