@@ -59,6 +59,7 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
           name,
           count: data.count,
           sampleProducts: data.samples,
+          image_url: null,
         }));
     },
     staleTime: 60000,

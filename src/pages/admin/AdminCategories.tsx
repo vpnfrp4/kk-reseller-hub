@@ -421,10 +421,9 @@ export default function AdminCategories() {
 
                           {/* Icon */}
                           {cat.image_url ? (
-                            <img src={cat.image_url} alt="" className="w-9 h-9 rounded-lg object-cover" />
-                          ) : (
-                            <span className="text-xl w-9 h-9 flex items-center justify-center">{cat.icon}</span>
-                          )}
+                            <img src={cat.image_url} alt="" className="w-9 h-9 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement?.querySelector('.cat-icon-fallback')?.classList.remove('hidden'); }} />
+                          ) : null}
+                          <span className={cn("text-xl w-9 h-9 flex items-center justify-center cat-icon-fallback", cat.image_url ? "hidden" : "")}>{cat.icon}</span>
 
                           {/* Name & meta */}
                           <div className="flex-1 min-w-0">
