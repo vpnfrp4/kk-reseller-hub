@@ -131,6 +131,13 @@ const ICON_LIBRARY: IconEntry[] = [
   { name: "system-support", label: "Support", category: "System", url: `${BUCKET_URL}/system-support.png` },
   { name: "system-topup", label: "Topup", category: "System", url: `${BUCKET_URL}/system-topup.png` },
   { name: "system-history", label: "History", category: "System", url: `${BUCKET_URL}/system-history.png` },
+  { name: "system-services", label: "Services", category: "System", url: `${BUCKET_URL}/system-services.png` },
+  { name: "system-resellers", label: "Resellers", category: "System", url: `${BUCKET_URL}/system-resellers.png` },
+  { name: "system-transactions", label: "Transactions", category: "System", url: `${BUCKET_URL}/system-transactions.png` },
+  { name: "system-reports", label: "Reports", category: "System", url: `${BUCKET_URL}/system-reports.png` },
+  { name: "system-revenue", label: "Revenue", category: "System", url: `${BUCKET_URL}/system-revenue.png` },
+  { name: "system-profit", label: "Profit", category: "System", url: `${BUCKET_URL}/system-profit.png` },
+  { name: "system-security", label: "Security", category: "System", url: `${BUCKET_URL}/system-security.png` },
   // Tools
   { name: "tool-adb", label: "ADB Tool", category: "Tools", url: `${BUCKET_URL}/tool-adb.png` },
   { name: "tool-fastboot", label: "Fastboot Tool", category: "Tools", url: `${BUCKET_URL}/tool-fastboot.png` },
