@@ -457,14 +457,14 @@ html {
     background-clip: text;
   }
 
-  /* ─── Buttons — Teal solid (no shimmer) ─── */
+  /* ─── Buttons — Blue solid (clean) ─── */
   .btn-glow {
     background: hsl(var(--primary));
     color: #fff;
     font-weight: 600;
     border-radius: var(--radius-btn);
     transition: all var(--transition-base);
-    box-shadow: 0 1px 3px rgba(45, 149, 136, 0.2);
+    box-shadow: 0 1px 3px rgba(37, 99, 180, 0.2);
     letter-spacing: 0.005em;
     position: relative;
     overflow: hidden;
@@ -476,7 +476,7 @@ html {
 
   .btn-glow:hover {
     filter: brightness(1.05);
-    box-shadow: 0 4px 14px rgba(45, 149, 136, 0.25);
+    box-shadow: 0 4px 14px rgba(37, 99, 180, 0.25);
     transform: translateY(-1px);
   }
 
