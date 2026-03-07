@@ -32,6 +32,9 @@ const ICON_LIBRARY: IconEntry[] = [
   { name: "vpn-streisand", label: "Streisand", category: "VPN", url: `${BUCKET_URL}/vpn-streisand.png` },
   { name: "vpn-nekoray", label: "NekoRay", category: "VPN", url: `${BUCKET_URL}/vpn-nekoray.png` },
   { name: "vpn-xray", label: "Xray", category: "VPN", url: `${BUCKET_URL}/vpn-xray.png` },
+  { name: "vpn-trojan", label: "Trojan", category: "VPN", url: `${BUCKET_URL}/vpn-trojan.png` },
+  { name: "vpn-brook", label: "Brook", category: "VPN", url: `${BUCKET_URL}/vpn-brook.png` },
+  { name: "vpn-naiveproxy", label: "NaiveProxy", category: "VPN", url: `${BUCKET_URL}/vpn-naiveproxy.png` },
   // Apple
   { name: "apple-iphone", label: "iPhone", category: "Apple", url: `${BUCKET_URL}/apple-iphone.png` },
   { name: "apple-ipad", label: "iPad", category: "Apple", url: `${BUCKET_URL}/apple-ipad.png` },
