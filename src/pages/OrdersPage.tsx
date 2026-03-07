@@ -268,13 +268,14 @@ export default function OrdersPage() {
 
   // Count
   const { data: countData } = useQuery({
-    queryKey: ["orders-count", ...filterKey],
+    queryKey: ["orders-count", user?.id, ...filterKey],
     queryFn: async () => {
       let q = supabase.from("orders").select("*", { count: "exact", head: true });
       q = buildQuery(q);
       const { count } = await q;
       return count || 0;
     },
+    enabled: !!user,
   });
 
   // Stats
