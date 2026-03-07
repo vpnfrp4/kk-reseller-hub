@@ -116,7 +116,7 @@ export default function PopularServices() {
                 imageUrl={product.image_url}
                 name={product.name}
                 category={product.category}
-                size="md"
+                size="lg"
               />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
