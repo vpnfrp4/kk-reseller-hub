@@ -212,13 +212,7 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
               </span>
             </div>
 
-            <div className={cn(
-              "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3",
-              "transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)]",
-              iconColor
-            )}>
-              <IconComp className="w-5.5 h-5.5 sm:w-6 sm:h-6" strokeWidth={1.8} />
-            </div>
+            <CategoryIcon imageUrl={cat.image_url} iconColor={iconColor} IconComp={IconComp} />
 
             <p className="text-sm sm:text-[15px] font-bold text-foreground line-clamp-2 mb-auto leading-snug">{cat.name}</p>
 
