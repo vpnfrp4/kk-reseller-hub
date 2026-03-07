@@ -11,6 +11,7 @@ interface CategoryCardData {
   count: number;
   sampleProducts: string[];
   isApi?: boolean;
+  image_url?: string | null;
 }
 
 interface CategoryCardsOverviewProps {
