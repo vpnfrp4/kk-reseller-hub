@@ -499,7 +499,7 @@ export default function AdminCategories() {
               </div>
               {editCat?.image_url && (
                 <div className="mt-2 flex items-center gap-2">
-                  <img src={editCat.image_url} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                  <img src={editCat.image_url} alt="" className="w-8 h-8 rounded-lg object-cover" onError={(e) => { (e.target as HTMLImageElement).src = '/placeholder.svg'; }} />
                   <Button variant="ghost" size="sm" className="text-xs h-7" onClick={() => setEditCat(prev => ({ ...prev, image_url: null }))}>
                     <X className="w-3 h-3 mr-1" /> Clear image
                   </Button>
