@@ -44,6 +44,12 @@ const ICON_LIBRARY: IconEntry[] = [
   { name: "apple-passcode-unlock", label: "Passcode Unlock", category: "Apple", url: `${BUCKET_URL}/apple-passcode-unlock.png` },
   { name: "apple-mdm-bypass", label: "MDM Bypass", category: "Apple", url: `${BUCKET_URL}/apple-mdm-bypass.png` },
   { name: "apple-activation-unlock", label: "Activation Unlock", category: "Apple", url: `${BUCKET_URL}/apple-activation-unlock.png` },
+  { name: "apple-sn-check", label: "SN Check", category: "Apple", url: `${BUCKET_URL}/apple-sn-check.png` },
+  { name: "apple-warranty", label: "Warranty", category: "Apple", url: `${BUCKET_URL}/apple-warranty.png` },
+  { name: "apple-gsx", label: "GSX", category: "Apple", url: `${BUCKET_URL}/apple-gsx.png` },
+  { name: "apple-carrier-unlock", label: "Carrier Unlock", category: "Apple", url: `${BUCKET_URL}/apple-carrier-unlock.png` },
+  { name: "apple-network-check", label: "Network Check", category: "Apple", url: `${BUCKET_URL}/apple-network-check.png` },
+  { name: "apple-blacklist-check", label: "Blacklist Check", category: "Apple", url: `${BUCKET_URL}/apple-blacklist-check.png` },
   // Android
   { name: "android-frp-unlock", label: "FRP Unlock", category: "Android", url: `${BUCKET_URL}/android-frp-unlock.png` },
   { name: "android-bootloader", label: "Bootloader", category: "Android", url: `${BUCKET_URL}/android-bootloader.png` },
