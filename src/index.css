@@ -608,7 +608,7 @@ html {
     background: hsl(var(--primary));
     color: hsl(var(--primary-foreground));
     font-weight: 600;
-    box-shadow: 0 1px 6px rgba(45, 149, 136, 0.15);
+    box-shadow: 0 1px 6px rgba(37, 99, 180, 0.15);
   }
 
   .filter-pill-inactive {
