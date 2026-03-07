@@ -69,6 +69,13 @@ const ICON_LIBRARY: IconEntry[] = [
   { name: "android-tecno", label: "Tecno", category: "Android", url: `${BUCKET_URL}/android-tecno.png` },
   { name: "android-infinix", label: "Infinix", category: "Android", url: `${BUCKET_URL}/android-infinix.png` },
   { name: "android-unlocktool", label: "UnlockTool", category: "Android", url: `${BUCKET_URL}/android-unlocktool.png` },
+  { name: "android-honor", label: "Honor", category: "Android", url: `${BUCKET_URL}/android-honor.png` },
+  { name: "android-lenovo", label: "Lenovo", category: "Android", url: `${BUCKET_URL}/android-lenovo.png` },
+  { name: "android-sony", label: "Sony", category: "Android", url: `${BUCKET_URL}/android-sony.png` },
+  { name: "android-lg", label: "LG", category: "Android", url: `${BUCKET_URL}/android-lg.png` },
+  { name: "android-nothing", label: "Nothing", category: "Android", url: `${BUCKET_URL}/android-nothing.png` },
+  { name: "android-poco", label: "POCO", category: "Android", url: `${BUCKET_URL}/android-poco.png` },
+  { name: "android-redmi", label: "Redmi", category: "Android", url: `${BUCKET_URL}/android-redmi.png` },
   // GSM
   { name: "gsm-imei-check", label: "IMEI Check", category: "GSM", url: `${BUCKET_URL}/gsm-imei-check.png` },
   { name: "gsm-imei-repair", label: "IMEI Repair", category: "GSM", url: `${BUCKET_URL}/gsm-imei-repair.png` },
