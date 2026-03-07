@@ -53,16 +53,19 @@ export default function DashboardHome() {
 
   // Orders
   const { data: orders, isLoading: ordersLoading } = useQuery({
-    queryKey: ["dashboard-orders"],
+    queryKey: ["dashboard-orders", user?.id],
     queryFn: async () => {
-      const { data } = await supabase
+      if (!user) throw new Error("Not authenticated");
+      const { data, error } = await supabase
         .from("orders")
         .select("*, products:product_id(image_url, category)")
-        .eq("user_id", user!.id)
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(20);
+      if (error) throw error;
       return data || [];
     },
+    enabled: !!user,
   });
 
   const { convert } = useCurrency();

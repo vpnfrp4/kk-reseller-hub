@@ -49,18 +49,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        const currentUser = session?.user ?? null;
-        setUser(currentUser);
-        if (currentUser) {
-          setTimeout(() => fetchProfile(currentUser.id), 0);
-        } else {
-          setProfile(null);
-        }
-        setLoading(false);
-      }
-    );
+    // First, restore session from storage — this is the source of truth
+    let initialSessionResolved = false;
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null;
@@ -69,7 +59,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchProfile(currentUser.id);
       }
       setLoading(false);
+      initialSessionResolved = true;
     });
+
+    // Then listen for subsequent auth changes (sign-in, sign-out, token refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        // Skip the initial event — getSession already handled it
+        if (!initialSessionResolved && event === 'INITIAL_SESSION') return;
+
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        if (currentUser) {
+          // Non-blocking profile fetch to avoid deadlock
+          setTimeout(() => fetchProfile(currentUser.id), 0);
+        } else {
+          setProfile(null);
+        }
+        if (initialSessionResolved) {
+          // Only set loading false after initial session is resolved
+          setLoading(false);
+        }
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);

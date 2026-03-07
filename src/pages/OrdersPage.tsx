@@ -268,13 +268,14 @@ export default function OrdersPage() {
 
   // Count
   const { data: countData } = useQuery({
-    queryKey: ["orders-count", ...filterKey],
+    queryKey: ["orders-count", user?.id, ...filterKey],
     queryFn: async () => {
       let q = supabase.from("orders").select("*", { count: "exact", head: true });
       q = buildQuery(q);
       const { count } = await q;
       return count || 0;
     },
+    enabled: !!user,
   });
 
   // Stats
@@ -298,16 +299,19 @@ export default function OrdersPage() {
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   const { data: orders, isLoading: ordersLoading } = useQuery({
-    queryKey: ["orders", page, ...filterKey],
+    queryKey: ["orders", user?.id, page, ...filterKey],
     queryFn: async () => {
+      if (!user) throw new Error("Not authenticated");
       const from = page * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
       let q = supabase.from("orders").select("*, products:product_id(image_url, category)").order("created_at", { ascending: false });
       q = buildQuery(q);
       q = q.range(from, to);
-      const { data } = await q;
+      const { data, error } = await q;
+      if (error) throw error;
       return data || [];
     },
+    enabled: !!user,
   });
 
   const copyCredentials = (id: string, creds: string) => {
