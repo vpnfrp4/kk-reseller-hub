@@ -110,6 +110,14 @@ const ICON_LIBRARY: IconEntry[] = [
   { name: "system-support", label: "Support", category: "System", url: `${BUCKET_URL}/system-support.png` },
   { name: "system-topup", label: "Topup", category: "System", url: `${BUCKET_URL}/system-topup.png` },
   { name: "system-history", label: "History", category: "System", url: `${BUCKET_URL}/system-history.png` },
+  // Tools
+  { name: "tool-adb", label: "ADB Tool", category: "Tools", url: `${BUCKET_URL}/tool-adb.png` },
+  { name: "tool-fastboot", label: "Fastboot Tool", category: "Tools", url: `${BUCKET_URL}/tool-fastboot.png` },
+  { name: "tool-mtk", label: "MTK Tool", category: "Tools", url: `${BUCKET_URL}/tool-mtk.png` },
+  { name: "tool-qualcomm", label: "Qualcomm Tool", category: "Tools", url: `${BUCKET_URL}/tool-qualcomm.png` },
+  { name: "tool-edl", label: "EDL Mode", category: "Tools", url: `${BUCKET_URL}/tool-edl.png` },
+  { name: "tool-diag", label: "Diag Mode", category: "Tools", url: `${BUCKET_URL}/tool-diag.png` },
+  { name: "tool-usb-debug", label: "USB Debugging", category: "Tools", url: `${BUCKET_URL}/tool-usb-debug.png` },
 ];
 
 const CATEGORIES = [...new Set(ICON_LIBRARY.map((i) => i.category))];
