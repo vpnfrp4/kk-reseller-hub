@@ -133,7 +133,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Right actions */}
             <div className="flex items-center gap-2.5">
               <WalletChip profile={profile} />
-              <NotificationDropdown />
+              {/* <NotificationDropdown /> */}
               <UserAvatar profile={profile} />
 
               {/* Mobile hamburger */}
