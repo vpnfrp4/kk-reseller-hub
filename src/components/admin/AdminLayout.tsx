@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  X,
   Users,
   ShoppingCart,
   ArrowLeftRight,
@@ -24,7 +25,6 @@ import {
   Star,
   FolderOpen,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import AdminNotificationBell from "@/components/admin/AdminNotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
 import SoundToggle from "@/components/shared/SoundToggle";
@@ -78,7 +78,7 @@ const allNavItems = navSections.flatMap((s) => s.items);
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout } = useAuth();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -115,14 +115,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (!user) return;
-    const checkAdmin = async () => {
-      const { data } = await supabase.rpc("has_role", {
-        _user_id: user.id,
-        _role: "admin",
-      });
-      setIsAdmin(!!data);
-    };
-    checkAdmin();
+    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => setIsAdmin(!!data));
   }, [user]);
 
   const expiryChecked = useRef(false);
@@ -175,132 +168,196 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     navigate("/login");
   };
 
-  const currentPage = allNavItems.find((i) => i.path === location.pathname)?.label || "Admin";
+  const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-[100dvh] lg:h-screen flex flex-col lg:flex-row bg-background lg:overflow-hidden">
-      {/* Mobile overlay */}
-      <div
-        className={cn(
-          "fixed inset-0 bg-background/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300",
-          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}
-        onClick={() => setSidebarOpen(false)}
-      />
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 w-[248px] flex flex-col",
-          "bg-card border-r border-border",
-          "transition-transform duration-300 ease-out",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        )}
+    <div className="min-h-[100dvh] flex flex-col bg-background">
+      {/* ═══ TOP BAR ═══ */}
+      <header
+        className="sticky top-0 z-50 border-b border-border"
+        style={{ background: "hsl(var(--card) / 0.9)", backdropFilter: "blur(8px)" }}
       >
-        {/* Logo */}
-        <div className="px-5 py-4 border-b border-border">
-          <Link to="/admin" className="flex items-center gap-3 group">
-            <img
-              src={kkLogo}
-              alt="KKTech"
-              className="w-8 h-8 rounded-lg object-contain transition-transform duration-200 group-hover:scale-105"
-            />
-            <div>
-              <span className="text-sm font-bold text-foreground tracking-tight">KKTech</span>
-              <span className="text-[10px] block text-primary font-semibold uppercase tracking-[0.15em]">Admin Panel</span>
-            </div>
-          </Link>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 px-3 pt-3 pb-2 overflow-y-auto space-y-4">
-          {navSections.map((section) => (
-            <div key={section.label}>
-              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.12em] px-3 mb-1">
-                {section.label}
-              </p>
-              <div className="space-y-0.5">
-                {section.items.map((item) => {
-                  const active = location.pathname === item.path;
-                  const badge = badgeMap[item.path] || 0;
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      onClick={() => setSidebarOpen(false)}
-                      className={cn(
-                        "group relative flex items-center gap-3 h-9 rounded-lg text-[13px]",
-                        "pl-3 pr-3 transition-all duration-150",
-                        active
-                          ? "bg-primary/10 text-primary font-semibold"
-                          : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                      )}
-                    >
-                      {active && (
-                        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-primary" />
-                      )}
-                      <item.icon className={cn("w-4 h-4 shrink-0", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} strokeWidth={1.5} />
-                      <span className="flex-1 truncate">{item.label}</span>
-                      {badge > 0 && (
-                        <span className="min-w-[20px] h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1.5">
-                          {badge}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
+        <div className="w-full max-w-[1220px] mx-auto px-3 sm:px-4">
+          <div className="flex items-center justify-between min-h-[62px]">
+            {/* Brand */}
+            <Link to="/admin" className="inline-flex items-center gap-3 shrink-0">
+              <div className="w-[34px] h-[34px] rounded-[0.9rem] grid place-items-center text-primary-foreground bg-primary shadow-[0_8px_16px_-10px_hsl(var(--primary))]">
+                <img src={kkLogo} alt="KK" className="w-full h-full rounded-[0.9rem] object-contain" />
               </div>
+              <div className="grid gap-[0.06rem]">
+                <strong className="font-display text-base leading-none tracking-[0.02em]">KKTech Panel</strong>
+                <span className="text-[0.72rem] text-muted-foreground leading-none">CarDrive-style Dashboard UI</span>
+              </div>
+            </Link>
+
+            {/* Right actions */}
+            <div className="flex items-center gap-2.5">
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm font-bold font-display text-primary">
+                🛠 Super Admin
+              </span>
+              <SoundToggle />
+              <ThemeToggle />
+              <AdminNotificationBell />
+              <div className="w-[34px] h-[34px] rounded-full bg-accent border border-border grid place-items-center text-xs font-bold font-display text-accent-foreground">
+                A
+              </div>
+
+              {/* Mobile hamburger */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+              >
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
             </div>
-          ))}
-        </nav>
-
-        {/* Footer */}
-        <div className="border-t border-border px-3 py-2 space-y-0.5">
-          <Link
-            to="/dashboard"
-            className="flex items-center gap-3 h-9 pl-3 pr-3 rounded-lg text-[13px] text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all duration-150"
-          >
-            <ArrowLeftRight className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-            Reseller Panel
-          </Link>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-destructive hover:bg-destructive/5 h-9 pl-3 text-[13px] rounded-lg"
-            onClick={handleLogout}
-          >
-            <LogOut className="w-4 h-4 mr-3 shrink-0 text-destructive/60" strokeWidth={1.5} />
-            Sign Out
-          </Button>
+          </div>
         </div>
-      </aside>
+      </header>
 
-      {/* Main Area */}
-      <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        <header className="h-14 border-b border-border flex items-center justify-between px-4 lg:px-6 sticky top-0 z-30 bg-card/95 backdrop-blur-sm">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors">
-              <Menu className="w-5 h-5" strokeWidth={1.5} />
-            </button>
-            <h2 className="text-sm font-semibold text-foreground">{currentPage}</h2>
+      {/* ═══ SHELL: SIDEBAR + CONTENT ═══ */}
+      <div className="w-full max-w-[1220px] mx-auto px-3 sm:px-4 flex-1 grid gap-4 py-4 lg:grid-cols-[var(--sidebar-width,252px)_minmax(0,1fr)]">
+
+        {/* ── Desktop Sidebar ── */}
+        <aside className="hidden lg:block self-start sticky top-[77px]">
+          <div
+            className="border border-border rounded-[1.2rem] overflow-hidden shadow-card"
+            style={{ background: "hsl(var(--card) / 0.82)", backdropFilter: "blur(10px)" }}
+          >
+            <div className="px-4 pt-4 pb-3 border-b border-border">
+              <p className="text-[0.74rem] text-muted-foreground uppercase tracking-[0.12em] font-semibold">
+                Admin Navigation
+              </p>
+            </div>
+            <nav className="p-3 space-y-3 max-h-[calc(100vh-140px)] overflow-y-auto stool-scrollbar">
+              {navSections.map((section) => (
+                <div key={section.label}>
+                  <p className="text-[0.68rem] font-semibold text-muted-foreground uppercase tracking-[0.12em] px-3 mb-1">
+                    {section.label}
+                  </p>
+                  <div className="grid gap-[0.3rem]">
+                    {section.items.map((item) => {
+                      const active = isActive(item.path);
+                      const badge = badgeMap[item.path] || 0;
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          className={cn(
+                            "flex items-center gap-2.5 px-3 py-[0.72rem] rounded-[0.8rem] text-[0.86rem] font-semibold border transition-all duration-200",
+                            active
+                              ? "text-primary border-primary/25 bg-primary/10"
+                              : "text-muted-foreground border-transparent hover:border-input hover:text-foreground hover:bg-secondary"
+                          )}
+                        >
+                          <item.icon className="w-4 h-4 shrink-0" strokeWidth={1.8} />
+                          <span className="flex-1 truncate">{item.label}</span>
+                          {badge > 0 && (
+                            <span className="min-w-[20px] h-5 rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1.5">
+                              {badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {/* Footer links */}
+              <div className="border-t border-border/40 pt-2 mt-2 grid gap-[0.3rem]">
+                <Link
+                  to="/dashboard"
+                  className="flex items-center gap-2.5 px-3 py-[0.72rem] rounded-[0.8rem] text-[0.86rem] font-semibold border border-transparent text-muted-foreground hover:border-input hover:text-foreground hover:bg-secondary transition-all duration-200"
+                >
+                  <ArrowLeftRight className="w-4 h-4 shrink-0" strokeWidth={1.8} />
+                  Reseller Panel
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2.5 px-3 py-[0.72rem] rounded-[0.8rem] text-[0.86rem] font-semibold border border-transparent text-muted-foreground hover:border-destructive/25 hover:text-destructive hover:bg-destructive/5 transition-all duration-200 text-left w-full"
+                >
+                  <LogOut className="w-4 h-4 shrink-0" strokeWidth={1.8} />
+                  Sign Out
+                </button>
+              </div>
+            </nav>
           </div>
-          <div className="flex items-center gap-2">
-            <SoundToggle />
-            <ThemeToggle />
-            <AdminNotificationBell />
-            <span className="text-[10px] uppercase tracking-[0.1em] px-2.5 py-1 rounded-full font-semibold bg-primary/10 text-primary border border-primary/20">
-              Admin
-            </span>
+        </aside>
+
+        {/* ── Mobile Nav Dropdown ── */}
+        {mobileMenuOpen && (
+          <div
+            className="lg:hidden border border-border rounded-[1.2rem] overflow-hidden shadow-card animate-fade-in"
+            style={{ background: "hsl(var(--card) / 0.92)", backdropFilter: "blur(10px)" }}
+          >
+            <nav className="p-3 space-y-2 max-h-[60vh] overflow-y-auto">
+              {navSections.map((section) => (
+                <div key={section.label}>
+                  <p className="text-[0.68rem] font-semibold text-muted-foreground uppercase tracking-[0.12em] px-3 mb-1">
+                    {section.label}
+                  </p>
+                  <div className="grid grid-cols-2 gap-1">
+                    {section.items.map((item) => {
+                      const active = isActive(item.path);
+                      const badge = badgeMap[item.path] || 0;
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={cn(
+                            "flex items-center gap-2 px-3 py-2.5 rounded-[0.8rem] text-sm font-semibold border transition-all",
+                            active
+                              ? "text-primary border-primary/25 bg-primary/10"
+                              : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary"
+                          )}
+                        >
+                          <item.icon className="w-4 h-4 shrink-0" strokeWidth={1.8} />
+                          <span className="truncate">{item.label}</span>
+                          {badge > 0 && (
+                            <span className="min-w-[18px] h-4 rounded-full bg-destructive text-destructive-foreground text-[9px] font-bold flex items-center justify-center px-1">
+                              {badge}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+              <div className="border-t border-border/40 pt-2 grid grid-cols-2 gap-1">
+                <Link
+                  to="/dashboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-[0.8rem] text-sm font-semibold text-primary border border-transparent hover:bg-primary/5 transition-all"
+                >
+                  <ArrowLeftRight className="w-4 h-4" strokeWidth={1.8} />
+                  Reseller Panel
+                </Link>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-[0.8rem] text-sm font-semibold text-destructive border border-transparent hover:bg-destructive/5 transition-all text-left"
+                >
+                  <LogOut className="w-4 h-4" strokeWidth={1.8} />
+                  Sign Out
+                </button>
+              </div>
+            </nav>
           </div>
-        </header>
+        )}
 
-        <main className="flex-1 p-4 lg:p-6 overflow-y-auto" data-scroll-area style={{ WebkitOverflowScrolling: 'touch' as any }}>{children}</main>
-
-        <footer className="border-t border-border px-4 lg:px-6 py-3 text-center">
-          <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors duration-200">
-            Terms and Conditions
-          </Link>
-        </footer>
+        {/* ── Main Content ── */}
+        <main className="min-w-0 pb-4" data-scroll-area>
+          {children}
+        </main>
       </div>
+
+      {/* Footer */}
+      <footer className="w-full max-w-[1220px] mx-auto px-3 sm:px-4 py-3 text-right">
+        <Link to="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+          © {new Date().getFullYear()} KKTech Dashboard Theme
+        </Link>
+      </footer>
     </div>
   );
 }
