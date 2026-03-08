@@ -494,7 +494,7 @@ html {
 
   .btn-glow:hover {
     filter: brightness(1.05);
-    box-shadow: 0 4px 14px rgba(37, 99, 180, 0.25);
+    box-shadow: 0 11px 20px -14px hsl(var(--primary));
     transform: translateY(-1px);
   }
 
