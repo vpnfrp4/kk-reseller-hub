@@ -1290,6 +1290,13 @@ html {
   .cd-form-grid {
     grid-template-columns: 1fr;
   }
+  .cd-services-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dark .cd-service-card {
+  background: hsl(var(--card) / 0.92);
 }
 
 @layer utilities {
