@@ -73,15 +73,10 @@ export default function PlaceOrderPage() {
   return (
     <PageContainer maxWidth="max-w-5xl">
       {/* ═══ HEADER ═══ */}
-      <div className="page-header-card mb-4 lg:mb-6">
-        <div className="flex items-center gap-3.5">
-          <div className="page-header-icon hidden lg:flex">
-            <ShoppingCart className="w-5 h-5 text-primary" />
-          </div>
-          <div>
-            <h1 className="gradient-text text-lg lg:text-xl">Place Order</h1>
-            <p className="page-header-subtitle hidden sm:block">Browse categories and order services</p>
-          </div>
+      <div className="cd-page-head cd-reveal mb-4 lg:mb-6">
+        <div>
+          <h1 className="gradient-text">Place Order</h1>
+          <p className="hidden sm:block">Browse categories and order services</p>
         </div>
       </div>
 

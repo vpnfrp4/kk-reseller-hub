@@ -366,13 +366,13 @@ export default function AdminOverview() {
   return (
     <PageContainer>
       {/* ═══ 1. CONTROL OVERVIEW HERO ═══ */}
-      <div className="animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-tight mb-default">
+      <div className="cd-reveal">
+        <div className="cd-page-head mb-default">
           <div>
-            <h1 className="text-xl font-bold text-foreground tracking-tight">Control Center</h1>
-            <p className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] mt-micro">Financial & Operations Overview</p>
+            <h1>Control Center</h1>
+            <p>Financial & Operations Overview</p>
           </div>
-          <div className="flex items-center gap-tight">
+          <div className="cd-page-head-actions">
             <Link to="/admin/credentials">
               <Button size="sm" className="gap-1.5 h-8 text-xs">
                 <Plus className="w-3.5 h-3.5" />Credentials
@@ -391,7 +391,7 @@ export default function AdminOverview() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-default">
+        <div className="cd-kpi-grid">
           <HeroStat label="Wallet Liability" value={stats?.walletLiability || 0} icon={AlertTriangle} iconColor="text-warning" featured sparkData={sparkTopup} delay={0} />
           <HeroStat label="Revenue (30d)" value={stats?.monthRevenue || 0} icon={Wallet} iconColor="text-success" sparkData={sparkRevenue} delay={0.08} />
           <HeroStat label="Pending Top-ups" value={stats?.pendingTopups || 0} icon={Clock} iconColor="text-ice" suffix="" delay={0.16} />
@@ -412,7 +412,7 @@ export default function AdminOverview() {
       </div>
 
       {/* ═══ 2b. COLLAPSIBLE ACTION SECTIONS ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-default">
+      <div className="cd-section-grid">
         {/* Pending Orders */}
         <CollapsibleSection
           title="Orders Pending Review"

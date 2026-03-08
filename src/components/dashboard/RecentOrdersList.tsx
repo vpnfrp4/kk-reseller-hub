@@ -16,10 +16,10 @@ export default function RecentOrdersList({ orders, loading }: RecentOrdersListPr
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-3">
+      <div className="cd-section-title">
         <div className="flex items-center gap-2">
           <div className="w-1 h-5 rounded-full bg-gradient-to-b from-primary to-success" />
-          <h2 className="text-sm lg:text-base font-bold text-foreground">Recent Orders</h2>
+          <h2>Recent Orders</h2>
         </div>
         <button
           onClick={() => navigate("/dashboard/orders")}

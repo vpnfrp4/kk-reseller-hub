@@ -84,10 +84,10 @@ export default function PopularServices() {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
+      <div className="cd-section-title">
         <div className="flex items-center gap-2">
           <div className="w-1 h-5 rounded-full bg-gradient-to-b from-primary to-accent" />
-          <h2 className="text-sm lg:text-base font-bold text-foreground">Popular Services</h2>
+          <h2>Popular Services</h2>
         </div>
         <button
           onClick={() => navigate("/dashboard/place-order")}
