@@ -23,6 +23,7 @@ import {
   Clock,
   Hash,
   Shield,
+  ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -62,6 +63,112 @@ interface IFreeResult {
   [key: string]: unknown;
 }
 
+/* ═══ RESILIENT FLOW TYPES ═══ */
+interface NormalizedResult {
+  status: "verified" | "manual_review";
+  imei: string;
+  service_name: string;
+  summary: string;
+  provider_payload: Record<string, unknown>;
+  charged: number;
+  /* pass-through for existing card */
+  response?: string;
+  account_balance?: string | number;
+  error?: string;
+  error_code?: string;
+  order_id?: string;
+  charge_error?: string;
+}
+
+/* ═══ LUHN VALIDATOR ═══ */
+function isImeiLuhnValid(imei: string): boolean {
+  if (!/^\d{15}$/.test(imei)) return false;
+  let sum = 0;
+  for (let i = 0; i < 15; i++) {
+    let d = parseInt(imei[i], 10);
+    if (i % 2 === 1) { d *= 2; if (d > 9) d -= 9; }
+    sum += d;
+  }
+  return sum % 10 === 0;
+}
+
+/* ═══ RESULT NORMALIZER ═══ */
+function normalizeImeiCheckResult(
+  raw: Record<string, unknown>,
+  imei: string,
+  serviceName: string
+): NormalizedResult {
+  const data = raw && typeof raw === "object" ? raw : {};
+
+  const hasPositivePayload =
+    Boolean(data.response && String(data.response).trim()) ||
+    Boolean(data.status && String(data.status).toLowerCase() === "success") ||
+    Object.keys(data).some((key) => !["error", "error_code", "status", "charged"].includes(key) && data[key] !== null);
+
+  const code = String(data.error_code || "").toUpperCase();
+  const message = String(data.error || data.message || "").toLowerCase();
+  const notFoundLike =
+    code.includes("NOT_FOUND") || code.includes("SERVICE_NOT_FOUND") ||
+    message.includes("not found") || message.includes("device not found");
+  const processingLike = String(data.status || "").toLowerCase() === "processing";
+
+  if (hasPositivePayload && !data.error && !processingLike) {
+    return {
+      status: "verified",
+      imei,
+      service_name: serviceName,
+      summary: "IMEI check completed successfully.",
+      provider_payload: data,
+      charged: Number(data.charged || 0),
+      response: data.response as string | undefined,
+      account_balance: data.account_balance as string | number | undefined,
+      order_id: data.order_id as string | undefined,
+      charge_error: data.charge_error as string | undefined,
+    };
+  }
+
+  return {
+    status: "manual_review",
+    imei,
+    service_name: serviceName,
+    summary: notFoundLike
+      ? "Auto check did not find this device. Your request moved to manual verification."
+      : processingLike
+        ? "Provider is still processing. Moved to manual verification queue."
+        : "Auto provider unavailable. Request accepted for manual verification.",
+    provider_payload: data,
+    charged: Number(data.charged || 0),
+    error: data.error as string | undefined,
+    error_code: data.error_code as string | undefined,
+    response: data.response as string | undefined,
+    account_balance: data.account_balance as string | undefined,
+    charge_error: data.charge_error as string | undefined,
+  };
+}
+
+/* ═══ RETRY INVOKER ═══ */
+async function invokeImeiCheckWithRetry(
+  body: Record<string, string>,
+  maxRetries = 2
+): Promise<Record<string, unknown>> {
+  let attempt = 0;
+  let lastError: Error | null = null;
+
+  while (attempt <= maxRetries) {
+    try {
+      const { data, error } = await supabase.functions.invoke("check-ifree", { body });
+      if (error) throw new Error(error.message || "IMEI check edge error");
+      return data as Record<string, unknown>;
+    } catch (err: any) {
+      lastError = err;
+      attempt++;
+      if (attempt > maxRetries) break;
+      await new Promise((r) => setTimeout(r, 450 * attempt));
+    }
+  }
+  throw lastError || new Error("IMEI provider unavailable");
+}
+
 function formatTimeAgo(date: Date): string {
   const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
   if (seconds < 60) return "just now";
@@ -80,19 +187,19 @@ const IFreeImeiCheck = forwardRef<IFreeImeiCheckHandle>(function IFreeImeiCheck(
   const [imei, setImei] = useState("");
   const [serviceId, setServiceId] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<IFreeResult | null>(null);
+  const [result, setResult] = useState<NormalizedResult | null>(null);
   const [services, setServices] = useState<IFreeService[]>([]);
   const [servicesLoading, setServicesLoading] = useState(true);
   const [servicesSource, setServicesSource] = useState<string>("");
   const [serviceOpen, setServiceOpen] = useState(false);
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useImperativeHandle(ref, () => ({
     prefill: (newImei: string, newServiceId?: string) => {
       setImei(newImei);
       if (newServiceId) setServiceId(newServiceId);
       setResult(null);
-      // Scroll to top of form
       document.getElementById("imei-check-form")?.scrollIntoView({ behavior: "smooth", block: "center" });
     },
   }));
@@ -164,101 +271,126 @@ const IFreeImeiCheck = forwardRef<IFreeImeiCheckHandle>(function IFreeImeiCheck(
     fetchServices();
   }, []);
 
+  /* ═══ RESILIENT IMEI CHECK ═══ */
   const handleCheck = async () => {
-    if (!imei.trim()) {
-      toast.error("Please enter an IMEI number");
-      return;
-    }
-    if (!serviceId) {
-      toast.error("Please select a service");
-      return;
-    }
+    if (!imei.trim()) { toast.error("Please enter an IMEI number"); return; }
+    if (!serviceId) { toast.error("Please select a service"); return; }
 
     const cleanImei = imei.replace(/\D/g, "").trim();
-    if (cleanImei.length !== 15) {
-      toast.error("IMEI must be exactly 15 digits");
-      return;
-    }
+    if (cleanImei.length !== 15) { toast.error("IMEI must be exactly 15 digits"); return; }
 
     setLoading(true);
     setResult(null);
+    setRetryCount(0);
 
+    let rawResult: Record<string, unknown>;
     try {
-      const { data, error } = await supabase.functions.invoke("check-ifree", {
-        body: {
+      rawResult = await invokeImeiCheckWithRetry(
+        {
           imei: cleanImei,
           serviceId: String(serviceId).trim(),
           serviceName: selectedService?.name || "",
         },
-      });
-      if (error) throw new Error(error.message);
-
-      const res = data as IFreeResult;
-      setResult(res);
-
-      if (res.charged && res.charged > 0) {
-        toast.success(`Charged ${res.charged.toLocaleString()} MMK for IMEI check`);
-        queryClient.invalidateQueries({ queryKey: ["profile"] });
-        queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-        queryClient.invalidateQueries({ queryKey: ["wallet"] });
-        queryClient.invalidateQueries({ queryKey: ["orders"] });
-        queryClient.invalidateQueries({ queryKey: ["ifree-check-history"] });
-      }
-
-      if (res.charge_error) {
-        toast.warning(res.charge_error);
-      }
+        2
+      );
     } catch (err: any) {
-      toast.error(err.message || "Check failed");
-      setResult({ error: err.message || "Check failed" });
-    } finally {
-      setLoading(false);
+      // Provider completely unavailable → manual_review fallback
+      rawResult = {
+        status: "error",
+        error: err?.message || "Temporary provider connection issue",
+        error_code: "PROVIDER_UNAVAILABLE",
+      };
     }
+
+    const normalized = normalizeImeiCheckResult(
+      rawResult,
+      cleanImei,
+      selectedService?.name || ""
+    );
+
+    setResult(normalized);
+
+    // Log to ifree_checks
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.id) {
+        await supabase.from("ifree_checks").insert({
+          user_id: user.id,
+          imei: cleanImei,
+          service_id: String(serviceId),
+          service_name: selectedService?.name || "",
+          response_text: JSON.stringify(normalized.provider_payload || {}),
+          success: normalized.status === "verified",
+        });
+      }
+    } catch {
+      // Ignore history write failure
+    }
+
+    if (normalized.charged && normalized.charged > 0) {
+      toast.success(`Charged ${normalized.charged.toLocaleString()} MMK for IMEI check`);
+    }
+    if (normalized.charge_error) {
+      toast.warning(normalized.charge_error);
+    }
+
+    queryClient.invalidateQueries({ queryKey: ["profile"] });
+    queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+    queryClient.invalidateQueries({ queryKey: ["wallet"] });
+    queryClient.invalidateQueries({ queryKey: ["orders"] });
+    queryClient.invalidateQueries({ queryKey: ["ifree-check-history"] });
+
+    setLoading(false);
   };
 
   const parsedResponse = useMemo(() => {
     if (!result) return [];
-    if (!result.response && !result.error && typeof result === "object") {
-      const beta = parseSickwBetaResult(result as Record<string, unknown>);
+    const payload = result.provider_payload || result;
+    if (!(payload as any).response && !(payload as any).error && typeof payload === "object") {
+      const beta = parseSickwBetaResult(payload as Record<string, unknown>);
       if (beta.length > 0) return beta;
     }
-    if (!result.response) return [];
-    return parseIfreeResponse(result.response);
+    if (!(payload as any).response) return [];
+    return parseIfreeResponse((payload as any).response);
   }, [result]);
-
-  const isServiceError = result?.error_code === "SERVICE_NOT_FOUND";
-  const isBalanceError = result?.error_code === "INSUFFICIENT_BALANCE" || result?.error_code === "USER_INSUFFICIENT_BALANCE";
-  const isApiKeyError = result?.error_code === "INVALID_API_KEY" || result?.error_code === "NO_API_KEY";
-  const isAuthError = result?.error_code === "AUTH_REQUIRED";
-
-  const getErrorIcon = () => {
-    if (isBalanceError) return <Wallet className="w-4 h-4 text-destructive shrink-0 mt-0.5" />;
-    return <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />;
-  };
-
-  const getErrorTitle = () => {
-    if (isServiceError) return "Service Not Found";
-    if (isBalanceError) return "Insufficient Balance";
-    if (isApiKeyError) return "API Configuration Error";
-    if (isAuthError) return "Session Expired";
-    return "Check Failed";
-  };
 
   const imeiDigits = imei.replace(/\D/g, "");
   const isImeiComplete = imeiDigits.length === 15;
+  const luhnOk = isImeiComplete ? isImeiLuhnValid(imeiDigits) : null;
+
+  const isVerified = result?.status === "verified";
+  const isManualReview = result?.status === "manual_review";
+  const isBalanceError = result?.error_code === "INSUFFICIENT_BALANCE" || result?.error_code === "USER_INSUFFICIENT_BALANCE";
+  const isApiKeyError = result?.error_code === "INVALID_API_KEY" || result?.error_code === "NO_API_KEY";
 
   return (
     <div className="space-y-6">
-      {/* ═══ PAGE HEADER CARD ═══ */}
-      <div className="page-header-card">
+      {/* ═══ HERO STATUS CARD ═══ */}
+      <div className="imei-hero-card rounded-[var(--radius-card)] border border-border/50 p-5 sm:p-6">
         <div className="flex items-center gap-4">
           <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center shadow-[0_0_20px_-4px_hsl(var(--primary)/0.3)]">
             <Shield className="w-5 h-5 text-primary" />
           </div>
-          <div>
+          <div className="flex-1">
             <h1 className="text-lg sm:text-xl font-bold text-foreground tracking-tight">IMEI Check</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Lookup device information using IMEI services</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Resilient IMEI check — provider failures auto-route to manual verification
+            </p>
           </div>
+        </div>
+
+        <div className="imei-meta-row mt-4">
+          <span className="imei-source-chip">
+            Source: {servicesSource || "loading"}
+          </span>
+          <span className="text-[11px] text-muted-foreground">
+            {services.length} services available
+          </span>
+          {lastSynced && (
+            <span className="text-[10px] text-muted-foreground/50">
+              Synced {formatTimeAgo(lastSynced)}
+            </span>
+          )}
         </div>
       </div>
 
@@ -357,7 +489,7 @@ const IFreeImeiCheck = forwardRef<IFreeImeiCheckHandle>(function IFreeImeiCheck(
               </PopoverContent>
             </Popover>
 
-            {/* Service status */}
+            {/* Service status badges */}
             {services.length > 0 && (
               <div className="flex items-center gap-2.5">
                 <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-primary/8 text-[10px] font-semibold text-primary border border-primary/10">
@@ -371,10 +503,6 @@ const IFreeImeiCheck = forwardRef<IFreeImeiCheckHandle>(function IFreeImeiCheck(
                         ? "bg-warning animate-pulse"
                         : "bg-success"
                     )} />
-                    <span className="sr-only">
-                      {servicesSource === "cache" || servicesSource === "fallback" ? "Cached data" : "Live data — updated in real-time"}
-                    </span>
-                    {/* Tooltip */}
                     <span className="absolute bottom-full left-0 mb-1.5 hidden group-hover:block whitespace-nowrap px-2.5 py-1 rounded-lg bg-popover border border-border text-[10px] text-popover-foreground shadow-md z-50">
                       {servicesSource === "cache" || servicesSource === "fallback" ? "Cached data" : "Live data — updated in real-time"}
                     </span>
@@ -415,9 +543,20 @@ const IFreeImeiCheck = forwardRef<IFreeImeiCheckHandle>(function IFreeImeiCheck(
                 {imeiDigits.length} / 15
               </div>
             </div>
-            <p className="text-[10px] text-muted-foreground/50">
-              Dial <span className="font-mono font-bold text-muted-foreground">*#06#</span> on any phone to find its IMEI
-            </p>
+            {/* Luhn + hint row */}
+            <div className="imei-hints flex items-center justify-between">
+              <span className="text-[10px] text-muted-foreground/50">
+                Dial <span className="font-mono font-bold text-muted-foreground">*#06#</span> to find IMEI
+              </span>
+              {isImeiComplete && (
+                <span className={cn(
+                  "text-[10px] font-bold",
+                  luhnOk ? "text-success" : "text-warning"
+                )}>
+                  {luhnOk ? "✓ Luhn valid" : "⚠ Luhn unusual"}
+                </span>
+              )}
+            </div>
           </div>
 
           {/* ── Submit Button ── */}
@@ -433,9 +572,9 @@ const IFreeImeiCheck = forwardRef<IFreeImeiCheckHandle>(function IFreeImeiCheck(
             )}
           >
             {loading ? (
-              <><Loader2 className="w-4 h-4 animate-spin" /> Checking...</>
+              <><Loader2 className="w-4 h-4 animate-spin" /> Checking (with auto-retry)...</>
             ) : (
-              <><Search className="w-4 h-4" /> Check IMEI</>
+              <><Search className="w-4 h-4" /> Run IMEI Check</>
             )}
           </Button>
         </div>
@@ -451,19 +590,18 @@ const IFreeImeiCheck = forwardRef<IFreeImeiCheckHandle>(function IFreeImeiCheck(
             >
               <div className="flex items-center gap-2 animate-pulse">
                 <div className="w-4 h-4 rounded-full bg-primary/20" />
-                <div className="h-3 w-24 rounded-lg bg-muted-foreground/15" />
+                <div className="h-3 w-32 rounded-lg bg-muted-foreground/15" />
               </div>
               <div className="rounded-2xl bg-secondary/30 border border-border/30 p-5 space-y-3 animate-pulse">
                 <div className="h-3 w-full rounded-lg bg-muted-foreground/10" />
                 <div className="h-3 w-4/5 rounded-lg bg-muted-foreground/10" />
                 <div className="h-3 w-3/5 rounded-lg bg-muted-foreground/10" />
-                <div className="h-3 w-2/3 rounded-lg bg-muted-foreground/10" />
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* ═══ Result ═══ */}
+        {/* ═══ RESULT ═══ */}
         <AnimatePresence>
           {result && !loading && (
             <motion.div
@@ -473,95 +611,122 @@ const IFreeImeiCheck = forwardRef<IFreeImeiCheckHandle>(function IFreeImeiCheck(
               transition={{ duration: 0.3 }}
               className="border-t border-border/50 px-5 sm:px-6 py-6 space-y-4"
             >
-              {/* Processing state */}
-              {(result as any).status === "processing" ? (
-                <>
-                  <div className="flex items-start gap-3 rounded-2xl bg-primary/5 border border-primary/15 p-4">
-                    <Loader2 className="w-4 h-4 text-primary shrink-0 mt-0.5 animate-spin" />
-                    <div className="flex-1">
-                      <p className="text-xs font-bold text-primary">Processing</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {result.response || "Your request is being processed by the provider. Please check back shortly."}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleCheck}
-                    disabled={loading}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-primary/30 bg-primary/5 hover:bg-primary/10 text-xs font-bold text-primary transition-all duration-200"
-                  >
-                    <RotateCcw className="w-3.5 h-3.5" />
-                    Check Again
-                  </button>
-                </>
-              ) : (result.error || (result as any).status === "error" || result.response === "") ? (
-                <>
-                  <div className="flex items-start gap-3 rounded-2xl bg-destructive/8 border border-destructive/15 p-4">
-                    {getErrorIcon()}
-                    <div className="flex-1">
-                      <p className="text-xs font-bold text-destructive">{getErrorTitle()}</p>
-                      <p className="text-xs text-destructive/80 mt-0.5">
-                        {result.error || "The service returned an error. Please verify the IMEI and service selection, then try again."}
-                      </p>
-                      {result.error_code && (
-                        <p className="text-[10px] text-destructive/50 mt-1.5 font-mono">Code: {result.error_code}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleCheck}
-                      disabled={loading}
-                      className="flex items-center justify-center gap-2 flex-1 py-3 rounded-2xl border border-border bg-secondary/50 hover:bg-secondary text-xs font-bold text-muted-foreground hover:text-foreground transition-all duration-200"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      Retry Check
-                    </button>
-
-                    {(isServiceError || result.error_code === "PROVIDER_ERROR") && (
-                      <button
-                        onClick={() => {
-                          setServiceId("");
-                          setResult(null);
-                          fetchServices();
-                        }}
-                        className="flex items-center justify-center gap-2 flex-1 py-3 rounded-2xl border border-primary/30 bg-primary/5 hover:bg-primary/10 text-xs font-bold text-primary transition-all duration-200"
-                      >
-                        <ListRestart className="w-3.5 h-3.5" />
-                        Refresh Services
-                      </button>
-                    )}
-                  </div>
-                </>
-              ) : (
-                <>
-                  <ImeiResultCard
-                    result={result as Record<string, unknown>}
-                    imei={imei}
-                    serviceName={selectedService?.name || "Unknown Service"}
-                    orderId={result.order_id}
-                    charged={result.charged}
-                  />
-
-                  {result.account_balance !== undefined && (
-                    <div className="flex items-center gap-3 rounded-2xl bg-primary/5 border border-primary/15 px-4 py-3">
-                      <Wallet className="w-4 h-4 text-primary" />
-                      <span className="text-xs text-muted-foreground">API Balance:</span>
-                      <span className="text-sm font-bold font-mono text-foreground">{result.account_balance}</span>
-                    </div>
+              {/* ── Status Banner ── */}
+              <div className={cn(
+                "imei-result-banner rounded-2xl border p-4 text-sm leading-relaxed",
+                isVerified
+                  ? "bg-success/8 border-success/20 text-success"
+                  : "bg-accent border-accent text-accent-foreground"
+              )}>
+                <div className="flex items-start gap-3">
+                  {isVerified ? (
+                    <CheckCircle2 className="w-5 h-5 shrink-0 mt-0.5" />
+                  ) : (
+                    <ShieldAlert className="w-5 h-5 shrink-0 mt-0.5" />
                   )}
+                  <div>
+                    <p className="font-bold text-xs uppercase tracking-wider mb-1">
+                      {isVerified ? "Verified" : "Manual Review"}
+                    </p>
+                    <p className="text-xs opacity-90">{result.summary}</p>
+                  </div>
+                </div>
+              </div>
 
-                  <button
-                    onClick={handleCheck}
-                    disabled={loading}
-                    className="flex items-center justify-center gap-2 w-full py-3 rounded-2xl border border-border bg-secondary/50 hover:bg-secondary text-xs font-bold text-muted-foreground hover:text-foreground transition-all duration-200"
-                  >
-                    <RefreshCw className="w-3.5 h-3.5" />
-                    Re-check IMEI
-                  </button>
-                </>
+              {/* ── Quick Info Row ── */}
+              <div className="grid grid-cols-3 gap-3">
+                <div className="rounded-xl bg-secondary/30 border border-border/30 p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mb-1">Service</p>
+                  <p className="text-xs font-semibold text-foreground truncate">{result.service_name || "-"}</p>
+                </div>
+                <div className="rounded-xl bg-secondary/30 border border-border/30 p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mb-1">IMEI</p>
+                  <p className="text-xs font-mono font-semibold text-foreground">{result.imei || "-"}</p>
+                </div>
+                <div className="rounded-xl bg-secondary/30 border border-border/30 p-3 text-center">
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold mb-1">Charged</p>
+                  <p className="text-xs font-mono font-semibold text-foreground">{result.charged ? `${result.charged.toLocaleString()} MMK` : "—"}</p>
+                </div>
+              </div>
+
+              {/* ── Verified: show full result card ── */}
+              {isVerified && (
+                <ImeiResultCard
+                  result={result.provider_payload as Record<string, unknown>}
+                  imei={imei}
+                  serviceName={selectedService?.name || "Unknown Service"}
+                  orderId={result.order_id}
+                  charged={result.charged}
+                />
               )}
+
+              {/* ── Manual Review: show helpful message ── */}
+              {isManualReview && !isBalanceError && !isApiKeyError && (
+                <div className="flex items-start gap-3 rounded-2xl bg-primary/5 border border-primary/15 p-4">
+                  <Clock className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-primary">Queued for Manual Verification</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Our team will process this check manually. Results are usually delivered within 1-24 hours.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* ── Balance/API errors ── */}
+              {isBalanceError && (
+                <div className="flex items-start gap-3 rounded-2xl bg-destructive/8 border border-destructive/15 p-4">
+                  <Wallet className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-destructive">Insufficient Balance</p>
+                    <p className="text-xs text-destructive/80 mt-0.5">{result.error}</p>
+                  </div>
+                </div>
+              )}
+
+              {isApiKeyError && (
+                <div className="flex items-start gap-3 rounded-2xl bg-destructive/8 border border-destructive/15 p-4">
+                  <AlertTriangle className="w-4 h-4 text-destructive shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs font-bold text-destructive">API Configuration Error</p>
+                    <p className="text-xs text-destructive/80 mt-0.5">{result.error}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* API Balance */}
+              {result.account_balance !== undefined && (
+                <div className="flex items-center gap-3 rounded-2xl bg-primary/5 border border-primary/15 px-4 py-3">
+                  <Wallet className="w-4 h-4 text-primary" />
+                  <span className="text-xs text-muted-foreground">API Balance:</span>
+                  <span className="text-sm font-bold font-mono text-foreground">{result.account_balance}</span>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleCheck}
+                  disabled={loading}
+                  className="flex items-center justify-center gap-2 flex-1 py-3 rounded-2xl border border-border bg-secondary/50 hover:bg-secondary text-xs font-bold text-muted-foreground hover:text-foreground transition-all duration-200"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  {isVerified ? "Re-check IMEI" : "Retry Check"}
+                </button>
+                {isManualReview && (
+                  <button
+                    onClick={() => {
+                      setServiceId("");
+                      setResult(null);
+                      fetchServices();
+                    }}
+                    className="flex items-center justify-center gap-2 flex-1 py-3 rounded-2xl border border-primary/30 bg-primary/5 hover:bg-primary/10 text-xs font-bold text-primary transition-all duration-200"
+                  >
+                    <ListRestart className="w-3.5 h-3.5" />
+                    Try Different Service
+                  </button>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
