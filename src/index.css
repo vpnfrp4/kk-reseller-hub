@@ -254,32 +254,30 @@ html {
     font-family: 'JetBrains Mono', monospace;
   }
 
-  /* Subtle ambient gradient — much lighter than before */
+  /* CarDrive-style ambient background with grid */
   body::before {
     content: '';
     position: fixed;
-    top: -25%;
-    left: -20%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, var(--ambient-blob-1), transparent 65%);
-    filter: blur(120px);
+    inset: 0;
+    z-index: -1;
     pointer-events: none;
-    border-radius: 50%;
-    z-index: 0;
+    background:
+      radial-gradient(circle at 12% 16%, var(--ambient-blob-1), transparent 35%),
+      radial-gradient(circle at 89% 8%, var(--ambient-blob-2), transparent 43%),
+      radial-gradient(circle at 40% 85%, var(--ambient-blob-3, transparent), transparent 36%),
+      hsl(var(--background));
   }
   body::after {
     content: '';
     position: fixed;
-    bottom: -25%;
-    right: -20%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, var(--ambient-blob-2), transparent 65%);
-    filter: blur(120px);
+    inset: 0;
+    z-index: -1;
     pointer-events: none;
-    border-radius: 50%;
-    z-index: 0;
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.18) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.18) 1px, transparent 1px);
+    background-size: 42px 42px;
+    opacity: 0.45;
   }
 
   @keyframes slideUpFade {
