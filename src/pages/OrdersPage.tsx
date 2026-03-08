@@ -585,7 +585,7 @@ export default function OrdersPage() {
                       className={cn(
                         "border-b border-border/10 transition-all duration-300 group cursor-pointer",
                         "hover:bg-muted/30",
-                        highlightedIds.has(row.id) && "bg-primary/10 ring-1 ring-inset ring-primary/20",
+                        highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] bg-primary/8 ring-1 ring-inset ring-primary/25",
                         expandedId === row.id && "bg-muted/20",
                       )}
                       style={{ animationDelay: `${idx * 30}ms` }}
