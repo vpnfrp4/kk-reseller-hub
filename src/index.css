@@ -38,8 +38,8 @@ html {
     --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 
-    /* ═══ LIGHT THEME — MFTBOOST Clean White/Navy ═══ */
-    --background: 210 20% 98%;
+    /* ═══ LIGHT THEME — CarDrive Orange/Warm ═══ */
+    --background: 210 40% 98%;
     --foreground: 215 28% 17%;
 
     --card: 0 0% 100%;
@@ -48,63 +48,70 @@ html {
     --popover: 0 0% 100%;
     --popover-foreground: 215 28% 17%;
 
-    --primary: 215 72% 47%;
+    --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 215 65% 55%;
+    --primary-glow: 30 90% 58%;
 
-    --secondary: 210 16% 95%;
+    --secondary: 210 40% 96%;
     --secondary-foreground: 215 28% 17%;
 
-    --muted: 210 16% 95%;
-    --muted-foreground: 215 14% 46%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 215 72% 47%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 30 100% 95%;
+    --accent-foreground: 24 95% 30%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 350 80% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 14% 89%;
-    --input: 210 14% 89%;
-    --ring: 215 72% 47%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 24 95% 53%;
 
-    --success: 152 56% 42%;
+    --success: 152 60% 42%;
     --success-foreground: 0 0% 100%;
+    --success-light: 152 60% 94%;
+    --success-border: 152 50% 82%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
     --ice: 199 80% 48%;
     --ice-foreground: 0 0% 100%;
     --gold: 38 92% 50%;
+    --fail: 350 80% 55%;
+    --fail-light: 350 80% 95%;
+    --fail-border: 350 60% 85%;
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 215 28% 17%;
-    --sidebar-primary: 215 72% 47%;
+    --sidebar-primary: 24 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 16% 95%;
+    --sidebar-accent: 210 40% 96%;
     --sidebar-accent-foreground: 215 28% 17%;
-    --sidebar-border: 210 14% 91%;
-    --sidebar-ring: 215 72% 47%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 24 95% 53%;
+    --sidebar-width: 252px;
 
-    --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px -4px rgba(0,0,0,0.06);
-    --shadow-elevated: 0 8px 30px -8px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-card: 0 18px 28px -24px hsl(215 28% 17% / 0.4);
+    --shadow-elevated: 0 20px 30px -24px hsl(215 28% 17% / 0.35);
     --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.9);
-    --shadow-header: 0 1px 0 hsl(210 14% 91%), 0 2px 8px -2px rgba(0,0,0,0.04);
-    --shadow-glow: 0 0 20px rgba(37, 99, 180, 0.08);
+    --shadow-header: 0 1px 0 hsl(214 32% 91%), 0 2px 8px -2px rgba(0,0,0,0.04);
+    --shadow-glow: 0 0 20px hsl(24 95% 53% / 0.1);
 
-    --glass-bg: hsla(210, 16%, 98%, 0.9);
-    --glass-border: rgba(37, 99, 180, 0.08);
-    --ambient-blob-1: hsl(215 72% 47% / 0.02);
-    --ambient-blob-2: hsl(199 80% 48% / 0.01);
-    --wallet-hero-from: 210 16% 98%;
-    --wallet-hero-to: 210 16% 95%;
-    --wallet-hero-blob: hsl(215 72% 47% / 0.05);
+    --glass-bg: hsla(210, 40%, 98%, 0.9);
+    --glass-border: hsl(24 95% 53% / 0.08);
+    --ambient-blob-1: hsl(214 100% 94% / 0.95);
+    --ambient-blob-2: hsl(30 100% 91% / 0.88);
+    --ambient-blob-3: hsl(152 65% 90% / 0.62);
+    --wallet-hero-from: 210 40% 98%;
+    --wallet-hero-to: 210 40% 96%;
+    --wallet-hero-blob: hsl(24 95% 53% / 0.05);
     --gold-gradient: linear-gradient(135deg, hsl(38 92% 50%), hsl(45 100% 50%), hsl(38 92% 45%));
 
-    --gradient-primary: linear-gradient(135deg, hsl(215 72% 47%), hsl(215 65% 55%));
-    --gradient-surface: linear-gradient(135deg, hsl(210 20% 98%), hsl(210 20% 96%));
+    --gradient-primary: linear-gradient(135deg, hsl(24 95% 53%), hsl(30 90% 58%));
+    --gradient-surface: linear-gradient(135deg, hsl(210 40% 98%), hsl(210 40% 96%));
 
-    --chart-1: 215 72% 47%;
-    --chart-2: 152 56% 42%;
+    --chart-1: 24 95% 53%;
+    --chart-2: 152 60% 42%;
     --chart-3: 38 92% 50%;
     --chart-4: 270 55% 55%;
     --chart-5: 340 60% 55%;
@@ -119,6 +126,9 @@ html {
 
     --sidebar: 0 0% 100%;
     --spacing: 0.25rem;
+
+    --font-display: "Space Grotesk", "Noto Sans Myanmar", "Segoe UI", sans-serif;
+    --font-body: "Noto Sans Myanmar", "Space Grotesk", "Segoe UI", sans-serif;
   }
 
   .dark {
