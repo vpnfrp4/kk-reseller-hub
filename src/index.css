@@ -867,6 +867,337 @@ html {
   .label-active { color: hsl(var(--primary)); background: hsl(var(--primary) / 0.1); }
   .label-instant { color: hsl(var(--success)); background: hsl(var(--success) / 0.1); }
   .label-manual { color: hsl(var(--warning)); background: hsl(var(--warning) / 0.1); }
+
+  /* ─── CarDrive Page Head (glassmorphic title bar) ─── */
+  .cd-page-head {
+    border: 1px solid hsl(var(--border));
+    border-radius: 1.2rem;
+    padding: 1rem 1.1rem;
+    background: hsl(var(--card) / 0.86);
+    backdrop-filter: blur(8px);
+    box-shadow: var(--shadow-elevated);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .cd-page-head h1 {
+    margin: 0;
+    font: 700 clamp(1.2rem, 3vw, 1.6rem) / 1.1 var(--font-display, 'Space Grotesk', sans-serif);
+  }
+
+  .cd-page-head p {
+    margin: 0.35rem 0 0;
+    color: hsl(var(--muted-foreground));
+    font-size: 0.86rem;
+  }
+
+  .cd-page-head-actions {
+    display: flex;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+  }
+
+  /* ─── CarDrive Stat Grid (4-col responsive) ─── */
+  .cd-grid-stats {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .cd-kpi-grid {
+    display: grid;
+    gap: 0.85rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  /* ─── CarDrive Stat Typography ─── */
+  .cd-stat-label {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+
+  .cd-stat-value {
+    font: 700 1.42rem/1 var(--font-display, 'Space Grotesk', sans-serif);
+    color: hsl(var(--foreground));
+  }
+
+  .cd-stat-delta {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .cd-delta-up { color: hsl(var(--success)); }
+  .cd-delta-down { color: hsl(var(--fail, var(--destructive))); }
+
+  /* ─── CarDrive Section Grid (2-col content) ─── */
+  .cd-section-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 0.9rem;
+  }
+
+  .cd-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .cd-section-title h2 {
+    font: 700 1.02rem/1 var(--font-display, 'Space Grotesk', sans-serif);
+    margin: 0;
+  }
+
+  .cd-section-title span {
+    font-size: 0.74rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* ─── CarDrive Timeline ─── */
+  .cd-timeline {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .cd-timeline-item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 0.56rem;
+    align-items: start;
+  }
+
+  .cd-dot {
+    width: 10px;
+    height: 10px;
+    margin-top: 0.42rem;
+    border-radius: 999px;
+    background: hsl(var(--primary));
+    box-shadow: 0 0 0 6px hsl(var(--primary) / 0.12);
+    flex-shrink: 0;
+  }
+
+  .cd-timeline-item strong {
+    display: block;
+    font-size: 0.84rem;
+  }
+
+  .cd-timeline-item p {
+    margin-top: 0.24rem;
+    font-size: 0.79rem;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* ─── CarDrive Table Wrap ─── */
+  .cd-table-wrap {
+    overflow: auto;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.95rem;
+  }
+
+  .cd-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 640px;
+  }
+
+  .cd-table th,
+  .cd-table td {
+    text-align: left;
+    padding: 0.72rem 0.78rem;
+    border-bottom: 1px solid hsl(var(--border) / 0.62);
+    font-size: 0.84rem;
+  }
+
+  .cd-table th {
+    font: 700 0.72rem/1 var(--font-display, 'Space Grotesk', sans-serif);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+    background: hsl(var(--secondary));
+  }
+
+  .cd-table tr:last-child td {
+    border-bottom: 0;
+  }
+
+  /* ─── CarDrive Wallet Balance ─── */
+  .cd-wallet-balance {
+    display: grid;
+    gap: 0.6rem;
+    padding: 1.1rem;
+    border: 1px solid hsl(var(--primary) / 0.23);
+    background: linear-gradient(140deg, hsl(var(--primary) / 0.14), hsl(var(--accent) / 0.55));
+    border-radius: 1rem;
+  }
+
+  .cd-wallet-balance .value {
+    font: 700 clamp(1.5rem, 5vw, 2rem) / 1 var(--font-display, 'Space Grotesk', sans-serif);
+  }
+
+  .cd-wallet-actions {
+    display: grid;
+    gap: 0.6rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* ─── CarDrive Form Grid ─── */
+  .cd-form-grid {
+    display: grid;
+    gap: 0.8rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cd-field {
+    display: grid;
+    gap: 0.35rem;
+  }
+
+  .cd-field label {
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* ─── CarDrive Progress ─── */
+  .cd-progress-list {
+    display: grid;
+    gap: 0.7rem;
+  }
+
+  .cd-progress-item {
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .cd-progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.83rem;
+  }
+
+  .cd-progress-track {
+    height: 8px;
+    border-radius: 999px;
+    background: hsl(var(--muted));
+    overflow: hidden;
+  }
+
+  .cd-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(130deg, hsl(var(--primary)), hsl(var(--accent-foreground)));
+    width: 0;
+    transition: width 0.6s ease;
+  }
+
+  /* ─── CarDrive Card (glassmorphic) ─── */
+  .cd-card {
+    border: 1px solid hsl(var(--border));
+    border-radius: 1.2rem;
+    background: hsl(var(--card) / 0.88);
+    box-shadow: var(--shadow-card);
+    padding: 1rem;
+  }
+
+  /* ─── CarDrive Reveal Animation ─── */
+  .cd-reveal {
+    opacity: 0;
+    transform: translateY(12px);
+    animation: cd-reveal 420ms ease forwards;
+  }
+
+  .cd-reveal:nth-child(2) { animation-delay: 80ms; }
+  .cd-reveal:nth-child(3) { animation-delay: 120ms; }
+  .cd-reveal:nth-child(4) { animation-delay: 160ms; }
+  .cd-reveal:nth-child(5) { animation-delay: 200ms; }
+
+  /* ─── CarDrive Badge ─── */
+  .cd-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.31rem 0.58rem;
+    border: 1px solid;
+  }
+
+  .cd-badge-success {
+    color: hsl(var(--success));
+    border-color: hsl(var(--success-border));
+    background: hsl(var(--success-light));
+  }
+
+  .cd-badge-pending {
+    color: hsl(var(--accent-foreground));
+    border-color: hsl(var(--accent));
+    background: hsl(var(--accent));
+  }
+
+  .cd-badge-fail {
+    color: hsl(var(--fail, var(--destructive)));
+    border-color: hsl(var(--fail-border, var(--destructive) / 0.3));
+    background: hsl(var(--fail-light, var(--destructive) / 0.1));
+  }
+
+  /* ─── CarDrive Filter Bar ─── */
+  .cd-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+    align-items: center;
+  }
+}
+
+@keyframes cd-reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── CarDrive Responsive Breakpoints ─── */
+@media (max-width: 1120px) {
+  .cd-grid-stats,
+  .cd-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .cd-section-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .cd-grid-stats,
+  .cd-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .cd-page-head {
+    padding: 0.9rem;
+  }
+  .cd-page-head-actions {
+    width: 100%;
+  }
+  .cd-page-head-actions > * {
+    flex: 1;
+  }
+  .cd-wallet-actions,
+  .cd-form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @layer utilities {
