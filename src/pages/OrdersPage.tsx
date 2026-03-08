@@ -340,6 +340,7 @@ export default function OrdersPage() {
     }
   }, [orders, searchParams, setSearchParams]);
 
+  const copyCredentials = (id: string, creds: string) => {
     navigator.clipboard.writeText(creds);
     setCopiedId(id);
     toast.success("Copied to clipboard");
