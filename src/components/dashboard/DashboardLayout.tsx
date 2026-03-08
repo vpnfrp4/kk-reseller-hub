@@ -37,7 +37,7 @@ import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import kkLogo from "@/assets/kkremote-logo.png";
 import { Money } from "@/components/shared";
 
-/* ── Top nav items ── */
+/* ── Nav items ── */
 interface NavItem {
   label: string;
   icon: React.ElementType;
@@ -51,14 +51,14 @@ const navItems: NavItem[] = [
   { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
 ];
 
-/* ── Wallet Chip ── */
+/* ── Wallet Chip (topbar) ── */
 function WalletChip({ profile }: { profile: any }) {
   const navigate = useNavigate();
   const { convert } = useCurrency();
   return (
     <button
       onClick={() => navigate("/dashboard/wallet")}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-sm font-bold font-mono tabular-nums text-primary hover:bg-primary/15 transition-colors"
+      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm font-bold font-display tabular-nums text-primary hover:bg-primary/15 transition-colors"
     >
       <Wallet className="w-3.5 h-3.5" />
       <Money amount={convert(profile?.balance || 0)} raw className="text-sm" />
@@ -66,51 +66,16 @@ function WalletChip({ profile }: { profile: any }) {
   );
 }
 
-/* ── User Avatar Dropdown ── */
-function UserAvatarDropdown({ profile, isAdmin, onLogout }: { profile: any; isAdmin: boolean; onLogout: () => void }) {
-  const navigate = useNavigate();
+/* ── User Avatar (topbar) ── */
+function UserAvatar({ profile }: { profile: any }) {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2 px-2 py-1 rounded-lg hover:bg-secondary/60 transition-colors">
-          <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary overflow-hidden shrink-0">
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-            ) : (
-              profile?.name?.charAt(0)?.toUpperCase() || "R"
-            )}
-          </div>
-          <span className="text-sm font-medium text-foreground hidden sm:block max-w-[100px] truncate">
-            {profile?.name || "Reseller"}
-          </span>
-          <ChevronDown className="w-3.5 h-3.5 text-muted-foreground hidden sm:block" />
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-52">
-        <div className="px-3 py-2 border-b border-border/30">
-          <p className="text-sm font-semibold text-foreground truncate">{profile?.name || "Reseller"}</p>
-          <p className="text-[10px] text-muted-foreground truncate">{profile?.email}</p>
-        </div>
-        <DropdownMenuItem onClick={() => navigate("/dashboard/settings")} className="gap-2 cursor-pointer">
-          <User className="w-4 h-4" /> Profile
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => navigate("/dashboard/settings?tab=preferences")} className="gap-2 cursor-pointer">
-          <Settings className="w-4 h-4" /> Settings
-        </DropdownMenuItem>
-        {isAdmin && (
-          <>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => navigate("/admin")} className="gap-2 cursor-pointer text-primary">
-              <ArrowLeftRight className="w-4 h-4" /> Admin Panel
-            </DropdownMenuItem>
-          </>
-        )}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onLogout} className="gap-2 cursor-pointer text-destructive focus:text-destructive">
-          <LogOut className="w-4 h-4" /> Sign Out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="w-[34px] h-[34px] rounded-full bg-accent border border-border flex items-center justify-center text-xs font-bold font-display text-accent-foreground overflow-hidden shrink-0">
+      {profile?.avatar_url ? (
+        <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+      ) : (
+        profile?.name?.charAt(0)?.toUpperCase() || "R"
+      )}
+    </div>
   );
 }
 
@@ -150,111 +115,165 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
-      {/* ═══ TOP NAVIGATION BAR ═══ */}
-      <header className="sticky top-0 z-50 bg-card border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14">
-            {/* Logo */}
-            <div className="flex items-center gap-6">
-              <Link to="/dashboard" className="flex items-center gap-2.5 shrink-0">
-                <img src={kkLogo} alt="KKTech" className="w-8 h-8 rounded-lg object-contain" />
-                <span className="text-base font-bold text-foreground tracking-tight">
-                  KK<span className="text-primary">Tech</span>
-                </span>
-              </Link>
+      {/* ═══ TOP BAR ═══ */}
+      <header className="sticky top-0 z-50 border-b border-border" style={{ background: 'hsl(var(--card) / 0.9)', backdropFilter: 'blur(8px)' }}>
+        <div className="w-full max-w-[1220px] mx-auto px-3 sm:px-4">
+          <div className="flex items-center justify-between min-h-[62px]">
+            {/* Brand */}
+            <Link to="/dashboard" className="inline-flex items-center gap-3 shrink-0">
+              <div className="w-[34px] h-[34px] rounded-[0.9rem] grid place-items-center text-[0.72rem] font-bold font-display text-primary-foreground bg-primary shadow-[0_8px_16px_-10px_hsl(var(--primary))]">
+                <img src={kkLogo} alt="KK" className="w-full h-full rounded-[0.9rem] object-contain" />
+              </div>
+              <div className="grid gap-[0.06rem]">
+                <strong className="font-display text-base leading-none tracking-[0.02em]">KKTech Panel</strong>
+                <span className="text-[0.72rem] text-muted-foreground leading-none">CarDrive-style Dashboard UI</span>
+              </div>
+            </Link>
 
-              {/* Desktop Nav Links */}
-              <nav className="hidden lg:flex items-center gap-1">
-                {navItems.map((item) => {
-                  const active = isActive(item.path);
-                  return (
-                    <PrefetchLink
-                      key={item.path}
-                      to={item.path}
-                      className={cn(
-                        "flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                        active
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
-                      )}
-                    >
-                      <item.icon className="w-4 h-4" strokeWidth={1.8} />
-                      {item.label}
-                    </PrefetchLink>
-                  );
-                })}
-              </nav>
-            </div>
-
-            {/* Right side */}
-            <div className="flex items-center gap-2">
+            {/* Right actions */}
+            <div className="flex items-center gap-2.5">
               <WalletChip profile={profile} />
               <NotificationDropdown />
-              <UserAvatarDropdown profile={profile} isAdmin={isAdmin} onLogout={handleLogout} />
-              
-              {/* Mobile menu button */}
+              <UserAvatar profile={profile} />
+
+              {/* Mobile hamburger */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/60 transition-colors"
+                className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
             </div>
           </div>
         </div>
+      </header>
 
-        {/* Mobile dropdown menu */}
+      {/* ═══ SHELL: SIDEBAR + CONTENT ═══ */}
+      <div className="w-full max-w-[1220px] mx-auto px-3 sm:px-4 flex-1 grid gap-4 py-4 lg:grid-cols-[var(--sidebar-width,252px)_minmax(0,1fr)]">
+        
+        {/* ── Desktop Sidebar ── */}
+        <aside className="hidden lg:block self-start sticky top-[77px]">
+          <div className="border border-border rounded-[1.2rem] overflow-hidden shadow-card" style={{ background: 'hsl(var(--card) / 0.82)', backdropFilter: 'blur(10px)' }}>
+            <div className="px-4 pt-4 pb-3 border-b border-border">
+              <p className="text-[0.74rem] text-muted-foreground uppercase tracking-[0.12em] font-semibold">Main Navigation</p>
+            </div>
+            <nav className="grid gap-[0.3rem] p-3">
+              {navItems.map((item) => {
+                const active = isActive(item.path);
+                return (
+                  <PrefetchLink
+                    key={item.path}
+                    to={item.path}
+                    className={cn(
+                      "flex items-center gap-2.5 px-3 py-[0.72rem] rounded-[0.8rem] text-[0.86rem] font-semibold border transition-all duration-200",
+                      active
+                        ? "text-primary border-primary/25 bg-primary/10"
+                        : "text-muted-foreground border-transparent hover:border-input hover:text-foreground hover:bg-secondary"
+                    )}
+                  >
+                    <item.icon className="w-4 h-4" strokeWidth={1.8} />
+                    {item.label}
+                  </PrefetchLink>
+                );
+              })}
+              {isAdmin && (
+                <>
+                  <div className="border-t border-border/40 my-1" />
+                  <PrefetchLink
+                    to="/admin"
+                    className={cn(
+                      "flex items-center gap-2.5 px-3 py-[0.72rem] rounded-[0.8rem] text-[0.86rem] font-semibold border transition-all duration-200",
+                      location.pathname.startsWith("/admin")
+                        ? "text-primary border-primary/25 bg-primary/10"
+                        : "text-muted-foreground border-transparent hover:border-input hover:text-foreground hover:bg-secondary"
+                    )}
+                  >
+                    <ArrowLeftRight className="w-4 h-4" strokeWidth={1.8} />
+                    Admin
+                  </PrefetchLink>
+                </>
+              )}
+
+              {/* Settings & Sign Out */}
+              <div className="border-t border-border/40 my-1" />
+              <PrefetchLink
+                to="/dashboard/settings"
+                className={cn(
+                  "flex items-center gap-2.5 px-3 py-[0.72rem] rounded-[0.8rem] text-[0.86rem] font-semibold border transition-all duration-200",
+                  location.pathname.startsWith("/dashboard/settings")
+                    ? "text-primary border-primary/25 bg-primary/10"
+                    : "text-muted-foreground border-transparent hover:border-input hover:text-foreground hover:bg-secondary"
+                )}
+              >
+                <Settings className="w-4 h-4" strokeWidth={1.8} />
+                Settings
+              </PrefetchLink>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2.5 px-3 py-[0.72rem] rounded-[0.8rem] text-[0.86rem] font-semibold border border-transparent text-muted-foreground hover:border-destructive/25 hover:text-destructive hover:bg-destructive/5 transition-all duration-200 text-left"
+              >
+                <LogOut className="w-4 h-4" strokeWidth={1.8} />
+                Sign Out
+              </button>
+            </nav>
+          </div>
+        </aside>
+
+        {/* ── Mobile Sidebar Dropdown ── */}
         {mobileMenuOpen && (
-          <div className="lg:hidden border-t border-border bg-card px-4 py-3 space-y-1">
-            {navItems.map((item) => {
-              const active = isActive(item.path);
-              return (
-                <PrefetchLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
-                    active
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/40"
-                  )}
-                >
-                  <item.icon className="w-4 h-4" strokeWidth={1.8} />
-                  {item.label}
-                </PrefetchLink>
-              );
-            })}
-            {isAdmin && (
-              <>
-                <div className="border-t border-border/40 my-2" />
+          <div className="lg:hidden border border-border rounded-[1.2rem] overflow-hidden shadow-card animate-fade-in" style={{ background: 'hsl(var(--card) / 0.92)', backdropFilter: 'blur(10px)' }}>
+            <nav className="grid gap-1 p-3 grid-cols-2 sm:grid-cols-3">
+              {navItems.map((item) => {
+                const active = isActive(item.path);
+                return (
+                  <PrefetchLink
+                    key={item.path}
+                    to={item.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={cn(
+                      "flex items-center gap-2 px-3 py-2.5 rounded-[0.8rem] text-sm font-semibold border transition-all",
+                      active
+                        ? "text-primary border-primary/25 bg-primary/10"
+                        : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary"
+                    )}
+                  >
+                    <item.icon className="w-4 h-4" strokeWidth={1.8} />
+                    {item.label}
+                  </PrefetchLink>
+                );
+              })}
+              {isAdmin && (
                 <Link
                   to="/admin"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-primary hover:bg-primary/5 transition-all"
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-[0.8rem] text-sm font-semibold text-primary border border-transparent hover:bg-primary/5 transition-all"
                 >
                   <ArrowLeftRight className="w-4 h-4" strokeWidth={1.8} />
-                  Admin Panel
+                  Admin
                 </Link>
-              </>
-            )}
+              )}
+              <button
+                onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
+                className="flex items-center gap-2 px-3 py-2.5 rounded-[0.8rem] text-sm font-semibold text-destructive border border-transparent hover:bg-destructive/5 transition-all text-left"
+              >
+                <LogOut className="w-4 h-4" strokeWidth={1.8} />
+                Sign Out
+              </button>
+            </nav>
           </div>
         )}
-      </header>
 
-      {/* ═══ MAIN CONTENT ═══ */}
-      <main
-        className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 lg:py-6 pb-24 lg:pb-8"
-        data-scroll-area
-      >
-        <PullToRefresh onRefresh={handlePullRefresh}>
-          <AnimatePresence mode="wait">
-            <PageTransition key={location.pathname}>
-              {children}
-            </PageTransition>
-          </AnimatePresence>
-        </PullToRefresh>
-      </main>
+        {/* ── Main Content ── */}
+        <main className="min-w-0 pb-24 lg:pb-4" data-scroll-area>
+          <PullToRefresh onRefresh={handlePullRefresh}>
+            <AnimatePresence mode="wait">
+              <PageTransition key={location.pathname}>
+                {children}
+              </PageTransition>
+            </AnimatePresence>
+          </PullToRefresh>
+        </main>
+      </div>
 
       {/* Bottom Nav (mobile only) */}
       <BottomNav />

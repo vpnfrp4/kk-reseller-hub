@@ -15,30 +15,23 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
-  				'Inter',
+  				'Noto Sans Myanmar',
+  				'Space Grotesk',
+  				'Segoe UI',
   				'ui-sans-serif',
   				'system-ui',
-  				'sans-serif',
-  				'Apple Color Emoji',
-  				'Segoe UI Emoji',
-  				'Segoe UI Symbol',
-  				'Noto Color Emoji'
+  				'sans-serif'
   			],
   			mono: [
   				'JetBrains Mono',
   				'ui-monospace',
   				'SFMono-Regular',
-  				'Menlo',
-  				'Monaco',
-  				'Consolas',
-  				'Liberation Mono',
-  				'Courier New',
   				'monospace'
   			],
   			display: [
-  				'Inter',
-  				'-apple-system',
-  				'BlinkMacSystemFont',
+  				'Space Grotesk',
+  				'Noto Sans Myanmar',
+  				'Segoe UI',
   				'sans-serif'
   			],
   			serif: [
