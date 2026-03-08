@@ -169,13 +169,13 @@ export default function DashboardHome() {
             <RecentTimeline orders={orders} loading={ordersLoading} />
           </div>
 
-          {/* ═══ SERVICE CATEGORIES ═══ */}
-          <ServiceCategories />
+          {/* ═══ SERVICE CATEGORIES (hidden per karkar4 reference) ═══ */}
+          {/* <ServiceCategories /> */}
 
-          {/* ═══ RECENT ORDERS TABLE ═══ */}
-          <div className="cd-card cd-reveal">
+          {/* ═══ RECENT ORDERS TABLE (hidden per karkar4 reference) ═══ */}
+          {/* <div className="cd-card cd-reveal">
             <RecentOrdersList orders={orders} loading={ordersLoading} />
-          </div>
+          </div> */}
         </div>
       </PullToRefresh>
     </PageContainer>
