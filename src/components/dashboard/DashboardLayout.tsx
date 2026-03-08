@@ -20,6 +20,7 @@ import {
   ChevronDown,
   Menu,
   X,
+  Car,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -49,6 +50,7 @@ const navItems: NavItem[] = [
   { label: "Place Order", icon: ShoppingCart, path: "/dashboard/place-order" },
   { label: "Orders", icon: Receipt, path: "/dashboard/orders" },
   { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
+  { label: "Car Check", icon: Car, path: "/dashboard/car-check" },
 ];
 
 /* ── Wallet Chip (topbar) ── */
