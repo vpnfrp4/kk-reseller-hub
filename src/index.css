@@ -1160,6 +1160,98 @@ html {
     gap: 0.55rem;
     align-items: center;
   }
+
+  /* ─── CarDrive Services Grid (2-col cards) ─── */
+  .cd-services-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.72rem;
+  }
+
+  .cd-service-card {
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.92rem;
+    background: hsl(var(--secondary) / 0.52);
+    padding: 0.72rem;
+    display: grid;
+    gap: 0.65rem;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+  }
+
+  .cd-service-card:hover {
+    border-color: hsl(var(--primary) / 0.25);
+    background: hsl(var(--secondary) / 0.72);
+  }
+
+  .cd-service-head {
+    display: flex;
+    align-items: center;
+    gap: 0.62rem;
+    min-width: 0;
+  }
+
+  .cd-service-thumb {
+    width: 42px;
+    height: 42px;
+    border-radius: 0.72rem;
+    overflow: hidden;
+    border: 1px solid hsl(var(--border));
+    background: hsl(var(--muted));
+    flex: 0 0 auto;
+  }
+
+  .cd-service-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .cd-service-fallback {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    font-size: 1rem;
+    background: linear-gradient(135deg, hsl(var(--secondary)), hsl(var(--accent)));
+  }
+
+  .cd-service-meta {
+    min-width: 0;
+  }
+
+  .cd-service-meta strong {
+    display: block;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cd-service-meta p {
+    margin-top: 0.15rem;
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground));
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .cd-service-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 0.62rem;
+  }
+
+  .cd-service-foot span {
+    font: 700 0.95rem/1 var(--font-display, 'Space Grotesk', sans-serif);
+  }
+
+  .cd-service-foot small {
+    font-size: 0.71rem;
+    color: hsl(var(--muted-foreground));
+  }
 }
 
 @keyframes cd-reveal {
