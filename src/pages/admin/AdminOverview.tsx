@@ -412,7 +412,7 @@ export default function AdminOverview() {
       </div>
 
       {/* ═══ 2b. COLLAPSIBLE ACTION SECTIONS ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-default">
+      <div className="cd-section-grid">
         {/* Pending Orders */}
         <CollapsibleSection
           title="Orders Pending Review"

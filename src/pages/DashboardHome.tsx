@@ -107,17 +107,10 @@ export default function DashboardHome() {
           </div>
 
           {/* ═══ DESKTOP HEADER ═══ */}
-          <div className="hidden lg:block page-header-card animate-fade-in">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3.5">
-                <div className="page-header-icon">
-                  <TrendingUp className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <h1>Welcome back, <span className="gradient-text">{profile?.name || "Reseller"}</span></h1>
-                  <p className="page-header-subtitle">Your digital unlock marketplace overview</p>
-                </div>
-              </div>
+          <div className="hidden lg:block cd-page-head cd-reveal">
+            <div>
+              <h1>Welcome back, <span className="gradient-text">{profile?.name || "Reseller"}</span></h1>
+              <p>Your digital unlock marketplace overview</p>
             </div>
           </div>
 

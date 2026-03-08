@@ -89,7 +89,7 @@ export default function HeroStats({
                 <div className={cn("w-9 h-9 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 group-hover:scale-105", stat.iconBg)}>
                   <Icon className={cn("w-4 h-4 lg:w-5 lg:h-5", stat.iconColor)} strokeWidth={1.8} />
                 </div>
-                <span className="text-[10px] lg:text-[11px] font-bold text-muted-foreground uppercase tracking-[0.12em]">
+                <span className="cd-stat-label">
                   {stat.label}
                 </span>
               </div>

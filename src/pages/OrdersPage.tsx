@@ -415,7 +415,7 @@ export default function OrdersPage() {
         </div>
 
         {/* ═══ STAT CARDS ═══ */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 animate-fade-in" style={{ animationDelay: "50ms" }}>
+        <div className="cd-kpi-grid cd-reveal">
           <MiniStat label="Total Orders" value={stats?.total || 0} icon={Package} color="primary" />
           <MiniStat label="Processing" value={stats?.processing || 0} icon={Clock} color="warning" />
           <MiniStat label="Completed" value={stats?.completed || 0} icon={CheckCircle} color="success" />
