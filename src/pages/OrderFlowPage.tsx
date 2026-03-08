@@ -496,9 +496,6 @@ export default function OrderFlowPage() {
       setLastOrderTime(Date.now());
       setLastOrderKey(orderKey);
 
-      setLastSavings(savings);
-      setResult(data as PurchaseResult);
-      setStep(activeSteps.length - 1); // Go to confirmation step
       queryClient.invalidateQueries({ queryKey: ["product", id] });
       queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["orders"] });
@@ -506,6 +503,8 @@ export default function OrderFlowPage() {
       queryClient.invalidateQueries({ queryKey: ["wallet-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
       refreshProfile();
+      toast.success("Order placed successfully!");
+      navigate("/dashboard/orders");
     } catch (err: any) {
       toast.error(mapErrorMessage(err.message || "Purchase failed. Please try again."));
     } finally {
