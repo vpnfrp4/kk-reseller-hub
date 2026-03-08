@@ -101,7 +101,7 @@ export default function ImeiOrderModal({ service, onClose }: Props) {
       queryClient.invalidateQueries({ queryKey: ["orders"] });
       toast.success("IMEI order placed successfully!");
       onClose();
-      navigate("/dashboard/orders");
+      navigate("/dashboard/orders?new=1");
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     } finally {

@@ -504,7 +504,7 @@ export default function OrderFlowPage() {
       queryClient.invalidateQueries({ queryKey: ["recent-transactions"] });
       refreshProfile();
       toast.success("Order placed successfully!");
-      navigate("/dashboard/orders");
+      navigate("/dashboard/orders?new=1");
     } catch (err: any) {
       toast.error(mapErrorMessage(err.message || "Purchase failed. Please try again."));
     } finally {

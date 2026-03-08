@@ -9,8 +9,9 @@ import {
   CalendarIcon, X, Package, Clock, CheckCircle, XCircle, ChevronDown,
   ExternalLink, ArrowRight, Filter, Loader2,
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format } from "date-fns";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar } from "@/components/ui/calendar";
@@ -204,9 +205,11 @@ export default function OrdersPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const hasAutoHighlighted = useRef(false);
 
   // Realtime
   useEffect(() => {
@@ -313,6 +316,29 @@ export default function OrdersPage() {
     },
     enabled: !!user,
   });
+
+  // Auto-highlight the newest order when redirected from a successful purchase
+  useEffect(() => {
+    if (hasAutoHighlighted.current || !orders || orders.length === 0) return;
+    const isNewRedirect = searchParams.get("new") === "1";
+    // Also highlight if the top order was created within the last 10 seconds
+    const topOrder = orders[0];
+    const isRecent = topOrder && (Date.now() - new Date(topOrder.created_at).getTime()) < 10000;
+    if (isNewRedirect || isRecent) {
+      hasAutoHighlighted.current = true;
+      const id = topOrder.id;
+      setHighlightedIds(new Set([id]));
+      setExpandedId(id);
+      // Remove highlight param from URL
+      if (isNewRedirect) {
+        searchParams.delete("new");
+        setSearchParams(searchParams, { replace: true });
+      }
+      setTimeout(() => {
+        setHighlightedIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+      }, 4000);
+    }
+  }, [orders, searchParams, setSearchParams]);
 
   const copyCredentials = (id: string, creds: string) => {
     navigator.clipboard.writeText(creds);
@@ -559,7 +585,7 @@ export default function OrdersPage() {
                       className={cn(
                         "border-b border-border/10 transition-all duration-300 group cursor-pointer",
                         "hover:bg-muted/30",
-                        highlightedIds.has(row.id) && "bg-primary/10 ring-1 ring-inset ring-primary/20",
+                        highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] bg-primary/8 ring-1 ring-inset ring-primary/25",
                         expandedId === row.id && "bg-muted/20",
                       )}
                       style={{ animationDelay: `${idx * 30}ms` }}
@@ -657,7 +683,7 @@ export default function OrdersPage() {
                 key={row.id}
                 className={cn(
                   "glass-card overflow-hidden transition-all duration-300",
-                  highlightedIds.has(row.id) && "ring-1 ring-primary/30 bg-primary/5",
+                  highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] ring-1 ring-primary/30 bg-primary/5",
                 )}
               >
                 <div

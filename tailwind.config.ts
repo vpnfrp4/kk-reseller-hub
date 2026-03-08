@@ -173,7 +173,12 @@ export default {
   			input: 'var(--radius-input, 12px)',
   			pill: 'var(--radius-pill, 9999px)'
   		},
-  		keyframes: {
+		keyframes: {
+			'highlight-flash': {
+				'0%': { backgroundColor: 'hsl(var(--primary) / 0.2)', boxShadow: '0 0 0 2px hsl(var(--primary) / 0.3)' },
+				'50%': { backgroundColor: 'hsl(var(--primary) / 0.08)', boxShadow: '0 0 0 1px hsl(var(--primary) / 0.15)' },
+				'100%': { backgroundColor: 'hsl(var(--primary) / 0.04)', boxShadow: '0 0 0 0px hsl(var(--primary) / 0)' },
+			},
   			'accordion-down': {
   				from: {
   					height: '0'
