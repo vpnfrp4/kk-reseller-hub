@@ -64,7 +64,7 @@ export default function HeroStats({
   };
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
+    <div className="cd-grid-stats">
       {STATS_CONFIG.map((stat, i) => {
         const Icon = stat.icon;
         const value = values[stat.key];
