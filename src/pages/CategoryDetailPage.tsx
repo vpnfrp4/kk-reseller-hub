@@ -443,8 +443,7 @@ export default function CategoryDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ═══ SUCCESS MODAL ═══ */}
-      {result && <SuccessModal result={result} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
+      {/* Success modal removed — redirects to orders page */}
         </>
       )}
     </PageContainer>
