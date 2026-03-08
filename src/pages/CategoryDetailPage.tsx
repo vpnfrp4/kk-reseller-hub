@@ -197,7 +197,7 @@ export default function CategoryDetailPage() {
       queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
       refreshProfile();
       toast.success("Order placed successfully!");
-      navigate("/dashboard/orders");
+      navigate("/dashboard/orders?new=1");
       queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] });
       refreshProfile();
     } catch (err: any) {
