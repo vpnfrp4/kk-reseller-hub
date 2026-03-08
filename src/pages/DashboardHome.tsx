@@ -5,7 +5,7 @@ import { notifyEvent, requestNotificationPermission } from "@/lib/notifications"
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Zap, Wallet, TrendingUp, Plus, Search } from "lucide-react";
+import { Zap, Wallet, Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PageContainer } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
