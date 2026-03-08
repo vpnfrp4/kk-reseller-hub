@@ -20,6 +20,7 @@ import {
   ChevronDown,
   Menu,
   X,
+  Car,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/contexts/CurrencyContext";
