@@ -401,17 +401,12 @@ export default function OrdersPage() {
         ]} />
 
         {/* ═══ PAGE HEADER ═══ */}
-        <div className="page-header-card animate-fade-in">
-          <div className="flex items-center justify-between flex-wrap gap-3">
-            <div className="flex items-center gap-3.5">
-              <div className="page-header-icon">
-                <Package className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground">Order History</h1>
-                <p className="page-header-subtitle">View and manage all your previous service orders.</p>
-              </div>
-            </div>
+        <div className="cd-page-head cd-reveal">
+          <div>
+            <h1>Order History</h1>
+            <p>View and manage all your previous service orders.</p>
+          </div>
+          <div className="cd-page-head-actions">
             <Button onClick={exportCSV} variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/50 transition-all">
               <Download className="w-4 h-4" />
               Export CSV
