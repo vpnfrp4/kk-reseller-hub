@@ -146,7 +146,7 @@ function AppRoutes() {
       <Route path="/blog" element={<BlogListPage />} />
       <Route path="/blog/:slug" element={<BlogPostPage />} />
       <Route path="/orders" element={<Navigate to="/dashboard/orders" replace />} />
-      <Route path="/products" element={<Navigate to="/dashboard/products" replace />} />
+      <Route path="/products" element={<Navigate to="/dashboard/place-order" replace />} />
       <Route path="/wallet" element={<Navigate to="/dashboard/wallet" replace />} />
       <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
       <Route path="/notifications" element={<Navigate to="/dashboard" replace />} />
