@@ -721,7 +721,7 @@ html {
   }
 
   .shadow-glow {
-    box-shadow: 0 0 16px rgba(37, 99, 180, 0.1);
+    box-shadow: 0 0 16px hsl(var(--primary) / 0.1);
   }
 
   .skeleton-gold {
