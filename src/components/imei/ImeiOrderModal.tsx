@@ -96,10 +96,12 @@ export default function ImeiOrderModal({ service, onClose }: Props) {
         return;
       }
 
-      setSuccess({ order_id: result.order_id });
       await refreshProfile();
       queryClient.invalidateQueries({ queryKey: ["imei-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
       toast.success("IMEI order placed successfully!");
+      onClose();
+      navigate("/dashboard/orders");
     } catch (err: any) {
       setError(err.message || "Something went wrong.");
     } finally {

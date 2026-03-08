@@ -191,9 +191,13 @@ export default function CategoryDetailPage() {
       const { data, error } = await supabase.functions.invoke("purchase", { body: purchaseBody });
       if (error) throw new Error(error.message);
       if (data && !data.success) { toast.error(data.error as string); return; }
-      setResult(data as PurchaseResult);
       setQuickOrderOpen(false);
       queryClient.invalidateQueries({ queryKey: ["category-products"] });
+      queryClient.invalidateQueries({ queryKey: ["orders"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-orders"] });
+      refreshProfile();
+      toast.success("Order placed successfully!");
+      navigate("/dashboard/orders");
       queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] });
       refreshProfile();
     } catch (err: any) {
@@ -439,8 +443,7 @@ export default function CategoryDetailPage() {
         </DialogContent>
       </Dialog>
 
-      {/* ═══ SUCCESS MODAL ═══ */}
-      {result && <SuccessModal result={result} onClose={() => setResult(null)} onNewOrder={() => { setResult(null); setSelectedProductId(""); setCustomFieldValues({}); }} navigate={navigate} />}
+      {/* Success modal removed — redirects to orders page */}
         </>
       )}
     </PageContainer>
