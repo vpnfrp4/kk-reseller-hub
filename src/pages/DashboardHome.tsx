@@ -5,7 +5,7 @@ import { notifyEvent, requestNotificationPermission } from "@/lib/notifications"
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Zap, Wallet, Plus, Search } from "lucide-react";
+import { Zap, Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PageContainer } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
@@ -15,6 +15,7 @@ import HeroStats from "@/components/dashboard/HeroStats";
 import PopularServices from "@/components/dashboard/PopularServices";
 import ServiceCategories from "@/components/dashboard/ServiceCategories";
 import RecentOrdersList from "@/components/dashboard/RecentOrdersList";
+import RecentTimeline from "@/components/dashboard/RecentTimeline";
 
 export default function DashboardHome() {
   const { user, profile, refreshProfile } = useAuth();
@@ -96,7 +97,7 @@ export default function DashboardHome() {
           queryClient.invalidateQueries({ queryKey: ["service-categories-dashboard"] }),
         ]);
       }}>
-        <div className="space-y-5 lg:space-y-8">
+        <div className="space-y-5 lg:space-y-6">
 
           {/* ═══ MOBILE GREETING ═══ */}
           <div className="lg:hidden animate-fade-in">
@@ -110,7 +111,7 @@ export default function DashboardHome() {
           <div className="hidden lg:block cd-page-head cd-reveal">
             <div>
               <h1>Welcome back, <span className="gradient-text">{profile?.name || "Reseller"}</span></h1>
-              <p>Your digital unlock marketplace overview</p>
+              <p>Real-time summary for reseller sales, orders, and wallet activities.</p>
             </div>
           </div>
 
@@ -162,14 +163,19 @@ export default function DashboardHome() {
             </button>
           </div>
 
-          {/* ═══ POPULAR SERVICES ═══ */}
-          <PopularServices />
+          {/* ═══ SECTION GRID: Popular Services + Timeline ═══ */}
+          <div className="cd-section-grid cd-reveal">
+            <PopularServices />
+            <RecentTimeline orders={orders} loading={ordersLoading} />
+          </div>
 
           {/* ═══ SERVICE CATEGORIES ═══ */}
           <ServiceCategories />
 
-          {/* ═══ RECENT ORDERS ═══ */}
-          <RecentOrdersList orders={orders} loading={ordersLoading} />
+          {/* ═══ RECENT ORDERS TABLE ═══ */}
+          <div className="cd-card cd-reveal">
+            <RecentOrdersList orders={orders} loading={ordersLoading} />
+          </div>
         </div>
       </PullToRefresh>
     </PageContainer>
