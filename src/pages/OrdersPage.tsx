@@ -317,7 +317,29 @@ export default function OrdersPage() {
     enabled: !!user,
   });
 
-  const copyCredentials = (id: string, creds: string) => {
+  // Auto-highlight the newest order when redirected from a successful purchase
+  useEffect(() => {
+    if (hasAutoHighlighted.current || !orders || orders.length === 0) return;
+    const isNewRedirect = searchParams.get("new") === "1";
+    // Also highlight if the top order was created within the last 10 seconds
+    const topOrder = orders[0];
+    const isRecent = topOrder && (Date.now() - new Date(topOrder.created_at).getTime()) < 10000;
+    if (isNewRedirect || isRecent) {
+      hasAutoHighlighted.current = true;
+      const id = topOrder.id;
+      setHighlightedIds(new Set([id]));
+      setExpandedId(id);
+      // Remove highlight param from URL
+      if (isNewRedirect) {
+        searchParams.delete("new");
+        setSearchParams(searchParams, { replace: true });
+      }
+      setTimeout(() => {
+        setHighlightedIds(prev => { const next = new Set(prev); next.delete(id); return next; });
+      }, 4000);
+    }
+  }, [orders, searchParams, setSearchParams]);
+
     navigator.clipboard.writeText(creds);
     setCopiedId(id);
     toast.success("Copied to clipboard");
