@@ -132,7 +132,7 @@ html {
   }
 
   .dark {
-    /* ═══ DARK THEME — Deep Navy ═══ */
+    /* ═══ DARK THEME — Warm Dark ═══ */
     --background: 220 25% 6%;
     --foreground: 210 20% 96%;
 
@@ -142,9 +142,9 @@ html {
     --popover: 220 22% 9%;
     --popover-foreground: 210 20% 96%;
 
-    --primary: 215 65% 55%;
+    --primary: 24 90% 55%;
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 215 60% 62%;
+    --primary-glow: 30 85% 60%;
 
     --secondary: 220 18% 13%;
     --secondary-foreground: 210 20% 96%;
@@ -152,51 +152,57 @@ html {
     --muted: 220 18% 13%;
     --muted-foreground: 215 16% 55%;
 
-    --accent: 215 65% 55%;
-    --accent-foreground: 210 20% 96%;
+    --accent: 30 60% 18%;
+    --accent-foreground: 24 90% 70%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 350 80% 55%;
     --destructive-foreground: 210 20% 96%;
 
     --border: 220 16% 16%;
     --input: 220 16% 16%;
-    --ring: 215 65% 55%;
+    --ring: 24 90% 55%;
 
-    --success: 152 56% 45%;
+    --success: 152 60% 45%;
     --success-foreground: 0 0% 100%;
+    --success-light: 152 40% 15%;
+    --success-border: 152 40% 25%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 10%;
     --gold: 38 92% 50%;
+    --fail: 350 80% 55%;
+    --fail-light: 350 40% 15%;
+    --fail-border: 350 40% 25%;
 
     --sidebar-background: 220 25% 5%;
     --sidebar-foreground: 210 20% 96%;
-    --sidebar-primary: 215 65% 55%;
+    --sidebar-primary: 24 90% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 18% 13%;
     --sidebar-accent-foreground: 210 20% 96%;
     --sidebar-border: 220 16% 14%;
-    --sidebar-ring: 215 65% 55%;
+    --sidebar-ring: 24 90% 55%;
     --sidebar: 220 22% 9%;
 
     --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 4px 12px -4px rgba(0,0,0,0.3);
     --shadow-elevated: 0 8px 30px -8px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
     --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.03);
     --shadow-header: 0 1px 0 hsl(220 16% 12%), 0 2px 8px -2px rgba(0,0,0,0.3);
-    --shadow-glow: 0 0 24px rgba(37, 99, 180, 0.1);
+    --shadow-glow: 0 0 24px hsl(24 90% 55% / 0.12);
 
     --glass-bg: hsla(220, 22%, 9%, 0.9);
-    --glass-border: rgba(37, 99, 180, 0.1);
-    --ambient-blob-1: hsl(215 65% 55% / 0.04);
-    --ambient-blob-2: hsl(199 80% 48% / 0.03);
+    --glass-border: hsl(24 90% 55% / 0.1);
+    --ambient-blob-1: hsl(24 90% 55% / 0.04);
+    --ambient-blob-2: hsl(30 100% 91% / 0.03);
+    --ambient-blob-3: hsl(152 60% 45% / 0.02);
     --wallet-hero-from: 220 18% 10%;
     --wallet-hero-to: 220 18% 13%;
-    --wallet-hero-blob: hsl(215 65% 55% / 0.06);
+    --wallet-hero-blob: hsl(24 90% 55% / 0.06);
 
-    --gradient-primary: linear-gradient(135deg, hsl(215 65% 50%), hsl(215 60% 58%));
+    --gradient-primary: linear-gradient(135deg, hsl(24 90% 50%), hsl(30 85% 58%));
     --gradient-surface: linear-gradient(135deg, hsl(220 25% 6%), hsl(220 25% 9%));
 
-    --chart-1: 215 65% 55%;
-    --chart-2: 152 56% 48%;
+    --chart-1: 24 90% 55%;
+    --chart-2: 152 60% 48%;
     --chart-3: 38 92% 50%;
     --chart-4: 270 55% 60%;
     --chart-5: 340 60% 58%;
@@ -208,6 +214,9 @@ html {
     --shadow-lg: 0 8px 24px -6px hsl(0 0% 0% / 0.3);
     --shadow-xl: 0 16px 40px -12px hsl(0 0% 0% / 0.35);
     --shadow-2xl: 0 24px 60px -16px hsl(0 0% 0% / 0.4);
+
+    --font-display: "Space Grotesk", "Noto Sans Myanmar", "Segoe UI", sans-serif;
+    --font-body: "Noto Sans Myanmar", "Space Grotesk", "Segoe UI", sans-serif;
   }
 }
 
