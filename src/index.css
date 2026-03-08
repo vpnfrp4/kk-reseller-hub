@@ -254,7 +254,7 @@ html {
     font-family: 'JetBrains Mono', monospace;
   }
 
-  /* Teal botanical ambient background with grid */
+  /* Orange ambient background with grid */
   body::before {
     content: '';
     position: fixed;
@@ -274,10 +274,10 @@ html {
     z-index: -1;
     pointer-events: none;
     background-image:
-      linear-gradient(hsl(var(--primary) / 0.045) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--primary) / 0.04) 1px, transparent 1px);
-    background-size: 34px 34px;
-    opacity: 0.38;
+      linear-gradient(hsl(var(--primary) / 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--primary) / 0.035) 1px, transparent 1px);
+    background-size: 42px 42px;
+    opacity: 0.35;
   }
 
   @keyframes slideUpFade {
