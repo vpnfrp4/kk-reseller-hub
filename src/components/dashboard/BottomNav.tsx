@@ -12,55 +12,5 @@ const navItems = [
 ];
 
 export default function BottomNav() {
-  const location = useLocation();
-
-  return (
-    <nav className="fixed bottom-0 inset-x-0 z-50 lg:hidden border-t border-border/40"
-      style={{
-        background: 'hsl(var(--card) / 0.92)',
-        backdropFilter: 'blur(24px) saturate(1.8)',
-        WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-      }}
-    >
-      <div className="flex items-stretch justify-around h-16">
-        {navItems.map((item) => {
-          const active =
-            item.path === "/dashboard"
-              ? location.pathname === "/dashboard"
-              : location.pathname.startsWith(item.path);
-
-          return (
-            <PrefetchLink
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex flex-col items-center justify-center flex-1 gap-1 text-[11px] font-semibold transition-all duration-200",
-                "active:scale-90 active:opacity-70 min-h-[48px]",
-                active ? "text-primary" : "text-muted-foreground"
-              )}
-            >
-              <div className="relative">
-                {active && (
-                  <span
-                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-6 h-[3px] rounded-full bg-primary"
-                  />
-                )}
-                <div className={cn(
-                  "w-10 h-10 rounded-2xl flex items-center justify-center transition-all duration-200",
-                  active ? "bg-primary/8" : ""
-                )}>
-                  <item.icon
-                    className={cn("w-5 h-5 transition-all duration-200")}
-                    strokeWidth={active ? 2.2 : 1.5}
-                  />
-                </div>
-              </div>
-              <span className={cn(active ? "font-bold" : "font-medium")}>{item.label}</span>
-            </PrefetchLink>
-          );
-        })}
-      </div>
-    </nav>
-  );
+  return null;
 }
