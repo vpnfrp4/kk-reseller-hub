@@ -146,7 +146,7 @@ function AppRoutes() {
       <Route path="/blog" element={<BlogListPage />} />
       <Route path="/blog/:slug" element={<BlogPostPage />} />
       <Route path="/orders" element={<Navigate to="/dashboard/orders" replace />} />
-      <Route path="/products" element={<Navigate to="/dashboard/products" replace />} />
+      <Route path="/products" element={<Navigate to="/dashboard/place-order" replace />} />
       <Route path="/wallet" element={<Navigate to="/dashboard/wallet" replace />} />
       <Route path="/settings" element={<Navigate to="/dashboard/settings" replace />} />
       <Route path="/notifications" element={<Navigate to="/dashboard" replace />} />
@@ -156,8 +156,8 @@ function AppRoutes() {
       <Route path="/dashboard/wallet" element={<ProtectedRoute skeleton={<WalletSkeleton />}><WalletPage /></ProtectedRoute>} />
       <Route path="/dashboard/wallet/topup-status" element={<WalletTopupRedirect />} />
       <Route path="/dashboard/topup-status/:id" element={<ProtectedRoute><TopUpStatusPage /></ProtectedRoute>} />
-      <Route path="/dashboard/products" element={<ProtectedRoute><ProductsPage /></ProtectedRoute>} />
-      <Route path="/dashboard/products/:id" element={<ProtectedRoute><ProductDetailPage /></ProtectedRoute>} />
+      <Route path="/dashboard/products" element={<Navigate to="/dashboard/place-order" replace />} />
+      <Route path="/dashboard/products/:id" element={<Navigate to="/dashboard/place-order" replace />} />
       <Route path="/dashboard/order/:id" element={<ProtectedRoute><OrderFlowPage /></ProtectedRoute>} />
       <Route path="/dashboard/providers/:id" element={<ProtectedRoute><ProviderProfilePage /></ProtectedRoute>} />
       <Route path="/dashboard/orders" element={<ProtectedRoute skeleton={<OrdersSkeleton />}><OrdersPage /></ProtectedRoute>} />
