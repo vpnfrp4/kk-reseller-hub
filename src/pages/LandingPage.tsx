@@ -685,8 +685,8 @@ export default function LandingPage() {
             </div>
           </div>
           <div className="mt-12 flex flex-col items-center gap-3 border-t border-border/20 pt-8 sm:flex-row sm:justify-between">
-            <p className="text-xs text-muted-foreground/60">© {new Date().getFullYear()} KKTech. All rights reserved.</p>
-            <p className="text-xs text-muted-foreground/40">Built for resellers, by resellers.</p>
+            <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} KKTech. All rights reserved.</p>
+            <p className="text-xs text-muted-foreground/80">Built for resellers, by resellers.</p>
           </div>
         </div>
       </footer>
