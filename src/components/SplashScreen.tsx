@@ -63,6 +63,7 @@ export default function SplashScreen({ onFinished, minDuration = 1200 }: SplashS
           <img
             src={kkLogo}
             alt="KKRemoter Logo"
+            fetchPriority="high"
             className="relative h-36 w-36 sm:h-44 sm:w-44 rounded-2xl object-contain animate-[breathe_3s_ease-in-out_infinite] drop-shadow-[0_0_40px_rgba(34,197,94,0.25)]"
           />
         </div>
