@@ -6,7 +6,7 @@ interface SplashScreenProps {
   minDuration?: number;
 }
 
-export default function SplashScreen({ onFinished, minDuration = 2200 }: SplashScreenProps) {
+export default function SplashScreen({ onFinished, minDuration = 1200 }: SplashScreenProps) {
   const [fadeOut, setFadeOut] = useState(false);
   const [progress, setProgress] = useState(0);
 
