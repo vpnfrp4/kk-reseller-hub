@@ -684,7 +684,7 @@ export default function OrdersPage() {
         <div className="md:hidden space-y-3">
           {ordersLoading ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="glass-card p-4 space-y-3">
+              <div key={i} className="rounded-2xl border border-border/25 bg-card/80 p-4 space-y-3">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-3 w-1/2" />
                 <div className="flex justify-between">
