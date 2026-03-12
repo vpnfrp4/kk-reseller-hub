@@ -186,11 +186,16 @@ function ExpandedOrderDetail({ order }: { order: any }) {
 }
 
 /* ── Stat Mini Card ── */
-function MiniStat({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: string }) {
+function MiniStat({ label, value, icon: Icon, color, accent }: { label: string; value: number; icon: any; color: string; accent?: boolean }) {
   return (
-    <div className="rounded-[var(--radius-card)] border border-border/50 bg-card p-4 flex items-center gap-3 hover:border-primary/20 transition-all" style={{ boxShadow: "var(--shadow-card)" }}>
+    <div className={cn(
+      "relative overflow-hidden rounded-[var(--radius-card)] border bg-card/90 backdrop-blur-sm p-4 flex items-center gap-3 transition-all duration-300",
+      "hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5",
+      accent ? "border-primary/25 bg-gradient-to-br from-primary/8 to-transparent" : "border-border/50",
+    )}>
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-border/50 to-transparent" />
       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0")}
-        style={{ background: `hsl(var(--${color}) / 0.08)` }}>
+        style={{ background: `hsl(var(--${color}) / 0.1)` }}>
         <Icon className={cn("w-[18px] h-[18px]", `text-${color}`)} strokeWidth={1.5} />
       </div>
       <div>
