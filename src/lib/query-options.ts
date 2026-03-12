@@ -1,3 +1,5 @@
+import { keepPreviousData } from "@tanstack/react-query";
+
 /** Shared react-query defaults for fast, resilient queries */
 export const FAST_QUERY_OPTIONS = {
   staleTime: 45 * 1000,
@@ -16,5 +18,5 @@ export const FAST_QUERY_OPTIONS = {
 /** For paginated queries — keeps previous data while fetching next page */
 export const PAGED_QUERY_OPTIONS = {
   ...FAST_QUERY_OPTIONS,
-  placeholderData: (previousData: unknown) => previousData,
+  placeholderData: keepPreviousData,
 } as const;
