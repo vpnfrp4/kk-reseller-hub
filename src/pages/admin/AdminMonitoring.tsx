@@ -316,7 +316,7 @@ export default function AdminMonitoring() {
                   {loadingFailed ? (
                     <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
                   ) : failedOrders.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No failed orders 🎉</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No failed orders — All clear</TableCell></TableRow>
                   ) : failedOrders.map((order: any) => (
                     <TableRow key={order.id}>
                       <TableCell className="font-mono text-xs">{order.order_code}</TableCell>
