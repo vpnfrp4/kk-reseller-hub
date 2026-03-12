@@ -483,7 +483,7 @@ export default function AdminCredentials() {
                     const cat = deriveCategory(sel.name);
                     return (
                       <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/20 border border-border/30">
-                        <span className="text-base">{CATEGORY_ICONS[cat] || "📦"}</span>
+                        <span className="text-base">{CATEGORY_ICONS[cat] || "—"}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium text-foreground truncate">{sel.icon} {sel.name} — {sel.duration}</p>
                           <p className="text-[10px] text-muted-foreground">Category: <span className="text-primary font-medium">{cat}</span> · #{sel.display_id}</p>
