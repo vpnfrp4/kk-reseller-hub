@@ -932,13 +932,26 @@ html {
     border-radius: 1.2rem;
     padding: 1rem 1.1rem;
     background: hsl(var(--card) / 0.86);
-    backdrop-filter: blur(8px);
-    box-shadow: var(--shadow-elevated);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-elevated), 0 0 0 1px hsl(var(--primary) / 0.04);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.8rem;
     flex-wrap: wrap;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cd-page-head::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent);
   }
 
   .cd-page-head h1 {
