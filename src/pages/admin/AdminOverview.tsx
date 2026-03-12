@@ -477,56 +477,24 @@ export default function AdminOverview() {
           </CollapsibleSection>
         </div>
 
-        {/* ═══ 3. REAL-TIME ACTIVITY + 4. PRODUCT PERFORMANCE ═══ */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-1">
-            <LiveActivityFeed />
+        {/* ═══ 3. STOCK OVERVIEW ═══ */}
+        <DataCard title="Stock Overview" description={`${stats?.availableCredentials || 0} available / ${total} total`}>
+          <div className="space-y-3">
+            <div className="w-full h-3 rounded-full bg-muted/40 overflow-hidden">
+              <motion.div
+                className="h-full rounded-full bg-gradient-to-r from-success to-success/70"
+                initial={{ width: 0 }}
+                animate={{ width: `${availablePct}%` }}
+                transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+              />
+            </div>
+            <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-success" />Available {stats?.availableCredentials || 0}</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-destructive/70" />Sold {sold}</span>
+              <span className="ml-auto font-mono font-bold">{stats?.soldToday || 0} sold today</span>
+            </div>
           </div>
-
-          <div className="lg:col-span-2 space-y-4">
-            <DataCard title="Top Products (30d)" description="Revenue leaders">
-              {topProducts && topProducts.length > 0 ? (
-                <div className="space-y-1">
-                  {topProducts.map((p, i) => (
-                    <div key={p.name} className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/30 transition-colors group">
-                      <span className={cn(
-                        "w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-extrabold font-mono shrink-0",
-                        i === 0 ? "bg-primary/10 text-primary" : i === 1 ? "bg-success/10 text-success" : "bg-muted/50 text-muted-foreground"
-                      )}>
-                        {i + 1}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{p.name}</p>
-                        <p className="text-[10px] text-muted-foreground/70 font-medium">{p.orders} orders</p>
-                      </div>
-                      <Money amount={p.revenue} className="text-sm font-extrabold text-foreground font-mono" />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-compact">No orders in last 30 days</p>
-              )}
-            </DataCard>
-
-            <DataCard title="Stock Overview" description={`${stats?.availableCredentials || 0} available / ${total} total`}>
-              <div className="space-y-3">
-                <div className="w-full h-3 rounded-full bg-muted/40 overflow-hidden">
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-success to-success/70"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${availablePct}%` }}
-                    transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
-                  />
-                </div>
-                <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-success" />Available {stats?.availableCredentials || 0}</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-destructive/70" />Sold {sold}</span>
-                  <span className="ml-auto font-mono font-bold">{stats?.soldToday || 0} sold today</span>
-                </div>
-              </div>
-            </DataCard>
-          </div>
-        </div>
+        </DataCard>
 
         {/* ═══ 5. FINANCIAL CONTROL — QUICK ACCESS ═══ */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
