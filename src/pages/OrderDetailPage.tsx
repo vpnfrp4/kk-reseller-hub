@@ -19,7 +19,6 @@ import {
   ArrowLeft,
   FileText,
   Clock,
-  ShieldCheck,
   AlertTriangle,
   Loader2,
   Star,
@@ -316,20 +315,7 @@ export default function OrderDetailPage() {
     return baseSteps;
   }, [order, isDelivered, isPending, isImei]);
 
-  const activityLog = useMemo(() => {
-    if (!order) return [];
-    const entries: { label: { mm: string; en: string }; time: string }[] = [
-      { label: t.orderDetail.logOrdered, time: order.created_at },
-    ];
-    if (isPending) {
-      entries.push({ label: t.orderDetail.logPending, time: order.created_at });
-    }
-    if (isDelivered) {
-      entries.push({ label: t.orderDetail.logProcessing, time: order.created_at });
-      entries.push({ label: t.orderDetail.logCompleted, time: order.completed_at || order.created_at });
-    }
-    return entries;
-  }, [order, isDelivered, isPending]);
+  // Activity log removed — timeline is sufficient
 
   const handleDownloadInvoice = () => {
     if (!order) return;
@@ -488,10 +474,12 @@ export default function OrderDetailPage() {
             <SectionLabel>{l(t.orderDetail.customerDetails)}</SectionLabel>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
               <DetailRow label={l(t.orders.product)} value={sanitizeName(order.product_name)} />
-              <DetailRow label="Product Type" value={<ProductTypeBadge type={order.product_type} />} />
               <DetailRow label={l(t.orderDetail.fulfillmentMode)} value={l(fulfillmentDisplay)} />
-              <DetailRow label="Status" value={<StatusBadgeLocal status={order.status} />} />
               <DetailRow label={l(t.orderDetail.requestedOn)} value={format(new Date(order.created_at), "PPP")} />
+              <DetailRow
+                label={l(t.orderDetail.totalPaid)}
+                value={<Money amount={order.price} className="text-primary font-bold" />}
+              />
               {order.imei_number && <DetailRow label="IMEI Number" value={order.imei_number} mono />}
               {order.custom_fields_data &&
                 typeof order.custom_fields_data === "object" &&
@@ -501,20 +489,7 @@ export default function OrderDetailPage() {
             </div>
           </Section>
 
-          {/* ═══ 4. PRICING ═══ */}
-          <Section>
-            <SectionLabel>{l(t.orderDetail.pricingBreakdown)}</SectionLabel>
-            <div className="space-y-0">
-              <DetailRow
-                label={l(t.orderDetail.totalPaid)}
-                value={<Money amount={order.price} className="text-primary font-bold text-base" />}
-              />
-              <DetailRow
-                label={l(t.orderDetail.walletUsed)}
-                value={<Money amount={order.price} className="text-muted-foreground" />}
-              />
-            </div>
-          </Section>
+          {/* Pricing merged into Order Details above */}
 
           {/* ═══ 5. CREDENTIALS ═══ */}
           {credentialLines.length > 0 &&
@@ -588,38 +563,7 @@ export default function OrderDetailPage() {
             </Section>
           )}
 
-          {/* ═══ 6. ACTIVITY LOG ═══ */}
-          <Section>
-            <SectionLabel>{l(t.orderDetail.activityLog)}</SectionLabel>
-            <div className="space-y-0">
-              {activityLog.map((entry, i) => (
-                <div key={i} className="flex items-center justify-between py-3 border-b border-border/30 last:border-0">
-                  <div className="flex items-center gap-3">
-                    <div className={cn("w-2 h-2 rounded-full shrink-0", i === activityLog.length - 1 ? "bg-primary" : "bg-muted-foreground/30")} />
-                    <span className="text-sm text-foreground">{l(entry.label)}</span>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground font-mono">
-                    {format(new Date(entry.time), "MMM d, HH:mm")}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Section>
-
-          {/* ═══ 7. IMPORTANT NOTICE ═══ */}
-          <Section className="border-l-2 border-l-primary/30">
-            <div className="flex items-start gap-3">
-              <ShieldCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-foreground">{l(t.orderDetail.importantNotice)}</h4>
-                <ul className="space-y-1.5">
-                  <li className="text-xs text-muted-foreground leading-relaxed">{l(t.orderDetail.noticeCredentials)}</li>
-                  <li className="text-xs text-muted-foreground leading-relaxed">{l(t.orderDetail.noticeNoRefund)}</li>
-                  <li className="text-xs text-muted-foreground leading-relaxed">{l(t.orderDetail.noticeSupport)}</li>
-                </ul>
-              </div>
-            </div>
-          </Section>
+          {/* Activity Log and Important Notice removed for cleaner UX */}
 
           {/* Back */}
           <Button variant="outline" className="gap-2 w-full sm:w-auto" onClick={() => navigate("/dashboard/orders")}>
