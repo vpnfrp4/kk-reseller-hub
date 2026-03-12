@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Money } from "@/components/shared";
-import { formatDistanceToNow } from "date-fns";
+import { ago } from "@/lib/helpers";
 
 interface RecentTimelineProps {
   orders: any[] | undefined;
