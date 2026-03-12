@@ -68,7 +68,8 @@ export default function DashboardHome() {
       return data || [];
     },
     enabled: !!user,
-  });
+    ...FAST_QUERY_OPTIONS,
+    refetchOnMount: true,
 
   const { convert } = useCurrency();
   const balance = profile?.balance || 0;

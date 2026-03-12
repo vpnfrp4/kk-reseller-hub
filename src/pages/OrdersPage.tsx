@@ -388,7 +388,7 @@ export default function OrdersPage() {
   };
 
   const clearFilters = () => {
-    setSearchInput(""); setSearch(""); setStatus("all"); setProductType("all");
+    setSearchInput(""); setStatus("all"); setProductType("all");
     setDateFrom(undefined); setDateTo(undefined); setPage(0);
   };
 
