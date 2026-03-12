@@ -35,7 +35,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import ConfirmModal from "@/components/shared/ConfirmModal";
-import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, FileText, Sparkles, Zap, Loader2, Search, RefreshCw, Eye, EyeOff, Copy, ClipboardPaste, TrendingUp, Percent, AlertTriangle, MoreHorizontal, Layers, Package, Download, Files, FolderEdit } from "lucide-react";
+import { Plus, Pencil, Trash2, KeyRound, Upload, X, GripVertical, RotateCcw, Smartphone, Monitor, Wrench, Cpu, CheckCircle2, FileText, Sparkles, Zap, Loader2, Search, RefreshCw, Eye, EyeOff, Copy, ClipboardPaste, TrendingUp, Percent, AlertTriangle, MoreHorizontal, Layers, Package, Download, Files, FolderEdit, Link as LinkIcon } from "lucide-react";
 import { generateProductDescription, type DescriptionMode } from "@/lib/description-templates";
 import { optimizeTitle, autoBuildProduct, type AutoBuildResult } from "@/lib/title-optimizer";
 import PricingTiersDialog from "@/components/admin/PricingTiersDialog";
@@ -1442,15 +1442,15 @@ export default function AdminProducts() {
                     <Select value={form.processing_time} onValueChange={(v) => { setForm({ ...form, processing_time: v }); manualOverrides.current.add("processing_time"); }}>
                       <SelectTrigger className={`bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("processing_time") ? "ring-1 ring-primary/40" : ""}`}><SelectValue placeholder="Auto-detect or select" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Instant">⚡ Instant</SelectItem>
-                        <SelectItem value="Instant - 24/7">⚡ Instant - 24/7</SelectItem>
-                        <SelectItem value="1-30 Minutes">⏳ 1-30 Minutes</SelectItem>
-                        <SelectItem value="1-6 Hours">⏳ 1-6 Hours</SelectItem>
-                        <SelectItem value="1-24 Hours">⏳ 1-24 Hours</SelectItem>
-                        <SelectItem value="1-3 Days">📅 1-3 Days</SelectItem>
-                        <SelectItem value="2-5 Days">📅 2-5 Days</SelectItem>
-                        <SelectItem value="3-7 Days">📅 3-7 Days</SelectItem>
-                        <SelectItem value="5-15 Days">📅 5-15 Days</SelectItem>
+                        <SelectItem value="Instant">Instant</SelectItem>
+                        <SelectItem value="Instant - 24/7">Instant - 24/7</SelectItem>
+                        <SelectItem value="1-30 Minutes">1-30 Minutes</SelectItem>
+                        <SelectItem value="1-6 Hours">1-6 Hours</SelectItem>
+                        <SelectItem value="1-24 Hours">1-24 Hours</SelectItem>
+                        <SelectItem value="1-3 Days">1-3 Days</SelectItem>
+                        <SelectItem value="2-5 Days">2-5 Days</SelectItem>
+                        <SelectItem value="3-7 Days">3-7 Days</SelectItem>
+                        <SelectItem value="5-15 Days">5-15 Days</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1569,7 +1569,7 @@ export default function AdminProducts() {
                         setForm((prev) => ({ ...prev, description: next }));
                         descManuallyEdited.current = true;
                       }}
-                    >🔗</button>
+                    ><LinkIcon className="w-3 h-3" /></button>
                     <div className="ml-auto flex items-center gap-1">
                       <button
                         type="button"
@@ -1910,7 +1910,7 @@ export default function AdminProducts() {
                               : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30"
                           }`}
                         >
-                          {cur === "USD" ? "💵 USD" : "🇲🇲 MMK"}
+                          {cur === "USD" ? "USD" : "MMK"}
                         </button>
                       ))}
                     </div>
@@ -2184,8 +2184,8 @@ export default function AdminProducts() {
                 <Select value={bulkPriceDirection} onValueChange={(v: any) => setBulkPriceDirection(v)}>
                   <SelectTrigger className="bg-muted/50 border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="increase">📈 Increase</SelectItem>
-                    <SelectItem value="decrease">📉 Decrease</SelectItem>
+                    <SelectItem value="increase">Increase</SelectItem>
+                    <SelectItem value="decrease">Decrease</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -2231,7 +2231,7 @@ export default function AdminProducts() {
                 queryClient.invalidateQueries({ queryKey: ["products"] });
                 setBulkPriceOpen(false);
               }}>
-                Apply {bulkPriceDirection === "increase" ? "📈" : "📉"} {bulkPricePercent}%
+                Apply {bulkPriceDirection === "increase" ? "+" : "-"} {bulkPricePercent}%
               </Button>
             </div>
           </div>

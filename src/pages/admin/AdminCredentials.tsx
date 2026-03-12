@@ -73,11 +73,11 @@ function deriveCategory(name: string): string {
   return "Others";
 }
 
-/* ── category icons ───────────────────────────────────────────── */
+/* ── category icons — now uses short text labels instead of emoji ── */
 const CATEGORY_ICONS: Record<string, string> = {
-  Facebook: "📘", WhatsApp: "💬", TikTok: "🎵", Instagram: "📸",
-  YouTube: "🎬", "Twitter/X": "🐦", Telegram: "✈️", Spotify: "🎧",
-  Netflix: "🎬", VPN: "🔐", CapCut: "✂️", Canva: "🎨", Others: "📦",
+  Facebook: "FB", WhatsApp: "WA", TikTok: "TT", Instagram: "IG",
+  YouTube: "YT", "Twitter/X": "X", Telegram: "TG", Spotify: "SP",
+  Netflix: "NF", VPN: "VPN", CapCut: "CC", Canva: "CV", Others: "—",
 };
 
 /* ── Searchable service dropdown ──────────────────────────────── */
@@ -154,7 +154,7 @@ function ServiceSearchDropdown({ products, value, onChange }: { products: any[];
             ) : grouped.map(([cat, items]) => (
               <div key={cat}>
                 <div className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider bg-muted/30 sticky top-0">
-                  {CATEGORY_ICONS[deriveCategory(items[0]?.name || "")] || "📦"} {cat}
+                  {CATEGORY_ICONS[deriveCategory(items[0]?.name || "")] || "—"} {cat}
                 </div>
                 {items.map((p: any) => (
                   <button
@@ -483,7 +483,7 @@ export default function AdminCredentials() {
                     const cat = deriveCategory(sel.name);
                     return (
                       <div className="flex items-center gap-2 p-2.5 rounded-lg bg-muted/20 border border-border/30">
-                        <span className="text-base">{CATEGORY_ICONS[cat] || "📦"}</span>
+                        <span className="text-base">{CATEGORY_ICONS[cat] || "—"}</span>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-medium text-foreground truncate">{sel.icon} {sel.name} — {sel.duration}</p>
                           <p className="text-[10px] text-muted-foreground">Category: <span className="text-primary font-medium">{cat}</span> · #{sel.display_id}</p>
@@ -541,7 +541,7 @@ export default function AdminCredentials() {
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   )}
                 >
-                  <span className="text-base leading-none">{CATEGORY_ICONS[cat] || "📦"}</span>
+                  <span className="text-base leading-none">{CATEGORY_ICONS[cat] || "—"}</span>
                   <span className="flex-1 text-left truncate">{cat}</span>
                   <Badge variant="secondary" className="text-[10px] h-5 min-w-[28px] justify-center px-1.5 bg-muted/80">
                     {categoryCounts[cat] || 0}
@@ -562,7 +562,7 @@ export default function AdminCredentials() {
               className="w-full bg-card border border-border rounded-lg px-3 py-2.5 text-sm text-foreground"
             >
               {categories.map((cat) => (
-                <option key={cat} value={cat}>{CATEGORY_ICONS[cat] || "📦"} {cat} ({categoryCounts[cat] || 0})</option>
+                <option key={cat} value={cat}>{CATEGORY_ICONS[cat] || "—"} {cat} ({categoryCounts[cat] || 0})</option>
               ))}
             </select>
           </div>
@@ -693,7 +693,7 @@ export default function AdminCredentials() {
                         </td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <span className="text-base leading-none">{CATEGORY_ICONS[category] || "📦"}</span>
+                            <span className="text-base leading-none">{CATEGORY_ICONS[category] || "—"}</span>
                             <div>
                               <p className="text-sm font-medium text-foreground leading-tight">{productName}</p>
                               <p className="text-[11px] text-muted-foreground">{duration}</p>
@@ -702,7 +702,7 @@ export default function AdminCredentials() {
                         </td>
                         <td className="p-3 hidden sm:table-cell">
                           <Badge variant="outline" className="text-[10px] gap-1 font-normal">
-                            {CATEGORY_ICONS[category] || "📦"} {category}
+                            {CATEGORY_ICONS[category] || "—"} {category}
                           </Badge>
                         </td>
                         <td className="p-3">

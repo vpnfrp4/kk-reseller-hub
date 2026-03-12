@@ -316,7 +316,7 @@ export default function AdminMonitoring() {
                   {loadingFailed ? (
                     <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
                   ) : failedOrders.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No failed orders 🎉</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No failed orders — All clear</TableCell></TableRow>
                   ) : failedOrders.map((order: any) => (
                     <TableRow key={order.id}>
                       <TableCell className="font-mono text-xs">{order.order_code}</TableCell>
@@ -352,7 +352,7 @@ export default function AdminMonitoring() {
                   {loadingErrors ? (
                     <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
                   ) : apiErrors.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No API errors 🎉</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No API errors — All clear</TableCell></TableRow>
                   ) : apiErrors.map((log: any) => (
                     <TableRow key={log.id}>
                       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{format(new Date(log.created_at), "MMM d, HH:mm:ss")}</TableCell>
@@ -398,7 +398,7 @@ export default function AdminMonitoring() {
                       <TableCell>{p.success_rate != null ? `${p.success_rate}%` : "—"}</TableCell>
                       <TableCell>{p.calls_24h}</TableCell>
                       <TableCell className={p.errors_24h > 0 ? "text-destructive font-medium" : ""}>{p.errors_24h}</TableCell>
-                      <TableCell>{p.avg_rating ? `⭐ ${p.avg_rating}` : "—"}</TableCell>
+                      <TableCell>{p.avg_rating ? `${p.avg_rating}` : "—"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -526,7 +526,7 @@ export default function AdminMonitoring() {
                   {loadingClientErrors ? (
                     <TableRow><TableCell colSpan={3} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
                   ) : clientErrors.length === 0 ? (
-                    <TableRow><TableCell colSpan={3} className="text-center py-8 text-muted-foreground">No client errors 🎉</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={3} className="text-center py-8 text-muted-foreground">No client errors — All clear</TableCell></TableRow>
                   ) : clientErrors.map((err: any) => (
                     <TableRow key={err.id}>
                       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">

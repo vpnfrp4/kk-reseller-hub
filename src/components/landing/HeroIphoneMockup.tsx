@@ -1,3 +1,4 @@
+import { Cloud, LockOpen, Smartphone, Wrench } from "lucide-react";
 /**
  * Premium 3D iPhone Pro mockup — Apple services themed.
  * Dark glass aesthetic with subtle gold accents. Pure CSS, no 3D libs.
@@ -80,10 +81,10 @@ export default function HeroIphoneMockup() {
             {/* Service grid */}
             <div className="grid grid-cols-2 gap-1.5">
               {[
-                { label: "iCloud", icon: "☁️", delay: "0s" },
-                { label: "Unlock", icon: "🔓", delay: "0.5s" },
-                { label: "IMEI", icon: "📱", delay: "1s" },
-                { label: "Repair", icon: "🔧", delay: "1.5s" },
+                { label: "iCloud", Icon: Cloud, delay: "0s" },
+                { label: "Unlock", Icon: LockOpen, delay: "0.5s" },
+                { label: "IMEI", Icon: Smartphone, delay: "1s" },
+                { label: "Repair", Icon: Wrench, delay: "1.5s" },
               ].map((s) => (
                 <div
                   key={s.label}
@@ -94,10 +95,10 @@ export default function HeroIphoneMockup() {
                   }}
                 >
                   <div
-                    className="text-[10px] mb-0.5"
+                    className="flex justify-center mb-0.5"
                     style={{ animation: `mockup-icon-float 3s ease-in-out ${s.delay} infinite` }}
                   >
-                    {s.icon}
+                    <s.Icon className="w-3 h-3 text-white/50" strokeWidth={1.5} />
                   </div>
                   <span className="text-[6.5px] font-semibold text-white/45">{s.label}</span>
                 </div>

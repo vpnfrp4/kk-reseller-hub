@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useT, t } from "@/lib/i18n";
-import { Clock, Zap, ShieldCheck } from "lucide-react";
+import { Clock, Zap, ShieldCheck, CheckCircle2 } from "lucide-react";
 import ProductIcon from "@/components/products/ProductIcon";
 
 interface PricingTier {
@@ -138,7 +138,7 @@ export default function ProductCard({
             <>
               <span className="w-px h-3 bg-border/30" />
               <span className="inline-flex items-center gap-1 text-[10px] text-success font-semibold">
-                ✓ Verified
+                <CheckCircle2 className="w-3 h-3" /> Verified
               </span>
             </>
           )}

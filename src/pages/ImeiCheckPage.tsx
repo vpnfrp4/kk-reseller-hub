@@ -287,7 +287,7 @@ export default function ImeiCheckPage() {
               <div className="flex justify-between">
                 <dt className="text-muted-foreground">Luhn Validation</dt>
                 <dd className={result.luhnValid ? "font-semibold text-success" : "font-semibold text-destructive"}>
-                  {result.luhnValid ? "Pass ✓" : "Fail ✗"}
+                  {result.luhnValid ? "Pass" : "Fail"}
                 </dd>
               </div>
             </dl>

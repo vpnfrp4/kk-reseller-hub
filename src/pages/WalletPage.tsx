@@ -196,13 +196,13 @@ export default function WalletPage() {
       if (matchedTx && matchedTx.length > 0) {
         const tx = matchedTx[0];
         if (tx.status === "approved") {
-          toast({ title: "✅ Payment Verified", description: `${tx.amount.toLocaleString()} MMK was credited to your wallet.` });
+          toast({ title: "Payment Verified", description: `${tx.amount.toLocaleString()} MMK was credited to your wallet.` });
           navigate(`/dashboard/topup-status/${tx.id}`);
         } else if (tx.status === "pending") {
-          toast({ title: "⏳ Pending Approval", description: `Your top-up of ${tx.amount.toLocaleString()} MMK is awaiting admin verification.` });
+          toast({ title: "Pending Approval", description: `Your top-up of ${tx.amount.toLocaleString()} MMK is awaiting admin verification.` });
           navigate(`/dashboard/topup-status/${tx.id}`);
         } else if (tx.status === "rejected") {
-          toast({ title: "❌ Payment Rejected", description: `Your top-up of ${tx.amount.toLocaleString()} MMK was not approved.`, variant: "destructive" });
+          toast({ title: "Payment Rejected", description: `Your top-up of ${tx.amount.toLocaleString()} MMK was not approved.`, variant: "destructive" });
         }
         return;
       }
@@ -212,12 +212,12 @@ export default function WalletPage() {
         .eq("user_id", user.id).eq("type", "topup").eq("id", verifyTxId.trim()).limit(1);
       if (matchById && matchById.length > 0) {
         const tx = matchById[0];
-        toast({ title: tx.status === "approved" ? "✅ Approved" : tx.status === "pending" ? "⏳ Pending" : "❌ Rejected", description: `Amount: ${tx.amount.toLocaleString()} MMK` });
+        toast({ title: tx.status === "approved" ? "Approved" : tx.status === "pending" ? "Pending" : "Rejected", description: `Amount: ${tx.amount.toLocaleString()} MMK` });
         navigate(`/dashboard/topup-status/${tx.id}`);
         return;
       }
 
-      toast({ title: "❌ Not Found", description: "No matching transaction found. Please check the ID.", variant: "destructive" });
+      toast({ title: "Not Found", description: "No matching transaction found. Please check the ID.", variant: "destructive" });
     } catch { toast({ title: "Error", description: "Verification failed.", variant: "destructive" }); }
     finally { setVerifying(false); }
   };

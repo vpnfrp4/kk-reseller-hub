@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { User, Camera, Mail, Calendar, Loader2, Trash2, Send, Link2, Copy, CheckCircle2, Unlink } from "lucide-react";
+import { User, Camera, Mail, Calendar, Loader2, Trash2, Send, Link2, Copy, CheckCircle2, Unlink, Bell, Package, RefreshCw, XCircle, Wallet, AlertTriangle, ClipboardList, Sparkles, Search, DollarSign } from "lucide-react";
 import { t, useT } from "@/lib/i18n";
 
 const BOT_USERNAME = "karkar4store_bot";
@@ -263,20 +263,20 @@ export default function ProfileTab() {
 
             {/* What You'll Receive */}
             <div className="p-3 rounded-lg bg-muted/10 border border-border/10 space-y-2">
-              <p className="text-[11px] font-semibold text-foreground">🔔 Auto Notifications:</p>
+              <p className="text-[11px] font-semibold text-foreground flex items-center gap-1"><Bell className="w-3 h-3 text-primary" /> Auto Notifications:</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                <span>📦 Order placed</span>
-                <span>🔄 Order processing</span>
-                <span>✅ Order completed</span>
-                <span>❌ Order rejected</span>
-                <span>💰 Top-up approved</span>
-                <span>⚠️ Balance alerts</span>
+                <span className="flex items-center gap-1"><Package className="w-3 h-3" /> Order placed</span>
+                <span className="flex items-center gap-1"><RefreshCw className="w-3 h-3" /> Order processing</span>
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Order completed</span>
+                <span className="flex items-center gap-1"><XCircle className="w-3 h-3" /> Order rejected</span>
+                <span className="flex items-center gap-1"><Wallet className="w-3 h-3" /> Top-up approved</span>
+                <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Balance alerts</span>
               </div>
             </div>
 
             {/* Bot Commands Reference */}
             <div className="p-3 rounded-lg bg-muted/10 border border-border/10 space-y-2">
-              <p className="text-[11px] font-semibold text-foreground">📋 Bot Commands:</p>
+              <p className="text-[11px] font-semibold text-foreground flex items-center gap-1"><ClipboardList className="w-3 h-3 text-primary" /> Bot Commands:</p>
               <div className="grid gap-1.5">
                 {[
                   { cmd: "/balance", desc: "Check wallet balance (MMK & USD)" },
@@ -308,12 +308,12 @@ export default function ProfileTab() {
           <div className="space-y-compact">
             {/* Benefits */}
             <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 space-y-2">
-              <p className="text-[11px] font-semibold text-foreground">✨ Why Connect Telegram?</p>
+              <p className="text-[11px] font-semibold text-foreground flex items-center gap-1"><Sparkles className="w-3 h-3 text-primary" /> Why Connect Telegram?</p>
               <div className="grid gap-1 text-[11px] text-muted-foreground">
-                <span>📦 Instant order status notifications</span>
-                <span>💰 Wallet top-up alerts with new balance</span>
-                <span>🔍 Check order status directly from Telegram</span>
-                <span>💵 Quick balance checks without opening the app</span>
+                <span className="flex items-center gap-1"><Package className="w-3 h-3" /> Instant order status notifications</span>
+                <span className="flex items-center gap-1"><Wallet className="w-3 h-3" /> Wallet top-up alerts with new balance</span>
+                <span className="flex items-center gap-1"><Search className="w-3 h-3" /> Check order status directly from Telegram</span>
+                <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" /> Quick balance checks without opening the app</span>
               </div>
             </div>
 
@@ -353,7 +353,7 @@ export default function ProfileTab() {
                   </Button>
                 </div>
                 <p className="text-[10px] text-muted-foreground/60">
-                  ⚠️ This link expires when you generate a new one. Don't share it with others.
+                  This link expires when you generate a new one. Don't share it with others.
                 </p>
               </div>
             ) : (

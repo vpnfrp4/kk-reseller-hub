@@ -43,22 +43,22 @@ function productTypeBadge(type: string | null) {
 const RESULT_TEMPLATES = [
   {
     label: "Login Info",
-    icon: "🔑",
+    icon: "key",
     text: "Username: \nPassword: ",
   },
   {
     label: "Success",
-    icon: "✅",
+    icon: "check",
     text: "Your order has been completed successfully.\nCredentials have been delivered.",
   },
   {
     label: "Instruction",
-    icon: "📋",
+    icon: "clipboard",
     text: "Please follow these steps:\n1. \n2. \n3. ",
   },
   {
     label: "Invalid",
-    icon: "❌",
+    icon: "x",
     text: "The information provided is incorrect. Please contact support for assistance.",
   },
 ];

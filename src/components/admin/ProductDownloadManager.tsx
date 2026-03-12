@@ -189,7 +189,7 @@ export default function ProductDownloadManager({ productId, files, settings, onF
             <div className="flex items-center gap-2">
               <GripVertical className="w-3.5 h-3.5 text-muted-foreground/30 cursor-grab" />
               <span className="text-xs font-semibold text-muted-foreground">
-                {file.download_type === "file_upload" ? "📁 File Upload" : "🔗 External Link"} #{idx + 1}
+                {file.download_type === "file_upload" ? "File Upload" : "External Link"} #{idx + 1}
               </span>
             </div>
             <button type="button" onClick={() => removeFile(idx)} className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">

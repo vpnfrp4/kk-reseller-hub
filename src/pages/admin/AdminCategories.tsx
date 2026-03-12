@@ -117,7 +117,7 @@ export default function AdminCategories() {
 
   /* ── CRUD ── */
   const openCreate = () => {
-    setEditCat({ name: "", description: "", icon: "📦", image_url: null, is_active: true, sort_order: categories.length });
+    setEditCat({ name: "", description: "", icon: "package", image_url: null, is_active: true, sort_order: categories.length });
     setEditOpen(true);
   };
 
@@ -136,7 +136,7 @@ export default function AdminCategories() {
         const { error } = await supabase.from("categories").update({
           name: editCat.name.trim(),
           description: editCat.description || "",
-          icon: editCat.icon || "📦",
+          icon: editCat.icon || "package",
           image_url: editCat.image_url || null,
           is_active: editCat.is_active ?? true,
         }).eq("id", editCat.id);
@@ -152,7 +152,7 @@ export default function AdminCategories() {
         const { error } = await supabase.from("categories").insert({
           name: editCat.name.trim(),
           description: editCat.description || "",
-          icon: editCat.icon || "📦",
+          icon: editCat.icon || "package",
           image_url: editCat.image_url || null,
           is_active: editCat.is_active ?? true,
           sort_order: editCat.sort_order ?? categories.length,
@@ -493,7 +493,7 @@ export default function AdminCategories() {
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Icon</label>
               <div className="flex items-center gap-2">
                 <Input value={editCat?.icon || ""} onChange={e => setEditCat(prev => ({ ...prev, icon: e.target.value }))}
-                  placeholder="📦" className="w-20 text-center text-lg" />
+                  placeholder="package" className="w-20 text-center text-lg" />
                 <span className="text-xs text-muted-foreground">or</span>
                 <IconPicker value={editCat?.image_url || ""} onChange={(url) => setEditCat(prev => ({ ...prev, image_url: url }))} />
               </div>
