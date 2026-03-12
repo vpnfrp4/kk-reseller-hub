@@ -5,6 +5,7 @@ import { notifyEvent, requestNotificationPermission } from "@/lib/notifications"
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { FAST_QUERY_OPTIONS } from "@/lib/query-options";
 import { Zap, Plus, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PageContainer } from "@/components/shared";
@@ -67,6 +68,8 @@ export default function DashboardHome() {
       return data || [];
     },
     enabled: !!user,
+    ...FAST_QUERY_OPTIONS,
+    refetchOnMount: true,
   });
 
   const { convert } = useCurrency();

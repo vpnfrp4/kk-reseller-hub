@@ -10,6 +10,9 @@ import {
   ExternalLink, ArrowRight, Filter, Loader2,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
+import { PAGED_QUERY_OPTIONS } from "@/lib/query-options";
+import { sanitizeSearchKeyword } from "@/lib/validators";
 import { format } from "date-fns";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -252,22 +255,20 @@ export default function OrdersPage() {
 
   const [page, setPage] = useState(0);
   const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
+  const search = useDebouncedValue(searchInput, 350);
   const [status, setStatus] = useState<string>("all");
   const [productType, setProductType] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const l = useT();
 
-  // Debounced search
-  useEffect(() => {
-    const timer = setTimeout(() => { setSearch(searchInput); setPage(0); }, 350);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  // Reset page when search changes
+  useEffect(() => { setPage(0); }, [search]);
 
   const buildQuery = (q: any) => {
     if (user) q = q.eq("user_id", user.id);
-    if (search.trim()) q = q.ilike("product_name", `%${search.trim()}%`);
+    const cleanSearch = sanitizeSearchKeyword(search);
+    if (cleanSearch) q = q.ilike("product_name", `%${cleanSearch}%`);
     if (status !== "all") q = q.eq("status", status);
     if (productType !== "all") q = q.eq("product_type", productType);
     if (dateFrom) q = q.gte("created_at", dateFrom.toISOString());
@@ -291,6 +292,7 @@ export default function OrdersPage() {
       return count || 0;
     },
     enabled: !!user,
+    ...PAGED_QUERY_OPTIONS,
   });
 
   // Stats
@@ -327,6 +329,7 @@ export default function OrdersPage() {
       return data || [];
     },
     enabled: !!user,
+    ...PAGED_QUERY_OPTIONS,
   });
 
   // Auto-highlight the newest order when redirected from a successful purchase
@@ -385,7 +388,7 @@ export default function OrdersPage() {
   };
 
   const clearFilters = () => {
-    setSearchInput(""); setSearch(""); setStatus("all"); setProductType("all");
+    setSearchInput(""); setStatus("all"); setProductType("all");
     setDateFrom(undefined); setDateTo(undefined); setPage(0);
   };
 
