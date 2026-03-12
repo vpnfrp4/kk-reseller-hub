@@ -199,7 +199,7 @@ export default function WalletPage() {
           toast({ title: "Payment Verified", description: `${tx.amount.toLocaleString()} MMK was credited to your wallet.` });
           navigate(`/dashboard/topup-status/${tx.id}`);
         } else if (tx.status === "pending") {
-          toast({ title: "⏳ Pending Approval", description: `Your top-up of ${tx.amount.toLocaleString()} MMK is awaiting admin verification.` });
+          toast({ title: "Pending Approval", description: `Your top-up of ${tx.amount.toLocaleString()} MMK is awaiting admin verification.` });
           navigate(`/dashboard/topup-status/${tx.id}`);
         } else if (tx.status === "rejected") {
           toast({ title: "❌ Payment Rejected", description: `Your top-up of ${tx.amount.toLocaleString()} MMK was not approved.`, variant: "destructive" });
