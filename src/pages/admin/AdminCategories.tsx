@@ -152,7 +152,7 @@ export default function AdminCategories() {
         const { error } = await supabase.from("categories").insert({
           name: editCat.name.trim(),
           description: editCat.description || "",
-          icon: editCat.icon || "📦",
+          icon: editCat.icon || "package",
           image_url: editCat.image_url || null,
           is_active: editCat.is_active ?? true,
           sort_order: editCat.sort_order ?? categories.length,
