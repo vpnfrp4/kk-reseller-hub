@@ -316,20 +316,7 @@ export default function OrderDetailPage() {
     return baseSteps;
   }, [order, isDelivered, isPending, isImei]);
 
-  const activityLog = useMemo(() => {
-    if (!order) return [];
-    const entries: { label: { mm: string; en: string }; time: string }[] = [
-      { label: t.orderDetail.logOrdered, time: order.created_at },
-    ];
-    if (isPending) {
-      entries.push({ label: t.orderDetail.logPending, time: order.created_at });
-    }
-    if (isDelivered) {
-      entries.push({ label: t.orderDetail.logProcessing, time: order.created_at });
-      entries.push({ label: t.orderDetail.logCompleted, time: order.completed_at || order.created_at });
-    }
-    return entries;
-  }, [order, isDelivered, isPending]);
+  // Activity log removed — timeline is sufficient
 
   const handleDownloadInvoice = () => {
     if (!order) return;
