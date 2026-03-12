@@ -2184,8 +2184,8 @@ export default function AdminProducts() {
                 <Select value={bulkPriceDirection} onValueChange={(v: any) => setBulkPriceDirection(v)}>
                   <SelectTrigger className="bg-muted/50 border-border"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="increase">📈 Increase</SelectItem>
-                    <SelectItem value="decrease">📉 Decrease</SelectItem>
+                    <SelectItem value="increase">Increase</SelectItem>
+                    <SelectItem value="decrease">Decrease</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
