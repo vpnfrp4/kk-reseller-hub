@@ -292,6 +292,7 @@ export default function OrdersPage() {
       return count || 0;
     },
     enabled: !!user,
+    ...PAGED_QUERY_OPTIONS,
   });
 
   // Stats
