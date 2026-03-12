@@ -475,10 +475,12 @@ export default function OrderDetailPage() {
             <SectionLabel>{l(t.orderDetail.customerDetails)}</SectionLabel>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
               <DetailRow label={l(t.orders.product)} value={sanitizeName(order.product_name)} />
-              <DetailRow label="Product Type" value={<ProductTypeBadge type={order.product_type} />} />
               <DetailRow label={l(t.orderDetail.fulfillmentMode)} value={l(fulfillmentDisplay)} />
-              <DetailRow label="Status" value={<StatusBadgeLocal status={order.status} />} />
               <DetailRow label={l(t.orderDetail.requestedOn)} value={format(new Date(order.created_at), "PPP")} />
+              <DetailRow
+                label={l(t.orderDetail.totalPaid)}
+                value={<Money amount={order.price} className="text-primary font-bold" />}
+              />
               {order.imei_number && <DetailRow label="IMEI Number" value={order.imei_number} mono />}
               {order.custom_fields_data &&
                 typeof order.custom_fields_data === "object" &&
