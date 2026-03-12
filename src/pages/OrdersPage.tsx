@@ -37,14 +37,14 @@ const PAGE_SIZE = 20;
 /* ── Product Type Badge ── */
 function ProductTypeBadge({ type }: { type: string | null }) {
   const map: Record<string, { label: string; style: string }> = {
-    digital: { label: "Instant", style: "bg-primary/10 text-primary border border-primary/20" },
-    imei: { label: "IMEI", style: "bg-warning/10 text-warning border border-warning/20" },
-    manual: { label: "Manual", style: "bg-ice/10 text-ice border border-ice/20" },
-    api: { label: "API", style: "bg-success/10 text-success border border-success/20" },
+    digital: { label: "Instant", style: "bg-primary/6 text-primary border border-primary/12" },
+    imei: { label: "IMEI", style: "bg-warning/6 text-warning border border-warning/12" },
+    manual: { label: "Manual", style: "bg-ice/6 text-ice border border-ice/12" },
+    api: { label: "API", style: "bg-success/6 text-success border border-success/12" },
   };
   const s = map[type || "digital"] || map.digital;
   return (
-    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${s.style}`}>
+    <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${s.style}`}>
       {s.label}
     </span>
   );
@@ -53,26 +53,26 @@ function ProductTypeBadge({ type }: { type: string | null }) {
 /* ── Status Badge ── */
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; className: string }> = {
-    processing: { label: "Processing", className: "bg-primary/10 text-primary border-primary/20" },
-    pending: { label: "Pending", className: "bg-warning/10 text-warning border-warning/20" },
-    pending_creation: { label: "Preparing", className: "bg-warning/10 text-warning border-warning/20" },
-    pending_review: { label: "Review", className: "bg-ice/10 text-ice border-ice/20" },
-    delivered: { label: "Completed", className: "bg-success/10 text-success border-success/20" },
-    completed: { label: "Completed", className: "bg-success/10 text-success border-success/20" },
-    rejected: { label: "Rejected", className: "bg-destructive/10 text-destructive border-destructive/20" },
-    cancelled: { label: "Cancelled", className: "bg-destructive/10 text-destructive border-destructive/20" },
-    api_pending: { label: "API Pending", className: "bg-ice/10 text-ice border-ice/20" },
+    processing: { label: "Processing", className: "bg-primary/8 text-primary border-primary/15" },
+    pending: { label: "Pending", className: "bg-warning/8 text-warning border-warning/15" },
+    pending_creation: { label: "Preparing", className: "bg-warning/8 text-warning border-warning/15" },
+    pending_review: { label: "Review", className: "bg-ice/8 text-ice border-ice/15" },
+    delivered: { label: "Completed", className: "bg-success/8 text-success border-success/15" },
+    completed: { label: "Completed", className: "bg-success/8 text-success border-success/15" },
+    rejected: { label: "Rejected", className: "bg-destructive/8 text-destructive border-destructive/15" },
+    cancelled: { label: "Cancelled", className: "bg-destructive/8 text-destructive border-destructive/15" },
+    api_pending: { label: "API Pending", className: "bg-ice/8 text-ice border-ice/15" },
   };
   const config = map[status] || { label: status, className: "bg-muted text-muted-foreground border-border" };
   return (
-    <span className={cn("text-[11px] px-2.5 py-1 rounded-full font-semibold border inline-flex items-center gap-1.5", config.className)}>
-      <span className={cn("w-1.5 h-1.5 rounded-full", 
-        status === "processing" || status === "pending" || status === "pending_creation" || status === "pending_review" || status === "api_pending" ? "animate-pulse" : "",
+    <span className={cn("text-[10px] px-2.5 py-[3px] rounded-md font-bold border inline-flex items-center gap-1.5", config.className)}>
+      <span className={cn("w-1.5 h-1.5 rounded-full",
+        ["processing", "pending", "pending_creation", "pending_review", "api_pending"].includes(status) ? "animate-pulse" : "",
         status === "processing" ? "bg-primary" : "",
-        status === "pending" || status === "pending_creation" ? "bg-warning" : "",
-        status === "delivered" || status === "completed" ? "bg-success" : "",
-        status === "rejected" || status === "cancelled" ? "bg-destructive" : "",
-        status === "pending_review" || status === "api_pending" ? "bg-ice" : "",
+        ["pending", "pending_creation"].includes(status) ? "bg-warning" : "",
+        ["delivered", "completed"].includes(status) ? "bg-success" : "",
+        ["rejected", "cancelled"].includes(status) ? "bg-destructive" : "",
+        ["pending_review", "api_pending"].includes(status) ? "bg-ice" : "",
       )} />
       {config.label}
     </span>
