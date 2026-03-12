@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Wallet, ShoppingCart, AlertTriangle, Clock, Plus, CheckCircle2, ArrowRight,
   Package, KeyRound, Users, TrendingDown, ShieldAlert, Activity, BarChart3,
-  Settings2, FileText,
+  Settings2, FileText, ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
@@ -18,6 +18,8 @@ import { PageContainer, DataCard, Money } from "@/components/shared";
 import CollapsibleSection from "@/components/shared/CollapsibleSection";
 import MiniSparkline from "@/components/admin/MiniSparkline";
 import { useCountUp } from "@/hooks/use-count-up";
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -35,36 +37,67 @@ function getStoredThreshold(): number {
 }
 
 /* ─── Hero Stat ─── */
+const statVariants = {
+  hidden: { opacity: 0, y: 16, scale: 0.97 },
+  visible: (i: number) => ({
+    opacity: 1, y: 0, scale: 1,
+    transition: { type: "spring", stiffness: 380, damping: 26, delay: i * 0.08 },
+  }),
+};
+
 function HeroStat({
-  label, value, suffix = "MMK", icon: Icon, iconColor, featured = false, sparkData, delay = 0,
+  label, value, suffix = "MMK", icon: Icon, iconColor, featured = false, sparkData, index = 0,
 }: {
   label: string; value: number; suffix?: string; icon: any; iconColor: string;
-  featured?: boolean; sparkData?: number[]; delay?: number;
+  featured?: boolean; sparkData?: number[]; index?: number;
 }) {
   const animated = useCountUp(value, 900);
   const colorVar = iconColor.replace("text-", "");
   return (
-    <div
-      className={`stat-card group opacity-0 animate-stagger-in ${featured ? "sm:col-span-2 border-warning/30 ring-1 ring-warning/10" : ""}`}
-      style={{ animationDelay: `${delay}s` }}
+    <motion.div
+      custom={index}
+      variants={statVariants}
+      initial="hidden"
+      animate="visible"
+      whileHover={{ y: -3, transition: { duration: 0.2 } }}
+      className={cn(
+        "relative overflow-hidden rounded-[var(--radius-card)] border bg-card/90 backdrop-blur-sm p-4 lg:p-5 group transition-shadow duration-300",
+        featured
+          ? "sm:col-span-2 border-warning/25 hover:shadow-[0_8px_30px_-12px_hsl(var(--warning)/0.2)]"
+          : "border-border/50 hover:border-primary/20 hover:shadow-[var(--shadow-elevated)]"
+      )}
     >
-      <div className="flex items-start justify-between mb-compact">
-        <div className="flex items-center gap-compact">
-          <div className="w-9 h-9 rounded-btn flex items-center justify-center shrink-0" style={{ background: `hsl(var(--${colorVar}) / 0.1)` }}>
-            <Icon className={`w-[18px] h-[18px] ${iconColor}`} strokeWidth={1.5} />
+      {/* Top accent */}
+      <div
+        className="absolute top-0 inset-x-4 h-[2px] rounded-b-full opacity-40"
+        style={{ background: `hsl(var(--${colorVar}))` }}
+      />
+
+      <div className="flex items-start justify-between mb-3">
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105"
+            style={{ background: `hsl(var(--${colorVar}) / 0.1)` }}
+          >
+            <Icon className={cn("w-[18px] h-[18px]", iconColor)} strokeWidth={1.5} />
           </div>
-          <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-[0.08em]">{label}</span>
+          <span className="text-[10px] font-bold text-muted-foreground/70 uppercase tracking-[0.1em]">{label}</span>
         </div>
         {sparkData && sparkData.length > 1 && (
-          <MiniSparkline data={sparkData} width={64} height={24} color={`hsl(var(--${colorVar}))`} className="opacity-50 group-hover:opacity-100 transition-opacity" />
+          <MiniSparkline data={sparkData} width={64} height={24} color={`hsl(var(--${colorVar}))`} className="opacity-40 group-hover:opacity-80 transition-opacity" />
         )}
       </div>
-      <p className={`font-bold font-mono tabular-nums text-foreground tracking-tight ${featured ? "text-[32px]" : "text-2xl"}`}>
+      <p className={cn("font-extrabold font-mono tabular-nums text-foreground tracking-tight leading-none", featured ? "text-[32px]" : "text-2xl")}>
         {animated.toLocaleString()}
-        <span className="text-sm font-semibold text-muted-foreground ml-1.5">{suffix}</span>
+        <span className="text-xs font-bold text-muted-foreground/60 ml-1.5">{suffix}</span>
       </p>
-      {featured && <p className="text-[10px] text-warning mt-1 font-medium uppercase tracking-wider">⚠ Financial Risk Indicator</p>}
-    </div>
+      {featured && (
+        <p className="text-[10px] text-warning mt-2 font-bold uppercase tracking-wider flex items-center gap-1">
+          <AlertTriangle className="w-3 h-3" />
+          Financial Risk Indicator
+        </p>
+      )}
+    </motion.div>
   );
 }
 
@@ -72,31 +105,39 @@ function HeroStat({
 function AlertChip({ label, count, color, to }: { label: string; count: number; color: string; to: string }) {
   if (count === 0) return null;
   return (
-    <Link to={to} className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold transition-all hover:scale-105 ${color}`}>
-      <span className="w-2 h-2 rounded-full bg-current opacity-70" />
+    <Link to={to} className={cn("inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold transition-all hover:scale-[1.03] active:scale-[0.98]", color)}>
+      <span className="w-2 h-2 rounded-full bg-current opacity-60 animate-pulse" />
       {label}
-      <span className="font-mono font-bold">{count}</span>
+      <span className="font-mono font-extrabold">{count}</span>
     </Link>
   );
 }
 
 /* ─── Quick Access Card ─── */
-function QuickAccessCard({ label, icon: Icon, to, description, delay = 0 }: { label: string; icon: any; to: string; description: string; delay?: number }) {
+function QuickAccessCard({ label, icon: Icon, to, description, index = 0 }: { label: string; icon: any; to: string; description: string; index?: number }) {
   return (
-    <Link
-      to={to}
-      className="glass-card p-card flex flex-col gap-compact hover-lift group opacity-0 animate-stagger-in"
-      style={{ animationDelay: `${delay}s` }}
+    <motion.div
+      custom={index}
+      variants={statVariants}
+      initial="hidden"
+      animate="visible"
     >
-      <div className="w-11 h-11 rounded-btn bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
-        <Icon className="w-5 h-5 text-primary" strokeWidth={1.5} />
-      </div>
-      <div>
-        <p className="text-sm font-semibold text-foreground">{label}</p>
-        <p className="text-[11px] text-muted-foreground mt-micro">{description}</p>
-      </div>
-      <ArrowRight className="w-4 h-4 text-muted-foreground/40 mt-auto self-end group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
-    </Link>
+      <Link
+        to={to}
+        className="relative overflow-hidden rounded-[var(--radius-card)] border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex flex-col gap-2.5 group hover:border-primary/20 hover:shadow-[var(--shadow-elevated)] hover:-translate-y-1 transition-all duration-300"
+      >
+        {/* Hover glow */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+        <div className="w-11 h-11 rounded-xl bg-primary/8 flex items-center justify-center group-hover:bg-primary/12 group-hover:scale-105 transition-all duration-200 relative z-10">
+          <Icon className="w-5 h-5 text-primary" strokeWidth={1.5} />
+        </div>
+        <div className="relative z-10">
+          <p className="text-sm font-extrabold text-foreground">{label}</p>
+          <p className="text-[10px] text-muted-foreground/70 mt-0.5 font-medium">{description}</p>
+        </div>
+        <ChevronRight className="w-4 h-4 text-muted-foreground/30 mt-auto self-end group-hover:text-primary/60 group-hover:translate-x-0.5 transition-all relative z-10" />
+      </Link>
+    </motion.div>
   );
 }
 
@@ -124,9 +165,11 @@ function buildChartDaysCount(rawData: any[], dateKey: string) {
 const tooltipStyle = {
   backgroundColor: "hsl(var(--card))",
   border: "1px solid hsl(var(--border))",
-  borderRadius: "8px",
+  borderRadius: "12px",
   fontSize: "12px",
   color: "hsl(var(--foreground))",
+  boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
+  backdropFilter: "blur(8px)",
 };
 
 /* ═══ MAIN COMPONENT ═══ */
@@ -366,305 +409,320 @@ export default function AdminOverview() {
   return (
     <PageContainer>
       {/* ═══ 1. CONTROL OVERVIEW HERO ═══ */}
-      <div className="cd-reveal">
-        <div className="cd-page-head mb-default">
-          <div>
-            <h1>Control Center</h1>
-            <p>Financial & Operations Overview</p>
+      <div className="space-y-5 lg:space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="cd-page-head mb-4">
+            <div>
+              <h1>Control Center</h1>
+              <p>Financial & Operations Overview</p>
+            </div>
+            <div className="cd-page-head-actions">
+              <Link to="/admin/credentials">
+                <Button size="sm" className="gap-1.5 h-9 text-xs font-bold rounded-xl shadow-lg shadow-primary/15">
+                  <Plus className="w-3.5 h-3.5" />Credentials
+                </Button>
+              </Link>
+              <Link to="/admin/topups">
+                <Button size="sm" variant="outline" className="gap-1.5 h-9 text-xs font-bold rounded-xl relative">
+                  <CheckCircle2 className="w-3.5 h-3.5" />Top-ups
+                  {(stats?.pendingTopups || 0) > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1 animate-pulse">
+                      {stats!.pendingTopups}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+            </div>
           </div>
-          <div className="cd-page-head-actions">
-            <Link to="/admin/credentials">
-              <Button size="sm" className="gap-1.5 h-8 text-xs">
-                <Plus className="w-3.5 h-3.5" />Credentials
-              </Button>
-            </Link>
-            <Link to="/admin/topups">
-              <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs relative">
-                <CheckCircle2 className="w-3.5 h-3.5" />Top-ups
-                {(stats?.pendingTopups || 0) > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold flex items-center justify-center px-1 animate-pulse">
-                    {stats!.pendingTopups}
-                  </span>
-                )}
-              </Button>
-            </Link>
-          </div>
-        </div>
+        </motion.div>
 
+        {/* KPI Grid */}
         <div className="cd-kpi-grid">
-          <HeroStat label="Wallet Liability" value={stats?.walletLiability || 0} icon={AlertTriangle} iconColor="text-warning" featured sparkData={sparkTopup} delay={0} />
-          <HeroStat label="Revenue (30d)" value={stats?.monthRevenue || 0} icon={Wallet} iconColor="text-success" sparkData={sparkRevenue} delay={0.08} />
-          <HeroStat label="Pending Top-ups" value={stats?.pendingTopups || 0} icon={Clock} iconColor="text-ice" suffix="" delay={0.16} />
-          <HeroStat label="Pending Orders" value={stats?.pendingOrders || 0} icon={ShoppingCart} iconColor="text-primary" suffix="" delay={0.24} />
-        </div>
-      </div>
-
-      {/* ═══ 2. OPERATIONAL ALERT BAR ═══ */}
-      <div className="flex flex-wrap items-center gap-tight p-compact rounded-btn bg-muted/20 border border-border/50 animate-fade-in [animation-delay:0.2s]">
-        <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold mr-1">Alerts</span>
-        <AlertChip label="Low Stock" count={(stats?.lowStockProducts || []).length} color="bg-destructive/10 text-destructive" to="/admin/products" />
-        <AlertChip label="Expiring Creds" count={stats?.expiringSoon || 0} color="bg-warning/10 text-warning" to="/admin/credentials?status=expiring" />
-        <AlertChip label="Pending Manual" count={stats?.pendingOrders || 0} color="bg-primary/10 text-primary" to="/admin/orders" />
-        <AlertChip label="Low Balance" count={lowBalanceResellers?.length || 0} color="bg-ice/10 text-ice" to="/admin/resellers" />
-        {(stats?.lowStockProducts || []).length === 0 && (stats?.expiringSoon || 0) === 0 && (stats?.pendingOrders || 0) === 0 && (lowBalanceResellers?.length || 0) === 0 && (
-          <span className="text-[11px] text-success font-medium">All clear ✓</span>
-        )}
-      </div>
-
-      {/* ═══ 2b. COLLAPSIBLE ACTION SECTIONS ═══ */}
-      <div className="cd-section-grid">
-        {/* Pending Orders */}
-        <CollapsibleSection
-          title="Orders Pending Review"
-          totalCount={pendingOrders?.length || 0}
-          previewCount={3}
-          className="animate-fade-in [animation-delay:0.22s]"
-          summary={`${(pendingOrders?.length || 0) - 3} more orders awaiting action`}
-          headerRight={
-            <Link to="/admin/orders" className="text-[11px] text-primary hover:underline font-semibold" onClick={(e) => e.stopPropagation()}>
-              View all
-            </Link>
-          }
-        >
-          {(!pendingOrders || pendingOrders.length === 0) ? (
-            <div className="p-card text-center">
-              <CheckCircle2 className="w-6 h-6 text-success/40 mx-auto mb-tight" />
-              <p className="text-sm text-muted-foreground">No orders pending review</p>
-            </div>
-          ) : (
-            pendingOrders.map((o: any) => (
-              <Link
-                key={o.id}
-                to={`/admin/orders?order=${o.id}`}
-                className="flex items-center gap-compact p-compact border-b border-border/30 last:border-0 hover:bg-muted/30 transition-colors"
-              >
-                <div className="w-7 h-7 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
-                  <Clock className="w-3.5 h-3.5 text-warning" strokeWidth={1.5} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">{o.product_name}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">
-                    {o.profile?.name || o.profile?.email || "Unknown"} &middot; {o.order_code}
-                  </p>
-                </div>
-                <div className="text-right shrink-0">
-                  <Money amount={o.price} className="text-xs font-semibold text-foreground font-mono" />
-                  <p className="text-[9px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</p>
-                </div>
-              </Link>
-            ))
-          )}
-        </CollapsibleSection>
-
-        {/* Pending Top-ups */}
-        <CollapsibleSection
-          title="Top-up Requests"
-          totalCount={pendingTopups?.length || 0}
-          previewCount={3}
-          className="animate-fade-in [animation-delay:0.25s]"
-          summary={`${(pendingTopups?.length || 0) - 3} more top-ups awaiting approval`}
-          headerRight={
-            <Link to="/admin/topups" className="text-[11px] text-primary hover:underline font-semibold" onClick={(e) => e.stopPropagation()}>
-              View all
-            </Link>
-          }
-        >
-          {(!pendingTopups || pendingTopups.length === 0) ? (
-            <div className="p-card text-center">
-              <CheckCircle2 className="w-6 h-6 text-success/40 mx-auto mb-tight" />
-              <p className="text-sm text-muted-foreground">No pending top-ups</p>
-            </div>
-          ) : (
-            pendingTopups.map((t: any) => (
-              <Link
-                key={t.id}
-                to="/admin/topups"
-                className="flex items-center gap-compact p-compact border-b border-border/30 last:border-0 hover:bg-muted/30 transition-colors"
-              >
-                <div className="w-7 h-7 rounded-full bg-ice/10 flex items-center justify-center shrink-0">
-                  <Wallet className="w-3.5 h-3.5 text-ice" strokeWidth={1.5} />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {t.profile?.name || t.profile?.email || "Unknown"}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground truncate">
-                    via {t.method || "Unknown"} &middot; Pending
-                  </p>
-                </div>
-                <div className="text-right shrink-0">
-                  <span className="text-xs font-semibold text-success font-mono">
-                    +<Money amount={t.amount} className="inline text-xs" />
-                  </span>
-                  <p className="text-[9px] text-muted-foreground">{new Date(t.created_at).toLocaleDateString()}</p>
-                </div>
-              </Link>
-            ))
-          )}
-        </CollapsibleSection>
-      </div>
-
-      {/* ═══ 3. REAL-TIME ACTIVITY + 4. PRODUCT PERFORMANCE ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-default">
-        {/* Live Feed */}
-        <div className="lg:col-span-1">
-          <LiveActivityFeed />
+          <HeroStat label="Wallet Liability" value={stats?.walletLiability || 0} icon={AlertTriangle} iconColor="text-warning" featured sparkData={sparkTopup} index={0} />
+          <HeroStat label="Revenue (30d)" value={stats?.monthRevenue || 0} icon={Wallet} iconColor="text-success" sparkData={sparkRevenue} index={1} />
+          <HeroStat label="Pending Top-ups" value={stats?.pendingTopups || 0} icon={Clock} iconColor="text-ice" suffix="" index={2} />
+          <HeroStat label="Pending Orders" value={stats?.pendingOrders || 0} icon={ShoppingCart} iconColor="text-primary" suffix="" index={3} />
         </div>
 
-        {/* Product Performance */}
-        <div className="lg:col-span-2 space-y-default">
-          {/* Top Selling */}
-          <DataCard title="Top Products (30d)" description="Revenue leaders" className="animate-fade-in [animation-delay:0.3s]">
-            {topProducts && topProducts.length > 0 ? (
-              <div className="space-y-tight">
-                {topProducts.map((p, i) => (
-                  <div key={p.name} className="flex items-center gap-compact p-compact rounded-btn hover:bg-muted/30 transition-colors">
-                    <span className="text-xs font-mono text-muted-foreground w-5 text-center">{i + 1}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{p.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{p.orders} orders</p>
-                    </div>
-                    <Money amount={p.revenue} className="text-sm font-semibold text-foreground font-mono" />
-                  </div>
-                ))}
+        {/* ═══ 2. OPERATIONAL ALERT BAR ═══ */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.35 }}
+          className="flex flex-wrap items-center gap-2 p-3 rounded-xl bg-card/60 backdrop-blur-sm border border-border/40"
+        >
+          <span className="text-[10px] text-muted-foreground/70 uppercase tracking-[0.1em] font-bold mr-1">Alerts</span>
+          <AlertChip label="Low Stock" count={(stats?.lowStockProducts || []).length} color="bg-destructive/8 text-destructive border border-destructive/15" to="/admin/products" />
+          <AlertChip label="Expiring Creds" count={stats?.expiringSoon || 0} color="bg-warning/8 text-warning border border-warning/15" to="/admin/credentials?status=expiring" />
+          <AlertChip label="Pending Manual" count={stats?.pendingOrders || 0} color="bg-primary/8 text-primary border border-primary/15" to="/admin/orders" />
+          <AlertChip label="Low Balance" count={lowBalanceResellers?.length || 0} color="bg-ice/8 text-ice border border-ice/15" to="/admin/resellers" />
+          {(stats?.lowStockProducts || []).length === 0 && (stats?.expiringSoon || 0) === 0 && (stats?.pendingOrders || 0) === 0 && (lowBalanceResellers?.length || 0) === 0 && (
+            <span className="text-[11px] text-success font-bold flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" /> All systems clear
+            </span>
+          )}
+        </motion.div>
+
+        {/* ═══ 2b. COLLAPSIBLE ACTION SECTIONS ═══ */}
+        <div className="cd-section-grid">
+          <CollapsibleSection
+            title="Orders Pending Review"
+            totalCount={pendingOrders?.length || 0}
+            previewCount={3}
+            summary={`${(pendingOrders?.length || 0) - 3} more orders awaiting action`}
+            headerRight={
+              <Link to="/admin/orders" className="text-[11px] text-primary hover:underline font-bold" onClick={(e) => e.stopPropagation()}>
+                View all
+              </Link>
+            }
+          >
+            {(!pendingOrders || pendingOrders.length === 0) ? (
+              <div className="p-card text-center">
+                <CheckCircle2 className="w-6 h-6 text-success/40 mx-auto mb-tight" />
+                <p className="text-sm text-muted-foreground">No orders pending review</p>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground text-center py-compact">No orders in last 30 days</p>
+              pendingOrders.map((o: any) => (
+                <Link
+                  key={o.id}
+                  to={`/admin/orders?order=${o.id}`}
+                  className="flex items-center gap-3 p-3 border-b border-border/20 last:border-0 hover:bg-secondary/30 transition-colors rounded-lg"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-warning/10 flex items-center justify-center shrink-0">
+                    <Clock className="w-4 h-4 text-warning" strokeWidth={1.5} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-foreground truncate">{o.product_name}</p>
+                    <p className="text-[10px] text-muted-foreground/70 truncate">
+                      {o.profile?.name || o.profile?.email || "Unknown"} · {o.order_code}
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <Money amount={o.price} className="text-xs font-bold text-foreground font-mono" />
+                    <p className="text-[9px] text-muted-foreground/60">{new Date(o.created_at).toLocaleDateString()}</p>
+                  </div>
+                </Link>
+              ))
+            )}
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Top-up Requests"
+            totalCount={pendingTopups?.length || 0}
+            previewCount={3}
+            summary={`${(pendingTopups?.length || 0) - 3} more top-ups awaiting approval`}
+            headerRight={
+              <Link to="/admin/topups" className="text-[11px] text-primary hover:underline font-bold" onClick={(e) => e.stopPropagation()}>
+                View all
+              </Link>
+            }
+          >
+            {(!pendingTopups || pendingTopups.length === 0) ? (
+              <div className="p-card text-center">
+                <CheckCircle2 className="w-6 h-6 text-success/40 mx-auto mb-tight" />
+                <p className="text-sm text-muted-foreground">No pending top-ups</p>
+              </div>
+            ) : (
+              pendingTopups.map((t: any) => (
+                <Link
+                  key={t.id}
+                  to="/admin/topups"
+                  className="flex items-center gap-3 p-3 border-b border-border/20 last:border-0 hover:bg-secondary/30 transition-colors rounded-lg"
+                >
+                  <div className="w-8 h-8 rounded-xl bg-ice/10 flex items-center justify-center shrink-0">
+                    <Wallet className="w-4 h-4 text-ice" strokeWidth={1.5} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-foreground truncate">
+                      {t.profile?.name || t.profile?.email || "Unknown"}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/70 truncate">
+                      via {t.method || "Unknown"} · Pending
+                    </p>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <span className="text-xs font-bold text-success font-mono">
+                      +<Money amount={t.amount} className="inline text-xs" />
+                    </span>
+                    <p className="text-[9px] text-muted-foreground/60">{new Date(t.created_at).toLocaleDateString()}</p>
+                  </div>
+                </Link>
+              ))
+            )}
+          </CollapsibleSection>
+        </div>
+
+        {/* ═══ 3. REAL-TIME ACTIVITY + 4. PRODUCT PERFORMANCE ═══ */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-1">
+            <LiveActivityFeed />
+          </div>
+
+          <div className="lg:col-span-2 space-y-4">
+            <DataCard title="Top Products (30d)" description="Revenue leaders">
+              {topProducts && topProducts.length > 0 ? (
+                <div className="space-y-1">
+                  {topProducts.map((p, i) => (
+                    <div key={p.name} className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/30 transition-colors group">
+                      <span className={cn(
+                        "w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-extrabold font-mono shrink-0",
+                        i === 0 ? "bg-primary/10 text-primary" : i === 1 ? "bg-success/10 text-success" : "bg-muted/50 text-muted-foreground"
+                      )}>
+                        {i + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{p.name}</p>
+                        <p className="text-[10px] text-muted-foreground/70 font-medium">{p.orders} orders</p>
+                      </div>
+                      <Money amount={p.revenue} className="text-sm font-extrabold text-foreground font-mono" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground text-center py-compact">No orders in last 30 days</p>
+              )}
+            </DataCard>
+
+            <DataCard title="Stock Overview" description={`${stats?.availableCredentials || 0} available / ${total} total`}>
+              <div className="space-y-3">
+                <div className="w-full h-3 rounded-full bg-muted/40 overflow-hidden">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-success to-success/70"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${availablePct}%` }}
+                    transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+                  />
+                </div>
+                <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-success" />Available {stats?.availableCredentials || 0}</span>
+                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-destructive/70" />Sold {sold}</span>
+                  <span className="ml-auto font-mono font-bold">{stats?.soldToday || 0} sold today</span>
+                </div>
+              </div>
+            </DataCard>
+          </div>
+        </div>
+
+        {/* ═══ 5. FINANCIAL CONTROL — QUICK ACCESS ═══ */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <QuickAccessCard label="Products" icon={Package} to="/admin/products" description="Manage catalog" index={0} />
+          <QuickAccessCard label="Orders" icon={ShoppingCart} to="/admin/orders" description="Order management" index={1} />
+          <QuickAccessCard label="Top-ups" icon={Wallet} to="/admin/topups" description="Verify deposits" index={2} />
+          <QuickAccessCard label="Resellers" icon={Users} to="/admin/resellers" description="User management" index={3} />
+          <QuickAccessCard label="Credentials" icon={KeyRound} to="/admin/credentials" description="Stock control" index={4} />
+        </div>
+
+        {/* ═══ 6. DATA VISUALIZATION ═══ */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <DataCard title="Revenue Trend (30d)">
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueChart} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.4)" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v.toLocaleString()} MMK`, "Revenue"]} />
+                  <Area type="monotone" dataKey="value" stroke="hsl(var(--success))" strokeWidth={2} fill="url(#revGrad)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </DataCard>
+
+          <DataCard title="Top-up Volume (30d)">
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={topupChart} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.4)" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v.toLocaleString()} MMK`, "Top-ups"]} />
+                  <Bar dataKey="value" fill="hsl(var(--ice))" radius={[4, 4, 0, 0]} opacity={0.75} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </DataCard>
+
+          <DataCard title="Order Volume (30d)">
+            <div className="h-[180px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={salesChart} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.4)" vertical={false} />
+                  <XAxis dataKey="date" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
+                  <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} allowDecimals={false} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [v, "Orders"]} />
+                  <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </DataCard>
+        </div>
+
+        {/* ═══ LOW BALANCE + RECENT ORDERS ═══ */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <DataCard
+            title="Low Balance Alert"
+            description={`${lowBalanceResellers?.length || 0} below ${threshold.toLocaleString()} MMK`}
+            className="border-warning/15"
+            actions={
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg">
+                    <Settings2 className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-4 rounded-xl" align="end">
+                  <p className="text-sm font-bold text-foreground mb-2">Threshold</p>
+                  <div className="flex gap-2">
+                    <Input type="number" value={thresholdInput} onChange={(e) => setThresholdInput(e.target.value)} className="h-8 text-sm bg-muted/20 border-border rounded-lg" min={0} />
+                    <Button size="sm" className="h-8 text-xs shrink-0 rounded-lg font-bold" onClick={() => {
+                      const val = Math.max(0, Math.round(Number(thresholdInput)));
+                      setThreshold(val); thresholdRef.current = val;
+                      localStorage.setItem(THRESHOLD_KEY, String(val));
+                      setThresholdInput(String(val));
+                      queryClient.invalidateQueries({ queryKey: ["admin-low-balance"] });
+                      toast.success(`Threshold: ${val.toLocaleString()} MMK`);
+                    }}>Set</Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            }
+          >
+            {lowBalanceResellers && lowBalanceResellers.length > 0 ? (
+              <div className="space-y-1.5">
+                {lowBalanceResellers.slice(0, 5).map((r: any) => (
+                  <div key={r.user_id} className="flex items-center justify-between p-3 rounded-xl bg-warning/5 border border-warning/10 hover:bg-warning/8 transition-colors">
+                    <div>
+                      <p className="text-sm font-bold text-foreground">{r.name || "—"}</p>
+                      <p className="text-[10px] text-muted-foreground/70">{r.email}</p>
+                    </div>
+                    <Money amount={r.balance} className="text-sm font-extrabold text-warning font-mono" />
+                  </div>
+                ))}
+                {lowBalanceResellers.length > 5 && (
+                  <Link to="/admin/resellers" className="text-[10px] text-primary hover:underline text-center block pt-1 font-bold">
+                    +{lowBalanceResellers.length - 5} more →
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-compact">No resellers below threshold</p>
             )}
           </DataCard>
 
-          {/* Credentials stock bar */}
-          <DataCard title="Stock Overview" description={`${stats?.availableCredentials || 0} available / ${total} total`} className="animate-fade-in [animation-delay:0.35s]">
-            <div className="w-full h-2.5 rounded-full bg-muted overflow-hidden mb-compact">
-              <div className="h-full rounded-full bg-success transition-all duration-500" style={{ width: `${availablePct}%` }} />
-            </div>
-            <div className="flex items-center gap-default text-[11px] text-muted-foreground">
-              <span className="flex items-center gap-micro"><span className="w-2 h-2 rounded-full bg-success" />Available {stats?.availableCredentials || 0}</span>
-              <span className="flex items-center gap-micro"><span className="w-2 h-2 rounded-full bg-destructive" />Sold {sold}</span>
-              <span className="ml-auto font-mono">{stats?.soldToday || 0} sold today</span>
-            </div>
+          <DataCard title="Recent Orders">
+            <RecentOrdersFeed />
           </DataCard>
         </div>
-      </div>
-
-      {/* ═══ 5. FINANCIAL CONTROL — QUICK ACCESS ═══ */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-default">
-        <QuickAccessCard label="Products" icon={Package} to="/admin/products" description="Manage catalog" delay={0.3} />
-        <QuickAccessCard label="Orders" icon={ShoppingCart} to="/admin/orders" description="Order management" delay={0.35} />
-        <QuickAccessCard label="Top-ups" icon={Wallet} to="/admin/topups" description="Verify deposits" delay={0.4} />
-        <QuickAccessCard label="Resellers" icon={Users} to="/admin/resellers" description="User management" delay={0.45} />
-        <QuickAccessCard label="Credentials" icon={KeyRound} to="/admin/credentials" description="Stock control" delay={0.5} />
-      </div>
-
-      {/* ═══ 6. DATA VISUALIZATION ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-default">
-        {/* Revenue */}
-        <DataCard title="Revenue Trend (30d)" className="animate-fade-in [animation-delay:0.4s]">
-          <div className="h-[180px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={revenueChart} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v.toLocaleString()} MMK`, "Revenue"]} />
-                <Area type="monotone" dataKey="value" stroke="hsl(var(--success))" strokeWidth={1.5} fill="url(#revGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </DataCard>
-
-        {/* Top-up */}
-        <DataCard title="Top-up Volume (30d)" className="animate-fade-in [animation-delay:0.45s]">
-          <div className="h-[180px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topupChart} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v.toLocaleString()} MMK`, "Top-ups"]} />
-                <Bar dataKey="value" fill="hsl(var(--ice))" radius={[3, 3, 0, 0]} opacity={0.7} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </DataCard>
-
-        {/* Order volume */}
-        <DataCard title="Order Volume (30d)" className="animate-fade-in [animation-delay:0.5s]">
-          <div className="h-[180px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={salesChart} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                <XAxis dataKey="date" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [v, "Orders"]} />
-                <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={1.5} dot={false} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </DataCard>
-      </div>
-
-      {/* ═══ LOW BALANCE + RECENT ORDERS ═══ */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-default">
-        <DataCard
-          title="Low Balance Alert"
-          description={`${lowBalanceResellers?.length || 0} below ${threshold.toLocaleString()} MMK`}
-          className="border-warning/20 animate-fade-in [animation-delay:0.5s]"
-          actions={
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-7 w-7">
-                  <Settings2 className="w-4 h-4 text-muted-foreground" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-56 p-card" align="end">
-                <p className="text-sm font-medium text-foreground mb-tight">Threshold</p>
-                <div className="flex gap-tight">
-                  <Input type="number" value={thresholdInput} onChange={(e) => setThresholdInput(e.target.value)} className="h-8 text-sm bg-muted/30 border-border" min={0} />
-                  <Button size="sm" className="h-8 text-xs shrink-0" onClick={() => {
-                    const val = Math.max(0, Math.round(Number(thresholdInput)));
-                    setThreshold(val); thresholdRef.current = val;
-                    localStorage.setItem(THRESHOLD_KEY, String(val));
-                    setThresholdInput(String(val));
-                    queryClient.invalidateQueries({ queryKey: ["admin-low-balance"] });
-                    toast.success(`Threshold: ${val.toLocaleString()} MMK`);
-                  }}>Set</Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          }
-        >
-          {lowBalanceResellers && lowBalanceResellers.length > 0 ? (
-            <div className="space-y-tight">
-              {lowBalanceResellers.slice(0, 5).map((r: any) => (
-                <div key={r.user_id} className="flex items-center justify-between p-compact rounded-btn bg-warning/5 border border-warning/10 hover:bg-warning/10 transition-colors">
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{r.name || "—"}</p>
-                    <p className="text-[10px] text-muted-foreground">{r.email}</p>
-                  </div>
-                  <Money amount={r.balance} className="text-sm font-semibold text-warning font-mono" />
-                </div>
-              ))}
-              {lowBalanceResellers.length > 5 && (
-                <Link to="/admin/resellers" className="text-[10px] text-primary hover:underline text-center block pt-micro">
-                  +{lowBalanceResellers.length - 5} more →
-                </Link>
-              )}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground text-center py-compact">No resellers below threshold</p>
-          )}
-        </DataCard>
-
-        <DataCard title="Recent Orders" className="animate-fade-in [animation-delay:0.55s]">
-          <RecentOrdersFeed />
-        </DataCard>
       </div>
     </PageContainer>
   );
@@ -703,26 +761,30 @@ function RecentOrdersFeed() {
     return `${Math.floor(hours / 24)}d ago`;
   };
 
-  const statusDot: Record<string, string> = {
+  const statusColors: Record<string, string> = {
     delivered: "bg-success",
+    completed: "bg-success",
     pending_creation: "bg-primary",
     pending_review: "bg-warning",
+    processing: "bg-warning animate-pulse",
+    failed: "bg-destructive",
+    cancelled: "bg-muted-foreground/40",
   };
 
   return (
-    <div className="space-y-micro">
+    <div className="space-y-0.5">
       {orders.map((o: any) => (
-        <div key={o.id} className="flex items-center gap-compact p-compact rounded-btn hover:bg-muted/30 transition-colors">
-          <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary shrink-0">
+        <div key={o.id} className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/30 transition-colors group">
+          <div className="w-8 h-8 rounded-xl bg-primary/8 flex items-center justify-center text-[10px] font-extrabold text-primary shrink-0 group-hover:bg-primary/12 transition-colors">
             {(o.profile?.name || "?")[0].toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">{o.product_name}</p>
-            <p className="text-[10px] text-muted-foreground truncate">{o.profile?.name || o.profile?.email || "—"}</p>
+            <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{o.product_name}</p>
+            <p className="text-[10px] text-muted-foreground/70 truncate">{o.profile?.name || o.profile?.email || "—"} · {timeAgo(o.created_at)}</p>
           </div>
-          <div className="text-right shrink-0 flex items-center gap-tight">
-            <div className={`w-1.5 h-1.5 rounded-full ${statusDot[o.status] || "bg-muted-foreground"}`} />
-            <Money amount={o.price} className="text-xs font-semibold text-foreground font-mono" />
+          <div className="text-right shrink-0 flex items-center gap-2">
+            <div className={cn("w-2 h-2 rounded-full", statusColors[o.status] || "bg-muted-foreground/30")} />
+            <Money amount={o.price} className="text-xs font-extrabold text-foreground font-mono" />
           </div>
         </div>
       ))}
