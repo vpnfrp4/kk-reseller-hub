@@ -154,7 +154,7 @@ function ServiceSearchDropdown({ products, value, onChange }: { products: any[];
             ) : grouped.map(([cat, items]) => (
               <div key={cat}>
                 <div className="px-3 py-1.5 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider bg-muted/30 sticky top-0">
-                  {CATEGORY_ICONS[deriveCategory(items[0]?.name || "")] || "📦"} {cat}
+                  {CATEGORY_ICONS[deriveCategory(items[0]?.name || "")] || "—"} {cat}
                 </div>
                 {items.map((p: any) => (
                   <button
