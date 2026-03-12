@@ -363,10 +363,18 @@ export default function LandingPage() {
           <div className="pointer-events-none absolute inset-0" style={{
             background: "radial-gradient(800px circle at 50% 0%, hsl(var(--primary) / 0.04), transparent 60%)",
           }} />
+          {/* Grid pattern overlay */}
+          <div className="absolute inset-0 opacity-[0.015]" style={{
+            backgroundImage: "linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)",
+            backgroundSize: "42px 42px",
+          }} />
           <div className="relative mx-auto max-w-[1200px] px-6">
             <ScrollReveal>
               <div className="text-center">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">Platform Features</p>
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.05] px-4 py-1.5 mb-4">
+                  <Zap className="w-3 h-3 text-primary" />
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/80">Platform Features</p>
+                </div>
                 <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl gradient-text">
                   Everything You Need to Scale
                 </h2>
@@ -379,13 +387,16 @@ export default function LandingPage() {
             <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((feat, i) => (
                 <ScrollReveal key={feat.title} delay={i * 80}>
-                  <div className="group relative rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-7 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 h-full overflow-hidden">
+                  <div className="group relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl p-7 transition-all duration-300 hover:border-primary/25 hover:shadow-[0_12px_40px_-12px_hsl(var(--primary)/0.15)] hover:-translate-y-1.5 h-full overflow-hidden">
                     {/* Top shine line */}
-                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/[0.12] group-hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.25)]">
-                      <feat.icon className="h-5 w-5 text-primary" />
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    {/* Corner glow */}
+                    <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-primary/[0.04] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:bg-primary/[0.12] group-hover:shadow-[0_0_24px_-6px_hsl(var(--primary)/0.3)] relative">
+                      <feat.icon className="h-5 w-5 text-primary relative z-10" />
+                      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ boxShadow: "inset 0 0 12px hsl(var(--primary) / 0.15)" }} />
                     </div>
-                    <h3 className="text-base font-semibold text-foreground mb-2">{feat.title}</h3>
+                    <h3 className="text-base font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-300">{feat.title}</h3>
                     <p className="text-sm leading-relaxed text-muted-foreground">{feat.desc}</p>
                   </div>
                 </ScrollReveal>
