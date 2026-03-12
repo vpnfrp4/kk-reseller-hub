@@ -222,36 +222,41 @@ export default function CategoryDetailPage() {
   return (
     <PageContainer maxWidth="max-w-5xl">
       {/* ═══ BREADCRUMB + HEADER ═══ */}
-      <div className="page-header-card mb-4 lg:mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="mb-5 lg:mb-7"
+      >
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60 mb-3">
+        <nav className="flex items-center gap-1.5 text-[11px] text-muted-foreground/50 mb-3">
           <button onClick={() => navigate("/dashboard")} className="hover:text-foreground transition-colors">Home</button>
-          <span>/</span>
+          <span className="text-muted-foreground/30">/</span>
           <button onClick={() => navigate("/dashboard/place-order")} className="hover:text-foreground transition-colors">Place Order</button>
-          <span>/</span>
+          <span className="text-muted-foreground/30">/</span>
           <span className="text-foreground font-semibold truncate max-w-[200px]">{decodedCategory}</span>
         </nav>
 
         <div className="flex items-center gap-3.5">
           <button
             onClick={() => navigate("/dashboard/place-order")}
-            className="w-10 h-10 rounded-xl bg-secondary/60 border border-border/40 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200 shrink-0"
+            className="w-9 h-9 rounded-xl bg-secondary/50 border border-border/30 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200 shrink-0"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4.5 h-4.5" />
           </button>
-          <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shrink-0", catColor)}>
-            <CatIcon className="w-5 h-5" strokeWidth={1.8} />
+          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", catColor)}>
+            <CatIcon className="w-5 h-5" strokeWidth={1.7} />
           </div>
           <div className="min-w-0">
-            <h1 className="gradient-text text-lg lg:text-xl truncate">{decodedCategory}</h1>
+            <h1 className="text-lg lg:text-xl font-extrabold text-foreground tracking-tight truncate">{decodedCategory}</h1>
             {!isImeiCheckCategory && (
-              <p className="page-header-subtitle">
+              <p className="text-xs text-muted-foreground/50 mt-0.5">
                 {products.length} {products.length === 1 ? "service" : "services"} available
               </p>
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ═══ IMEI CHECK SPECIAL: iFree Interface ═══ */}
       {isImeiCheckCategory && (
