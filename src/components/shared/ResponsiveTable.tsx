@@ -3,13 +3,9 @@ import { cn } from "@/lib/utils";
 export interface Column<T> {
   key: string;
   label: string;
-  /** Render cell content. Falls back to row[key] */
   render?: (row: T, index: number) => React.ReactNode;
-  /** Right-align (use for numbers/currency) */
   align?: "left" | "right" | "center";
-  /** Hide on mobile card view */
   hideOnMobile?: boolean;
-  /** Priority column — visually stronger */
   priority?: boolean;
 }
 
@@ -20,18 +16,11 @@ interface ResponsiveTableProps<T> {
   emptyMessage?: string;
   className?: string;
   onRowClick?: (row: T) => void;
-  /** Optional per-row className */
   rowClassName?: (row: T) => string;
 }
 
 export default function ResponsiveTable<T extends Record<string, any>>({
-  columns,
-  data,
-  keyExtractor,
-  emptyMessage = "No data available",
-  className,
-  onRowClick,
-  rowClassName,
+  columns, data, keyExtractor, emptyMessage = "No data available", className, onRowClick, rowClassName,
 }: ResponsiveTableProps<T>) {
   if (data.length === 0) {
     return (
@@ -63,7 +52,7 @@ export default function ResponsiveTable<T extends Record<string, any>>({
               <tr
                 key={keyExtractor(row)}
                 className={cn(
-                  "animate-row-in transition-all duration-200",
+                  "animate-row-in group/row",
                   onRowClick && "cursor-pointer",
                   rowClassName?.(row),
                 )}
@@ -74,10 +63,12 @@ export default function ResponsiveTable<T extends Record<string, any>>({
                   <td
                     key={col.key}
                     className={cn(
-                      "p-default text-sm",
+                      "p-default text-sm transition-colors duration-200",
                       col.align === "right" && "text-right",
                       col.align === "center" && "text-center",
-                      col.priority ? "font-semibold text-foreground" : "text-muted-foreground"
+                      col.priority
+                        ? "font-semibold text-foreground group-hover/row:text-primary"
+                        : "text-muted-foreground group-hover/row:text-foreground/80"
                     )}
                   >
                     {col.render ? col.render(row, idx) : row[col.key]}
@@ -95,8 +86,8 @@ export default function ResponsiveTable<T extends Record<string, any>>({
           <div
             key={keyExtractor(row)}
             className={cn(
-              "glass-card p-default space-y-compact transition-colors duration-700",
-              onRowClick && "cursor-pointer active:scale-[0.99]",
+              "glass-card p-default space-y-compact transition-all duration-300",
+              onRowClick && "cursor-pointer active:scale-[0.99] hover:shadow-glow",
               rowClassName?.(row),
             )}
             onClick={() => onRowClick?.(row)}
@@ -105,7 +96,7 @@ export default function ResponsiveTable<T extends Record<string, any>>({
               .filter((col) => !col.hideOnMobile)
               .map((col) => (
                 <div key={col.key} className="flex items-center justify-between gap-tight">
-                  <span className="text-caption text-muted-foreground uppercase tracking-wider">
+                  <span className="text-caption text-muted-foreground uppercase tracking-wider font-display">
                     {col.label}
                   </span>
                   <span className={cn(
