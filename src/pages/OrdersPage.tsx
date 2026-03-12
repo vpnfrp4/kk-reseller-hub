@@ -765,7 +765,7 @@ export default function OrdersPage() {
 
           {/* Mobile pagination */}
           {totalCount > PAGE_SIZE && (
-            <div className="flex items-center justify-between glass-card p-3">
+            <div className="flex items-center justify-between rounded-2xl border border-border/25 bg-card/80 p-3">
               <p className="text-xs text-muted-foreground">
                 {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} / {totalCount}
               </p>
