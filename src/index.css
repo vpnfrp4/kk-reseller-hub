@@ -419,20 +419,22 @@ html {
     margin-top: 2px;
   }
 
-  /* ─── Clean Cards (replacing glass-card) ─── */
+  /* ─── Clean Cards (glassmorphic) ─── */
   .glass-card {
     position: relative;
-    background: hsl(var(--card));
+    background: hsl(var(--card) / 0.92);
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
   }
 
   .glass-card:hover {
-    border-color: hsl(var(--primary) / 0.15);
-    box-shadow: var(--shadow-elevated);
-    transform: translateY(-1px);
+    border-color: hsl(var(--primary) / 0.18);
+    box-shadow: var(--shadow-elevated), 0 0 0 1px hsl(var(--primary) / 0.06);
+    transform: translateY(-2px);
   }
 
   /* ─── Stat Cards ─── */
@@ -448,7 +450,7 @@ html {
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent);
+    background: linear-gradient(90deg, transparent 10%, hsl(var(--primary) / 0.25) 50%, transparent 90%);
   }
 
   .stat-card::after {
@@ -458,9 +460,15 @@ html {
     right: -30%;
     width: 180px;
     height: 180px;
-    background: radial-gradient(circle, hsl(var(--primary) / 0.03), transparent 70%);
+    background: radial-gradient(circle, hsl(var(--primary) / 0.04), transparent 70%);
     border-radius: 50%;
     pointer-events: none;
+    transition: opacity var(--transition-slow);
+    opacity: 0.6;
+  }
+
+  .stat-card:hover::after {
+    opacity: 1;
   }
 
   .card-elevated {
