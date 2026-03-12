@@ -188,23 +188,28 @@ html {
     --sidebar-ring: 24 95% 53%;
     --sidebar: 222 42% 8%;
 
-    --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 4px 12px -4px rgba(0,0,0,0.3);
-    --shadow-elevated: 0 8px 30px -8px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
+    --shadow-card: 0 2px 8px -2px rgba(0,0,0,0.2), 0 12px 40px -12px rgba(0,0,0,0.35);
+    --shadow-elevated: 0 8px 30px -8px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.2);
     --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.03);
     --shadow-header: 0 1px 0 hsl(222 20% 12%), 0 2px 8px -2px rgba(0,0,0,0.3);
-    --shadow-glow: 0 0 24px hsl(24 95% 53% / 0.15);
+    --shadow-glow: 0 0 24px hsl(24 95% 53% / 0.2), 0 0 60px hsl(24 95% 53% / 0.08);
+    --shadow-glow-sm: 0 0 12px hsl(24 95% 53% / 0.15);
+    --shadow-premium: 0 20px 50px -20px rgba(0,0,0,0.5), 0 0 0 1px hsl(var(--border) / 0.3);
 
-    --glass-bg: hsla(222, 42%, 8%, 0.9);
-    --glass-border: hsl(24 95% 53% / 0.1);
-    --ambient-blob-1: hsl(24 95% 53% / 0.06);
-    --ambient-blob-2: hsl(28 100% 64% / 0.04);
-    --ambient-blob-3: hsl(45 100% 51% / 0.03);
+    --glass-bg: hsla(222, 42%, 8%, 0.88);
+    --glass-border: hsl(24 95% 53% / 0.12);
+    --glass-blur: 20px;
+    --ambient-blob-1: hsl(24 95% 53% / 0.08);
+    --ambient-blob-2: hsl(28 100% 64% / 0.05);
+    --ambient-blob-3: hsl(45 100% 51% / 0.04);
+    --ambient-blob-4: hsl(152 60% 42% / 0.03);
     --wallet-hero-from: 222 35% 8%;
     --wallet-hero-to: 222 35% 12%;
     --wallet-hero-blob: hsl(24 95% 53% / 0.06);
 
     --gradient-primary: linear-gradient(135deg, hsl(24 90% 48%), hsl(28 100% 58%));
     --gradient-surface: linear-gradient(135deg, hsl(222 47% 5%), hsl(222 42% 8%));
+    --gradient-glass: linear-gradient(135deg, hsl(222 42% 12% / 0.6), hsl(222 42% 8% / 0.2));
 
     --chart-1: 24 95% 53%;
     --chart-2: 152 60% 48%;
