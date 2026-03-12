@@ -109,8 +109,8 @@ export default function DashboardHome() {
             transition={{ duration: 0.4 }}
           >
             <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-[0.12em]">Welcome back,</p>
-            <h1 className="text-xl font-extrabold text-foreground tracking-tight mt-0.5">
-              {profile?.name || "Reseller"} 👋
+            <h1 className="text-xl font-extrabold text-foreground tracking-tight mt-0.5 flex items-center gap-2">
+              {profile?.name || "Reseller"} <Hand className="w-5 h-5 text-primary" />
             </h1>
           </motion.div>
 
