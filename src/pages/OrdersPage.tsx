@@ -385,11 +385,11 @@ export default function OrdersPage() {
   };
 
   const clearFilters = () => {
-    setSearch(""); setStatus("all"); setProductType("all");
+    setSearchInput(""); setSearch(""); setStatus("all"); setProductType("all");
     setDateFrom(undefined); setDateTo(undefined); setPage(0);
   };
 
-  const hasFilters = search || status !== "all" || productType !== "all" || dateFrom || dateTo;
+  const hasFilters = search || searchInput || status !== "all" || productType !== "all" || dateFrom || dateTo;
 
   const toggleExpand = (id: string) => {
     setExpandedId(prev => prev === id ? null : id);
