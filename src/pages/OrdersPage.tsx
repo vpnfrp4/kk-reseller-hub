@@ -583,10 +583,10 @@ export default function OrdersPage() {
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border/20">
+                <tr className="border-b border-border/15">
                   {["Order ID", "Service", "Date", "Amount", "Status"].map((h) => (
                     <th key={h} className={cn(
-                      "text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3.5 text-left",
+                      "text-[9px] font-bold text-muted-foreground/50 uppercase tracking-wider px-5 py-3 text-left",
                       h === "Amount" && "text-right",
                       h === "Status" && "text-center",
                     )}>
