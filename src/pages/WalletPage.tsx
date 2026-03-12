@@ -212,7 +212,7 @@ export default function WalletPage() {
         .eq("user_id", user.id).eq("type", "topup").eq("id", verifyTxId.trim()).limit(1);
       if (matchById && matchById.length > 0) {
         const tx = matchById[0];
-        toast({ title: tx.status === "approved" ? "✅ Approved" : tx.status === "pending" ? "⏳ Pending" : "❌ Rejected", description: `Amount: ${tx.amount.toLocaleString()} MMK` });
+        toast({ title: tx.status === "approved" ? "Approved" : tx.status === "pending" ? "Pending" : "Rejected", description: `Amount: ${tx.amount.toLocaleString()} MMK` });
         navigate(`/dashboard/topup-status/${tx.id}`);
         return;
       }
