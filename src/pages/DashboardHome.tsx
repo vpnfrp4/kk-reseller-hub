@@ -111,7 +111,16 @@ export default function DashboardHome() {
           <div className="hidden lg:block cd-page-head cd-reveal">
             <div>
               <h1>Welcome back, <span className="gradient-text">{profile?.name || "Reseller"}</span></h1>
-              <p>Real-time summary for reseller sales, orders, and wallet activities.</p>
+              <p>Real-time overview of your reseller activities and performance.</p>
+            </div>
+            <div className="cd-page-head-actions">
+              <button
+                onClick={() => navigate("/dashboard/place-order")}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-[var(--radius-btn)] bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all shadow-lg shadow-primary/20"
+              >
+                <Zap className="w-4 h-4" />
+                Place Order
+              </button>
             </div>
           </div>
 
