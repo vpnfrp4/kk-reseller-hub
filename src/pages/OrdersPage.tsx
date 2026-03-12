@@ -37,14 +37,14 @@ const PAGE_SIZE = 20;
 /* ── Product Type Badge ── */
 function ProductTypeBadge({ type }: { type: string | null }) {
   const map: Record<string, { label: string; style: string }> = {
-    digital: { label: "Instant", style: "bg-primary/10 text-primary border border-primary/20" },
-    imei: { label: "IMEI", style: "bg-warning/10 text-warning border border-warning/20" },
-    manual: { label: "Manual", style: "bg-ice/10 text-ice border border-ice/20" },
-    api: { label: "API", style: "bg-success/10 text-success border border-success/20" },
+    digital: { label: "Instant", style: "bg-primary/6 text-primary border border-primary/12" },
+    imei: { label: "IMEI", style: "bg-warning/6 text-warning border border-warning/12" },
+    manual: { label: "Manual", style: "bg-ice/6 text-ice border border-ice/12" },
+    api: { label: "API", style: "bg-success/6 text-success border border-success/12" },
   };
   const s = map[type || "digital"] || map.digital;
   return (
-    <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase tracking-wider ${s.style}`}>
+    <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider ${s.style}`}>
       {s.label}
     </span>
   );
@@ -53,26 +53,26 @@ function ProductTypeBadge({ type }: { type: string | null }) {
 /* ── Status Badge ── */
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { label: string; className: string }> = {
-    processing: { label: "Processing", className: "bg-primary/10 text-primary border-primary/20" },
-    pending: { label: "Pending", className: "bg-warning/10 text-warning border-warning/20" },
-    pending_creation: { label: "Preparing", className: "bg-warning/10 text-warning border-warning/20" },
-    pending_review: { label: "Review", className: "bg-ice/10 text-ice border-ice/20" },
-    delivered: { label: "Completed", className: "bg-success/10 text-success border-success/20" },
-    completed: { label: "Completed", className: "bg-success/10 text-success border-success/20" },
-    rejected: { label: "Rejected", className: "bg-destructive/10 text-destructive border-destructive/20" },
-    cancelled: { label: "Cancelled", className: "bg-destructive/10 text-destructive border-destructive/20" },
-    api_pending: { label: "API Pending", className: "bg-ice/10 text-ice border-ice/20" },
+    processing: { label: "Processing", className: "bg-primary/8 text-primary border-primary/15" },
+    pending: { label: "Pending", className: "bg-warning/8 text-warning border-warning/15" },
+    pending_creation: { label: "Preparing", className: "bg-warning/8 text-warning border-warning/15" },
+    pending_review: { label: "Review", className: "bg-ice/8 text-ice border-ice/15" },
+    delivered: { label: "Completed", className: "bg-success/8 text-success border-success/15" },
+    completed: { label: "Completed", className: "bg-success/8 text-success border-success/15" },
+    rejected: { label: "Rejected", className: "bg-destructive/8 text-destructive border-destructive/15" },
+    cancelled: { label: "Cancelled", className: "bg-destructive/8 text-destructive border-destructive/15" },
+    api_pending: { label: "API Pending", className: "bg-ice/8 text-ice border-ice/15" },
   };
   const config = map[status] || { label: status, className: "bg-muted text-muted-foreground border-border" };
   return (
-    <span className={cn("text-[11px] px-2.5 py-1 rounded-full font-semibold border inline-flex items-center gap-1.5", config.className)}>
-      <span className={cn("w-1.5 h-1.5 rounded-full", 
-        status === "processing" || status === "pending" || status === "pending_creation" || status === "pending_review" || status === "api_pending" ? "animate-pulse" : "",
+    <span className={cn("text-[10px] px-2.5 py-[3px] rounded-md font-bold border inline-flex items-center gap-1.5", config.className)}>
+      <span className={cn("w-1.5 h-1.5 rounded-full",
+        ["processing", "pending", "pending_creation", "pending_review", "api_pending"].includes(status) ? "animate-pulse" : "",
         status === "processing" ? "bg-primary" : "",
-        status === "pending" || status === "pending_creation" ? "bg-warning" : "",
-        status === "delivered" || status === "completed" ? "bg-success" : "",
-        status === "rejected" || status === "cancelled" ? "bg-destructive" : "",
-        status === "pending_review" || status === "api_pending" ? "bg-ice" : "",
+        ["pending", "pending_creation"].includes(status) ? "bg-warning" : "",
+        ["delivered", "completed"].includes(status) ? "bg-success" : "",
+        ["rejected", "cancelled"].includes(status) ? "bg-destructive" : "",
+        ["pending_review", "api_pending"].includes(status) ? "bg-ice" : "",
       )} />
       {config.label}
     </span>
@@ -129,10 +129,10 @@ function ExpandedOrderDetail({ order }: { order: any }) {
       initial={{ height: 0, opacity: 0 }}
       animate={{ height: "auto", opacity: 1 }}
       exit={{ height: 0, opacity: 0 }}
-      transition={{ duration: 0.25, ease: "easeInOut" }}
+      transition={{ duration: 0.2, ease: "easeInOut" }}
       className="overflow-hidden"
     >
-      <div className="px-5 py-4 bg-muted/30 border-t border-border/20">
+      <div className="px-5 py-4 bg-secondary/15 border-t border-border/15">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div className="flex items-start gap-3">
             <ProductIcon
@@ -141,34 +141,33 @@ function ExpandedOrderDetail({ order }: { order: any }) {
               category={order.products?.category || order.product_type || "General"}
               size="lg"
             />
-            <div className="space-y-1.5 min-w-0">
-              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Service Details</span>
-              <p className="text-sm font-medium text-foreground">{sanitizeName(order.product_name)}</p>
-              <p className="text-xs text-muted-foreground font-mono">{order.order_code || order.id.slice(0, 8)}</p>
+            <div className="space-y-1 min-w-0">
+              <span className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-wider">Service</span>
+              <p className="text-sm font-semibold text-foreground">{sanitizeName(order.product_name)}</p>
+              <p className="text-[11px] text-muted-foreground font-mono">{order.order_code || order.id.slice(0, 8)}</p>
             </div>
           </div>
-          <div className="space-y-1.5">
-            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Processing</span>
+          <div className="space-y-1">
+            <span className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-wider">Processing</span>
             <p className="text-sm text-foreground">
               {order.product_type === "digital" || order.product_type === "api" ? "Instant" : "1-7 Business Days"}
             </p>
-            <p className="text-xs text-muted-foreground capitalize">{order.fulfillment_mode || "standard"} fulfillment</p>
+            <p className="text-[11px] text-muted-foreground capitalize">{order.fulfillment_mode || "standard"} fulfillment</p>
           </div>
-          <div className="space-y-1.5">
-            <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Result</span>
+          <div className="space-y-1">
+            <span className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-wider">Result</span>
             {order.result ? (
               <p className="text-sm text-success font-medium">{order.result}</p>
             ) : (
-              <p className="text-sm text-muted-foreground italic">Awaiting result</p>
+              <p className="text-sm text-muted-foreground/40 italic">Awaiting result</p>
             )}
             {order.admin_notes && (
-              <p className="text-xs text-muted-foreground mt-1">{order.admin_notes}</p>
+              <p className="text-[11px] text-muted-foreground mt-1">{order.admin_notes}</p>
             )}
           </div>
         </div>
 
-        {/* Timeline */}
-        <div className="pt-3 border-t border-border/20">
+        <div className="pt-3 border-t border-border/15">
           <OrderTimeline order={order} />
         </div>
 
@@ -176,7 +175,7 @@ function ExpandedOrderDetail({ order }: { order: any }) {
           <Button
             size="sm"
             variant="outline"
-            className="gap-2 text-xs hover:bg-primary/5 hover:border-primary/30 hover:text-primary transition-all"
+            className="gap-2 text-xs rounded-xl hover:bg-primary/5 hover:border-primary/25 hover:text-primary transition-all"
             onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/orders/${order.id}`); }}
           >
             Full Details
@@ -192,18 +191,17 @@ function ExpandedOrderDetail({ order }: { order: any }) {
 function MiniStat({ label, value, icon: Icon, color, accent }: { label: string; value: number; icon: any; color: string; accent?: boolean }) {
   return (
     <div className={cn(
-      "relative overflow-hidden rounded-[var(--radius-card)] border bg-card/90 backdrop-blur-sm p-4 flex items-center gap-3 transition-all duration-300",
-      "hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5",
-      accent ? "border-primary/25 bg-gradient-to-br from-primary/8 to-transparent" : "border-border/50",
+      "relative overflow-hidden rounded-2xl border bg-card/90 backdrop-blur-sm p-4 flex items-center gap-3 transition-all duration-250",
+      "hover:shadow-[0_6px_24px_-6px_hsl(var(--primary)/0.08)] hover:-translate-y-0.5",
+      accent ? "border-primary/20 bg-gradient-to-br from-primary/6 to-transparent" : "border-border/30",
     )}>
-      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-border/50 to-transparent" />
       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0")}
-        style={{ background: `hsl(var(--${color}) / 0.1)` }}>
-        <Icon className={cn("w-[18px] h-[18px]", `text-${color}`)} strokeWidth={1.5} />
+        style={{ background: `hsl(var(--${color}) / 0.08)` }}>
+        <Icon className={cn("w-[18px] h-[18px]", `text-${color}`)} strokeWidth={1.6} />
       </div>
       <div>
-        <p className="text-2xl font-bold font-mono tabular-nums text-foreground">{value.toLocaleString()}</p>
-        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{label}</p>
+        <p className="text-xl font-extrabold font-mono tabular-nums text-foreground leading-tight">{value.toLocaleString()}</p>
+        <p className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-wider mt-0.5">{label}</p>
       </div>
     </div>
   );
@@ -442,21 +440,29 @@ export default function OrdersPage() {
         ]} />
 
         {/* ═══ PAGE HEADER ═══ */}
-        <div className="cd-page-head cd-reveal">
-          <div>
-            <h1>Order History</h1>
-            <p>View and manage all your previous service orders.</p>
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center">
+              <Package className="w-4.5 h-4.5 text-primary" strokeWidth={1.7} />
+            </div>
+            <div>
+              <h1 className="text-xl font-extrabold text-foreground tracking-tight">Order History</h1>
+              <p className="text-xs text-muted-foreground/50 hidden sm:block">Track and manage all your service orders</p>
+            </div>
           </div>
-          <div className="cd-page-head-actions">
-            <Button onClick={exportCSV} variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/50 transition-all">
-              <Download className="w-4 h-4" />
-              Export CSV
-            </Button>
-          </div>
-        </div>
+          <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2 rounded-xl border-border/30 text-muted-foreground hover:text-primary hover:border-primary/25 hover:bg-primary/5 transition-all">
+            <Download className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Export</span>
+          </Button>
+        </motion.div>
 
         {/* ═══ STAT CARDS ═══ */}
-        <div className="cd-kpi-grid cd-reveal">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <MiniStat label="Total Orders" value={stats?.total || 0} icon={Package} color="primary" accent />
           <MiniStat label="Processing" value={stats?.processing || 0} icon={Clock} color="warning" />
           <MiniStat label="Completed" value={stats?.completed || 0} icon={CheckCircle} color="success" />
@@ -464,25 +470,25 @@ export default function OrdersPage() {
         </div>
 
         {/* ═══ FILTERS ═══ */}
-        <div className="glass-card animate-fade-in" style={{ animationDelay: "100ms" }}>
+        <div className="rounded-2xl border border-border/25 bg-card/80 backdrop-blur-sm overflow-hidden">
           <div className="p-4 flex flex-wrap gap-3 items-end">
             <div className="flex-1 min-w-[180px]">
-              <label className="text-[10px] font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wider">Search</label>
+              <label className="text-[9px] font-bold text-muted-foreground/50 mb-1.5 block uppercase tracking-wider">Search</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
                 <Input
-                  placeholder="Search by service name or order ID..."
+                  placeholder="Search by service name..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="pl-9 h-9 bg-muted/20 border-border/40 rounded-[var(--radius-input)]"
+                  className="pl-9 h-9 bg-secondary/30 border-border/25 rounded-xl text-sm"
                 />
               </div>
             </div>
 
-            <div className="min-w-[130px]">
-              <label className="text-[10px] font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wider">Status</label>
+            <div className="min-w-[120px]">
+              <label className="text-[9px] font-bold text-muted-foreground/50 mb-1.5 block uppercase tracking-wider">Status</label>
               <Select value={status} onValueChange={(v) => { setStatus(v); setPage(0); }}>
-                <SelectTrigger className="h-9 bg-muted/20 border-border/40 rounded-[var(--radius-input)]">
+                <SelectTrigger className="h-9 bg-secondary/30 border-border/25 rounded-xl text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -497,10 +503,10 @@ export default function OrdersPage() {
               </Select>
             </div>
 
-            <div className="min-w-[120px]">
-              <label className="text-[10px] font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wider">Type</label>
+            <div className="min-w-[110px]">
+              <label className="text-[9px] font-bold text-muted-foreground/50 mb-1.5 block uppercase tracking-wider">Type</label>
               <Select value={productType} onValueChange={(v) => { setProductType(v); setPage(0); }}>
-                <SelectTrigger className="h-9 bg-muted/20 border-border/40 rounded-[var(--radius-input)]">
+                <SelectTrigger className="h-9 bg-secondary/30 border-border/25 rounded-xl text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -513,13 +519,13 @@ export default function OrdersPage() {
               </Select>
             </div>
 
-            <div className="min-w-[130px]">
-              <label className="text-[10px] font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wider">From</label>
+            <div className="min-w-[120px]">
+              <label className="text-[9px] font-bold text-muted-foreground/50 mb-1.5 block uppercase tracking-wider">From</label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal bg-muted/20 border-border/40 rounded-[var(--radius-input)]", !dateFrom && "text-muted-foreground")}>
-                    <CalendarIcon className="w-4 h-4 mr-2" />
-                    {dateFrom ? format(dateFrom, "PP") : "Start date"}
+                  <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal bg-secondary/30 border-border/25 rounded-xl text-sm", !dateFrom && "text-muted-foreground/50")}>
+                    <CalendarIcon className="w-3.5 h-3.5 mr-2" />
+                    {dateFrom ? format(dateFrom, "PP") : "Start"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -528,13 +534,13 @@ export default function OrdersPage() {
               </Popover>
             </div>
 
-            <div className="min-w-[130px]">
-              <label className="text-[10px] font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wider">To</label>
+            <div className="min-w-[120px]">
+              <label className="text-[9px] font-bold text-muted-foreground/50 mb-1.5 block uppercase tracking-wider">To</label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal bg-muted/20 border-border/40 rounded-[var(--radius-input)]", !dateTo && "text-muted-foreground")}>
-                    <CalendarIcon className="w-4 h-4 mr-2" />
-                    {dateTo ? format(dateTo, "PP") : "End date"}
+                  <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal bg-secondary/30 border-border/25 rounded-xl text-sm", !dateTo && "text-muted-foreground/50")}>
+                    <CalendarIcon className="w-3.5 h-3.5 mr-2" />
+                    {dateTo ? format(dateTo, "PP") : "End"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -544,8 +550,8 @@ export default function OrdersPage() {
             </div>
 
             {hasFilters && (
-              <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-muted-foreground hover:text-destructive" onClick={clearFilters}>
-                <X className="w-4 h-4" />
+              <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-muted-foreground/50 hover:text-destructive rounded-xl" onClick={clearFilters}>
+                <X className="w-3.5 h-3.5" />
                 Clear
               </Button>
             )}
@@ -553,7 +559,7 @@ export default function OrdersPage() {
         </div>
 
         {/* ═══ ORDERS TABLE (Desktop) ═══ */}
-        <div className="hidden md:block glass-card animate-fade-in overflow-hidden" style={{ animationDelay: "150ms" }}>
+        <div className="hidden md:block rounded-2xl border border-border/25 bg-card/80 backdrop-blur-sm overflow-hidden">
           {ordersLoading ? (
             <div className="p-5 space-y-4">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -577,10 +583,10 @@ export default function OrdersPage() {
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border/20">
+                <tr className="border-b border-border/15">
                   {["Order ID", "Service", "Date", "Amount", "Status"].map((h) => (
                     <th key={h} className={cn(
-                      "text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-5 py-3.5 text-left",
+                      "text-[9px] font-bold text-muted-foreground/50 uppercase tracking-wider px-5 py-3 text-left",
                       h === "Amount" && "text-right",
                       h === "Status" && "text-center",
                     )}>
@@ -596,13 +602,13 @@ export default function OrdersPage() {
                     initial={false}
                     className="contents"
                   >
-                    <tr
-                      className={cn(
-                        "border-b border-border/10 transition-all duration-300 group cursor-pointer",
-                        "hover:bg-muted/30",
-                        highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] bg-primary/8 ring-1 ring-inset ring-primary/25",
-                        expandedId === row.id && "bg-muted/20",
-                      )}
+                      <tr
+                        className={cn(
+                          "border-b border-border/8 transition-all duration-200 group cursor-pointer",
+                          "hover:bg-secondary/20",
+                          highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] bg-primary/6 ring-1 ring-inset ring-primary/20",
+                          expandedId === row.id && "bg-secondary/15",
+                        )}
                       style={{ animationDelay: `${idx * 30}ms` }}
                       onClick={() => toggleExpand(row.id)}
                     >
@@ -675,10 +681,10 @@ export default function OrdersPage() {
         </div>
 
         {/* ═══ MOBILE CARDS ═══ */}
-        <div className="md:hidden space-y-3 animate-fade-in" style={{ animationDelay: "150ms" }}>
+        <div className="md:hidden space-y-3">
           {ordersLoading ? (
             Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="glass-card p-4 space-y-3">
+              <div key={i} className="rounded-2xl border border-border/25 bg-card/80 p-4 space-y-3">
                 <Skeleton className="h-4 w-3/4" />
                 <Skeleton className="h-3 w-1/2" />
                 <div className="flex justify-between">
@@ -688,17 +694,17 @@ export default function OrdersPage() {
               </div>
             ))
           ) : !orders || orders.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground glass-card">
-              <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">{hasFilters ? "No orders match your filters" : "No orders yet"}</p>
+            <div className="text-center py-16 text-muted-foreground rounded-2xl border border-border/25 bg-card/80">
+              <Package className="w-10 h-10 mx-auto mb-3 opacity-20" />
+              <p className="text-sm font-medium">{hasFilters ? "No orders match your filters" : "No orders yet"}</p>
             </div>
           ) : (
             orders.map((row: any) => (
               <div
                 key={row.id}
                 className={cn(
-                  "glass-card overflow-hidden transition-all duration-300",
-                  highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] ring-1 ring-primary/30 bg-primary/5",
+                  "rounded-2xl border border-border/25 bg-card/80 overflow-hidden transition-all duration-200",
+                  highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] ring-1 ring-primary/25 bg-primary/4",
                 )}
               >
                 <div
@@ -759,7 +765,7 @@ export default function OrdersPage() {
 
           {/* Mobile pagination */}
           {totalCount > PAGE_SIZE && (
-            <div className="flex items-center justify-between glass-card p-3">
+            <div className="flex items-center justify-between rounded-2xl border border-border/25 bg-card/80 p-3">
               <p className="text-xs text-muted-foreground">
                 {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} / {totalCount}
               </p>
