@@ -76,16 +76,47 @@ export default function AdminTopups() {
   const [confirmDialog, setConfirmDialog] = useState<{ txId: string; action: "approve" | "reject"; name: string; amount: number } | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
-  // Auto-approve settings
-  const [autoApprove, setAutoApprove] = useState(getAutoApprove);
-  const [autoThreshold, setAutoThreshold] = useState(getAutoApproveThreshold);
+  // Auto-approve settings from DB
+  const { data: autoApproveSettings } = useQuery({
+    queryKey: ["auto-approve-settings"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("system_settings")
+        .select("value")
+        .eq("key", AUTO_APPROVE_SETTINGS_KEY)
+        .maybeSingle();
+      return data?.value as { enabled: boolean; threshold: number } | null;
+    },
+  });
 
+  const [autoApprove, setAutoApprove] = useState(false);
+  const [autoThreshold, setAutoThreshold] = useState(50000);
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  // Sync state when DB data loads
   useEffect(() => {
-    localStorage.setItem(AUTO_APPROVE_KEY, String(autoApprove));
-  }, [autoApprove]);
-  useEffect(() => {
-    localStorage.setItem(AUTO_APPROVE_THRESHOLD_KEY, String(autoThreshold));
-  }, [autoThreshold]);
+    if (autoApproveSettings) {
+      setAutoApprove(autoApproveSettings.enabled ?? false);
+      setAutoThreshold(autoApproveSettings.threshold ?? 50000);
+    }
+  }, [autoApproveSettings]);
+
+  const saveAutoApproveSettings = async (enabled: boolean, threshold: number) => {
+    setSavingSettings(true);
+    try {
+      const value = { enabled, threshold };
+      const { error } = await supabase
+        .from("system_settings")
+        .upsert({ key: AUTO_APPROVE_SETTINGS_KEY, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["auto-approve-settings"] });
+      toast.success(`Auto-approve ${enabled ? "enabled" : "disabled"}${enabled ? ` (threshold: ${threshold.toLocaleString()} MMK)` : ""}`);
+    } catch (err: any) {
+      toast.error("Failed to save settings: " + (err.message || "Unknown error"));
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   useEffect(() => {
     const channel = supabase
