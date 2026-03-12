@@ -154,7 +154,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         
         {/* ── Desktop Sidebar ── */}
         <aside className="hidden lg:block self-start sticky top-[77px]">
-          <div className="border border-border rounded-[1.2rem] overflow-hidden shadow-card" style={{ background: 'hsl(var(--card) / 0.82)', backdropFilter: 'blur(10px)' }}>
+          <div className="border border-border/80 rounded-[1.2rem] overflow-hidden shadow-card" style={{ background: 'hsl(var(--card) / 0.82)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }}>
             <div className="px-4 pt-4 pb-3 border-b border-border">
               <p className="text-[0.74rem] text-muted-foreground uppercase tracking-[0.12em] font-semibold">Main Navigation</p>
             </div>

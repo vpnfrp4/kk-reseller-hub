@@ -56,7 +56,7 @@ export default function HeroStats({
   onWalletClick,
 }: HeroStatsProps) {
   const navigate = useNavigate();
-  const values = {
+  const values: Record<string, number> = {
     balance,
     today: todayOrders,
     success: successRate,
