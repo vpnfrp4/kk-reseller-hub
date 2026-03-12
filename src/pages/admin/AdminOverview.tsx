@@ -20,10 +20,6 @@ import MiniSparkline from "@/components/admin/MiniSparkline";
 import { useCountUp } from "@/hooks/use-count-up";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts";
 
 const THRESHOLD_KEY = "admin-low-balance-threshold";
 const DEFAULT_THRESHOLD = 5000;
