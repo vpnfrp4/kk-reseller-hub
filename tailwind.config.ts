@@ -29,8 +29,8 @@ export default {
   				'monospace'
   			],
   			display: [
+  				'Space Grotesk',
   				'Plus Jakarta Sans',
-  				'DM Sans',
   				'Noto Sans Myanmar',
   				'sans-serif'
   			],
