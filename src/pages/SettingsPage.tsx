@@ -41,19 +41,30 @@ export default function SettingsPage() {
       ]} />
 
       {/* ═══ PROFILE HERO CARD ═══ */}
-      <div className="relative overflow-hidden rounded-[var(--radius-card)] border border-border/50 bg-card/90 backdrop-blur-md p-5 lg:p-6 animate-fade-in">
-        <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+      <div className="relative overflow-hidden rounded-[var(--radius-card)] border border-border/40 bg-card/80 backdrop-blur-xl p-5 lg:p-6 animate-fade-in group/hero">
+        {/* Ambient glow orbs */}
+        <div className="absolute -top-20 -right-20 w-56 h-56 rounded-full bg-primary/[0.06] blur-[60px] pointer-events-none group-hover/hero:bg-primary/[0.1] transition-all duration-700" />
+        <div className="absolute -bottom-12 -left-12 w-40 h-40 rounded-full bg-primary-glow/[0.04] blur-[50px] pointer-events-none" />
+        {/* Top accent line */}
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent" />
+        {/* Bottom subtle border glow */}
+        <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
         <div className="relative z-10 flex items-center gap-4">
           {profile?.avatar_url ? (
-            <img
-              src={profile.avatar_url}
-              alt=""
-              className="w-14 h-14 rounded-2xl object-cover border-2 border-primary/20"
-            />
+            <div className="relative group/avatar">
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-primary/20 to-primary-glow/20 opacity-0 group-hover/avatar:opacity-100 blur-sm transition-opacity duration-300" />
+              <img
+                src={profile.avatar_url}
+                alt=""
+                className="relative w-14 h-14 rounded-2xl object-cover border-2 border-primary/20 group-hover/avatar:border-primary/40 transition-colors duration-300"
+              />
+            </div>
           ) : (
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center">
-              <span className="text-xl font-bold text-primary">{initial}</span>
+            <div className="relative group/avatar">
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-br from-primary/20 to-primary-glow/20 opacity-0 group-hover/avatar:opacity-100 blur-sm transition-opacity duration-300" />
+              <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center group-hover/avatar:border-primary/40 transition-colors duration-300">
+                <span className="text-xl font-bold text-primary">{initial}</span>
+              </div>
             </div>
           )}
           <div className="flex-1 min-w-0">
@@ -62,7 +73,7 @@ export default function SettingsPage() {
             </h1>
             <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
             <div className="flex items-center gap-3 mt-1.5">
-              <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-wider border border-primary/15">
+              <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-primary/15 shadow-[0_0_8px_-2px_hsl(var(--primary)/0.2)]">
                 {profile?.tier || "Standard"}
               </span>
               <span className="text-xs text-muted-foreground">
@@ -97,7 +108,9 @@ export default function SettingsPage() {
           </div>
         ) : (
           <nav className="w-56 shrink-0">
-            <div className="rounded-[var(--radius-card)] border border-border/50 bg-card/90 backdrop-blur-sm p-2 space-y-0.5 sticky top-24" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="rounded-[var(--radius-card)] border border-border/40 bg-card/80 backdrop-blur-xl p-2 space-y-0.5 sticky top-24 overflow-hidden relative" style={{ boxShadow: "var(--shadow-card)" }}>
+              {/* Top accent */}
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
               {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -105,13 +118,16 @@ export default function SettingsPage() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "w-full flex items-center gap-compact px-compact py-2.5 rounded-btn text-sm font-medium transition-all text-left",
+                      "w-full flex items-center gap-compact px-compact py-2.5 rounded-btn text-sm font-medium transition-all duration-200 text-left relative group/tab",
                       isActive
-                        ? "bg-primary/8 text-primary border border-primary/15"
+                        ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.15)]"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-transparent"
                     )}
                   >
-                    <tab.icon className={cn("w-4 h-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.4)]" />
+                    )}
+                    <tab.icon className={cn("w-4 h-4 shrink-0 transition-transform duration-200", isActive ? "text-primary scale-110" : "text-muted-foreground group-hover/tab:scale-105")} />
                     {tab.label}
                   </button>
                 );

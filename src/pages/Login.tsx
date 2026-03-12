@@ -262,11 +262,16 @@ export default function Login() {
 
           {/* ═══ GLASS FORM CARD ═══ */}
           <motion.div
-            className="rounded-[var(--radius-card)] border border-border/40 bg-card/80 backdrop-blur-xl p-6 sm:p-8"
-            style={{ boxShadow: "var(--shadow-premium)" }}
+            className="relative rounded-[var(--radius-card)] border border-border/30 bg-card/70 backdrop-blur-xl p-6 sm:p-8 overflow-hidden"
+            style={{ boxShadow: "0 20px 60px -15px hsl(var(--primary) / 0.12), 0 0 0 1px hsl(var(--border) / 0.1)" }}
             layout
             transition={{ layout: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
           >
+            {/* Top accent line */}
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+            {/* Corner glow */}
+            <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-primary/[0.06] blur-[50px] pointer-events-none" />
+            <div className="absolute -bottom-12 -left-12 w-32 h-32 rounded-full bg-primary-glow/[0.04] blur-[40px] pointer-events-none" />
             {/* Title */}
             <AnimatePresence mode="wait">
               <motion.div key={isForgot ? "forgot" : isSignup ? "signup" : "login"} className="mb-6" {...fadeSlide}>
@@ -390,15 +395,15 @@ export default function Login() {
 
               {/* Submit */}
               <Button type="submit"
-                className="w-full h-12 gap-2 text-sm font-semibold rounded-xl relative overflow-hidden group"
+                className="w-full h-12 gap-2 text-sm font-semibold rounded-xl relative overflow-hidden group/btn shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.35)] hover:shadow-[0_8px_30px_-4px_hsl(var(--primary)/0.45)] transition-shadow duration-300"
                 disabled={loading || (isSignup && !canSubmitSignup)}
               >
                 {/* Shimmer effect */}
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover/btn:translate-x-[200%] transition-transform duration-700" />
                 {loading ? (
                   <><div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />{l(t.login.pleaseWait)}</>
                 ) : (
-                  <>{isForgot ? l(t.login.sendResetLink) : isSignup ? "Create Account" : "Sign In"}<ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /></>
+                  <>{isForgot ? l(t.login.sendResetLink) : isSignup ? "Create Account" : "Sign In"}<ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-200" /></>
                 )}
               </Button>
 

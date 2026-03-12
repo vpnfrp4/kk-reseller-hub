@@ -67,16 +67,18 @@ export default function ProductCard({
   return (
     <div
       className={cn(
-        "group relative opacity-0 animate-stagger-in flex flex-col",
+        "group relative opacity-0 animate-stagger-in flex flex-col overflow-hidden",
         "rounded-card bg-card/80 backdrop-blur-sm border border-border/30",
         "transition-all duration-300 ease-out",
-        "hover:border-primary/25 hover:shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.15)]",
-        "hover:-translate-y-1",
+        "hover:border-primary/25 hover:shadow-[0_12px_40px_-10px_hsl(var(--primary)/0.18)]",
+        "hover:-translate-y-1.5",
       )}
       style={{ animationDelay: `${index * 0.04}s` }}
     >
       {/* Top gradient accent line */}
-      <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+      <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent group-hover:via-primary/40 transition-all duration-300" />
+      {/* Corner hover glow */}
+      <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-primary/[0.04] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
       <div className="p-6 flex flex-col flex-1 gap-4">
         {/* ─── Name + Type badge ─── */}

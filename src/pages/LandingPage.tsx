@@ -363,10 +363,18 @@ export default function LandingPage() {
           <div className="pointer-events-none absolute inset-0" style={{
             background: "radial-gradient(800px circle at 50% 0%, hsl(var(--primary) / 0.04), transparent 60%)",
           }} />
+          {/* Grid pattern overlay */}
+          <div className="absolute inset-0 opacity-[0.015]" style={{
+            backgroundImage: "linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)",
+            backgroundSize: "42px 42px",
+          }} />
           <div className="relative mx-auto max-w-[1200px] px-6">
             <ScrollReveal>
               <div className="text-center">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">Platform Features</p>
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.05] px-4 py-1.5 mb-4">
+                  <Zap className="w-3 h-3 text-primary" />
+                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/80">Platform Features</p>
+                </div>
                 <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl gradient-text">
                   Everything You Need to Scale
                 </h2>
@@ -379,13 +387,16 @@ export default function LandingPage() {
             <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((feat, i) => (
                 <ScrollReveal key={feat.title} delay={i * 80}>
-                  <div className="group relative rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-7 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 h-full overflow-hidden">
+                  <div className="group relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl p-7 transition-all duration-300 hover:border-primary/25 hover:shadow-[0_12px_40px_-12px_hsl(var(--primary)/0.15)] hover:-translate-y-1.5 h-full overflow-hidden">
                     {/* Top shine line */}
-                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/[0.12] group-hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.25)]">
-                      <feat.icon className="h-5 w-5 text-primary" />
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    {/* Corner glow */}
+                    <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-primary/[0.04] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:bg-primary/[0.12] group-hover:shadow-[0_0_24px_-6px_hsl(var(--primary)/0.3)] relative">
+                      <feat.icon className="h-5 w-5 text-primary relative z-10" />
+                      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ boxShadow: "inset 0 0 12px hsl(var(--primary) / 0.15)" }} />
                     </div>
-                    <h3 className="text-base font-semibold text-foreground mb-2">{feat.title}</h3>
+                    <h3 className="text-base font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-300">{feat.title}</h3>
                     <p className="text-sm leading-relaxed text-muted-foreground">{feat.desc}</p>
                   </div>
                 </ScrollReveal>
@@ -649,12 +660,17 @@ export default function LandingPage() {
       </main>
 
       {/* ═══════════ FOOTER ═══════════ */}
-      <footer className="border-t border-border/40">
-        <div className="mx-auto max-w-[1200px] px-6 pt-16 pb-8">
+      <footer className="relative border-t border-border/40 overflow-hidden">
+        {/* Footer ambient glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-primary/[0.03] blur-[100px] pointer-events-none" />
+        <div className="relative mx-auto max-w-[1200px] px-6 pt-16 pb-8">
           <div className="grid gap-12 sm:grid-cols-4">
             <div className="sm:col-span-2">
-              <span className="flex items-center gap-2.5">
-                <img src={kkLogo} alt="KKTech" className="h-7 w-7 rounded-lg" />
+              <span className="flex items-center gap-2.5 group">
+                <div className="relative">
+                  <div className="absolute -inset-1 rounded-lg bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <img src={kkLogo} alt="KKTech" className="relative h-7 w-7 rounded-lg" />
+                </div>
                 <span className="text-xl font-extrabold text-foreground">
                   KK<span className="text-primary">Tech</span>
                 </span>
@@ -663,30 +679,32 @@ export default function LandingPage() {
                 Professional unlock services marketplace for technicians and resellers. Fast processing, transparent pricing, reliable delivery.
               </p>
               <div className="mt-6 flex gap-3">
-                <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary" aria-label="Telegram">
-                  <Send className="h-4 w-4" />
-                </a>
-                <a href="https://t.me/KKTechDeals" target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary" aria-label="Channel">
-                  <MessageCircle className="h-4 w-4" />
-                </a>
-                <a href="viber://chat?number=%2B959787313137" target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary" aria-label="Viber">
-                  <Phone className="h-4 w-4" />
-                </a>
+                {[
+                  { href: "https://t.me/kkremote", icon: Send, label: "Telegram" },
+                  { href: "https://t.me/KKTechDeals", icon: MessageCircle, label: "Channel" },
+                  { href: "viber://chat?number=%2B959787313137", icon: Phone, label: "Viber" },
+                ].map((social) => (
+                  <a key={social.label} href={social.href} target="_blank" rel="noopener noreferrer"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all duration-300 hover:border-primary/40 hover:text-primary hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.3)] hover:-translate-y-0.5"
+                    aria-label={social.label}>
+                    <social.icon className="h-4 w-4" />
+                  </a>
+                ))}
               </div>
             </div>
             <div className="flex flex-col gap-3 text-sm">
               <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Quick Links</span>
-              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground">Login</Link>
-              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground">Create Account</Link>
-              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground">Terms & Conditions</Link>
-              <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground">Support</a>
+              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Login</Link>
+              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Create Account</Link>
+              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Terms & Conditions</Link>
+              <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Support</a>
             </div>
             <div className="flex flex-col gap-3 text-sm">
               <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Connect</span>
-              <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground">Telegram</a>
-              <a href="https://t.me/KKTechDeals" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground">Telegram Channel</a>
-              <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-foreground">Free IMEI Check</Link>
-              <Link to="/blog" className="text-muted-foreground transition-colors hover:text-foreground">Blog</Link>
+              <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Telegram</a>
+              <a href="https://t.me/KKTechDeals" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Telegram Channel</a>
+              <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Free IMEI Check</Link>
+              <Link to="/blog" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Blog</Link>
             </div>
           </div>
           <div className="mt-12 flex flex-col items-center gap-3 border-t border-border/20 pt-8 sm:flex-row sm:justify-between">
