@@ -541,7 +541,7 @@ export default function AdminCredentials() {
                       : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
                   )}
                 >
-                  <span className="text-base leading-none">{CATEGORY_ICONS[cat] || "📦"}</span>
+                  <span className="text-base leading-none">{CATEGORY_ICONS[cat] || "—"}</span>
                   <span className="flex-1 text-left truncate">{cat}</span>
                   <Badge variant="secondary" className="text-[10px] h-5 min-w-[28px] justify-center px-1.5 bg-muted/80">
                     {categoryCounts[cat] || 0}
