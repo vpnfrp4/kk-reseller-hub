@@ -694,9 +694,9 @@ export default function OrdersPage() {
               </div>
             ))
           ) : !orders || orders.length === 0 ? (
-            <div className="text-center py-16 text-muted-foreground glass-card">
-              <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="text-sm">{hasFilters ? "No orders match your filters" : "No orders yet"}</p>
+            <div className="text-center py-16 text-muted-foreground rounded-2xl border border-border/25 bg-card/80">
+              <Package className="w-10 h-10 mx-auto mb-3 opacity-20" />
+              <p className="text-sm font-medium">{hasFilters ? "No orders match your filters" : "No orders yet"}</p>
             </div>
           ) : (
             orders.map((row: any) => (
