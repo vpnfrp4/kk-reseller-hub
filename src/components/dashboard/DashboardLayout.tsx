@@ -125,9 +125,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div className="w-[34px] h-[34px] rounded-[0.9rem] grid place-items-center text-[0.72rem] font-bold font-display text-primary-foreground bg-primary shadow-[0_8px_16px_-10px_hsl(var(--primary))] transition-shadow duration-300 group-hover:shadow-[0_10px_24px_-10px_hsl(var(--primary)/0.5)]">
                 <img src={kkLogo} alt="KK" className="w-full h-full rounded-[0.9rem] object-contain" />
               </div>
-              <div className="grid gap-[0.06rem]">
+              <div className="grid">
                 <strong className="font-display text-base leading-none tracking-[0.02em]">KKTech Panel</strong>
-                <span className="text-[0.72rem] text-muted-foreground leading-none">CarDrive-style Dashboard UI</span>
               </div>
             </Link>
 
