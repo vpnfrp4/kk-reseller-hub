@@ -564,38 +564,7 @@ export default function OrderDetailPage() {
             </Section>
           )}
 
-          {/* ═══ 6. ACTIVITY LOG ═══ */}
-          <Section>
-            <SectionLabel>{l(t.orderDetail.activityLog)}</SectionLabel>
-            <div className="space-y-0">
-              {activityLog.map((entry, i) => (
-                <div key={i} className="flex items-center justify-between py-3 border-b border-border/30 last:border-0">
-                  <div className="flex items-center gap-3">
-                    <div className={cn("w-2 h-2 rounded-full shrink-0", i === activityLog.length - 1 ? "bg-primary" : "bg-muted-foreground/30")} />
-                    <span className="text-sm text-foreground">{l(entry.label)}</span>
-                  </div>
-                  <span className="text-[11px] text-muted-foreground font-mono">
-                    {format(new Date(entry.time), "MMM d, HH:mm")}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </Section>
-
-          {/* ═══ 7. IMPORTANT NOTICE ═══ */}
-          <Section className="border-l-2 border-l-primary/30">
-            <div className="flex items-start gap-3">
-              <ShieldCheck className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-              <div className="space-y-2">
-                <h4 className="text-sm font-semibold text-foreground">{l(t.orderDetail.importantNotice)}</h4>
-                <ul className="space-y-1.5">
-                  <li className="text-xs text-muted-foreground leading-relaxed">{l(t.orderDetail.noticeCredentials)}</li>
-                  <li className="text-xs text-muted-foreground leading-relaxed">{l(t.orderDetail.noticeNoRefund)}</li>
-                  <li className="text-xs text-muted-foreground leading-relaxed">{l(t.orderDetail.noticeSupport)}</li>
-                </ul>
-              </div>
-            </div>
-          </Section>
+          {/* Activity Log and Important Notice removed for cleaner UX */}
 
           {/* Back */}
           <Button variant="outline" className="gap-2 w-full sm:w-auto" onClick={() => navigate("/dashboard/orders")}>
