@@ -137,79 +137,99 @@ html {
   }
 
   .dark {
-    /* ═══ DARK THEME — Orange Dark ═══ */
-    --background: 222 47% 5%;
+    /* ═══ DARK THEME — Premium Orange Dark ═══ */
+    --background: 225 44% 4%;
     --foreground: 210 40% 96%;
 
-    --card: 222 42% 8%;
+    --card: 225 40% 7%;
     --card-foreground: 210 40% 96%;
 
-    --popover: 222 42% 8%;
+    --popover: 225 40% 7%;
     --popover-foreground: 210 40% 96%;
 
     --primary: 24 95% 40%;
     --primary-foreground: 0 0% 100%;
     --primary-glow: 28 100% 64%;
 
-    --secondary: 222 35% 12%;
+    --secondary: 225 32% 11%;
     --secondary-foreground: 210 40% 96%;
 
-    --muted: 222 35% 12%;
+    --muted: 225 32% 11%;
     --muted-foreground: 215 20% 55%;
 
-    --accent: 222 30% 14%;
+    --accent: 225 28% 13%;
     --accent-foreground: 210 40% 96%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 210 40% 96%;
 
-    --border: 222 20% 16%;
-    --input: 222 20% 16%;
+    --border: 225 18% 14%;
+    --input: 225 18% 14%;
     --ring: 24 95% 53%;
 
     --success: 152 60% 45%;
     --success-foreground: 0 0% 100%;
-    --success-light: 152 40% 15%;
-    --success-border: 152 40% 25%;
+    --success-light: 152 40% 12%;
+    --success-border: 152 40% 22%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 10%;
     --gold: 45 100% 51%;
     --fail: 0 72% 51%;
-    --fail-light: 0 40% 15%;
-    --fail-border: 0 40% 25%;
+    --fail-light: 0 40% 12%;
+    --fail-border: 0 40% 22%;
 
-    --sidebar-background: 222 47% 4%;
+    --sidebar-background: 225 44% 3%;
     --sidebar-foreground: 210 40% 96%;
     --sidebar-primary: 24 95% 53%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 35% 12%;
+    --sidebar-accent: 225 32% 11%;
     --sidebar-accent-foreground: 210 40% 96%;
-    --sidebar-border: 222 20% 14%;
+    --sidebar-border: 225 18% 12%;
     --sidebar-ring: 24 95% 53%;
-    --sidebar: 222 42% 8%;
+    --sidebar: 225 40% 7%;
 
-    --shadow-card: 0 2px 8px -2px rgba(0,0,0,0.2), 0 12px 40px -12px rgba(0,0,0,0.35);
-    --shadow-elevated: 0 8px 30px -8px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.2);
-    --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.03);
-    --shadow-header: 0 1px 0 hsl(222 20% 12%), 0 2px 8px -2px rgba(0,0,0,0.3);
-    --shadow-glow: 0 0 24px hsl(24 95% 53% / 0.2), 0 0 60px hsl(24 95% 53% / 0.08);
-    --shadow-glow-sm: 0 0 12px hsl(24 95% 53% / 0.15);
-    --shadow-premium: 0 20px 50px -20px rgba(0,0,0,0.5), 0 0 0 1px hsl(var(--border) / 0.3);
+    /* ─── Premium Shadows (deeper, layered) ─── */
+    --shadow-card:
+      0 1px 2px rgba(0,0,0,0.2),
+      0 4px 16px -4px rgba(0,0,0,0.3),
+      0 12px 40px -12px rgba(0,0,0,0.4),
+      inset 0 1px 0 hsl(225 40% 12% / 0.5);
+    --shadow-elevated:
+      0 2px 4px rgba(0,0,0,0.25),
+      0 8px 30px -8px rgba(0,0,0,0.5),
+      inset 0 1px 0 hsl(225 40% 14% / 0.4);
+    --shadow-inset: inset 0 1px 0 rgba(255,255,255,0.04), inset 0 -1px 0 rgba(0,0,0,0.2);
+    --shadow-header:
+      0 1px 0 hsl(225 18% 10%),
+      0 4px 16px -4px rgba(0,0,0,0.35);
+    --shadow-glow:
+      0 0 20px hsl(24 95% 53% / 0.22),
+      0 0 50px hsl(24 95% 53% / 0.08),
+      0 0 80px hsl(28 100% 64% / 0.04);
+    --shadow-glow-sm: 0 0 10px hsl(24 95% 53% / 0.16), 0 0 30px hsl(24 95% 53% / 0.06);
+    --shadow-premium:
+      0 1px 2px rgba(0,0,0,0.3),
+      0 8px 24px -8px rgba(0,0,0,0.45),
+      0 20px 50px -20px rgba(0,0,0,0.5),
+      0 0 0 1px hsl(225 18% 14% / 0.6),
+      inset 0 1px 0 hsl(225 40% 14% / 0.3);
 
-    --glass-bg: hsla(222, 42%, 8%, 0.88);
-    --glass-border: hsl(24 95% 53% / 0.12);
-    --glass-blur: 20px;
-    --ambient-blob-1: hsl(24 95% 53% / 0.08);
-    --ambient-blob-2: hsl(28 100% 64% / 0.05);
+    /* ─── Glassmorphism (richer, more depth) ─── */
+    --glass-bg: hsla(225, 40%, 7%, 0.82);
+    --glass-border: hsl(24 95% 53% / 0.1);
+    --glass-blur: 24px;
+    --ambient-blob-1: hsl(24 95% 50% / 0.1);
+    --ambient-blob-2: hsl(28 100% 60% / 0.06);
     --ambient-blob-3: hsl(45 100% 51% / 0.04);
     --ambient-blob-4: hsl(152 60% 42% / 0.03);
-    --wallet-hero-from: 222 35% 8%;
-    --wallet-hero-to: 222 35% 12%;
-    --wallet-hero-blob: hsl(24 95% 53% / 0.06);
+    --wallet-hero-from: 225 35% 6%;
+    --wallet-hero-to: 225 32% 11%;
+    --wallet-hero-blob: hsl(24 95% 53% / 0.07);
 
-    --gradient-primary: linear-gradient(135deg, hsl(24 90% 48%), hsl(28 100% 58%));
-    --gradient-surface: linear-gradient(135deg, hsl(222 47% 5%), hsl(222 42% 8%));
-    --gradient-glass: linear-gradient(135deg, hsl(222 42% 12% / 0.6), hsl(222 42% 8% / 0.2));
+    /* ─── Gradients (deeper, more contrast) ─── */
+    --gradient-primary: linear-gradient(135deg, hsl(24 90% 45%), hsl(28 100% 55%));
+    --gradient-surface: linear-gradient(160deg, hsl(225 44% 4%), hsl(225 40% 7%), hsl(225 38% 9%));
+    --gradient-glass: linear-gradient(135deg, hsl(225 40% 14% / 0.5), hsl(225 40% 7% / 0.15));
 
     --chart-1: 24 95% 53%;
     --chart-2: 152 60% 48%;
@@ -217,13 +237,13 @@ html {
     --chart-4: 270 55% 60%;
     --chart-5: 340 60% 58%;
 
-    --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.08);
-    --shadow-xs: 0 1px 3px 0 hsl(0 0% 0% / 0.12);
-    --shadow-sm: 0 2px 6px -2px hsl(0 0% 0% / 0.18);
-    --shadow-md: 0 4px 12px -4px hsl(0 0% 0% / 0.25);
-    --shadow-lg: 0 8px 24px -6px hsl(0 0% 0% / 0.3);
-    --shadow-xl: 0 16px 40px -12px hsl(0 0% 0% / 0.35);
-    --shadow-2xl: 0 24px 60px -16px hsl(0 0% 0% / 0.4);
+    --shadow-2xs: 0 1px 2px 0 hsl(0 0% 0% / 0.12);
+    --shadow-xs: 0 1px 3px 0 hsl(0 0% 0% / 0.18);
+    --shadow-sm: 0 2px 6px -2px hsl(0 0% 0% / 0.25);
+    --shadow-md: 0 4px 12px -4px hsl(0 0% 0% / 0.32);
+    --shadow-lg: 0 8px 24px -6px hsl(0 0% 0% / 0.38);
+    --shadow-xl: 0 16px 40px -12px hsl(0 0% 0% / 0.42);
+    --shadow-2xl: 0 24px 60px -16px hsl(0 0% 0% / 0.48);
 
     --font-display: "Space Grotesk", "Noto Sans Myanmar", "Segoe UI", sans-serif;
     --font-body: "Noto Sans Myanmar", "Space Grotesk", "Segoe UI", sans-serif;
