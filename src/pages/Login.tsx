@@ -262,11 +262,16 @@ export default function Login() {
 
           {/* ═══ GLASS FORM CARD ═══ */}
           <motion.div
-            className="rounded-[var(--radius-card)] border border-border/40 bg-card/80 backdrop-blur-xl p-6 sm:p-8"
-            style={{ boxShadow: "var(--shadow-premium)" }}
+            className="relative rounded-[var(--radius-card)] border border-border/30 bg-card/70 backdrop-blur-xl p-6 sm:p-8 overflow-hidden"
+            style={{ boxShadow: "0 20px 60px -15px hsl(var(--primary) / 0.12), 0 0 0 1px hsl(var(--border) / 0.1)" }}
             layout
             transition={{ layout: { duration: 0.35, ease: [0.22, 1, 0.36, 1] } }}
           >
+            {/* Top accent line */}
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
+            {/* Corner glow */}
+            <div className="absolute -top-16 -right-16 w-40 h-40 rounded-full bg-primary/[0.06] blur-[50px] pointer-events-none" />
+            <div className="absolute -bottom-12 -left-12 w-32 h-32 rounded-full bg-primary-glow/[0.04] blur-[40px] pointer-events-none" />
             {/* Title */}
             <AnimatePresence mode="wait">
               <motion.div key={isForgot ? "forgot" : isSignup ? "signup" : "login"} className="mb-6" {...fadeSlide}>
