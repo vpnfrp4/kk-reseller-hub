@@ -328,7 +328,7 @@ export default function WalletPage() {
         </div>
 
         {/* ═══ STEP PROGRESS BAR ═══ */}
-        <div className="relative">
+        <div className="relative p-4 rounded-[var(--radius-card)] border border-border/30 bg-card/60 backdrop-blur-sm" style={{ boxShadow: "var(--shadow-card)" }}>
           <div className="flex items-center justify-between relative z-10">
             {STEPS_INFO.map((s, i) => {
               const isDone = i < currentStepIdx;
@@ -339,18 +339,19 @@ export default function WalletPage() {
                   {/* Connector line */}
                   {i > 0 && (
                     <div className="absolute top-5 right-1/2 w-full h-0.5 -z-10" style={{ transform: "translateX(-50%)" }}>
-                      <div className={cn("h-full transition-all duration-500", isDone || isActive ? "bg-primary" : "bg-border/50")} />
+                      <div className={cn("h-full transition-all duration-500 rounded-full", isDone || isActive ? "bg-primary" : "bg-border/50")} />
                     </div>
                   )}
                   <div className={cn(
                     "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative",
                     isDone
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.25)]"
                       : isActive
-                        ? "bg-primary/10 border-2 border-primary text-primary"
+                        ? "bg-primary/10 border-2 border-primary text-primary shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
                         : "bg-secondary border border-border text-muted-foreground"
                   )}>
                     {isDone ? <CheckCircle2 className="w-5 h-5" /> : <StepIcon className="w-4 h-4" />}
+                    {isActive && <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-ping opacity-30" />}
                   </div>
                   <span className={cn(
                     "text-[10px] sm:text-xs font-semibold transition-colors text-center",
@@ -363,9 +364,9 @@ export default function WalletPage() {
             })}
           </div>
           {/* Background track */}
-          <div className="absolute top-5 left-[16.6%] right-[16.6%] h-0.5 bg-border/30 -z-0" />
+          <div className="absolute top-[calc(1rem+20px)] left-[16.6%] right-[16.6%] h-0.5 bg-border/30 -z-0 rounded-full" />
           <div
-            className="absolute top-5 left-[16.6%] h-0.5 bg-primary transition-all duration-500 -z-0"
+            className="absolute top-[calc(1rem+20px)] left-[16.6%] h-0.5 bg-primary transition-all duration-500 -z-0 rounded-full"
             style={{ width: `${currentStepIdx * 33.3}%` }}
           />
         </div>

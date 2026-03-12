@@ -56,7 +56,8 @@ function Section({
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-[11px] uppercase tracking-[0.12em] font-semibold text-muted-foreground mb-4">
+    <h3 className="text-[11px] uppercase tracking-[0.14em] font-bold text-muted-foreground/70 mb-4 flex items-center gap-2">
+      <span className="w-1 h-4 rounded-full bg-gradient-to-b from-primary to-primary/30" />
       {children}
     </h3>
   );
