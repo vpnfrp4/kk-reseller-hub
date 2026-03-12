@@ -67,16 +67,8 @@ function ScreenshotThumb({ path, onClick }: { path: string; onClick: () => void 
   );
 }
 
-/* ─── Auto-Approve Settings ─── */
-const AUTO_APPROVE_KEY = "admin-auto-approve-topups";
-const AUTO_APPROVE_THRESHOLD_KEY = "admin-auto-approve-threshold";
-
-function getAutoApprove(): boolean {
-  try { return localStorage.getItem(AUTO_APPROVE_KEY) === "true"; } catch { return false; }
-}
-function getAutoApproveThreshold(): number {
-  try { return Number(localStorage.getItem(AUTO_APPROVE_THRESHOLD_KEY)) || 50000; } catch { return 50000; }
-}
+/* ─── Auto-Approve Settings (stored in system_settings) ─── */
+const AUTO_APPROVE_SETTINGS_KEY = "auto_approve_topup";
 
 export default function AdminTopups() {
   const queryClient = useQueryClient();
