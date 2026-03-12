@@ -490,20 +490,7 @@ export default function OrderDetailPage() {
             </div>
           </Section>
 
-          {/* ═══ 4. PRICING ═══ */}
-          <Section>
-            <SectionLabel>{l(t.orderDetail.pricingBreakdown)}</SectionLabel>
-            <div className="space-y-0">
-              <DetailRow
-                label={l(t.orderDetail.totalPaid)}
-                value={<Money amount={order.price} className="text-primary font-bold text-base" />}
-              />
-              <DetailRow
-                label={l(t.orderDetail.walletUsed)}
-                value={<Money amount={order.price} className="text-muted-foreground" />}
-              />
-            </div>
-          </Section>
+          {/* Pricing merged into Order Details above */}
 
           {/* ═══ 5. CREDENTIALS ═══ */}
           {credentialLines.length > 0 &&
