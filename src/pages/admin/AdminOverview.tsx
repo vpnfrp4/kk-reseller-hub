@@ -274,51 +274,6 @@ export default function AdminOverview() {
     return Object.values(days);
   }, [topupSparkRaw]);
 
-  // 30-day chart data
-  const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
-
-  const { data: revenueRaw } = useQuery({
-    queryKey: ["admin-revenue-chart"],
-    queryFn: async () => {
-      const { data } = await supabase.from("orders").select("price, created_at").gte("created_at", thirtyDaysAgo).order("created_at", { ascending: true });
-      return data || [];
-    },
-  });
-
-  const { data: salesRaw } = useQuery({
-    queryKey: ["admin-sales-chart"],
-    queryFn: async () => {
-      const { data } = await supabase.from("orders").select("created_at").gte("created_at", thirtyDaysAgo).order("created_at", { ascending: true });
-      return data || [];
-    },
-  });
-
-  const { data: topupChartRaw } = useQuery({
-    queryKey: ["admin-topup-chart"],
-    queryFn: async () => {
-      const { data } = await supabase.from("wallet_transactions").select("amount, created_at").eq("type", "topup").eq("status", "approved").gte("created_at", thirtyDaysAgo).order("created_at", { ascending: true });
-      return data || [];
-    },
-  });
-
-  const revenueChart = useMemo(() => buildChartDays(revenueRaw || [], "created_at", "price"), [revenueRaw]);
-  const salesChart = useMemo(() => buildChartDaysCount(salesRaw || [], "created_at"), [salesRaw]);
-  const topupChart = useMemo(() => buildChartDays(topupChartRaw || [], "created_at", "amount"), [topupChartRaw]);
-
-  // Top products
-  const { data: topProducts } = useQuery({
-    queryKey: ["admin-top-products"],
-    queryFn: async () => {
-      const { data } = await supabase.from("orders").select("product_name, price").gte("created_at", thirtyDaysAgo);
-      const map: Record<string, { name: string; orders: number; revenue: number }> = {};
-      (data || []).forEach((o: any) => {
-        if (!map[o.product_name]) map[o.product_name] = { name: o.product_name, orders: 0, revenue: 0 };
-        map[o.product_name].orders++;
-        map[o.product_name].revenue += Number(o.price);
-      });
-      return Object.values(map).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-    },
-  });
 
   // Pending orders for collapsible
   const { data: pendingOrders } = useQuery({
