@@ -99,29 +99,42 @@ export default function PlaceOrderPage() {
       <div className="space-y-5">
         {/* ═══ SEARCH BAR ═══ */}
         <div className="sticky top-0 z-20 -mx-3 px-3 py-2 lg:static lg:mx-0 lg:px-0 lg:py-0"
-          style={{ background: 'hsl(var(--background) / 0.92)', backdropFilter: 'blur(20px)' }}>
-          <div className="relative group">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center pointer-events-none transition-colors group-focus-within:bg-primary/15">
-              <Search className="w-4 h-4 text-muted-foreground/50 transition-colors group-focus-within:text-primary" />
-            </div>
-            <input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search IMEI service, iPhone unlock, Samsung FRP..."
-              className={cn(
-                "w-full pl-[60px] pr-12 py-3.5 lg:py-4 rounded-2xl text-sm font-medium",
-                "bg-card border border-border/40 text-foreground placeholder:text-muted-foreground/35",
-                "focus:outline-none focus:ring-2 focus:ring-primary/15 focus:border-primary/30",
-                "transition-all duration-300",
-                "shadow-[0_2px_16px_rgba(0,0,0,0.03)]",
+          style={{ background: 'hsl(var(--background) / 0.92)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="relative group"
+          >
+            {/* Glow ring on focus */}
+            <div className="absolute -inset-0.5 rounded-[18px] bg-gradient-to-r from-primary/20 via-primary/5 to-primary/20 opacity-0 group-focus-within:opacity-100 blur-sm transition-opacity duration-500 pointer-events-none" />
+            <div className="relative">
+              <div className="absolute left-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center pointer-events-none transition-all duration-300 group-focus-within:bg-primary/15 group-focus-within:scale-110 group-focus-within:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.3)]">
+                <Search className="w-4 h-4 text-muted-foreground/50 transition-colors duration-300 group-focus-within:text-primary" />
+              </div>
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search IMEI service, iPhone unlock, Samsung FRP..."
+                className={cn(
+                  "w-full pl-[60px] pr-12 py-3.5 lg:py-4 rounded-2xl text-sm font-medium",
+                  "bg-card/90 backdrop-blur-sm border border-border/40 text-foreground placeholder:text-muted-foreground/35",
+                  "focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30",
+                  "transition-all duration-300",
+                  "shadow-card",
+                )}
+              />
+              {searchQuery && (
+                <motion.button
+                  initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-muted-foreground/40 hover:text-foreground hover:bg-destructive/10 transition-all duration-200"
+                >
+                  <X className="w-4 h-4" />
+                </motion.button>
               )}
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 rounded-full text-muted-foreground/40 hover:text-foreground hover:bg-secondary/60 transition-colors">
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+            </div>
+          </motion.div>
         </div>
 
         {/* ═══ SEARCH RESULTS ═══ */}
