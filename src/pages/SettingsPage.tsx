@@ -11,6 +11,8 @@ import ApiKeysTab from "@/components/settings/ApiKeysTab";
 import SessionsTab from "@/components/settings/SessionsTab";
 import PreferencesTab from "@/components/settings/PreferencesTab";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useAuth } from "@/contexts/AuthContext";
+import { Money } from "@/components/shared";
 
 const tabs = [
   { id: "profile", label: "Profile", icon: User },
@@ -27,6 +29,9 @@ export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<TabId>("profile");
   const l = useT();
   const isMobile = useIsMobile();
+  const { profile } = useAuth();
+
+  const initial = (profile?.name || profile?.email || "U").charAt(0).toUpperCase();
 
   return (
     <div className="space-y-section">
@@ -35,11 +40,37 @@ export default function SettingsPage() {
         { label: l(t.nav.settings) },
       ]} />
 
-      <div className="animate-fade-in space-y-1">
-        <h1 className="text-xl font-bold text-foreground tracking-tight">
-          <MmLabel mm={t.settings.title.mm} en={t.settings.title.en} />
-        </h1>
-        <p className="text-muted-foreground text-sm">{l(t.settings.subtitle)}</p>
+      {/* ═══ PROFILE HERO CARD ═══ */}
+      <div className="relative overflow-hidden rounded-[var(--radius-card)] border border-border/50 bg-card/90 backdrop-blur-md p-5 lg:p-6 animate-fade-in">
+        <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        <div className="relative z-10 flex items-center gap-4">
+          {profile?.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt=""
+              className="w-14 h-14 rounded-2xl object-cover border-2 border-primary/20"
+            />
+          ) : (
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center">
+              <span className="text-xl font-bold text-primary">{initial}</span>
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <h1 className="text-lg font-bold text-foreground tracking-tight truncate">
+              {profile?.name || "User"}
+            </h1>
+            <p className="text-sm text-muted-foreground truncate">{profile?.email}</p>
+            <div className="flex items-center gap-3 mt-1.5">
+              <span className="text-[10px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full uppercase tracking-wider border border-primary/15">
+                {profile?.tier || "Standard"}
+              </span>
+              <span className="text-xs text-muted-foreground">
+                Balance: <Money amount={profile?.balance || 0} className="font-mono font-semibold text-foreground inline" />
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-default animate-fade-in" style={{ animationDelay: "0.05s" }}>
@@ -66,7 +97,7 @@ export default function SettingsPage() {
           </div>
         ) : (
           <nav className="w-56 shrink-0">
-            <div className="rounded-[var(--radius-card)] border border-border/50 bg-card p-2 space-y-0.5 sticky top-24" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="rounded-[var(--radius-card)] border border-border/50 bg-card/90 backdrop-blur-sm p-2 space-y-0.5 sticky top-24" style={{ boxShadow: "var(--shadow-card)" }}>
               {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (

@@ -9,7 +9,7 @@ import {
   CalendarIcon, X, Package, Clock, CheckCircle, XCircle, ChevronDown,
   ExternalLink, ArrowRight, Filter, Loader2,
 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { format } from "date-fns";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -186,11 +186,16 @@ function ExpandedOrderDetail({ order }: { order: any }) {
 }
 
 /* ── Stat Mini Card ── */
-function MiniStat({ label, value, icon: Icon, color }: { label: string; value: number; icon: any; color: string }) {
+function MiniStat({ label, value, icon: Icon, color, accent }: { label: string; value: number; icon: any; color: string; accent?: boolean }) {
   return (
-    <div className="rounded-[var(--radius-card)] border border-border/50 bg-card p-4 flex items-center gap-3 hover:border-primary/20 transition-all" style={{ boxShadow: "var(--shadow-card)" }}>
+    <div className={cn(
+      "relative overflow-hidden rounded-[var(--radius-card)] border bg-card/90 backdrop-blur-sm p-4 flex items-center gap-3 transition-all duration-300",
+      "hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5",
+      accent ? "border-primary/25 bg-gradient-to-br from-primary/8 to-transparent" : "border-border/50",
+    )}>
+      <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-border/50 to-transparent" />
       <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0")}
-        style={{ background: `hsl(var(--${color}) / 0.08)` }}>
+        style={{ background: `hsl(var(--${color}) / 0.1)` }}>
         <Icon className={cn("w-[18px] h-[18px]", `text-${color}`)} strokeWidth={1.5} />
       </div>
       <div>
@@ -246,12 +251,19 @@ export default function OrdersPage() {
   }, [user, queryClient]);
 
   const [page, setPage] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [productType, setProductType] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const l = useT();
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => { setSearch(searchInput); setPage(0); }, 350);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const buildQuery = (q: any) => {
     if (user) q = q.eq("user_id", user.id);
@@ -373,11 +385,11 @@ export default function OrdersPage() {
   };
 
   const clearFilters = () => {
-    setSearch(""); setStatus("all"); setProductType("all");
+    setSearchInput(""); setSearch(""); setStatus("all"); setProductType("all");
     setDateFrom(undefined); setDateTo(undefined); setPage(0);
   };
 
-  const hasFilters = search || status !== "all" || productType !== "all" || dateFrom || dateTo;
+  const hasFilters = search || searchInput || status !== "all" || productType !== "all" || dateFrom || dateTo;
 
   const toggleExpand = (id: string) => {
     setExpandedId(prev => prev === id ? null : id);
@@ -442,7 +454,7 @@ export default function OrdersPage() {
 
         {/* ═══ STAT CARDS ═══ */}
         <div className="cd-kpi-grid cd-reveal">
-          <MiniStat label="Total Orders" value={stats?.total || 0} icon={Package} color="primary" />
+          <MiniStat label="Total Orders" value={stats?.total || 0} icon={Package} color="primary" accent />
           <MiniStat label="Processing" value={stats?.processing || 0} icon={Clock} color="warning" />
           <MiniStat label="Completed" value={stats?.completed || 0} icon={CheckCircle} color="success" />
           <MiniStat label="Rejected" value={stats?.rejected || 0} icon={XCircle} color="destructive" />
@@ -457,8 +469,8 @@ export default function OrdersPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by service name or order ID..."
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   className="pl-9 h-9 bg-muted/20 border-border/40 rounded-[var(--radius-input)]"
                 />
               </div>

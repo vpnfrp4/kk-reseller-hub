@@ -299,7 +299,7 @@ export default function WalletPage() {
                 <ArrowLeft className="w-4 h-4" />
               </button>
             ) : (
-              <div className="w-10 h-10 rounded-[var(--radius-card)] bg-primary/10 flex items-center justify-center"
+              <div className="w-10 h-10 rounded-[var(--radius-card)] bg-primary/10 border border-primary/20 flex items-center justify-center"
                 style={{ boxShadow: "0 0 20px hsl(var(--primary) / 0.1)" }}>
                 <Wallet className="w-5 h-5 text-primary" />
               </div>
@@ -314,13 +314,14 @@ export default function WalletPage() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-[var(--radius-card)] bg-secondary border border-border">
+          <div className="flex items-center gap-2">
+            {/* Balance chip */}
+            <div className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-[var(--radius-card)] bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
               <Wallet className="w-4 h-4 text-primary" />
               {!profile ? <Skeleton className="h-5 w-24" /> : <Money amount={profile.balance || 0} className="font-mono font-bold text-foreground tabular-nums" />}
             </div>
             <button onClick={() => setShowHistory(true)}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-[var(--radius-btn)] bg-secondary border border-border text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors">
+              className="flex items-center gap-1.5 px-3 py-2.5 rounded-[var(--radius-btn)] bg-secondary border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-primary/20 transition-all">
               <History className="w-3.5 h-3.5" /> History
             </button>
           </div>
