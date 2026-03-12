@@ -562,7 +562,7 @@ export default function AdminCredentials() {
               className="w-full bg-card border border-border rounded-lg px-3 py-2.5 text-sm text-foreground"
             >
               {categories.map((cat) => (
-                <option key={cat} value={cat}>{CATEGORY_ICONS[cat] || "📦"} {cat} ({categoryCounts[cat] || 0})</option>
+                <option key={cat} value={cat}>{CATEGORY_ICONS[cat] || "—"} {cat} ({categoryCounts[cat] || 0})</option>
               ))}
             </select>
           </div>
