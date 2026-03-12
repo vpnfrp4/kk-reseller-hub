@@ -196,7 +196,7 @@ export default function WalletPage() {
       if (matchedTx && matchedTx.length > 0) {
         const tx = matchedTx[0];
         if (tx.status === "approved") {
-          toast({ title: "✅ Payment Verified", description: `${tx.amount.toLocaleString()} MMK was credited to your wallet.` });
+          toast({ title: "Payment Verified", description: `${tx.amount.toLocaleString()} MMK was credited to your wallet.` });
           navigate(`/dashboard/topup-status/${tx.id}`);
         } else if (tx.status === "pending") {
           toast({ title: "⏳ Pending Approval", description: `Your top-up of ${tx.amount.toLocaleString()} MMK is awaiting admin verification.` });
