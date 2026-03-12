@@ -379,8 +379,10 @@ export default function LandingPage() {
             <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((feat, i) => (
                 <ScrollReveal key={feat.title} delay={i * 80}>
-                  <div className="group relative rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-7 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 h-full">
-                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/[0.12]">
+                  <div className="group relative rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-7 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 h-full overflow-hidden">
+                    {/* Top shine line */}
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/[0.12] group-hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.25)]">
                       <feat.icon className="h-5 w-5 text-primary" />
                     </div>
                     <h3 className="text-base font-semibold text-foreground mb-2">{feat.title}</h3>
