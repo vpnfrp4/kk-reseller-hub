@@ -190,12 +190,20 @@ function ExpandedOrderDetail({ order }: { order: any }) {
 /* ── Stat Mini Card ── */
 function MiniStat({ label, value, icon: Icon, color, accent }: { label: string; value: number; icon: any; color: string; accent?: boolean }) {
   return (
-    <div className={cn(
-      "relative overflow-hidden rounded-2xl border bg-card/90 backdrop-blur-sm p-4 flex items-center gap-3 transition-all duration-250",
-      "hover:shadow-[0_6px_24px_-6px_hsl(var(--primary)/0.08)] hover:-translate-y-0.5",
-      accent ? "border-primary/20 bg-gradient-to-br from-primary/6 to-transparent" : "border-border/30",
-    )}>
-      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0")}
+    <motion.div
+      whileHover={{ y: -3, transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } }}
+      className={cn(
+        "relative overflow-hidden rounded-2xl border bg-card/90 backdrop-blur-sm p-4 flex items-center gap-3 transition-all duration-300 group",
+        "hover:shadow-[0_8px_28px_-8px_hsl(var(--primary)/0.12)]",
+        accent ? "border-primary/20 bg-gradient-to-br from-primary/6 to-transparent" : "border-border/30 hover:border-primary/15",
+      )}
+    >
+      {/* Hover glow */}
+      <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-primary/[0.04] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      {/* Top accent line */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary/40 via-primary/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300")}
         style={{ background: `hsl(var(--${color}) / 0.08)` }}>
         <Icon className={cn("w-[18px] h-[18px]", `text-${color}`)} strokeWidth={1.6} />
       </div>
@@ -203,7 +211,7 @@ function MiniStat({ label, value, icon: Icon, color, accent }: { label: string; 
         <p className="text-xl font-extrabold font-mono tabular-nums text-foreground leading-tight">{value.toLocaleString()}</p>
         <p className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-wider mt-0.5">{label}</p>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -583,10 +591,10 @@ export default function OrdersPage() {
           ) : (
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border/15">
+                <tr className="border-b border-border/15 bg-muted/20 backdrop-blur-sm sticky top-0 z-10">
                   {["Order ID", "Service", "Date", "Amount", "Status"].map((h) => (
                     <th key={h} className={cn(
-                      "text-[9px] font-bold text-muted-foreground/50 uppercase tracking-wider px-5 py-3 text-left",
+                      "text-[9px] font-bold text-muted-foreground/50 uppercase tracking-[0.12em] px-5 py-3.5 text-left",
                       h === "Amount" && "text-right",
                       h === "Status" && "text-center",
                     )}>
@@ -604,10 +612,10 @@ export default function OrdersPage() {
                   >
                       <tr
                         className={cn(
-                          "border-b border-border/8 transition-all duration-200 group cursor-pointer",
+                          "border-b border-border/8 transition-all duration-200 group cursor-pointer relative",
                           "hover:bg-secondary/20",
                           highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] bg-primary/6 ring-1 ring-inset ring-primary/20",
-                          expandedId === row.id && "bg-secondary/15",
+                          expandedId === row.id && "bg-secondary/15 border-l-2 border-l-primary",
                         )}
                       style={{ animationDelay: `${idx * 30}ms` }}
                       onClick={() => toggleExpand(row.id)}

@@ -119,15 +119,18 @@ function QuickAccessCard({ label, icon: Icon, to, description, index = 0 }: { la
     >
       <Link
         to={to}
-        className="relative overflow-hidden rounded-[var(--radius-card)] border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex flex-col gap-2.5 group hover:border-primary/20 hover:shadow-[var(--shadow-elevated)] hover:-translate-y-1 transition-all duration-300"
+        className="relative overflow-hidden rounded-[var(--radius-card)] border border-border/40 bg-card/80 backdrop-blur-sm p-4 flex flex-col gap-2.5 group hover:border-primary/25 hover:-translate-y-1 transition-all duration-300"
+        style={{ boxShadow: "var(--shadow-card)" }}
       >
         {/* Hover glow */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
-        <div className="w-11 h-11 rounded-xl bg-primary/8 flex items-center justify-center group-hover:bg-primary/12 group-hover:scale-105 transition-all duration-200 relative z-10">
+        <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-primary/[0.04] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        {/* Top accent */}
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary/40 via-primary/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="w-11 h-11 rounded-xl bg-primary/8 flex items-center justify-center group-hover:bg-primary/12 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 relative z-10">
           <Icon className="w-5 h-5 text-primary" strokeWidth={1.5} />
         </div>
         <div className="relative z-10">
-          <p className="text-sm font-extrabold text-foreground">{label}</p>
+          <p className="text-sm font-extrabold text-foreground group-hover:text-primary transition-colors duration-300">{label}</p>
           <p className="text-[10px] text-muted-foreground/70 mt-0.5 font-medium">{description}</p>
         </div>
         <ChevronRight className="w-4 h-4 text-muted-foreground/30 mt-auto self-end group-hover:text-primary/60 group-hover:translate-x-0.5 transition-all relative z-10" />
