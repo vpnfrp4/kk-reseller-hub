@@ -440,21 +440,29 @@ export default function OrdersPage() {
         ]} />
 
         {/* ═══ PAGE HEADER ═══ */}
-        <div className="cd-page-head cd-reveal">
-          <div>
-            <h1>Order History</h1>
-            <p>View and manage all your previous service orders.</p>
+        <motion.div
+          initial={{ opacity: 0, y: -6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2 }}
+          className="flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center">
+              <Package className="w-4.5 h-4.5 text-primary" strokeWidth={1.7} />
+            </div>
+            <div>
+              <h1 className="text-xl font-extrabold text-foreground tracking-tight">Order History</h1>
+              <p className="text-xs text-muted-foreground/50 hidden sm:block">Track and manage all your service orders</p>
+            </div>
           </div>
-          <div className="cd-page-head-actions">
-            <Button onClick={exportCSV} variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/50 transition-all">
-              <Download className="w-4 h-4" />
-              Export CSV
-            </Button>
-          </div>
-        </div>
+          <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2 rounded-xl border-border/30 text-muted-foreground hover:text-primary hover:border-primary/25 hover:bg-primary/5 transition-all">
+            <Download className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Export</span>
+          </Button>
+        </motion.div>
 
         {/* ═══ STAT CARDS ═══ */}
-        <div className="cd-kpi-grid cd-reveal">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <MiniStat label="Total Orders" value={stats?.total || 0} icon={Package} color="primary" accent />
           <MiniStat label="Processing" value={stats?.processing || 0} icon={Clock} color="warning" />
           <MiniStat label="Completed" value={stats?.completed || 0} icon={CheckCircle} color="success" />
