@@ -61,7 +61,7 @@ function getResultSummary(check: IFreeCheck): string | null {
   if (model) parts.push(model);
   if (lockStatus) {
     const isLocked = lockStatus.toLowerCase().includes("lock") && !lockStatus.toLowerCase().includes("unlock");
-    parts.push(isLocked ? `🔒 ${lockStatus}` : `🔓 ${lockStatus}`);
+    parts.push(isLocked ? `[Locked] ${lockStatus}` : `[Unlocked] ${lockStatus}`);
   } else if (carrier) {
     parts.push(carrier);
   }

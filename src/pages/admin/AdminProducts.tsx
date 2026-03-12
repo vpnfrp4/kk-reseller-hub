@@ -1910,7 +1910,7 @@ export default function AdminProducts() {
                               : "border-border bg-muted/20 text-muted-foreground hover:border-primary/30"
                           }`}
                         >
-                          {cur === "USD" ? "💵 USD" : "🇲🇲 MMK"}
+                          {cur === "USD" ? "USD" : "MMK"}
                         </button>
                       ))}
                     </div>

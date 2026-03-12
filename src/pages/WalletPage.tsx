@@ -217,7 +217,7 @@ export default function WalletPage() {
         return;
       }
 
-      toast({ title: "❌ Not Found", description: "No matching transaction found. Please check the ID.", variant: "destructive" });
+      toast({ title: "Not Found", description: "No matching transaction found. Please check the ID.", variant: "destructive" });
     } catch { toast({ title: "Error", description: "Verification failed.", variant: "destructive" }); }
     finally { setVerifying(false); }
   };

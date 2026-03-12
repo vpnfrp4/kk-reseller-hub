@@ -138,7 +138,7 @@ export default function ProductCard({
             <>
               <span className="w-px h-3 bg-border/30" />
               <span className="inline-flex items-center gap-1 text-[10px] text-success font-semibold">
-                ✓ Verified
+                <CheckCircle2 className="w-3 h-3" /> Verified
               </span>
             </>
           )}

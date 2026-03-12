@@ -526,7 +526,7 @@ export default function AdminMonitoring() {
                   {loadingClientErrors ? (
                     <TableRow><TableCell colSpan={3} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
                   ) : clientErrors.length === 0 ? (
-                    <TableRow><TableCell colSpan={3} className="text-center py-8 text-muted-foreground">No client errors 🎉</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={3} className="text-center py-8 text-muted-foreground">No client errors — All clear</TableCell></TableRow>
                   ) : clientErrors.map((err: any) => (
                     <TableRow key={err.id}>
                       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">

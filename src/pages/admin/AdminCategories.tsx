@@ -493,7 +493,7 @@ export default function AdminCategories() {
               <label className="text-xs font-medium text-muted-foreground mb-1 block">Icon</label>
               <div className="flex items-center gap-2">
                 <Input value={editCat?.icon || ""} onChange={e => setEditCat(prev => ({ ...prev, icon: e.target.value }))}
-                  placeholder="📦" className="w-20 text-center text-lg" />
+                  placeholder="package" className="w-20 text-center text-lg" />
                 <span className="text-xs text-muted-foreground">or</span>
                 <IconPicker value={editCat?.image_url || ""} onChange={(url) => setEditCat(prev => ({ ...prev, image_url: url }))} />
               </div>
