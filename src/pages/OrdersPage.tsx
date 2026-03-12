@@ -447,7 +447,7 @@ export default function OrdersPage() {
 
         {/* ═══ STAT CARDS ═══ */}
         <div className="cd-kpi-grid cd-reveal">
-          <MiniStat label="Total Orders" value={stats?.total || 0} icon={Package} color="primary" />
+          <MiniStat label="Total Orders" value={stats?.total || 0} icon={Package} color="primary" accent />
           <MiniStat label="Processing" value={stats?.processing || 0} icon={Clock} color="warning" />
           <MiniStat label="Completed" value={stats?.completed || 0} icon={CheckCircle} color="success" />
           <MiniStat label="Rejected" value={stats?.rejected || 0} icon={XCircle} color="destructive" />
