@@ -247,9 +247,10 @@ export default function LandingPage() {
             <div className="flex flex-col items-center text-center relative z-10">
               {/* Trust badge */}
               <ScrollReveal>
-                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] backdrop-blur-xl px-5 py-2 mb-8 shadow-[0_0_30px_-8px_hsl(var(--primary)/0.25)]">
-                  <ShieldCheck className="h-4 w-4 text-primary" />
-                  <span className="text-xs font-semibold text-primary/80">Trusted by technicians and resellers worldwide</span>
+                <div className="relative inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] backdrop-blur-xl px-5 py-2 mb-8 shadow-[0_0_30px_-8px_hsl(var(--primary)/0.25)] overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/[0.08] to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
+                  <ShieldCheck className="h-4 w-4 text-primary relative z-10" />
+                  <span className="text-xs font-semibold text-primary/80 relative z-10">Trusted by technicians and resellers worldwide</span>
                 </div>
               </ScrollReveal>
 
