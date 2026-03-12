@@ -41,10 +41,14 @@ function Section({
   return (
     <div
       className={cn(
-        "rounded-[var(--radius-card)] border border-border bg-card p-5 sm:p-6",
+        "relative overflow-hidden rounded-[var(--radius-card)] border border-border/40 bg-card/90 backdrop-blur-sm p-5 sm:p-6 transition-all duration-300",
+        "hover:shadow-[0_4px_20px_-8px_hsl(var(--primary)/0.06)]",
         className,
       )}
+      style={{ boxShadow: "var(--shadow-card)" }}
     >
+      {/* Subtle top accent */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-primary/20 via-border/30 to-transparent" />
       {children}
     </div>
   );
