@@ -2231,7 +2231,7 @@ export default function AdminProducts() {
                 queryClient.invalidateQueries({ queryKey: ["products"] });
                 setBulkPriceOpen(false);
               }}>
-                Apply {bulkPriceDirection === "increase" ? "📈" : "📉"} {bulkPricePercent}%
+                Apply {bulkPriceDirection === "increase" ? "+" : "-"} {bulkPricePercent}%
               </Button>
             </div>
           </div>

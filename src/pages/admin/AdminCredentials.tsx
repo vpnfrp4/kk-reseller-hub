@@ -702,7 +702,7 @@ export default function AdminCredentials() {
                         </td>
                         <td className="p-3 hidden sm:table-cell">
                           <Badge variant="outline" className="text-[10px] gap-1 font-normal">
-                            {CATEGORY_ICONS[category] || "📦"} {category}
+                            {CATEGORY_ICONS[category] || "—"} {category}
                           </Badge>
                         </td>
                         <td className="p-3">
