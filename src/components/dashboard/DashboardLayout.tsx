@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PrefetchLink from "@/components/PrefetchLink";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import PageTransition from "@/components/dashboard/PageTransition";
 import PullToRefresh from "@/components/shared/PullToRefresh";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,28 +12,19 @@ import {
   Home,
   ShoppingCart,
   Receipt,
-  User,
   LogOut,
   ArrowLeftRight,
   Wallet,
   Settings,
-  ChevronDown,
   Menu,
   X,
+  ChevronRight,
+  Zap,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { cn } from "@/lib/utils";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 import BottomNav from "@/components/dashboard/BottomNav";
-import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 import kkLogo from "@/assets/kkremote-logo.png";
 import { Money } from "@/components/shared";
 
@@ -58,7 +49,7 @@ function WalletChip({ profile }: { profile: any }) {
   return (
     <button
       onClick={() => navigate("/dashboard/wallet")}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm font-bold font-display tabular-nums text-primary hover:bg-primary/15 transition-colors"
+      className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-primary/8 border border-primary/15 text-sm font-bold font-display tabular-nums text-primary hover:bg-primary/12 hover:border-primary/25 transition-all duration-200"
     >
       <Wallet className="w-3.5 h-3.5" />
       <Money amount={convert(profile?.balance || 0)} raw className="text-sm" />
@@ -66,16 +57,44 @@ function WalletChip({ profile }: { profile: any }) {
   );
 }
 
-/* ── User Avatar (topbar) ── */
-function UserAvatar({ profile }: { profile: any }) {
+/* ── User Avatar ── */
+function UserAvatar({ profile, size = "sm" }: { profile: any; size?: "sm" | "md" }) {
+  const dims = size === "md" ? "w-10 h-10 text-sm" : "w-[34px] h-[34px] text-xs";
   return (
-    <div className="w-[34px] h-[34px] rounded-full bg-accent border border-border flex items-center justify-center text-xs font-bold font-display text-accent-foreground overflow-hidden shrink-0">
+    <div className={cn(dims, "rounded-full bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/15 flex items-center justify-center font-bold font-display text-primary overflow-hidden shrink-0")}>
       {profile?.avatar_url ? (
         <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
       ) : (
         profile?.name?.charAt(0)?.toUpperCase() || "R"
       )}
     </div>
+  );
+}
+
+/* ── Sidebar Nav Link ── */
+function SidebarNavLink({ item, active, onClick }: { item: NavItem; active: boolean; onClick?: () => void }) {
+  return (
+    <PrefetchLink
+      to={item.path}
+      onClick={onClick}
+      className={cn(
+        "relative flex items-center gap-3 px-3.5 py-[0.65rem] rounded-xl text-[0.84rem] font-semibold transition-all duration-200 group",
+        active
+          ? "text-primary bg-primary/8"
+          : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+      )}
+    >
+      {/* Active indicator bar */}
+      {active && (
+        <motion.div
+          layoutId="sidebar-active"
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-full bg-primary"
+          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+        />
+      )}
+      <item.icon className={cn("w-[18px] h-[18px] transition-colors", active ? "text-primary" : "text-muted-foreground group-hover:text-foreground")} strokeWidth={1.7} />
+      {item.label}
+    </PrefetchLink>
   );
 }
 
@@ -116,30 +135,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
       {/* ═══ TOP BAR ═══ */}
-      <header className="sticky top-0 z-50 border-b border-border/50" style={{ background: 'hsl(var(--card) / 0.88)', backdropFilter: 'blur(16px) saturate(1.3)', WebkitBackdropFilter: 'blur(16px) saturate(1.3)' }}>
-        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
+      <header
+        className="sticky top-0 z-50 border-b border-border/40"
+        style={{
+          background: 'hsl(var(--card) / 0.92)',
+          backdropFilter: 'blur(20px) saturate(1.4)',
+          WebkitBackdropFilter: 'blur(20px) saturate(1.4)',
+        }}
+      >
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent" />
         <div className="w-full max-w-[1220px] mx-auto px-3 sm:px-4">
-          <div className="flex items-center justify-between min-h-[62px]">
+          <div className="flex items-center justify-between min-h-[60px]">
             {/* Brand */}
-            <Link to="/dashboard" className="inline-flex items-center gap-3 shrink-0 group">
-              <div className="w-[34px] h-[34px] rounded-[0.9rem] grid place-items-center text-[0.72rem] font-bold font-display text-primary-foreground bg-primary shadow-[0_8px_16px_-10px_hsl(var(--primary))] transition-shadow duration-300 group-hover:shadow-[0_10px_24px_-10px_hsl(var(--primary)/0.5)]">
-                <img src={kkLogo} alt="KK" className="w-full h-full rounded-[0.9rem] object-contain" />
+            <Link to="/dashboard" className="inline-flex items-center gap-2.5 shrink-0 group">
+              <div className="w-9 h-9 rounded-xl grid place-items-center bg-primary shadow-[0_4px_12px_-4px_hsl(var(--primary)/0.4)] group-hover:shadow-[0_6px_20px_-4px_hsl(var(--primary)/0.5)] transition-shadow duration-300 overflow-hidden">
+                <img src={kkLogo} alt="KK" className="w-full h-full object-contain" />
               </div>
-              <div className="grid">
-                <strong className="font-display text-base leading-none tracking-[0.02em]">KKTech Panel</strong>
-              </div>
+              <strong className="font-display text-[0.95rem] leading-none tracking-tight">KKTech Panel</strong>
             </Link>
 
             {/* Right actions */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               <WalletChip profile={profile} />
-              {/* <NotificationDropdown /> */}
               <UserAvatar profile={profile} />
 
               {/* Mobile hamburger */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-secondary/80 transition-all"
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </button>
@@ -149,70 +172,59 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </header>
 
       {/* ═══ SHELL: SIDEBAR + CONTENT ═══ */}
-      <div className="w-full max-w-[1220px] mx-auto px-3 sm:px-4 flex-1 grid gap-4 py-4 lg:grid-cols-[var(--sidebar-width,252px)_minmax(0,1fr)]">
-        
+      <div className="w-full max-w-[1220px] mx-auto px-3 sm:px-4 flex-1 grid gap-5 py-4 lg:grid-cols-[var(--sidebar-width,244px)_minmax(0,1fr)]">
+
         {/* ── Desktop Sidebar ── */}
-        <aside className="hidden lg:block self-start sticky top-[77px]">
-          <div className="border border-border/80 rounded-[1.2rem] overflow-hidden shadow-card" style={{ background: 'hsl(var(--card) / 0.82)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }}>
-            <div className="px-4 pt-4 pb-3 border-b border-border">
-              <p className="text-[0.74rem] text-muted-foreground uppercase tracking-[0.12em] font-semibold">Main Navigation</p>
+        <aside className="hidden lg:block self-start sticky top-[76px]">
+          <div
+            className="rounded-2xl overflow-hidden border border-border/60"
+            style={{
+              background: 'hsl(var(--card) / 0.88)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+            }}
+          >
+            {/* User Profile Card */}
+            <div className="p-4 border-b border-border/40">
+              <div className="flex items-center gap-3">
+                <UserAvatar profile={profile} size="md" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-foreground truncate">{profile?.name || "Reseller"}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{profile?.email || ""}</p>
+                </div>
+              </div>
             </div>
-            <nav className="grid gap-[0.3rem] p-3">
-              {navItems.map((item) => {
-                const active = isActive(item.path);
-                return (
-                  <PrefetchLink
-                    key={item.path}
-                    to={item.path}
-                    className={cn(
-                      "flex items-center gap-2.5 px-3 py-[0.72rem] rounded-[0.8rem] text-[0.86rem] font-semibold border transition-all duration-200",
-                      active
-                        ? "text-primary border-primary/25 bg-primary/10"
-                        : "text-muted-foreground border-transparent hover:border-input hover:text-foreground hover:bg-secondary"
-                    )}
-                  >
-                    <item.icon className="w-4 h-4" strokeWidth={1.8} />
-                    {item.label}
-                  </PrefetchLink>
-                );
-              })}
+
+            {/* Navigation */}
+            <nav className="p-2.5 space-y-0.5">
+              <p className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-[0.14em] px-3.5 pt-1 pb-2">Menu</p>
+              {navItems.map((item) => (
+                <SidebarNavLink key={item.path} item={item} active={isActive(item.path)} />
+              ))}
+
               {isAdmin && (
                 <>
-                  <div className="border-t border-border/40 my-1" />
-                  <PrefetchLink
-                    to="/admin"
-                    className={cn(
-                      "flex items-center gap-2.5 px-3 py-[0.72rem] rounded-[0.8rem] text-[0.86rem] font-semibold border transition-all duration-200",
-                      location.pathname.startsWith("/admin")
-                        ? "text-primary border-primary/25 bg-primary/10"
-                        : "text-muted-foreground border-transparent hover:border-input hover:text-foreground hover:bg-secondary"
-                    )}
-                  >
-                    <ArrowLeftRight className="w-4 h-4" strokeWidth={1.8} />
-                    Admin
-                  </PrefetchLink>
+                  <div className="h-px bg-border/30 mx-3 my-2" />
+                  <SidebarNavLink
+                    item={{ label: "Admin", icon: ArrowLeftRight, path: "/admin" }}
+                    active={location.pathname.startsWith("/admin")}
+                  />
                 </>
               )}
 
-              {/* Settings & Sign Out */}
-              <div className="border-t border-border/40 my-1" />
-              <PrefetchLink
-                to="/dashboard/settings"
-                className={cn(
-                  "flex items-center gap-2.5 px-3 py-[0.72rem] rounded-[0.8rem] text-[0.86rem] font-semibold border transition-all duration-200",
-                  location.pathname.startsWith("/dashboard/settings")
-                    ? "text-primary border-primary/25 bg-primary/10"
-                    : "text-muted-foreground border-transparent hover:border-input hover:text-foreground hover:bg-secondary"
-                )}
-              >
-                <Settings className="w-4 h-4" strokeWidth={1.8} />
-                Settings
-              </PrefetchLink>
+              <div className="h-px bg-border/30 mx-3 my-2" />
+              <p className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-[0.14em] px-3.5 pt-1 pb-2">Account</p>
+
+              <SidebarNavLink
+                item={{ label: "Settings", icon: Settings, path: "/dashboard/settings" }}
+                active={location.pathname.startsWith("/dashboard/settings")}
+              />
+
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2.5 px-3 py-[0.72rem] rounded-[0.8rem] text-[0.86rem] font-semibold border border-transparent text-muted-foreground hover:border-destructive/25 hover:text-destructive hover:bg-destructive/5 transition-all duration-200 text-left"
+                className="w-full flex items-center gap-3 px-3.5 py-[0.65rem] rounded-xl text-[0.84rem] font-semibold text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all duration-200 text-left"
               >
-                <LogOut className="w-4 h-4" strokeWidth={1.8} />
+                <LogOut className="w-[18px] h-[18px]" strokeWidth={1.7} />
                 Sign Out
               </button>
             </nav>
@@ -220,48 +232,79 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </aside>
 
         {/* ── Mobile Sidebar Dropdown ── */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden border border-border rounded-[1.2rem] overflow-hidden shadow-card animate-fade-in" style={{ background: 'hsl(var(--card) / 0.92)', backdropFilter: 'blur(10px)' }}>
-            <nav className="grid gap-1 p-3 grid-cols-2 sm:grid-cols-3">
-              {navItems.map((item) => {
-                const active = isActive(item.path);
-                return (
-                  <PrefetchLink
-                    key={item.path}
-                    to={item.path}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15 }}
+              className="lg:hidden border border-border/50 rounded-2xl overflow-hidden"
+              style={{ background: 'hsl(var(--card) / 0.95)', backdropFilter: 'blur(12px)' }}
+            >
+              {/* User info */}
+              <div className="flex items-center gap-3 p-3.5 border-b border-border/30">
+                <UserAvatar profile={profile} size="md" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-foreground truncate">{profile?.name || "Reseller"}</p>
+                  <p className="text-[11px] text-muted-foreground truncate">{profile?.email || ""}</p>
+                </div>
+              </div>
+
+              <nav className="grid gap-0.5 p-2.5 grid-cols-2 sm:grid-cols-3">
+                {navItems.map((item) => {
+                  const active = isActive(item.path);
+                  return (
+                    <PrefetchLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={cn(
+                        "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all",
+                        active
+                          ? "text-primary bg-primary/8"
+                          : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                      )}
+                    >
+                      <item.icon className="w-4 h-4" strokeWidth={1.7} />
+                      {item.label}
+                    </PrefetchLink>
+                  );
+                })}
+                {isAdmin && (
+                  <Link
+                    to="/admin"
                     onClick={() => setMobileMenuOpen(false)}
-                    className={cn(
-                      "flex items-center gap-2 px-3 py-2.5 rounded-[0.8rem] text-sm font-semibold border transition-all",
-                      active
-                        ? "text-primary border-primary/25 bg-primary/10"
-                        : "text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary"
-                    )}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-primary hover:bg-primary/5 transition-all"
                   >
-                    <item.icon className="w-4 h-4" strokeWidth={1.8} />
-                    {item.label}
-                  </PrefetchLink>
-                );
-              })}
-              {isAdmin && (
-                <Link
-                  to="/admin"
+                    <ArrowLeftRight className="w-4 h-4" strokeWidth={1.7} />
+                    Admin
+                  </Link>
+                )}
+                <PrefetchLink
+                  to="/dashboard/settings"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-[0.8rem] text-sm font-semibold text-primary border border-transparent hover:bg-primary/5 transition-all"
+                  className={cn(
+                    "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all",
+                    location.pathname.startsWith("/dashboard/settings")
+                      ? "text-primary bg-primary/8"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+                  )}
                 >
-                  <ArrowLeftRight className="w-4 h-4" strokeWidth={1.8} />
-                  Admin
-                </Link>
-              )}
-              <button
-                onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-[0.8rem] text-sm font-semibold text-destructive border border-transparent hover:bg-destructive/5 transition-all text-left"
-              >
-                <LogOut className="w-4 h-4" strokeWidth={1.8} />
-                Sign Out
-              </button>
-            </nav>
-          </div>
-        )}
+                  <Settings className="w-4 h-4" strokeWidth={1.7} />
+                  Settings
+                </PrefetchLink>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold text-destructive hover:bg-destructive/5 transition-all text-left"
+                >
+                  <LogOut className="w-4 h-4" strokeWidth={1.7} />
+                  Sign Out
+                </button>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Main Content ── */}
         <main className="min-w-0 pb-24 lg:pb-4" data-scroll-area>
