@@ -24,6 +24,8 @@ export default function DataCard({
 }: DataCardProps) {
   return (
     <div className={cn("glass-card overflow-hidden", className)}>
+      {/* Top accent line */}
+      <div className="h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
       {(title || actions) && (
         <div className="flex items-center justify-between gap-default p-card border-b border-border">
           <div>
