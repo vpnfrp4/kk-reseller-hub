@@ -267,7 +267,8 @@ export default function OrdersPage() {
 
   const buildQuery = (q: any) => {
     if (user) q = q.eq("user_id", user.id);
-    if (search.trim()) q = q.ilike("product_name", `%${search.trim()}%`);
+    const cleanSearch = sanitizeSearchKeyword(search);
+    if (cleanSearch) q = q.ilike("product_name", `%${cleanSearch}%`);
     if (status !== "all") q = q.eq("status", status);
     if (productType !== "all") q = q.eq("product_type", productType);
     if (dateFrom) q = q.gte("created_at", dateFrom.toISOString());
