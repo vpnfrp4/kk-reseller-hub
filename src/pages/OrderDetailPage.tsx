@@ -19,7 +19,6 @@ import {
   ArrowLeft,
   FileText,
   Clock,
-  ShieldCheck,
   AlertTriangle,
   Loader2,
   Star,
