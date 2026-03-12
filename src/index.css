@@ -755,8 +755,8 @@ html {
 
   .premium-table thead tr {
     @apply border-b border-border;
-    background: hsl(var(--card) / 0.95);
-    backdrop-filter: blur(8px);
+    background: hsl(var(--card) / 0.96);
+    backdrop-filter: blur(12px) saturate(1.3);
     box-shadow: 0 1px 0 hsl(var(--border));
   }
 
@@ -764,8 +764,19 @@ html {
     @apply text-left text-[10px] font-bold uppercase tracking-widest;
     padding: 14px 16px;
     color: hsl(var(--muted-foreground));
-    background: hsl(var(--card) / 0.95);
+    background: hsl(var(--card) / 0.96);
     white-space: nowrap;
+    position: relative;
+  }
+
+  .premium-table thead th::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 16px;
+    right: 16px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.08), transparent);
   }
 
   .premium-table tbody tr {
@@ -774,14 +785,33 @@ html {
     position: relative;
   }
 
+  .premium-table tbody tr::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: hsl(var(--primary));
+    border-radius: 0 3px 3px 0;
+    transform: scaleY(0);
+    transition: transform var(--transition-base);
+  }
+
   .premium-table tbody tr:hover {
     background: hsl(var(--primary) / 0.04);
-    box-shadow: inset 3px 0 0 hsl(var(--primary));
+  }
+
+  .premium-table tbody tr:hover::before {
+    transform: scaleY(0.6);
   }
 
   .premium-table tbody tr.row-selected {
     background: hsl(var(--primary) / 0.06);
-    box-shadow: inset 3px 0 0 hsl(var(--primary));
+  }
+
+  .premium-table tbody tr.row-selected::before {
+    transform: scaleY(1);
   }
 
   .premium-table tbody td {
