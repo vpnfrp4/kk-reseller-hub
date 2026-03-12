@@ -63,7 +63,7 @@ export default function ResponsiveTable<T extends Record<string, any>>({
               <tr
                 key={keyExtractor(row)}
                 className={cn(
-                  "animate-row-in transition-colors duration-700",
+                  "animate-row-in transition-all duration-200",
                   onRowClick && "cursor-pointer",
                   rowClassName?.(row),
                 )}

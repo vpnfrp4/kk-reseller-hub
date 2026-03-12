@@ -116,12 +116,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-[100dvh] flex flex-col bg-background">
       {/* ═══ TOP BAR ═══ */}
-      <header className="sticky top-0 z-50 border-b border-border" style={{ background: 'hsl(var(--card) / 0.9)', backdropFilter: 'blur(8px)' }}>
+      <header className="sticky top-0 z-50 border-b border-border/50" style={{ background: 'hsl(var(--card) / 0.88)', backdropFilter: 'blur(16px) saturate(1.3)', WebkitBackdropFilter: 'blur(16px) saturate(1.3)' }}>
+        <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent" />
         <div className="w-full max-w-[1220px] mx-auto px-3 sm:px-4">
           <div className="flex items-center justify-between min-h-[62px]">
             {/* Brand */}
-            <Link to="/dashboard" className="inline-flex items-center gap-3 shrink-0">
-              <div className="w-[34px] h-[34px] rounded-[0.9rem] grid place-items-center text-[0.72rem] font-bold font-display text-primary-foreground bg-primary shadow-[0_8px_16px_-10px_hsl(var(--primary))]">
+            <Link to="/dashboard" className="inline-flex items-center gap-3 shrink-0 group">
+              <div className="w-[34px] h-[34px] rounded-[0.9rem] grid place-items-center text-[0.72rem] font-bold font-display text-primary-foreground bg-primary shadow-[0_8px_16px_-10px_hsl(var(--primary))] transition-shadow duration-300 group-hover:shadow-[0_10px_24px_-10px_hsl(var(--primary)/0.5)]">
                 <img src={kkLogo} alt="KK" className="w-full h-full rounded-[0.9rem] object-contain" />
               </div>
               <div className="grid gap-[0.06rem]">
@@ -153,7 +154,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         
         {/* ── Desktop Sidebar ── */}
         <aside className="hidden lg:block self-start sticky top-[77px]">
-          <div className="border border-border rounded-[1.2rem] overflow-hidden shadow-card" style={{ background: 'hsl(var(--card) / 0.82)', backdropFilter: 'blur(10px)' }}>
+          <div className="border border-border/80 rounded-[1.2rem] overflow-hidden shadow-card" style={{ background: 'hsl(var(--card) / 0.82)', backdropFilter: 'blur(14px)', WebkitBackdropFilter: 'blur(14px)' }}>
             <div className="px-4 pt-4 pb-3 border-b border-border">
               <p className="text-[0.74rem] text-muted-foreground uppercase tracking-[0.12em] font-semibold">Main Navigation</p>
             </div>

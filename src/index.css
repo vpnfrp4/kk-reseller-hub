@@ -419,20 +419,22 @@ html {
     margin-top: 2px;
   }
 
-  /* ─── Clean Cards (replacing glass-card) ─── */
+  /* ─── Clean Cards (glassmorphic) ─── */
   .glass-card {
     position: relative;
-    background: hsl(var(--card));
+    background: hsl(var(--card) / 0.92);
     border: 1px solid hsl(var(--border));
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
   }
 
   .glass-card:hover {
-    border-color: hsl(var(--primary) / 0.15);
-    box-shadow: var(--shadow-elevated);
-    transform: translateY(-1px);
+    border-color: hsl(var(--primary) / 0.18);
+    box-shadow: var(--shadow-elevated), 0 0 0 1px hsl(var(--primary) / 0.06);
+    transform: translateY(-2px);
   }
 
   /* ─── Stat Cards ─── */
@@ -448,7 +450,7 @@ html {
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent);
+    background: linear-gradient(90deg, transparent 10%, hsl(var(--primary) / 0.25) 50%, transparent 90%);
   }
 
   .stat-card::after {
@@ -458,9 +460,15 @@ html {
     right: -30%;
     width: 180px;
     height: 180px;
-    background: radial-gradient(circle, hsl(var(--primary) / 0.03), transparent 70%);
+    background: radial-gradient(circle, hsl(var(--primary) / 0.04), transparent 70%);
     border-radius: 50%;
     pointer-events: none;
+    transition: opacity var(--transition-slow);
+    opacity: 0.6;
+  }
+
+  .stat-card:hover::after {
+    opacity: 1;
   }
 
   .card-elevated {
@@ -704,7 +712,8 @@ html {
 
   .premium-table thead tr {
     @apply border-b border-border;
-    background: hsl(var(--card));
+    background: hsl(var(--card) / 0.95);
+    backdrop-filter: blur(8px);
     box-shadow: 0 1px 0 hsl(var(--border));
   }
 
@@ -712,26 +721,34 @@ html {
     @apply text-left text-[10px] font-bold uppercase tracking-widest;
     padding: 14px 16px;
     color: hsl(var(--muted-foreground));
-    background: hsl(var(--card));
+    background: hsl(var(--card) / 0.95);
     white-space: nowrap;
   }
 
   .premium-table tbody tr {
     @apply border-b border-border/30;
     transition: all var(--transition-base);
+    position: relative;
   }
 
   .premium-table tbody tr:hover {
-    background: hsl(var(--primary) / 0.03);
+    background: hsl(var(--primary) / 0.04);
+    box-shadow: inset 3px 0 0 hsl(var(--primary));
   }
 
   .premium-table tbody tr.row-selected {
-    background: hsl(var(--primary) / 0.05);
+    background: hsl(var(--primary) / 0.06);
+    box-shadow: inset 3px 0 0 hsl(var(--primary));
   }
 
   .premium-table tbody td {
     padding: 12px 16px;
     vertical-align: middle;
+    transition: color var(--transition-fast);
+  }
+
+  .premium-table tbody tr:hover td {
+    color: hsl(var(--foreground));
   }
 
   /* ─── Headers ─── */
@@ -923,13 +940,26 @@ html {
     border-radius: 1.2rem;
     padding: 1rem 1.1rem;
     background: hsl(var(--card) / 0.86);
-    backdrop-filter: blur(8px);
-    box-shadow: var(--shadow-elevated);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    box-shadow: var(--shadow-elevated), 0 0 0 1px hsl(var(--primary) / 0.04);
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.8rem;
     flex-wrap: wrap;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .cd-page-head::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.2), transparent);
   }
 
   .cd-page-head h1 {
@@ -1155,8 +1185,16 @@ html {
     border: 1px solid hsl(var(--border));
     border-radius: 1.2rem;
     background: hsl(var(--card) / 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     box-shadow: var(--shadow-card);
     padding: 1rem;
+    transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  }
+
+  .cd-card:hover {
+    border-color: hsl(var(--primary) / 0.12);
+    box-shadow: var(--shadow-elevated);
   }
 
   /* ─── CarDrive Reveal Animation ─── */

@@ -56,7 +56,7 @@ export default function HeroStats({
   onWalletClick,
 }: HeroStatsProps) {
   const navigate = useNavigate();
-  const values = {
+  const values: Record<string, number> = {
     balance,
     today: todayOrders,
     success: successRate,
@@ -76,14 +76,16 @@ export default function HeroStats({
             key={stat.key}
             onClick={isBalance ? onWalletClick : undefined}
             className={cn(
-              "relative overflow-hidden rounded-card border border-border bg-card p-4 lg:p-5",
-              "text-left transition-all duration-200",
-              "hover:border-primary/15 hover:shadow-elevated hover:-translate-y-0.5",
+              "relative overflow-hidden rounded-card border border-border bg-card/92 backdrop-blur-md p-4 lg:p-5",
+              "text-left transition-all duration-300",
+              "hover:border-primary/20 hover:shadow-[var(--shadow-elevated),0_0_20px_-8px_hsl(var(--primary)/0.12)] hover:-translate-y-1",
               "active:scale-[0.98] group",
               "opacity-0 animate-stagger-in"
             )}
             style={{ animationDelay: `${i * 0.08}s` }}
           >
+            {/* Top accent line */}
+            <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
             <div className="relative z-10">
               <div className="flex items-center gap-2.5 mb-3">
                 <div className={cn("w-9 h-9 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center shrink-0 transition-all duration-200 group-hover:scale-105", stat.iconBg)}>

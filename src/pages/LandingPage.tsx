@@ -77,8 +77,10 @@ ScrollReveal.displayName = "ScrollReveal";
 function AnimatedStat({ target, suffix, label, icon: Icon }: { target: number; suffix: string; label: string; icon: typeof Zap }) {
   const { display, ref } = useCountUpOnView(target, 1400);
   return (
-    <div ref={ref} className="relative group text-center rounded-2xl border border-border/40 bg-card/50 backdrop-blur-xl p-8 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-transform duration-300 group-hover:scale-110">
+    <div ref={ref} className="relative group text-center rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl p-8 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
+      {/* Top accent shine */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent rounded-t-2xl" />
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_16px_-4px_hsl(var(--primary)/0.3)]">
         <Icon className="h-5 w-5 text-primary" />
       </div>
       <p className="text-3xl sm:text-4xl font-black tracking-tight gradient-text">
@@ -245,9 +247,10 @@ export default function LandingPage() {
             <div className="flex flex-col items-center text-center relative z-10">
               {/* Trust badge */}
               <ScrollReveal>
-                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] backdrop-blur-xl px-5 py-2 mb-8 shadow-[0_0_30px_-8px_hsl(var(--primary)/0.25)]">
-                  <ShieldCheck className="h-4 w-4 text-primary" />
-                  <span className="text-xs font-semibold text-primary/80">Trusted by technicians and resellers worldwide</span>
+                <div className="relative inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] backdrop-blur-xl px-5 py-2 mb-8 shadow-[0_0_30px_-8px_hsl(var(--primary)/0.25)] overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/[0.08] to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
+                  <ShieldCheck className="h-4 w-4 text-primary relative z-10" />
+                  <span className="text-xs font-semibold text-primary/80 relative z-10">Trusted by technicians and resellers worldwide</span>
                 </div>
               </ScrollReveal>
 
@@ -376,8 +379,10 @@ export default function LandingPage() {
             <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((feat, i) => (
                 <ScrollReveal key={feat.title} delay={i * 80}>
-                  <div className="group relative rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-7 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 h-full">
-                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/[0.12]">
+                  <div className="group relative rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-7 transition-all duration-300 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5 hover:-translate-y-1 h-full overflow-hidden">
+                    {/* Top shine line */}
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/[0.12] group-hover:shadow-[0_0_20px_-6px_hsl(var(--primary)/0.25)]">
                       <feat.icon className="h-5 w-5 text-primary" />
                     </div>
                     <h3 className="text-base font-semibold text-foreground mb-2">{feat.title}</h3>
