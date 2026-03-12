@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useT, t } from "@/lib/i18n";
-import { Clock, Zap, ShieldCheck } from "lucide-react";
+import { Clock, Zap, ShieldCheck, CheckCircle2 } from "lucide-react";
 import ProductIcon from "@/components/products/ProductIcon";
 
 interface PricingTier {

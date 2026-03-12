@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { User, Camera, Mail, Calendar, Loader2, Trash2, Send, Link2, Copy, CheckCircle2, Unlink } from "lucide-react";
+import { User, Camera, Mail, Calendar, Loader2, Trash2, Send, Link2, Copy, CheckCircle2, Unlink, Bell, Package, RefreshCw, XCircle, Wallet, AlertTriangle, ClipboardList, Sparkles, Search, DollarSign } from "lucide-react";
 import { t, useT } from "@/lib/i18n";
 
 const BOT_USERNAME = "karkar4store_bot";
