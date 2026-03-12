@@ -660,12 +660,17 @@ export default function LandingPage() {
       </main>
 
       {/* ═══════════ FOOTER ═══════════ */}
-      <footer className="border-t border-border/40">
-        <div className="mx-auto max-w-[1200px] px-6 pt-16 pb-8">
+      <footer className="relative border-t border-border/40 overflow-hidden">
+        {/* Footer ambient glow */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-primary/[0.03] blur-[100px] pointer-events-none" />
+        <div className="relative mx-auto max-w-[1200px] px-6 pt-16 pb-8">
           <div className="grid gap-12 sm:grid-cols-4">
             <div className="sm:col-span-2">
-              <span className="flex items-center gap-2.5">
-                <img src={kkLogo} alt="KKTech" className="h-7 w-7 rounded-lg" />
+              <span className="flex items-center gap-2.5 group">
+                <div className="relative">
+                  <div className="absolute -inset-1 rounded-lg bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <img src={kkLogo} alt="KKTech" className="relative h-7 w-7 rounded-lg" />
+                </div>
                 <span className="text-xl font-extrabold text-foreground">
                   KK<span className="text-primary">Tech</span>
                 </span>
@@ -674,30 +679,32 @@ export default function LandingPage() {
                 Professional unlock services marketplace for technicians and resellers. Fast processing, transparent pricing, reliable delivery.
               </p>
               <div className="mt-6 flex gap-3">
-                <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary" aria-label="Telegram">
-                  <Send className="h-4 w-4" />
-                </a>
-                <a href="https://t.me/KKTechDeals" target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary" aria-label="Channel">
-                  <MessageCircle className="h-4 w-4" />
-                </a>
-                <a href="viber://chat?number=%2B959787313137" target="_blank" rel="noopener noreferrer" className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all hover:border-primary/40 hover:text-primary" aria-label="Viber">
-                  <Phone className="h-4 w-4" />
-                </a>
+                {[
+                  { href: "https://t.me/kkremote", icon: Send, label: "Telegram" },
+                  { href: "https://t.me/KKTechDeals", icon: MessageCircle, label: "Channel" },
+                  { href: "viber://chat?number=%2B959787313137", icon: Phone, label: "Viber" },
+                ].map((social) => (
+                  <a key={social.label} href={social.href} target="_blank" rel="noopener noreferrer"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all duration-300 hover:border-primary/40 hover:text-primary hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.3)] hover:-translate-y-0.5"
+                    aria-label={social.label}>
+                    <social.icon className="h-4 w-4" />
+                  </a>
+                ))}
               </div>
             </div>
             <div className="flex flex-col gap-3 text-sm">
               <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Quick Links</span>
-              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground">Login</Link>
-              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground">Create Account</Link>
-              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground">Terms & Conditions</Link>
-              <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground">Support</a>
+              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Login</Link>
+              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Create Account</Link>
+              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Terms & Conditions</Link>
+              <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Support</a>
             </div>
             <div className="flex flex-col gap-3 text-sm">
               <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Connect</span>
-              <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground">Telegram</a>
-              <a href="https://t.me/KKTechDeals" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground">Telegram Channel</a>
-              <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-foreground">Free IMEI Check</Link>
-              <Link to="/blog" className="text-muted-foreground transition-colors hover:text-foreground">Blog</Link>
+              <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Telegram</a>
+              <a href="https://t.me/KKTechDeals" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Telegram Channel</a>
+              <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Free IMEI Check</Link>
+              <Link to="/blog" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Blog</Link>
             </div>
           </div>
           <div className="mt-12 flex flex-col items-center gap-3 border-t border-border/20 pt-8 sm:flex-row sm:justify-between">

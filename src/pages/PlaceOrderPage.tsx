@@ -192,19 +192,26 @@ export default function PlaceOrderPage() {
               <span className="text-[10px] font-mono text-muted-foreground/30 tabular-nums">{favoriteProducts.length}</span>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-              {favoriteProducts.map((p: any) => (
-                <button
+              {favoriteProducts.map((p: any, i: number) => (
+                <motion.button
                   key={p.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => navigate(`/dashboard/place-order/${encodeURIComponent(p.category || "Other")}?highlight=${p.id}`)}
                   className={cn(
-                    "w-full text-left rounded-xl border border-warning/15 bg-warning/[0.02] p-3.5 group/fav",
-                    "hover:border-warning/30 hover:bg-warning/[0.05] transition-all duration-200 relative"
+                    "w-full text-left rounded-[var(--radius-card)] border border-warning/15 bg-card/80 backdrop-blur-sm p-3.5 group/fav",
+                    "hover:border-warning/30 hover:shadow-[0_8px_24px_-8px_hsl(var(--warning)/0.15)] transition-all duration-300 relative overflow-hidden"
                   )}
                 >
+                  {/* Top accent */}
+                  <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-warning/30 to-transparent opacity-0 group-hover/fav:opacity-100 transition-opacity duration-300" />
                   <div className="flex items-center gap-3">
                     <ProductIcon imageUrl={p.image_url} name={p.name} category={p.category} size="sm" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-foreground truncate">{sanitizeName(p.name)}</p>
+                      <p className="text-xs font-semibold text-foreground truncate group-hover/fav:text-warning transition-colors duration-200">{sanitizeName(p.name)}</p>
                       <p className="text-[10px] font-mono text-muted-foreground/40 mt-0.5">
                         <Money amount={p.wholesale_price} compact />
                       </p>
@@ -212,11 +219,11 @@ export default function PlaceOrderPage() {
                   </div>
                   <button
                     onClick={(e) => toggleFavorite(p.id, e)}
-                    className="absolute top-2.5 right-2.5 p-1 text-warning opacity-50 hover:opacity-100 transition-opacity"
+                    className="absolute top-2.5 right-2.5 p-1.5 rounded-full text-warning opacity-50 hover:opacity-100 hover:bg-warning/10 transition-all duration-200"
                   >
                     <Star className="w-3 h-3 fill-warning" />
                   </button>
-                </button>
+                </motion.button>
               ))}
             </div>
           </motion.div>

@@ -395,15 +395,15 @@ export default function Login() {
 
               {/* Submit */}
               <Button type="submit"
-                className="w-full h-12 gap-2 text-sm font-semibold rounded-xl relative overflow-hidden group"
+                className="w-full h-12 gap-2 text-sm font-semibold rounded-xl relative overflow-hidden group/btn shadow-[0_4px_20px_-4px_hsl(var(--primary)/0.35)] hover:shadow-[0_8px_30px_-4px_hsl(var(--primary)/0.45)] transition-shadow duration-300"
                 disabled={loading || (isSignup && !canSubmitSignup)}
               >
                 {/* Shimmer effect */}
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-700" />
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover/btn:translate-x-[200%] transition-transform duration-700" />
                 {loading ? (
                   <><div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />{l(t.login.pleaseWait)}</>
                 ) : (
-                  <>{isForgot ? l(t.login.sendResetLink) : isSignup ? "Create Account" : "Sign In"}<ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /></>
+                  <>{isForgot ? l(t.login.sendResetLink) : isSignup ? "Create Account" : "Sign In"}<ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform duration-200" /></>
                 )}
               </Button>
 

@@ -108,7 +108,9 @@ export default function SettingsPage() {
           </div>
         ) : (
           <nav className="w-56 shrink-0">
-            <div className="rounded-[var(--radius-card)] border border-border/50 bg-card/90 backdrop-blur-sm p-2 space-y-0.5 sticky top-24" style={{ boxShadow: "var(--shadow-card)" }}>
+            <div className="rounded-[var(--radius-card)] border border-border/40 bg-card/80 backdrop-blur-xl p-2 space-y-0.5 sticky top-24 overflow-hidden relative" style={{ boxShadow: "var(--shadow-card)" }}>
+              {/* Top accent */}
+              <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
               {tabs.map((tab) => {
                 const isActive = activeTab === tab.id;
                 return (
@@ -116,13 +118,16 @@ export default function SettingsPage() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
                     className={cn(
-                      "w-full flex items-center gap-compact px-compact py-2.5 rounded-btn text-sm font-medium transition-all text-left",
+                      "w-full flex items-center gap-compact px-compact py-2.5 rounded-btn text-sm font-medium transition-all duration-200 text-left relative group/tab",
                       isActive
-                        ? "bg-primary/8 text-primary border border-primary/15"
+                        ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.15)]"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/30 border border-transparent"
                     )}
                   >
-                    <tab.icon className={cn("w-4 h-4 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
+                    {isActive && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary shadow-[0_0_8px_hsl(var(--primary)/0.4)]" />
+                    )}
+                    <tab.icon className={cn("w-4 h-4 shrink-0 transition-transform duration-200", isActive ? "text-primary scale-110" : "text-muted-foreground group-hover/tab:scale-105")} />
                     {tab.label}
                   </button>
                 );
