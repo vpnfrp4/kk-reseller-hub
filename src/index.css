@@ -334,8 +334,29 @@ html {
     50% { transform: translateY(-4px); }
   }
 
+  @keyframes ambient-drift {
+    0% { transform: translate(0, 0) scale(1); }
+    33% { transform: translate(15px, -10px) scale(1.05); }
+    66% { transform: translate(-10px, 8px) scale(0.97); }
+    100% { transform: translate(0, 0) scale(1); }
+  }
+
+  @keyframes shimmer-sweep {
+    0% { transform: translateX(-100%) skewX(-15deg); }
+    100% { transform: translateX(200%) skewX(-15deg); }
+  }
+
+  @keyframes glow-breathe {
+    0%, 100% { opacity: 0.4; filter: blur(40px); }
+    50% { opacity: 0.7; filter: blur(50px); }
+  }
+
   .animate-stagger-in {
     animation: stagger-in 0.4s ease forwards;
+  }
+
+  .animate-ambient-drift {
+    animation: ambient-drift 12s ease-in-out infinite;
   }
 }
 
