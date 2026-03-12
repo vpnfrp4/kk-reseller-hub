@@ -136,7 +136,7 @@ export default function AdminCategories() {
         const { error } = await supabase.from("categories").update({
           name: editCat.name.trim(),
           description: editCat.description || "",
-          icon: editCat.icon || "📦",
+          icon: editCat.icon || "package",
           image_url: editCat.image_url || null,
           is_active: editCat.is_active ?? true,
         }).eq("id", editCat.id);
