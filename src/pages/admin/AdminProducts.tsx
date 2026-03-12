@@ -1569,7 +1569,7 @@ export default function AdminProducts() {
                         setForm((prev) => ({ ...prev, description: next }));
                         descManuallyEdited.current = true;
                       }}
-                    >🔗</button>
+                    ><LinkIcon className="w-3 h-3" /></button>
                     <div className="ml-auto flex items-center gap-1">
                       <button
                         type="button"
