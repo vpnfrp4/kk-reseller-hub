@@ -470,25 +470,25 @@ export default function OrdersPage() {
         </div>
 
         {/* ═══ FILTERS ═══ */}
-        <div className="glass-card animate-fade-in" style={{ animationDelay: "100ms" }}>
+        <div className="rounded-2xl border border-border/25 bg-card/80 backdrop-blur-sm overflow-hidden">
           <div className="p-4 flex flex-wrap gap-3 items-end">
             <div className="flex-1 min-w-[180px]">
-              <label className="text-[10px] font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wider">Search</label>
+              <label className="text-[9px] font-bold text-muted-foreground/50 mb-1.5 block uppercase tracking-wider">Search</label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground/40" />
                 <Input
-                  placeholder="Search by service name or order ID..."
+                  placeholder="Search by service name..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
-                  className="pl-9 h-9 bg-muted/20 border-border/40 rounded-[var(--radius-input)]"
+                  className="pl-9 h-9 bg-secondary/30 border-border/25 rounded-xl text-sm"
                 />
               </div>
             </div>
 
-            <div className="min-w-[130px]">
-              <label className="text-[10px] font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wider">Status</label>
+            <div className="min-w-[120px]">
+              <label className="text-[9px] font-bold text-muted-foreground/50 mb-1.5 block uppercase tracking-wider">Status</label>
               <Select value={status} onValueChange={(v) => { setStatus(v); setPage(0); }}>
-                <SelectTrigger className="h-9 bg-muted/20 border-border/40 rounded-[var(--radius-input)]">
+                <SelectTrigger className="h-9 bg-secondary/30 border-border/25 rounded-xl text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -503,10 +503,10 @@ export default function OrdersPage() {
               </Select>
             </div>
 
-            <div className="min-w-[120px]">
-              <label className="text-[10px] font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wider">Type</label>
+            <div className="min-w-[110px]">
+              <label className="text-[9px] font-bold text-muted-foreground/50 mb-1.5 block uppercase tracking-wider">Type</label>
               <Select value={productType} onValueChange={(v) => { setProductType(v); setPage(0); }}>
-                <SelectTrigger className="h-9 bg-muted/20 border-border/40 rounded-[var(--radius-input)]">
+                <SelectTrigger className="h-9 bg-secondary/30 border-border/25 rounded-xl text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -519,13 +519,13 @@ export default function OrdersPage() {
               </Select>
             </div>
 
-            <div className="min-w-[130px]">
-              <label className="text-[10px] font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wider">From</label>
+            <div className="min-w-[120px]">
+              <label className="text-[9px] font-bold text-muted-foreground/50 mb-1.5 block uppercase tracking-wider">From</label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal bg-muted/20 border-border/40 rounded-[var(--radius-input)]", !dateFrom && "text-muted-foreground")}>
-                    <CalendarIcon className="w-4 h-4 mr-2" />
-                    {dateFrom ? format(dateFrom, "PP") : "Start date"}
+                  <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal bg-secondary/30 border-border/25 rounded-xl text-sm", !dateFrom && "text-muted-foreground/50")}>
+                    <CalendarIcon className="w-3.5 h-3.5 mr-2" />
+                    {dateFrom ? format(dateFrom, "PP") : "Start"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -534,13 +534,13 @@ export default function OrdersPage() {
               </Popover>
             </div>
 
-            <div className="min-w-[130px]">
-              <label className="text-[10px] font-semibold text-muted-foreground mb-1.5 block uppercase tracking-wider">To</label>
+            <div className="min-w-[120px]">
+              <label className="text-[9px] font-bold text-muted-foreground/50 mb-1.5 block uppercase tracking-wider">To</label>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal bg-muted/20 border-border/40 rounded-[var(--radius-input)]", !dateTo && "text-muted-foreground")}>
-                    <CalendarIcon className="w-4 h-4 mr-2" />
-                    {dateTo ? format(dateTo, "PP") : "End date"}
+                  <Button variant="outline" size="sm" className={cn("h-9 w-full justify-start text-left font-normal bg-secondary/30 border-border/25 rounded-xl text-sm", !dateTo && "text-muted-foreground/50")}>
+                    <CalendarIcon className="w-3.5 h-3.5 mr-2" />
+                    {dateTo ? format(dateTo, "PP") : "End"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -550,8 +550,8 @@ export default function OrdersPage() {
             </div>
 
             {hasFilters && (
-              <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-muted-foreground hover:text-destructive" onClick={clearFilters}>
-                <X className="w-4 h-4" />
+              <Button variant="ghost" size="sm" className="h-9 gap-1.5 text-muted-foreground/50 hover:text-destructive rounded-xl" onClick={clearFilters}>
+                <X className="w-3.5 h-3.5" />
                 Clear
               </Button>
             )}
@@ -559,7 +559,7 @@ export default function OrdersPage() {
         </div>
 
         {/* ═══ ORDERS TABLE (Desktop) ═══ */}
-        <div className="hidden md:block glass-card animate-fade-in overflow-hidden" style={{ animationDelay: "150ms" }}>
+        <div className="hidden md:block rounded-2xl border border-border/25 bg-card/80 backdrop-blur-sm overflow-hidden">
           {ordersLoading ? (
             <div className="p-5 space-y-4">
               {Array.from({ length: 6 }).map((_, i) => (
