@@ -66,28 +66,21 @@ const AdminCategories = lazy(() => import("./pages/admin/AdminCategories"));
 const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 
 function PageLoader() {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-    </div>
-  );
+  return <PageSkeleton />;
 }
 
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children, skeleton }: { children: React.ReactNode; skeleton?: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
+  const fallback = skeleton || <PageSkeleton />;
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <DashboardLayout>{fallback}</DashboardLayout>;
   }
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   return (
     <DashboardLayout>
-      <Suspense fallback={skeleton || <PageSkeleton />}>{children}</Suspense>
+      <Suspense fallback={fallback}>{children}</Suspense>
     </DashboardLayout>
   );
 }
@@ -95,11 +88,7 @@ function ProtectedRoute({ children, skeleton }: { children: React.ReactNode; ske
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, loading } = useAuth();
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <AdminLayout><PageSkeleton /></AdminLayout>;
   }
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   return (
@@ -120,14 +109,6 @@ function WalletTopupRedirect() {
 function AppRoutes() {
   const { isAuthenticated, loading } = useAuth();
   useRealtimeNotifications();
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <Suspense fallback={<PageLoader />}>
