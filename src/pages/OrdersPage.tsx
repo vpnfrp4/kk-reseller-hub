@@ -612,10 +612,10 @@ export default function OrdersPage() {
                   >
                       <tr
                         className={cn(
-                          "border-b border-border/8 transition-all duration-200 group cursor-pointer",
+                          "border-b border-border/8 transition-all duration-200 group cursor-pointer relative",
                           "hover:bg-secondary/20",
                           highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] bg-primary/6 ring-1 ring-inset ring-primary/20",
-                          expandedId === row.id && "bg-secondary/15",
+                          expandedId === row.id && "bg-secondary/15 border-l-2 border-l-primary",
                         )}
                       style={{ animationDelay: `${idx * 30}ms` }}
                       onClick={() => toggleExpand(row.id)}
