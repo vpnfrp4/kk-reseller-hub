@@ -137,36 +137,6 @@ function QuickAccessCard({ label, icon: Icon, to, description, index = 0 }: { la
   );
 }
 
-/* ─── Chart helpers ─── */
-function buildChartDays(rawData: any[], dateKey: string, valueKey: string) {
-  const days: Record<string, number> = {};
-  for (let i = 29; i >= 0; i--) days[format(subDays(new Date(), i), "MMM dd")] = 0;
-  (rawData || []).forEach((row: any) => {
-    const key = format(new Date(row[dateKey]), "MMM dd");
-    if (key in days) days[key] += Number(row[valueKey]);
-  });
-  return Object.entries(days).map(([date, value]) => ({ date, value }));
-}
-
-function buildChartDaysCount(rawData: any[], dateKey: string) {
-  const days: Record<string, number> = {};
-  for (let i = 29; i >= 0; i--) days[format(subDays(new Date(), i), "MMM dd")] = 0;
-  (rawData || []).forEach((row: any) => {
-    const key = format(new Date(row[dateKey]), "MMM dd");
-    if (key in days) days[key]++;
-  });
-  return Object.entries(days).map(([date, value]) => ({ date, value }));
-}
-
-const tooltipStyle = {
-  backgroundColor: "hsl(var(--card))",
-  border: "1px solid hsl(var(--border))",
-  borderRadius: "12px",
-  fontSize: "12px",
-  color: "hsl(var(--foreground))",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-  backdropFilter: "blur(8px)",
-};
 
 /* ═══ MAIN COMPONENT ═══ */
 export default function AdminOverview() {
