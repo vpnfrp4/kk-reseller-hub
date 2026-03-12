@@ -1251,7 +1251,7 @@ function ApiProvidersSection() {
         duration: "",
         type: "auto",
         stock: 0,
-        icon: "📦",
+        icon: "package",
         fulfillment_modes: JSON.stringify(["api"]),
       }).select("id").single();
       if (error) throw error;

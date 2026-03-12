@@ -353,7 +353,7 @@ export default function ProfileTab() {
                   </Button>
                 </div>
                 <p className="text-[10px] text-muted-foreground/60">
-                  ⚠️ This link expires when you generate a new one. Don't share it with others.
+                  This link expires when you generate a new one. Don't share it with others.
                 </p>
               </div>
             ) : (

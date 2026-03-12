@@ -73,11 +73,11 @@ function deriveCategory(name: string): string {
   return "Others";
 }
 
-/* ── category icons ───────────────────────────────────────────── */
+/* ── category icons — now uses short text labels instead of emoji ── */
 const CATEGORY_ICONS: Record<string, string> = {
-  Facebook: "📘", WhatsApp: "💬", TikTok: "🎵", Instagram: "📸",
-  YouTube: "🎬", "Twitter/X": "🐦", Telegram: "✈️", Spotify: "🎧",
-  Netflix: "🎬", VPN: "🔐", CapCut: "✂️", Canva: "🎨", Others: "📦",
+  Facebook: "FB", WhatsApp: "WA", TikTok: "TT", Instagram: "IG",
+  YouTube: "YT", "Twitter/X": "X", Telegram: "TG", Spotify: "SP",
+  Netflix: "NF", VPN: "VPN", CapCut: "CC", Canva: "CV", Others: "—",
 };
 
 /* ── Searchable service dropdown ──────────────────────────────── */
