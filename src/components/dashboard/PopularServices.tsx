@@ -3,16 +3,16 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Money } from "@/components/shared";
-import { ArrowRight, Clock, Zap } from "lucide-react";
+import { ArrowRight, Clock, Flame } from "lucide-react";
 import ProductIcon from "@/components/products/ProductIcon";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 12, scale: 0.97 },
+  hidden: { opacity: 0, y: 16, scale: 0.96 },
   visible: (i: number) => ({
     opacity: 1, y: 0, scale: 1,
-    transition: { type: "spring", stiffness: 380, damping: 26, delay: i * 0.06 },
+    transition: { type: "spring", stiffness: 350, damping: 24, delay: i * 0.07 },
   }),
 };
 
@@ -97,8 +97,11 @@ export default function PopularServices() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
           <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-primary to-primary-glow" />
-          <h2 className="text-sm lg:text-base font-extrabold text-foreground tracking-tight">Popular Services</h2>
-          <span className="text-[10px] font-bold text-primary bg-primary/8 px-2 py-0.5 rounded-full uppercase tracking-wider">Hot</span>
+          <h2 className="text-sm lg:text-base font-extrabold text-foreground tracking-tight font-display">Popular Services</h2>
+          <span className="text-[10px] font-bold text-primary bg-primary/8 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 border border-primary/15">
+            <Flame className="w-3 h-3" />
+            Hot
+          </span>
         </div>
         <button
           onClick={() => navigate("/dashboard/place-order")}
@@ -117,16 +120,21 @@ export default function PopularServices() {
             variants={cardVariants}
             initial="hidden"
             animate="visible"
-            whileHover={{ y: -3, transition: { duration: 0.2 } }}
+            whileHover={{ y: -4, transition: { duration: 0.2 } }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate("/dashboard/place-order")}
             className={cn(
-              "cd-service-card text-left cursor-pointer relative group",
-              "hover:border-primary/20 hover:shadow-[0_8px_30px_-12px_hsl(var(--primary)/0.15)]",
+              "cd-service-card text-left cursor-pointer relative group overflow-hidden",
+              "hover:border-primary/25 hover:shadow-[0_12px_40px_-16px_hsl(var(--primary)/0.2)]",
             )}
           >
-            {/* Hover glow effect */}
-            <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-br from-primary/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            {/* Hover gradient glow */}
+            <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-br from-primary/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            
+            {/* Shimmer sweep on hover */}
+            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none overflow-hidden rounded-[inherit]">
+              <div className="absolute -inset-full bg-gradient-to-r from-transparent via-primary/[0.03] to-transparent" style={{ animation: 'shimmer-sweep 3s ease-in-out infinite' }} />
+            </div>
 
             <div className="cd-service-head relative z-10">
               <ProductIcon
@@ -136,7 +144,7 @@ export default function PopularServices() {
                 size="md"
               />
               <div className="cd-service-meta">
-                <strong className="line-clamp-1 text-[13px]">{product.name}</strong>
+                <strong className="line-clamp-1 text-[13px] group-hover:text-primary transition-colors duration-300">{product.name}</strong>
                 <p className="flex items-center gap-1">
                   <span className="truncate">{product.category || "Service"}</span>
                 </p>
