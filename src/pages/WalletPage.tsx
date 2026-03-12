@@ -393,27 +393,32 @@ export default function WalletPage() {
                       const meta = METHOD_META[m.method_id] || fallbackMeta;
                       const MethodIcon = meta.icon;
                       return (
-                        <motion.button
+                         <motion.button
                           key={m.method_id}
                           type="button"
                           onClick={() => handleSelectMethod(m.method_id)}
-                          whileHover={{ scale: 1.02, y: -2 }}
+                          whileHover={{ scale: 1.02, y: -4 }}
                           whileTap={{ scale: 0.97 }}
                           className={cn(
                             "group relative text-left p-6 rounded-[var(--radius-card)] border transition-all duration-300 overflow-hidden",
-                            "border-border/40 bg-card hover:border-primary/40"
+                            "border-border/40 bg-card hover:border-primary/40",
+                            "hover:shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.15),0_0_0_1px_hsl(var(--primary)/0.08)]"
                           )}
                           style={{ boxShadow: "var(--shadow-card)" }}
                         >
-                          {/* Subtle hover bg */}
-                          <div className="absolute inset-0 bg-primary/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          {/* Animated glow */}
+                          <div className="absolute -top-16 -right-16 w-32 h-32 rounded-full bg-primary/[0.04] blur-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none group-hover:bg-primary/[0.08]" />
+                          {/* Top accent */}
+                          <div className="absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div className="h-full bg-gradient-to-r from-primary/60 via-primary/25 to-transparent" />
+                          </div>
 
                           <div className="relative z-10 space-y-4">
-                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 transition-colors">
+                            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/15 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300">
                               <MethodIcon className="w-6 h-6 text-primary" />
                             </div>
                             <div>
-                              <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors">
+                              <h3 className="text-base font-bold text-foreground group-hover:text-primary transition-colors duration-300 font-display">
                                 {m.provider}
                               </h3>
                               <p className="text-xs text-muted-foreground mt-1">
@@ -428,7 +433,9 @@ export default function WalletPage() {
 
                           {/* Arrow indicator */}
                           <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-2 group-hover:translate-x-0">
-                            <ChevronRight className="w-5 h-5 text-primary" />
+                            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center group-hover:shadow-[0_0_12px_hsl(var(--primary)/0.15)]">
+                              <ChevronRight className="w-4 h-4 text-primary" />
+                            </div>
                           </div>
                         </motion.button>
                       );
