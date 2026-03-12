@@ -77,8 +77,10 @@ ScrollReveal.displayName = "ScrollReveal";
 function AnimatedStat({ target, suffix, label, icon: Icon }: { target: number; suffix: string; label: string; icon: typeof Zap }) {
   const { display, ref } = useCountUpOnView(target, 1400);
   return (
-    <div ref={ref} className="relative group text-center rounded-2xl border border-border/40 bg-card/50 backdrop-blur-xl p-8 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-transform duration-300 group-hover:scale-110">
+    <div ref={ref} className="relative group text-center rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl p-8 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
+      {/* Top accent shine */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent rounded-t-2xl" />
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_16px_-4px_hsl(var(--primary)/0.3)]">
         <Icon className="h-5 w-5 text-primary" />
       </div>
       <p className="text-3xl sm:text-4xl font-black tracking-tight gradient-text">
