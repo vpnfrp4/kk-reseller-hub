@@ -117,7 +117,7 @@ export default function AdminCategories() {
 
   /* ── CRUD ── */
   const openCreate = () => {
-    setEditCat({ name: "", description: "", icon: "📦", image_url: null, is_active: true, sort_order: categories.length });
+    setEditCat({ name: "", description: "", icon: "package", image_url: null, is_active: true, sort_order: categories.length });
     setEditOpen(true);
   };
 
