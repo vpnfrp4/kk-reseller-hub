@@ -255,18 +255,15 @@ export default function OrdersPage() {
 
   const [page, setPage] = useState(0);
   const [searchInput, setSearchInput] = useState("");
-  const [search, setSearch] = useState("");
+  const search = useDebouncedValue(searchInput, 350);
   const [status, setStatus] = useState<string>("all");
   const [productType, setProductType] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const l = useT();
 
-  // Debounced search
-  useEffect(() => {
-    const timer = setTimeout(() => { setSearch(searchInput); setPage(0); }, 350);
-    return () => clearTimeout(timer);
-  }, [searchInput]);
+  // Reset page when search changes
+  useEffect(() => { setPage(0); }, [search]);
 
   const buildQuery = (q: any) => {
     if (user) q = q.eq("user_id", user.id);
