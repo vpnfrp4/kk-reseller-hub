@@ -252,7 +252,15 @@ export default function AdminTopups() {
         <DataCard title="Auto-Approve Settings" actions={<Settings2 className="w-4 h-4 text-muted-foreground" />}>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <Switch checked={autoApprove} onCheckedChange={setAutoApprove} className="mt-0.5" />
+              <Switch
+                checked={autoApprove}
+                disabled={savingSettings}
+                onCheckedChange={(checked) => {
+                  setAutoApprove(checked);
+                  saveAutoApproveSettings(checked, autoThreshold);
+                }}
+                className="mt-0.5"
+              />
               <div className="flex-1 min-w-0">
                 <Label className="text-sm font-medium text-foreground">Auto-Approve Top-ups</Label>
                 <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
@@ -270,6 +278,15 @@ export default function AdminTopups() {
                   className="w-28 h-8 text-sm"
                 />
                 <span className="text-xs text-muted-foreground">MMK</span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs font-bold rounded-lg"
+                  disabled={savingSettings}
+                  onClick={() => saveAutoApproveSettings(autoApprove, autoThreshold)}
+                >
+                  Save
+                </Button>
               </div>
             )}
           </div>
