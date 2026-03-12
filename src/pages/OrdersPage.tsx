@@ -469,8 +469,8 @@ export default function OrdersPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
                   placeholder="Search by service name or order ID..."
-                  value={search}
-                  onChange={(e) => { setSearch(e.target.value); setPage(0); }}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   className="pl-9 h-9 bg-muted/20 border-border/40 rounded-[var(--radius-input)]"
                 />
               </div>
