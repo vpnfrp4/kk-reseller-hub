@@ -352,7 +352,7 @@ export default function AdminMonitoring() {
                   {loadingErrors ? (
                     <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Loading...</TableCell></TableRow>
                   ) : apiErrors.length === 0 ? (
-                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No API errors 🎉</TableCell></TableRow>
+                    <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No API errors — All clear</TableCell></TableRow>
                   ) : apiErrors.map((log: any) => (
                     <TableRow key={log.id}>
                       <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{format(new Date(log.created_at), "MMM d, HH:mm:ss")}</TableCell>
