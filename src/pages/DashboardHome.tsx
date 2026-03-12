@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FAST_QUERY_OPTIONS } from "@/lib/query-options";
-import { Zap, Plus, Search } from "lucide-react";
+import { Zap, Plus, Search, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { PageContainer } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
@@ -14,9 +14,8 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import PullToRefresh from "@/components/shared/PullToRefresh";
 import HeroStats from "@/components/dashboard/HeroStats";
 import PopularServices from "@/components/dashboard/PopularServices";
-import ServiceCategories from "@/components/dashboard/ServiceCategories";
-import RecentOrdersList from "@/components/dashboard/RecentOrdersList";
 import RecentTimeline from "@/components/dashboard/RecentTimeline";
+import { motion } from "framer-motion";
 
 export default function DashboardHome() {
   const { user, profile, refreshProfile } = useAuth();
@@ -103,38 +102,56 @@ export default function DashboardHome() {
         <div className="space-y-5 lg:space-y-6">
 
           {/* ═══ MOBILE GREETING ═══ */}
-          <div className="lg:hidden animate-fade-in">
-            <p className="text-muted-foreground text-xs font-medium">Welcome back,</p>
-            <h1 className="text-xl font-bold text-foreground tracking-tight mt-0.5">
+          <motion.div
+            className="lg:hidden"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+          >
+            <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-[0.12em]">Welcome back,</p>
+            <h1 className="text-xl font-extrabold text-foreground tracking-tight mt-0.5">
               {profile?.name || "Reseller"} 👋
             </h1>
-          </div>
+          </motion.div>
 
           {/* ═══ DESKTOP HEADER ═══ */}
-          <div className="hidden lg:block cd-page-head cd-reveal">
+          <motion.div
+            className="hidden lg:block cd-page-head"
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             <div>
               <h1>Welcome back, <span className="gradient-text">{profile?.name || "Reseller"}</span></h1>
               <p>Real-time overview of your reseller activities and performance.</p>
             </div>
             <div className="cd-page-head-actions">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => navigate("/dashboard/place-order")}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-[var(--radius-btn)] bg-primary text-primary-foreground text-sm font-semibold hover:brightness-110 transition-all shadow-lg shadow-primary/20"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:brightness-110 transition-all shadow-lg shadow-primary/25"
               >
                 <Zap className="w-4 h-4" />
                 Place Order
-              </button>
+              </motion.button>
             </div>
-          </div>
+          </motion.div>
 
           {/* ═══ QUICK SEARCH BAR (Mobile) ═══ */}
-          <button
+          <motion.button
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.15 }}
             onClick={() => navigate("/dashboard/place-order")}
-            className="lg:hidden w-full flex items-center gap-3 px-4 py-3 rounded-card border border-border/50 bg-card text-muted-foreground text-sm animate-fade-in active:scale-[0.99] transition-transform"
+            className="lg:hidden w-full flex items-center gap-3 px-4 py-3.5 rounded-[var(--radius-card)] border border-border/40 bg-card/80 backdrop-blur-sm text-muted-foreground text-sm active:scale-[0.99] transition-transform group"
           >
-            <Search className="w-4 h-4 text-muted-foreground/60" />
-            <span>Search IMEI service, iPhone unlock...</span>
-          </button>
+            <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center shrink-0 group-hover:bg-primary/12 transition-colors">
+              <Search className="w-4 h-4 text-primary/60" />
+            </div>
+            <span className="text-xs font-medium">Search IMEI service, iPhone unlock...</span>
+            <ArrowRight className="w-3.5 h-3.5 ml-auto text-muted-foreground/30" />
+          </motion.button>
 
           {/* ═══ HERO STATS ═══ */}
           <HeroStats
@@ -147,70 +164,44 @@ export default function DashboardHome() {
             onWalletClick={() => navigate("/dashboard/wallet")}
           />
 
-          {/* ═══ QUICK ACTIONS (Desktop) ═══ */}
-          <div className="hidden lg:grid grid-cols-3 gap-3 cd-reveal">
+          {/* ═══ QUICK ACTIONS ═══ */}
+          <motion.div
+            className="grid grid-cols-2 lg:grid-cols-3 gap-3"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.25 }}
+          >
             {[
               { label: "Place Order", desc: "Browse services", icon: Zap, path: "/dashboard/place-order", color: "primary" },
-              { label: "My Orders", desc: "Track progress", icon: Search, path: "/dashboard/orders", color: "primary" },
               { label: "Add Funds", desc: "Top up wallet", icon: Plus, path: "/dashboard/wallet", color: "success" },
+              { label: "My Orders", desc: "Track progress", icon: Search, path: "/dashboard/orders", color: "primary", desktopOnly: true },
             ].map((action) => (
-              <button
+              <motion.button
                 key={action.label}
+                whileHover={{ y: -3 }}
+                whileTap={{ scale: 0.97 }}
                 onClick={() => navigate(action.path)}
-                className="flex items-center gap-3 p-4 rounded-[var(--radius-card)] border border-border/50 bg-card/80 backdrop-blur-sm hover:border-primary/25 hover:shadow-[var(--shadow-elevated)] hover:-translate-y-0.5 transition-all duration-300 text-left group"
+                className={`flex items-center gap-3 p-4 rounded-[var(--radius-card)] border border-border/40 bg-card/80 backdrop-blur-sm hover:border-primary/20 hover:shadow-[var(--shadow-elevated)] transition-all duration-300 text-left group ${action.desktopOnly ? "hidden lg:flex" : ""}`}
               >
-                <div className={`w-10 h-10 rounded-xl bg-${action.color}/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform`}>
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform"
+                  style={{ background: `hsl(var(--${action.color}) / 0.1)` }}
+                >
                   <action.icon className={`w-5 h-5 text-${action.color}`} />
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-foreground">{action.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{action.desc}</p>
+                  <p className="text-sm font-extrabold text-foreground">{action.label}</p>
+                  <p className="text-[10px] text-muted-foreground font-medium">{action.desc}</p>
                 </div>
-              </button>
+              </motion.button>
             ))}
-          </div>
-
-          {/* ═══ QUICK ACTIONS (Mobile) ═══ */}
-          <div className="grid grid-cols-2 gap-3 lg:hidden">
-            <button
-              onClick={() => navigate("/dashboard/place-order")}
-              className="flex items-center gap-3 p-4 rounded-card bg-primary/5 border border-primary/15 active:scale-[0.98] transition-transform group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/15 transition-colors">
-                <Zap className="w-5 h-5 text-primary" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-bold text-foreground">Place Order</p>
-                <p className="text-[10px] text-muted-foreground">Browse services</p>
-              </div>
-            </button>
-            <button
-              onClick={() => navigate("/dashboard/wallet")}
-              className="flex items-center gap-3 p-4 rounded-card bg-success/5 border border-success/15 active:scale-[0.98] transition-transform group"
-            >
-              <div className="w-10 h-10 rounded-xl bg-success/10 flex items-center justify-center shrink-0 group-hover:bg-success/15 transition-colors">
-                <Plus className="w-5 h-5 text-success" />
-              </div>
-              <div className="text-left">
-                <p className="text-sm font-bold text-foreground">Add Funds</p>
-                <p className="text-[10px] text-muted-foreground">Top up wallet</p>
-              </div>
-            </button>
-          </div>
+          </motion.div>
 
           {/* ═══ SECTION GRID: Popular Services + Timeline ═══ */}
           <div className="cd-section-grid cd-reveal">
             <PopularServices />
             <RecentTimeline orders={orders} loading={ordersLoading} />
           </div>
-
-          {/* ═══ SERVICE CATEGORIES (hidden per karkar4 reference) ═══ */}
-          {/* <ServiceCategories /> */}
-
-          {/* ═══ RECENT ORDERS TABLE (hidden per karkar4 reference) ═══ */}
-          {/* <div className="cd-card cd-reveal">
-            <RecentOrdersList orders={orders} loading={ordersLoading} />
-          </div> */}
         </div>
       </PullToRefresh>
     </PageContainer>
