@@ -602,13 +602,13 @@ export default function OrdersPage() {
                     initial={false}
                     className="contents"
                   >
-                    <tr
-                      className={cn(
-                        "border-b border-border/10 transition-all duration-300 group cursor-pointer",
-                        "hover:bg-muted/30",
-                        highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] bg-primary/8 ring-1 ring-inset ring-primary/25",
-                        expandedId === row.id && "bg-muted/20",
-                      )}
+                      <tr
+                        className={cn(
+                          "border-b border-border/8 transition-all duration-200 group cursor-pointer",
+                          "hover:bg-secondary/20",
+                          highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] bg-primary/6 ring-1 ring-inset ring-primary/20",
+                          expandedId === row.id && "bg-secondary/15",
+                        )}
                       style={{ animationDelay: `${idx * 30}ms` }}
                       onClick={() => toggleExpand(row.id)}
                     >
