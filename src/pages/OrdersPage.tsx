@@ -329,6 +329,7 @@ export default function OrdersPage() {
       return data || [];
     },
     enabled: !!user,
+    ...PAGED_QUERY_OPTIONS,
   });
 
   // Auto-highlight the newest order when redirected from a successful purchase
