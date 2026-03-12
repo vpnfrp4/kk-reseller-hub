@@ -259,6 +259,12 @@ export default function OrdersPage() {
   const [dateTo, setDateTo] = useState<Date | undefined>();
   const l = useT();
 
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => { setSearch(searchInput); setPage(0); }, 350);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
   const buildQuery = (q: any) => {
     if (user) q = q.eq("user_id", user.id);
     if (search.trim()) q = q.ilike("product_name", `%${search.trim()}%`);
