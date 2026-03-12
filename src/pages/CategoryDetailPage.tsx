@@ -222,36 +222,41 @@ export default function CategoryDetailPage() {
   return (
     <PageContainer maxWidth="max-w-5xl">
       {/* ═══ BREADCRUMB + HEADER ═══ */}
-      <div className="page-header-card mb-4 lg:mb-6">
+      <motion.div
+        initial={{ opacity: 0, y: -6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2 }}
+        className="mb-5 lg:mb-7"
+      >
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-[11px] text-muted-foreground/60 mb-3">
+        <nav className="flex items-center gap-1.5 text-[11px] text-muted-foreground/50 mb-3">
           <button onClick={() => navigate("/dashboard")} className="hover:text-foreground transition-colors">Home</button>
-          <span>/</span>
+          <span className="text-muted-foreground/30">/</span>
           <button onClick={() => navigate("/dashboard/place-order")} className="hover:text-foreground transition-colors">Place Order</button>
-          <span>/</span>
+          <span className="text-muted-foreground/30">/</span>
           <span className="text-foreground font-semibold truncate max-w-[200px]">{decodedCategory}</span>
         </nav>
 
         <div className="flex items-center gap-3.5">
           <button
             onClick={() => navigate("/dashboard/place-order")}
-            className="w-10 h-10 rounded-xl bg-secondary/60 border border-border/40 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200 shrink-0"
+            className="w-9 h-9 rounded-xl bg-secondary/50 border border-border/30 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-200 shrink-0"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4.5 h-4.5" />
           </button>
-          <div className={cn("w-11 h-11 rounded-xl flex items-center justify-center shrink-0", catColor)}>
-            <CatIcon className="w-5 h-5" strokeWidth={1.8} />
+          <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0", catColor)}>
+            <CatIcon className="w-5 h-5" strokeWidth={1.7} />
           </div>
           <div className="min-w-0">
-            <h1 className="gradient-text text-lg lg:text-xl truncate">{decodedCategory}</h1>
+            <h1 className="text-lg lg:text-xl font-extrabold text-foreground tracking-tight truncate">{decodedCategory}</h1>
             {!isImeiCheckCategory && (
-              <p className="page-header-subtitle">
+              <p className="text-xs text-muted-foreground/50 mt-0.5">
                 {products.length} {products.length === 1 ? "service" : "services"} available
               </p>
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* ═══ IMEI CHECK SPECIAL: iFree Interface ═══ */}
       {isImeiCheckCategory && (
@@ -462,9 +467,9 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
   const pType = p.product_type;
   const isOutOfStock = pType === "digital" && p.stock === 0;
   const pTime = p.processing_time || (pType === "api" || pType === "digital" ? "Instant" : "1–24 Hours");
-  let badgeLabel = "Manual"; let badgeClass = "bg-warning/10 text-warning border-warning/20"; let BadgeIcon = Clock;
-  if (pType === "digital") { badgeLabel = "Instant"; badgeClass = "bg-success/10 text-success border-success/20"; BadgeIcon = Zap; }
-  else if (pType === "api") { badgeLabel = "API"; badgeClass = "bg-ice/10 text-ice border-ice/20"; BadgeIcon = Link2; }
+  let badgeLabel = "Manual"; let badgeClass = "bg-warning/8 text-warning border-warning/15"; let BadgeIcon = Clock;
+  if (pType === "digital") { badgeLabel = "Instant"; badgeClass = "bg-success/8 text-success border-success/15"; BadgeIcon = Zap; }
+  else if (pType === "api") { badgeLabel = "API"; badgeClass = "bg-ice/8 text-ice border-ice/15"; BadgeIcon = Link2; }
 
   const CategoryIcon = getCategoryIcon(p.category, p.name);
   const iconColor = getCategoryIconColor(p.category, p.name);
@@ -473,28 +478,28 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
     <motion.button
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2, delay: Math.min(index * 0.04, 0.3) }}
+      transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.25) }}
       onClick={() => !isOutOfStock && onSelect(p.id)}
       disabled={isOutOfStock}
       className={cn(
-        "w-full text-left rounded-xl border border-border/40 bg-card overflow-hidden group/card transition-all duration-200 relative",
+        "w-full text-left rounded-2xl border border-border/30 bg-card/90 overflow-hidden group/card transition-all duration-250 relative",
         isOutOfStock
-          ? "opacity-40 cursor-not-allowed"
-          : "cursor-pointer hover:border-primary/30 hover:shadow-[0_4px_20px_hsl(var(--primary)/0.08)] active:scale-[0.98]"
+          ? "opacity-35 cursor-not-allowed"
+          : "cursor-pointer hover:border-primary/25 hover:shadow-[0_6px_24px_-6px_hsl(var(--primary)/0.1)] hover:-translate-y-0.5 active:scale-[0.98]"
       )}
     >
-      {/* Image area — fixed aspect ratio */}
-      <div className="relative w-full aspect-[5/3] overflow-hidden">
+      {/* Image area */}
+      <div className="relative w-full aspect-[5/3] overflow-hidden bg-secondary/20">
         {p.image_url && imgStatus !== "error" ? (
           <>
             {imgStatus === "loading" && (
-              <div className="absolute inset-0 bg-muted/30 animate-pulse" />
+              <div className="absolute inset-0 bg-muted/20 animate-pulse" />
             )}
             <img
               src={p.image_url}
               alt={sanitizeName(p.name)}
               className={cn(
-                "w-full h-full object-cover transition-transform duration-300 group-hover/card:scale-105",
+                "w-full h-full object-cover transition-transform duration-400 group-hover/card:scale-105",
                 imgStatus === "loaded" ? "opacity-100" : "opacity-0"
               )}
               loading="lazy"
@@ -503,12 +508,11 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
             />
           </>
         ) : (
-          /* Polished placeholder with category icon */
-          <div className="w-full h-full flex flex-col items-center justify-center gap-2.5 bg-gradient-to-br from-primary/[0.06] to-primary/[0.02] dark:from-primary/[0.1] dark:to-primary/[0.04]">
-            <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ background: iconColor.replace('text-', '').includes('[') ? undefined : `hsl(var(--primary) / 0.1)` }}>
-              <CategoryIcon className="w-7 h-7 text-primary/60" strokeWidth={1.5} />
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-primary/[0.04] to-transparent">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/8">
+              <CategoryIcon className="w-6 h-6 text-primary/50" strokeWidth={1.5} />
             </div>
-            <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/40 px-4 text-center line-clamp-1">
+            <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/30 px-4 text-center line-clamp-1">
               {p.category}
             </span>
           </div>
@@ -519,8 +523,8 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
           <button
             onClick={(e) => onToggleFavorite(p.id, e)}
             className={cn(
-              "absolute top-2 right-2 p-1.5 rounded-full bg-black/30 backdrop-blur-sm transition-all duration-200 z-10",
-              isFavorite ? "text-warning opacity-100" : "text-white/50 opacity-0 group-hover/card:opacity-100 hover:text-warning/80"
+              "absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-black/25 backdrop-blur-sm transition-all duration-200 z-10",
+              isFavorite ? "text-warning opacity-100" : "text-white/40 opacity-0 group-hover/card:opacity-100 hover:text-warning/80"
             )}
           >
             <Star className={cn("w-3.5 h-3.5", isFavorite && "fill-warning")} />
@@ -528,12 +532,12 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
         )}
 
         {/* Badge overlay */}
-        <div className="absolute bottom-2 left-2 flex items-center gap-1.5">
-          <span className={cn("inline-flex items-center gap-1 text-[10px] font-bold rounded-full px-2 py-0.5 border backdrop-blur-sm", badgeClass)}>
+        <div className="absolute bottom-2.5 left-2.5 flex items-center gap-1.5">
+          <span className={cn("inline-flex items-center gap-1 text-[9px] font-bold rounded-md px-2 py-[3px] border backdrop-blur-sm", badgeClass)}>
             <BadgeIcon className="w-2.5 h-2.5" />{badgeLabel}
           </span>
           {isOutOfStock && (
-            <span className="text-[10px] font-bold text-destructive-foreground bg-destructive px-2 py-0.5 rounded-full">
+            <span className="text-[9px] font-bold text-destructive-foreground bg-destructive px-2 py-[3px] rounded-md">
               Out of Stock
             </span>
           )}
@@ -543,17 +547,17 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
       {/* Card body */}
       <div className="px-3.5 py-3 space-y-2">
         <div className="flex items-start gap-1.5">
-          <span className="shrink-0 font-mono text-[10px] font-bold text-primary/50 mt-0.5">#{p.display_id}</span>
+          <span className="shrink-0 font-mono text-[9px] font-bold text-primary/40 mt-0.5">#{p.display_id}</span>
           <p className="text-[13px] text-foreground font-semibold leading-snug line-clamp-2 group-hover/card:text-primary transition-colors duration-150">
             {sanitizeName(p.name)}
           </p>
         </div>
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-0.5">
           <span className="text-sm font-bold font-mono tabular-nums text-foreground">
             <Money amount={p.wholesale_price} compact />
           </span>
-          <span className="text-[10px] text-muted-foreground/50 font-medium flex items-center gap-1">
+          <span className="text-[10px] text-muted-foreground/40 font-medium flex items-center gap-1">
             <Clock className="w-2.5 h-2.5" />{pTime}
           </span>
         </div>
