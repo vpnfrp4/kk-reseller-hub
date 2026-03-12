@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
-import LiveActivityFeed from "@/components/admin/LiveActivityFeed";
 import { Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -20,10 +19,6 @@ import MiniSparkline from "@/components/admin/MiniSparkline";
 import { useCountUp } from "@/hooks/use-count-up";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts";
 
 const THRESHOLD_KEY = "admin-low-balance-threshold";
 const DEFAULT_THRESHOLD = 5000;
@@ -141,36 +136,6 @@ function QuickAccessCard({ label, icon: Icon, to, description, index = 0 }: { la
   );
 }
 
-/* ─── Chart helpers ─── */
-function buildChartDays(rawData: any[], dateKey: string, valueKey: string) {
-  const days: Record<string, number> = {};
-  for (let i = 29; i >= 0; i--) days[format(subDays(new Date(), i), "MMM dd")] = 0;
-  (rawData || []).forEach((row: any) => {
-    const key = format(new Date(row[dateKey]), "MMM dd");
-    if (key in days) days[key] += Number(row[valueKey]);
-  });
-  return Object.entries(days).map(([date, value]) => ({ date, value }));
-}
-
-function buildChartDaysCount(rawData: any[], dateKey: string) {
-  const days: Record<string, number> = {};
-  for (let i = 29; i >= 0; i--) days[format(subDays(new Date(), i), "MMM dd")] = 0;
-  (rawData || []).forEach((row: any) => {
-    const key = format(new Date(row[dateKey]), "MMM dd");
-    if (key in days) days[key]++;
-  });
-  return Object.entries(days).map(([date, value]) => ({ date, value }));
-}
-
-const tooltipStyle = {
-  backgroundColor: "hsl(var(--card))",
-  border: "1px solid hsl(var(--border))",
-  borderRadius: "12px",
-  fontSize: "12px",
-  color: "hsl(var(--foreground))",
-  boxShadow: "0 8px 32px rgba(0,0,0,0.15)",
-  backdropFilter: "blur(8px)",
-};
 
 /* ═══ MAIN COMPONENT ═══ */
 export default function AdminOverview() {
@@ -308,51 +273,6 @@ export default function AdminOverview() {
     return Object.values(days);
   }, [topupSparkRaw]);
 
-  // 30-day chart data
-  const thirtyDaysAgo = subDays(new Date(), 30).toISOString();
-
-  const { data: revenueRaw } = useQuery({
-    queryKey: ["admin-revenue-chart"],
-    queryFn: async () => {
-      const { data } = await supabase.from("orders").select("price, created_at").gte("created_at", thirtyDaysAgo).order("created_at", { ascending: true });
-      return data || [];
-    },
-  });
-
-  const { data: salesRaw } = useQuery({
-    queryKey: ["admin-sales-chart"],
-    queryFn: async () => {
-      const { data } = await supabase.from("orders").select("created_at").gte("created_at", thirtyDaysAgo).order("created_at", { ascending: true });
-      return data || [];
-    },
-  });
-
-  const { data: topupChartRaw } = useQuery({
-    queryKey: ["admin-topup-chart"],
-    queryFn: async () => {
-      const { data } = await supabase.from("wallet_transactions").select("amount, created_at").eq("type", "topup").eq("status", "approved").gte("created_at", thirtyDaysAgo).order("created_at", { ascending: true });
-      return data || [];
-    },
-  });
-
-  const revenueChart = useMemo(() => buildChartDays(revenueRaw || [], "created_at", "price"), [revenueRaw]);
-  const salesChart = useMemo(() => buildChartDaysCount(salesRaw || [], "created_at"), [salesRaw]);
-  const topupChart = useMemo(() => buildChartDays(topupChartRaw || [], "created_at", "amount"), [topupChartRaw]);
-
-  // Top products
-  const { data: topProducts } = useQuery({
-    queryKey: ["admin-top-products"],
-    queryFn: async () => {
-      const { data } = await supabase.from("orders").select("product_name, price").gte("created_at", thirtyDaysAgo);
-      const map: Record<string, { name: string; orders: number; revenue: number }> = {};
-      (data || []).forEach((o: any) => {
-        if (!map[o.product_name]) map[o.product_name] = { name: o.product_name, orders: 0, revenue: 0 };
-        map[o.product_name].orders++;
-        map[o.product_name].revenue += Number(o.price);
-      });
-      return Object.values(map).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
-    },
-  });
 
   // Pending orders for collapsible
   const { data: pendingOrders } = useQuery({
@@ -556,56 +476,24 @@ export default function AdminOverview() {
           </CollapsibleSection>
         </div>
 
-        {/* ═══ 3. REAL-TIME ACTIVITY + 4. PRODUCT PERFORMANCE ═══ */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-1">
-            <LiveActivityFeed />
+        {/* ═══ 3. STOCK OVERVIEW ═══ */}
+        <DataCard title="Stock Overview" description={`${stats?.availableCredentials || 0} available / ${total} total`}>
+          <div className="space-y-3">
+            <div className="w-full h-3 rounded-full bg-muted/40 overflow-hidden">
+              <motion.div
+                className="h-full rounded-full bg-gradient-to-r from-success to-success/70"
+                initial={{ width: 0 }}
+                animate={{ width: `${availablePct}%` }}
+                transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
+              />
+            </div>
+            <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-success" />Available {stats?.availableCredentials || 0}</span>
+              <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-destructive/70" />Sold {sold}</span>
+              <span className="ml-auto font-mono font-bold">{stats?.soldToday || 0} sold today</span>
+            </div>
           </div>
-
-          <div className="lg:col-span-2 space-y-4">
-            <DataCard title="Top Products (30d)" description="Revenue leaders">
-              {topProducts && topProducts.length > 0 ? (
-                <div className="space-y-1">
-                  {topProducts.map((p, i) => (
-                    <div key={p.name} className="flex items-center gap-3 p-3 rounded-xl hover:bg-secondary/30 transition-colors group">
-                      <span className={cn(
-                        "w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-extrabold font-mono shrink-0",
-                        i === 0 ? "bg-primary/10 text-primary" : i === 1 ? "bg-success/10 text-success" : "bg-muted/50 text-muted-foreground"
-                      )}>
-                        {i + 1}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-bold text-foreground truncate group-hover:text-primary transition-colors">{p.name}</p>
-                        <p className="text-[10px] text-muted-foreground/70 font-medium">{p.orders} orders</p>
-                      </div>
-                      <Money amount={p.revenue} className="text-sm font-extrabold text-foreground font-mono" />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground text-center py-compact">No orders in last 30 days</p>
-              )}
-            </DataCard>
-
-            <DataCard title="Stock Overview" description={`${stats?.availableCredentials || 0} available / ${total} total`}>
-              <div className="space-y-3">
-                <div className="w-full h-3 rounded-full bg-muted/40 overflow-hidden">
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-success to-success/70"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${availablePct}%` }}
-                    transition={{ duration: 1, delay: 0.3, ease: "easeOut" }}
-                  />
-                </div>
-                <div className="flex items-center gap-4 text-[11px] text-muted-foreground">
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-success" />Available {stats?.availableCredentials || 0}</span>
-                  <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-destructive/70" />Sold {sold}</span>
-                  <span className="ml-auto font-mono font-bold">{stats?.soldToday || 0} sold today</span>
-                </div>
-              </div>
-            </DataCard>
-          </div>
-        </div>
+        </DataCard>
 
         {/* ═══ 5. FINANCIAL CONTROL — QUICK ACCESS ═══ */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -616,56 +504,6 @@ export default function AdminOverview() {
           <QuickAccessCard label="Credentials" icon={KeyRound} to="/admin/credentials" description="Stock control" index={4} />
         </div>
 
-        {/* ═══ 6. DATA VISUALIZATION ═══ */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <DataCard title="Revenue Trend (30d)">
-            <div className="h-[180px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={revenueChart} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--success))" stopOpacity={0.25} />
-                      <stop offset="95%" stopColor="hsl(var(--success))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.4)" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v.toLocaleString()} MMK`, "Revenue"]} />
-                  <Area type="monotone" dataKey="value" stroke="hsl(var(--success))" strokeWidth={2} fill="url(#revGrad)" />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </DataCard>
-
-          <DataCard title="Top-up Volume (30d)">
-            <div className="h-[180px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topupChart} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.4)" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [`${v.toLocaleString()} MMK`, "Top-ups"]} />
-                  <Bar dataKey="value" fill="hsl(var(--ice))" radius={[4, 4, 0, 0]} opacity={0.75} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </DataCard>
-
-          <DataCard title="Order Volume (30d)">
-            <div className="h-[180px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesChart} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border) / 0.4)" vertical={false} />
-                  <XAxis dataKey="date" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-                  <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => [v, "Orders"]} />
-                  <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </DataCard>
-        </div>
 
         {/* ═══ LOW BALANCE + RECENT ORDERS ═══ */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
