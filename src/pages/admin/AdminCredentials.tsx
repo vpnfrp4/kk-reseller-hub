@@ -693,7 +693,7 @@ export default function AdminCredentials() {
                         </td>
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <span className="text-base leading-none">{CATEGORY_ICONS[category] || "📦"}</span>
+                            <span className="text-base leading-none">{CATEGORY_ICONS[category] || "—"}</span>
                             <div>
                               <p className="text-sm font-medium text-foreground leading-tight">{productName}</p>
                               <p className="text-[11px] text-muted-foreground">{duration}</p>
