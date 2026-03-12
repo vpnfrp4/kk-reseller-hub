@@ -114,29 +114,6 @@ export default function DashboardHome() {
             </h1>
           </motion.div>
 
-          {/* ═══ DESKTOP HEADER ═══ */}
-          <motion.div
-            className="hidden lg:block cd-page-head"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-          >
-            <div>
-              <h1>Welcome back, <span className="gradient-text">{profile?.name || "Reseller"}</span></h1>
-              <p>Real-time overview of your reseller activities and performance.</p>
-            </div>
-            <div className="cd-page-head-actions">
-              <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => navigate("/dashboard/place-order")}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-extrabold hover:brightness-110 transition-all shadow-lg shadow-primary/25"
-              >
-                <Zap className="w-4 h-4" />
-                Place Order
-              </motion.button>
-            </div>
-          </motion.div>
 
           {/* ═══ QUICK SEARCH BAR (Mobile) ═══ */}
           <motion.button
