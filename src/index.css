@@ -365,6 +365,13 @@ html {
    ═══════════════════════════════════════════════════════ */
 
 @layer components {
+  /* ─── Auth Input ─── */
+  .auth-input {
+    @apply bg-muted/30 border-border/50 h-11 rounded-[var(--radius-input)] transition-all duration-200;
+    @apply focus:border-primary/50 focus:ring-2 focus:ring-primary/10 focus:bg-muted/40;
+    @apply hover:border-border/70;
+  }
+
   /* ─── IMEI Hero Card ─── */
   .imei-hero-card {
     background:
