@@ -681,7 +681,7 @@ export default function OrdersPage() {
         </div>
 
         {/* ═══ MOBILE CARDS ═══ */}
-        <div className="md:hidden space-y-3 animate-fade-in" style={{ animationDelay: "150ms" }}>
+        <div className="md:hidden space-y-3">
           {ordersLoading ? (
             Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="glass-card p-4 space-y-3">
