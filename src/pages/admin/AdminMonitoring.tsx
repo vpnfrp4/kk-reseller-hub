@@ -398,7 +398,7 @@ export default function AdminMonitoring() {
                       <TableCell>{p.success_rate != null ? `${p.success_rate}%` : "—"}</TableCell>
                       <TableCell>{p.calls_24h}</TableCell>
                       <TableCell className={p.errors_24h > 0 ? "text-destructive font-medium" : ""}>{p.errors_24h}</TableCell>
-                      <TableCell>{p.avg_rating ? `⭐ ${p.avg_rating}` : "—"}</TableCell>
+                      <TableCell>{p.avg_rating ? `${p.avg_rating}` : "—"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
