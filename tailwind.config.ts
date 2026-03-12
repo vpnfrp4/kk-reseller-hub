@@ -15,8 +15,8 @@ export default {
   	extend: {
   		fontFamily: {
   			sans: [
+  				'DM Sans',
   				'Noto Sans Myanmar',
-  				'Space Grotesk',
   				'Segoe UI',
   				'ui-sans-serif',
   				'system-ui',
@@ -29,9 +29,9 @@ export default {
   				'monospace'
   			],
   			display: [
-  				'Space Grotesk',
+  				'Plus Jakarta Sans',
+  				'DM Sans',
   				'Noto Sans Myanmar',
-  				'Segoe UI',
   				'sans-serif'
   			],
   			serif: [
