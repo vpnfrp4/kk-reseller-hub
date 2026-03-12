@@ -1442,15 +1442,15 @@ export default function AdminProducts() {
                     <Select value={form.processing_time} onValueChange={(v) => { setForm({ ...form, processing_time: v }); manualOverrides.current.add("processing_time"); }}>
                       <SelectTrigger className={`bg-muted/50 border-border transition-all duration-500 ${autoFilledFields.has("processing_time") ? "ring-1 ring-primary/40" : ""}`}><SelectValue placeholder="Auto-detect or select" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Instant">⚡ Instant</SelectItem>
-                        <SelectItem value="Instant - 24/7">⚡ Instant - 24/7</SelectItem>
-                        <SelectItem value="1-30 Minutes">⏳ 1-30 Minutes</SelectItem>
-                        <SelectItem value="1-6 Hours">⏳ 1-6 Hours</SelectItem>
-                        <SelectItem value="1-24 Hours">⏳ 1-24 Hours</SelectItem>
-                        <SelectItem value="1-3 Days">📅 1-3 Days</SelectItem>
-                        <SelectItem value="2-5 Days">📅 2-5 Days</SelectItem>
-                        <SelectItem value="3-7 Days">📅 3-7 Days</SelectItem>
-                        <SelectItem value="5-15 Days">📅 5-15 Days</SelectItem>
+                        <SelectItem value="Instant">Instant</SelectItem>
+                        <SelectItem value="Instant - 24/7">Instant - 24/7</SelectItem>
+                        <SelectItem value="1-30 Minutes">1-30 Minutes</SelectItem>
+                        <SelectItem value="1-6 Hours">1-6 Hours</SelectItem>
+                        <SelectItem value="1-24 Hours">1-24 Hours</SelectItem>
+                        <SelectItem value="1-3 Days">1-3 Days</SelectItem>
+                        <SelectItem value="2-5 Days">2-5 Days</SelectItem>
+                        <SelectItem value="3-7 Days">3-7 Days</SelectItem>
+                        <SelectItem value="5-15 Days">5-15 Days</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
