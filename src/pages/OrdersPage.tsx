@@ -703,8 +703,8 @@ export default function OrdersPage() {
               <div
                 key={row.id}
                 className={cn(
-                  "glass-card overflow-hidden transition-all duration-300",
-                  highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] ring-1 ring-primary/30 bg-primary/5",
+                  "rounded-2xl border border-border/25 bg-card/80 overflow-hidden transition-all duration-200",
+                  highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] ring-1 ring-primary/25 bg-primary/4",
                 )}
               >
                 <div
