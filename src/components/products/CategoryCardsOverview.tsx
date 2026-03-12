@@ -1,11 +1,11 @@
 import { useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 import { ArrowRight, Wifi } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface CategoryCardData {
   name: string;
@@ -20,7 +20,6 @@ interface CategoryCardsOverviewProps {
 }
 
 export default function CategoryCardsOverview({ onCategoryClick }: CategoryCardsOverviewProps) {
-  // Fetch admin-managed categories for ordering & visibility
   const { data: managedCategories } = useQuery({
     queryKey: ["managed-categories"],
     queryFn: async () => {
@@ -33,7 +32,6 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
     staleTime: 60000,
   });
 
-  // Fetch product categories
   const { data: productCategories, isLoading: productsLoading } = useQuery({
     queryKey: ["place-order-categories"],
     queryFn: async () => {
@@ -66,7 +64,6 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
     staleTime: 60000,
   });
 
-  // Fetch iFree IMEI services count
   const { data: ifreeCount = 0 } = useQuery({
     queryKey: ["ifree-services-count"],
     queryFn: async () => {
@@ -79,7 +76,6 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
     staleTime: 60000,
   });
 
-  // Fetch a few sample iFree service names
   const { data: ifreeSamples = [] } = useQuery({
     queryKey: ["ifree-services-samples"],
     queryFn: async () => {
@@ -95,32 +91,25 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
 
   const isLoading = productsLoading;
 
-  // Merge: inject IMEI Check category with iFree services
   const categories = (() => {
     if (!productCategories) return [];
-
-    // Build active set from managed categories
     const managedMap = new Map((managedCategories || []).map(mc => [mc.name, mc as { name: string; sort_order: number; is_active: boolean; image_url: string | null }]));
     const activeSet = managedCategories?.length
       ? new Set((managedCategories).filter(mc => mc.is_active).map(mc => mc.name))
-      : null; // null = no managed categories yet, show all
+      : null;
 
-    // Enrich with managed category image_url
     let cats = productCategories.map(c => {
       const managed = managedMap.get(c.name);
       return { ...c, image_url: managed?.image_url || null };
     });
 
-    // Filter out inactive categories (only if we have managed categories)
     if (activeSet) {
       cats = cats.filter(c => activeSet.has(c.name) || !managedMap.has(c.name));
     }
 
-    // Find existing "IMEI Check" category from products
     const existingIdx = cats.findIndex((c) => c.name === "IMEI Check");
 
     if (ifreeCount > 0) {
-      // Skip if IMEI Check is explicitly inactive
       const imeiCheckActive = !activeSet || activeSet.has("IMEI Check") || !managedMap.has("IMEI Check");
       if (imeiCheckActive) {
         if (existingIdx >= 0) {
@@ -142,7 +131,6 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
       }
     }
 
-    // Sort by managed sort_order, then IMEI Check first, then by count
     return cats.sort((a, b) => {
       const aManaged = managedMap.get(a.name);
       const bManaged = managedMap.get(b.name);
@@ -159,9 +147,9 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
     return (
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="rounded-card border border-border/40 bg-card p-4 animate-pulse">
-            <Skeleton className="w-11 h-11 rounded-xl mb-3" />
-            <Skeleton className="h-4 w-24 mb-1" />
+          <div key={i} className="rounded-2xl border border-border/30 bg-card p-4 sm:p-5 animate-pulse space-y-3">
+            <Skeleton className="w-12 h-12 rounded-xl" />
+            <Skeleton className="h-4 w-24" />
             <Skeleton className="h-3 w-16" />
           </div>
         ))}
@@ -169,7 +157,6 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
     );
   }
 
-  // Helper: category icon with image fallback
   const CategoryIcon = ({ imageUrl, iconColor, IconComp }: { imageUrl?: string | null; iconColor: string; IconComp: any }) => {
     const [imgError, setImgError] = useState(false);
     const handleError = useCallback(() => setImgError(true), []);
@@ -177,14 +164,14 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
     if (imageUrl && !imgError) {
       return (
         <div className={cn(
-          "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3 overflow-hidden",
-          "transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)]",
-          "bg-card border border-border/20"
+          "w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden",
+          "transition-all duration-300 group-hover:scale-110",
+          "bg-secondary/40 border border-border/20"
         )}>
           <img
             src={imageUrl}
             alt=""
-            className="w-full h-full object-contain p-1.5 rounded-2xl"
+            className="w-full h-full object-contain p-1.5"
             onError={handleError}
             loading="lazy"
           />
@@ -194,11 +181,11 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
 
     return (
       <div className={cn(
-        "w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3",
-        "transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_20px_hsl(var(--primary)/0.12)]",
+        "w-12 h-12 rounded-xl flex items-center justify-center",
+        "transition-all duration-300 group-hover:scale-110",
         iconColor
       )}>
-        <IconComp className="w-5.5 h-5.5 sm:w-6 sm:h-6" strokeWidth={1.8} />
+        <IconComp className="w-5 h-5" strokeWidth={1.7} />
       </div>
     );
   };
@@ -206,60 +193,62 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
   if (!categories || categories.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
       {categories.map((cat, i) => {
         const IconComp = getCategoryIcon(cat.name, cat.name);
         const iconColor = getCategoryIconColor(cat.name, cat.name);
 
         return (
-          <button
+          <motion.button
             key={cat.name}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25, delay: Math.min(i * 0.04, 0.32) }}
             onClick={() => onCategoryClick(cat.name)}
             className={cn(
-              "relative overflow-hidden rounded-card border border-border/40 bg-card",
-              "p-4 sm:p-5 text-left transition-all duration-300 group",
-              "hover:border-primary/30 hover:-translate-y-1",
-              "hover:shadow-[0_8px_30px_-8px_hsl(var(--primary)/0.15),0_0_0_1px_hsl(var(--primary)/0.08)]",
+              "relative overflow-hidden rounded-2xl border border-border/30 bg-card/90",
+              "p-4 sm:p-5 text-left transition-all duration-250 group",
+              "hover:border-primary/25 hover:-translate-y-0.5",
+              "hover:shadow-[0_8px_32px_-10px_hsl(var(--primary)/0.12)]",
               "active:scale-[0.97]",
-              "opacity-0 animate-stagger-in",
-              "min-h-[140px] sm:min-h-[160px] flex flex-col"
+              "min-h-[140px] sm:min-h-[155px] flex flex-col"
             )}
-            style={{ animationDelay: `${i * 0.04}s` }}
           >
-            {/* Ambient glow orb — visible on hover */}
-            <div className="absolute -top-12 -right-12 w-32 h-32 rounded-full bg-primary/[0.06] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-            <div className="absolute -bottom-10 -left-10 w-24 h-24 rounded-full bg-accent/[0.05] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+            {/* Hover glow */}
+            <div className="absolute -top-14 -right-14 w-36 h-36 rounded-full bg-primary/[0.04] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-            {/* Top gradient accent bar */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-primary/60 via-accent/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {/* Top accent line */}
+            <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary/50 via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
             {/* Badge — top-right */}
-            <div className="absolute top-3 right-3 flex items-center gap-1.5">
+            <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5">
               {cat.isApi && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-success/10 border border-success/20 text-[9px] font-bold text-success uppercase tracking-wider">
+                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-success/8 border border-success/15 text-[9px] font-bold text-success uppercase tracking-wider">
                   <Wifi className="w-2.5 h-2.5" />
                   API
                 </span>
               )}
-              <span className="inline-flex items-center justify-center min-w-[24px] h-6 px-2 rounded-full bg-primary/10 text-[11px] font-bold font-mono tabular-nums text-primary border border-primary/15 group-hover:bg-primary/15 group-hover:border-primary/25 transition-colors duration-300">
+              <span className="inline-flex items-center justify-center min-w-[22px] h-[22px] px-1.5 rounded-md bg-primary/8 text-[10px] font-bold font-mono tabular-nums text-primary border border-primary/12 group-hover:bg-primary/12 transition-colors">
                 {cat.count}
               </span>
             </div>
 
-            <CategoryIcon imageUrl={cat.image_url} iconColor={iconColor} IconComp={IconComp} />
+            <div className="mb-3">
+              <CategoryIcon imageUrl={cat.image_url} iconColor={iconColor} IconComp={IconComp} />
+            </div>
 
-            <p className="text-sm sm:text-[15px] font-bold text-foreground line-clamp-2 mb-auto leading-snug">{cat.name}</p>
+            <p className="text-[13px] sm:text-sm font-bold text-foreground line-clamp-2 mb-auto leading-snug">{cat.name}</p>
 
             {/* Sample products */}
             {cat.sampleProducts.length > 0 && (
-              <div className="mt-2.5 pt-2 border-t border-border/20">
+              <div className="mt-2.5 pt-2 border-t border-border/15 space-y-0.5">
                 {cat.sampleProducts.slice(0, 2).map((name, j) => (
-                  <p key={j} className="text-[10px] sm:text-[11px] text-muted-foreground/60 truncate leading-relaxed">
-                    • {name}
+                  <p key={j} className="text-[10px] text-muted-foreground/45 truncate leading-relaxed">
+                    {name}
                   </p>
                 ))}
                 {cat.count > 2 && (
-                  <p className="text-[10px] sm:text-[11px] text-primary/60 font-medium mt-0.5">
+                  <p className="text-[10px] text-primary/50 font-semibold mt-0.5">
                     +{cat.count - 2} more
                   </p>
                 )}
@@ -267,10 +256,10 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
             )}
 
             {/* Hover arrow */}
-            <div className="absolute bottom-3 right-3 w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center opacity-0 group-hover:opacity-100 group-hover:translate-x-0 -translate-x-1 transition-all duration-300">
-              <ArrowRight className="w-3.5 h-3.5 text-primary" />
+            <div className="absolute bottom-3.5 right-3.5 w-6 h-6 rounded-lg bg-primary/8 flex items-center justify-center opacity-0 group-hover:opacity-100 -translate-x-1 group-hover:translate-x-0 transition-all duration-250">
+              <ArrowRight className="w-3 h-3 text-primary" />
             </div>
-          </button>
+          </motion.button>
         );
       })}
     </div>
