@@ -251,6 +251,7 @@ export default function OrdersPage() {
   }, [user, queryClient]);
 
   const [page, setPage] = useState(0);
+  const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("all");
   const [productType, setProductType] = useState<string>("all");
