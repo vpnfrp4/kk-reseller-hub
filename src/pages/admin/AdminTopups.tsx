@@ -67,16 +67,8 @@ function ScreenshotThumb({ path, onClick }: { path: string; onClick: () => void 
   );
 }
 
-/* ─── Auto-Approve Settings ─── */
-const AUTO_APPROVE_KEY = "admin-auto-approve-topups";
-const AUTO_APPROVE_THRESHOLD_KEY = "admin-auto-approve-threshold";
-
-function getAutoApprove(): boolean {
-  try { return localStorage.getItem(AUTO_APPROVE_KEY) === "true"; } catch { return false; }
-}
-function getAutoApproveThreshold(): number {
-  try { return Number(localStorage.getItem(AUTO_APPROVE_THRESHOLD_KEY)) || 50000; } catch { return 50000; }
-}
+/* ─── Auto-Approve Settings (stored in system_settings) ─── */
+const AUTO_APPROVE_SETTINGS_KEY = "auto_approve_topup";
 
 export default function AdminTopups() {
   const queryClient = useQueryClient();
@@ -84,16 +76,47 @@ export default function AdminTopups() {
   const [confirmDialog, setConfirmDialog] = useState<{ txId: string; action: "approve" | "reject"; name: string; amount: number } | null>(null);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
-  // Auto-approve settings
-  const [autoApprove, setAutoApprove] = useState(getAutoApprove);
-  const [autoThreshold, setAutoThreshold] = useState(getAutoApproveThreshold);
+  // Auto-approve settings from DB
+  const { data: autoApproveSettings } = useQuery({
+    queryKey: ["auto-approve-settings"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("system_settings")
+        .select("value")
+        .eq("key", AUTO_APPROVE_SETTINGS_KEY)
+        .maybeSingle();
+      return data?.value as { enabled: boolean; threshold: number } | null;
+    },
+  });
 
+  const [autoApprove, setAutoApprove] = useState(false);
+  const [autoThreshold, setAutoThreshold] = useState(50000);
+  const [savingSettings, setSavingSettings] = useState(false);
+
+  // Sync state when DB data loads
   useEffect(() => {
-    localStorage.setItem(AUTO_APPROVE_KEY, String(autoApprove));
-  }, [autoApprove]);
-  useEffect(() => {
-    localStorage.setItem(AUTO_APPROVE_THRESHOLD_KEY, String(autoThreshold));
-  }, [autoThreshold]);
+    if (autoApproveSettings) {
+      setAutoApprove(autoApproveSettings.enabled ?? false);
+      setAutoThreshold(autoApproveSettings.threshold ?? 50000);
+    }
+  }, [autoApproveSettings]);
+
+  const saveAutoApproveSettings = async (enabled: boolean, threshold: number) => {
+    setSavingSettings(true);
+    try {
+      const value = { enabled, threshold };
+      const { error } = await supabase
+        .from("system_settings")
+        .upsert({ key: AUTO_APPROVE_SETTINGS_KEY, value, updated_at: new Date().toISOString() }, { onConflict: "key" });
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["auto-approve-settings"] });
+      toast.success(`Auto-approve ${enabled ? "enabled" : "disabled"}${enabled ? ` (threshold: ${threshold.toLocaleString()} MMK)` : ""}`);
+    } catch (err: any) {
+      toast.error("Failed to save settings: " + (err.message || "Unknown error"));
+    } finally {
+      setSavingSettings(false);
+    }
+  };
 
   useEffect(() => {
     const channel = supabase
@@ -229,7 +252,15 @@ export default function AdminTopups() {
         <DataCard title="Auto-Approve Settings" actions={<Settings2 className="w-4 h-4 text-muted-foreground" />}>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <Switch checked={autoApprove} onCheckedChange={setAutoApprove} className="mt-0.5" />
+              <Switch
+                checked={autoApprove}
+                disabled={savingSettings}
+                onCheckedChange={(checked) => {
+                  setAutoApprove(checked);
+                  saveAutoApproveSettings(checked, autoThreshold);
+                }}
+                className="mt-0.5"
+              />
               <div className="flex-1 min-w-0">
                 <Label className="text-sm font-medium text-foreground">Auto-Approve Top-ups</Label>
                 <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">
@@ -247,6 +278,15 @@ export default function AdminTopups() {
                   className="w-28 h-8 text-sm"
                 />
                 <span className="text-xs text-muted-foreground">MMK</span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 text-xs font-bold rounded-lg"
+                  disabled={savingSettings}
+                  onClick={() => saveAutoApproveSettings(autoApprove, autoThreshold)}
+                >
+                  Save
+                </Button>
               </div>
             )}
           </div>
