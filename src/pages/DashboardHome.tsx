@@ -1,4 +1,4 @@
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef } from "react";
 import { useCountUp } from "@/hooks/use-count-up";
 import { toast } from "sonner";
 import { notifyEvent, requestNotificationPermission } from "@/lib/notifications";
@@ -6,7 +6,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FAST_QUERY_OPTIONS } from "@/lib/query-options";
-import { Zap, Plus, Search, ArrowRight, Hand, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { PageContainer } from "@/components/shared";
@@ -17,8 +16,7 @@ import HeroStats from "@/components/dashboard/HeroStats";
 import ServiceCategories from "@/components/dashboard/ServiceCategories";
 import PopularServices from "@/components/dashboard/PopularServices";
 import RecentTimeline from "@/components/dashboard/RecentTimeline";
-import RecentOrdersList from "@/components/dashboard/RecentOrdersList";
-import { motion } from "framer-motion";
+import { Money } from "@/components/shared";
 
 export default function DashboardHome() {
   const { user, profile, refreshProfile } = useAuth();
@@ -26,10 +24,10 @@ export default function DashboardHome() {
   const initialized = useRef(false);
   const navigate = useNavigate();
   const l = useT();
+  const { formatAmount } = useCurrency();
 
   useEffect(() => { requestNotificationPermission(); }, []);
 
-  // Realtime subscriptions
   useEffect(() => {
     const channel = supabase
       .channel("reseller-dashboard-realtime")
@@ -55,7 +53,6 @@ export default function DashboardHome() {
     return () => { supabase.removeChannel(channel); initialized.current = false; };
   }, [queryClient, refreshProfile, l]);
 
-  // Orders
   const { data: orders, isLoading: ordersLoading } = useQuery({
     queryKey: ["dashboard-orders", user?.id],
     queryFn: async () => {
@@ -79,7 +76,6 @@ export default function DashboardHome() {
   const convertedBalance = convert(balance);
   const displayBalance = useCountUp(convertedBalance, 800);
 
-  // Stats
   const totalOrders = orders?.length || 0;
   const todayOrders = orders?.filter((o: any) => {
     const d = new Date(o.created_at);
@@ -92,6 +88,11 @@ export default function DashboardHome() {
 
   const statsLoading = ordersLoading || !profile;
 
+  // Most recent active order for the "installment card"
+  const recentActiveOrder = orders?.find((o: any) =>
+    ["processing", "pending", "pending_creation", "pending_review", "api_pending"].includes(o.status)
+  );
+
   return (
     <PageContainer>
       <PullToRefresh onRefresh={async () => {
@@ -102,9 +103,9 @@ export default function DashboardHome() {
           queryClient.invalidateQueries({ queryKey: ["service-categories-dashboard"] }),
         ]);
       }}>
-        <div className="space-y-5 lg:space-y-6">
+        <div className="space-y-6">
 
-          {/* ═══ HERO STATS (BNPL balance card + mini stats) ═══ */}
+          {/* ═══ BNPL HERO (balance + mini stats) ═══ */}
           <HeroStats
             balance={displayBalance}
             totalOrders={totalOrders}
@@ -115,82 +116,45 @@ export default function DashboardHome() {
             onWalletClick={() => navigate("/dashboard/wallet")}
           />
 
-          {/* ═══ RECENT ORDER CARD (BNPL Overdue-style) ═══ */}
-          {orders && orders.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, delay: 0.15 }}
+          {/* ═══ ACTIVE ORDER CARD (like "Adidas Store / Overdue" in BNPL ref) ═══ */}
+          {recentActiveOrder && (
+            <button
+              onClick={() => navigate(`/dashboard/orders/${recentActiveOrder.id}`)}
+              className="w-full rounded-2xl border border-border/20 bg-card p-4 text-left transition-all duration-200 hover:border-primary/20 active:scale-[0.99]"
             >
-              <RecentOrderCard order={orders[0]} onClick={() => navigate(`/dashboard/orders/${orders[0].id}`)} />
-            </motion.div>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[15px] font-semibold text-foreground line-clamp-1">
+                    {recentActiveOrder.product_name}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Processing</p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="text-[15px] font-bold tabular-nums text-foreground" style={{ fontFamily: "'Space Grotesk', monospace" }}>
+                    {formatAmount(recentActiveOrder.price)}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground mt-0.5">{recentActiveOrder.order_code}</p>
+                </div>
+              </div>
+              {/* Progress bar */}
+              <div className="mt-3 flex gap-1">
+                <div className="h-1 flex-1 rounded-full bg-primary" />
+                <div className="h-1 flex-1 rounded-full bg-primary/40" />
+                <div className="h-1 flex-1 rounded-full bg-border/30" />
+              </div>
+            </button>
           )}
 
-          {/* ═══ CATEGORIES (circular icons row like BNPL reference) ═══ */}
-          <ServiceCategories />
-
-          {/* ═══ POPULAR SERVICES (featured card style) ═══ */}
+          {/* ═══ POPULAR SERVICES (featured banner) ═══ */}
           <PopularServices />
 
-          {/* ═══ RECENT ORDERS LIST ═══ */}
-          <RecentOrdersList orders={orders} loading={ordersLoading} />
+          {/* ═══ CATEGORIES (circular icons — like BNPL ref) ═══ */}
+          <ServiceCategories />
+
+          {/* ═══ RECENT ACTIVITY ═══ */}
+          <RecentTimeline orders={orders} loading={ordersLoading} />
         </div>
       </PullToRefresh>
     </PageContainer>
-  );
-}
-
-/* ── BNPL-style Recent Order Card (like the "Adidas Store" card in reference) ── */
-function RecentOrderCard({ order, onClick }: { order: any; onClick: () => void }) {
-  const { formatAmount } = useCurrency();
-  const statusLabel = order.status === "completed" || order.status === "delivered"
-    ? "Completed"
-    : order.status === "processing" || order.status === "api_pending"
-    ? "Processing"
-    : order.status === "failed" || order.status === "cancelled"
-    ? "Failed"
-    : "Pending";
-
-  const statusColor = order.status === "completed" || order.status === "delivered"
-    ? "bg-success"
-    : order.status === "failed" || order.status === "cancelled"
-    ? "bg-destructive"
-    : "bg-primary";
-
-  const progress = order.status === "completed" || order.status === "delivered" ? 100
-    : order.status === "processing" || order.status === "api_pending" ? 60
-    : order.status === "failed" || order.status === "cancelled" ? 100
-    : 25;
-
-  return (
-    <button
-      onClick={onClick}
-      className="w-full rounded-2xl border border-border/30 bg-card p-4 text-left transition-all duration-200 hover:border-primary/20 active:scale-[0.99] group"
-      style={{ boxShadow: "var(--shadow-card)" }}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <p className="text-base font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-            {order.product_name}
-          </p>
-          <p className="text-xs text-muted-foreground mt-0.5">{statusLabel}</p>
-        </div>
-        <div className="text-right shrink-0">
-          <p className="text-base font-extrabold font-mono tabular-nums text-foreground">
-            {formatAmount(order.price)}
-          </p>
-          <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
-            {order.order_code}
-          </p>
-        </div>
-      </div>
-      {/* Progress bar */}
-      <div className="mt-3 h-1.5 rounded-full bg-secondary overflow-hidden">
-        <div
-          className={cn("h-full rounded-full transition-all duration-500", statusColor)}
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-    </button>
   );
 }
