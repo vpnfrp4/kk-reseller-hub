@@ -348,28 +348,6 @@ export default function WalletPage() {
             );
           })}
         </div>
-                        : "bg-secondary border border-border text-muted-foreground"
-                  )}>
-                    {isDone ? <CheckCircle2 className="w-5 h-5" /> : <StepIcon className="w-4 h-4" />}
-                    {isActive && <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-ping opacity-30" />}
-                  </div>
-                  <span className={cn(
-                    "text-[10px] sm:text-xs font-semibold transition-colors text-center",
-                    isDone || isActive ? "text-foreground" : "text-muted-foreground/50"
-                  )}>
-                    {s.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          {/* Background track */}
-          <div className="absolute top-[calc(1rem+20px)] left-[16.6%] right-[16.6%] h-0.5 bg-border/30 -z-0 rounded-full" />
-          <div
-            className="absolute top-[calc(1rem+20px)] left-[16.6%] h-0.5 bg-primary transition-all duration-500 -z-0 rounded-full"
-            style={{ width: `${currentStepIdx * 33.3}%` }}
-          />
-        </div>
 
         {/* ═══ STEP CONTENT ═══ */}
         <AnimatePresence mode="wait">
