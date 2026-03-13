@@ -1,4 +1,4 @@
-import { Wallet, ShoppingCart, CheckCircle2, Server, Plus, TrendingUp } from "lucide-react";
+import { Wallet, ShoppingCart, CheckCircle2, Server, Plus, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Money } from "@/components/shared";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,21 +17,21 @@ interface HeroStatsProps {
 }
 
 const MINI_STATS = [
-  { key: "today", label: "Today", icon: ShoppingCart, color: "primary", gradient: "from-primary/15 to-primary-glow/5" },
-  { key: "success", label: "Success", icon: CheckCircle2, color: "success", gradient: "from-success/12 to-success/3" },
-  { key: "processing", label: "Processing", icon: Server, color: "warning", gradient: "from-warning/12 to-warning/3" },
+  { key: "today", label: "Today", icon: ShoppingCart, color: "primary" },
+  { key: "success", label: "Success", icon: CheckCircle2, color: "success" },
+  { key: "processing", label: "Active", icon: Server, color: "warning" },
 ] as const;
 
 const containerVariants = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.05 } },
+  visible: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
 };
 
 const cardVariant = {
-  hidden: { opacity: 0, y: 20, scale: 0.95 },
+  hidden: { opacity: 0, y: 20, scale: 0.96 },
   visible: {
     opacity: 1, y: 0, scale: 1,
-    transition: { type: "spring", stiffness: 350, damping: 25 },
+    transition: { type: "spring", stiffness: 380, damping: 26 },
   },
 };
 
@@ -42,88 +42,57 @@ export default function HeroStats({
   const values: Record<string, number> = { today: todayOrders, success: successRate, processing: processingOrders };
 
   return (
-    <motion.div className="space-y-4" variants={containerVariants} initial="hidden" animate="visible">
-      {/* ═══ BALANCE HERO CARD ═══ */}
+    <motion.div className="space-y-3" variants={containerVariants} initial="hidden" animate="visible">
+      {/* ═══ BNPL HERO BALANCE CARD ═══ */}
       <motion.button
         variants={cardVariant}
         onClick={onWalletClick}
-        whileHover={{ y: -3, transition: { duration: 0.25 } }}
         whileTap={{ scale: 0.995 }}
-        className={cn(
-          "relative w-full overflow-hidden rounded-[var(--radius-card)] text-left",
-          "border border-primary/20 backdrop-blur-xl",
-          "hover:border-primary/35 hover:shadow-glow",
-          "transition-all duration-500 group"
-        )}
+        className="relative w-full overflow-hidden rounded-[var(--radius-modal)] text-left group"
       >
-        {/* Layered gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-primary/6 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-tl from-primary-glow/5 via-transparent to-transparent" />
+        {/* Red-to-dark gradient background (BNPL style) */}
+        <div className="absolute inset-0 bnpl-hero-gradient" />
         
-        {/* Animated glow orbs */}
-        <div className="absolute -top-20 -right-20 w-56 h-56 rounded-full bg-primary/10 blur-3xl group-hover:bg-primary/18 group-hover:scale-110 transition-all duration-1000 pointer-events-none animate-ambient-drift" />
-        <div className="absolute -bottom-16 -left-16 w-44 h-44 rounded-full bg-primary-glow/6 blur-2xl group-hover:bg-primary-glow/12 transition-all duration-1000 pointer-events-none" style={{ animationDelay: '4s' }} />
+        {/* Soft radial light effect top-right */}
+        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/[0.06] blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-black/20 blur-3xl pointer-events-none" />
         
-        {/* Shimmer sweep on hover */}
-        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent" style={{ animation: 'shimmer-sweep 2s ease-in-out infinite' }} />
-        </div>
-
-        {/* Bottom accent line */}
-        <div className="absolute bottom-0 inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-primary/50 to-transparent opacity-40 group-hover:opacity-100 transition-opacity duration-500" />
-
         {/* Content */}
-        <div className="relative z-10 p-5 lg:p-7">
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-3.5 flex-1">
-              <div className="flex items-center gap-3">
-                <motion.div
-                  className="w-12 h-12 lg:w-14 lg:h-14 rounded-2xl bg-primary/12 border border-primary/15 flex items-center justify-center group-hover:bg-primary/20 transition-all duration-400"
-                  whileHover={{ rotate: [0, -5, 5, 0], transition: { duration: 0.4 } }}
-                >
-                  <Wallet className="w-6 h-6 lg:w-7 lg:h-7 text-primary" strokeWidth={1.6} />
-                </motion.div>
-                <div>
-                  <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.14em] font-display">
-                    Wallet Balance
-                  </span>
-                  <div className="flex items-center gap-1.5 mt-0.5">
-                    <TrendingUp className="w-3 h-3 text-success" />
-                    <span className="text-[10px] text-muted-foreground font-medium">
-                      {totalOrders} orders placed
-                    </span>
-                  </div>
-                </div>
-              </div>
+        <div className="relative z-10 p-6 lg:p-8">
+          <p className="text-[11px] font-medium text-white/60 uppercase tracking-[0.14em] mb-1">
+            Current Balance
+          </p>
 
-              {loading ? (
-                <Skeleton className="h-12 w-44 rounded-xl" />
-              ) : (
-                <motion.p
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.3 }}
-                  className="text-[2rem] lg:text-[2.8rem] font-extrabold font-mono tabular-nums tracking-tight text-foreground leading-none"
-                >
-                  <Money amount={balance} raw className="text-[2rem] lg:text-[2.8rem]" />
-                </motion.p>
-              )}
-            </div>
+          {loading ? (
+            <Skeleton className="h-14 w-52 rounded-2xl bg-white/10" />
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }}
+              className="text-[2.6rem] lg:text-[3.4rem] font-extrabold text-white leading-none tracking-tight font-display"
+            >
+              <Money amount={balance} raw className="text-[2.6rem] lg:text-[3.4rem] !text-white [&_*]:!text-white" />
+            </motion.div>
+          )}
 
+          <div className="flex items-center gap-3 mt-4">
             <Button
               size="sm"
               onClick={(e) => { e.stopPropagation(); navigate("/dashboard/wallet"); }}
-              className="gap-1.5 shrink-0 shadow-lg shadow-primary/25 rounded-xl h-10 px-4 font-bold"
+              className="gap-1.5 rounded-pill h-10 px-5 font-bold bg-foreground text-background hover:bg-foreground/90 shadow-xl"
             >
-              <Plus className="w-4 h-4" />
-              <span className="hidden sm:inline text-xs">Add Funds</span>
+              Enhance <ArrowUpRight className="w-4 h-4" />
             </Button>
+            <span className="text-xs text-white/40 font-medium">
+              {totalOrders} orders placed
+            </span>
           </div>
         </div>
       </motion.button>
 
       {/* ═══ MINI STAT CARDS ═══ */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-3 gap-2.5">
         {MINI_STATS.map((stat) => {
           const Icon = stat.icon;
           const value = values[stat.key];
@@ -133,36 +102,21 @@ export default function HeroStats({
             <motion.div
               key={stat.key}
               variants={cardVariant}
-              whileHover={{ y: -4, transition: { duration: 0.2 } }}
-              className={cn(
-                "relative overflow-hidden rounded-[var(--radius-card)] border border-border/50",
-                "bg-card/90 backdrop-blur-xl",
-                "p-3.5 lg:p-4 transition-all duration-400 cursor-default group",
-                "hover:border-primary/15 hover:shadow-[var(--shadow-elevated)]",
-              )}
+              className="relative overflow-hidden rounded-2xl border border-border/40 bg-card p-3.5 transition-all duration-300 group"
+              style={{ boxShadow: "var(--shadow-card)" }}
             >
-              {/* Gradient overlay */}
-              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none", stat.gradient)} />
-
-              {/* Top accent line with glow */}
-              <div
-                className="absolute top-0 inset-x-4 h-[2px] rounded-b-full opacity-40 group-hover:opacity-80 transition-opacity duration-300"
-                style={{ background: `hsl(var(--${stat.color}))`, boxShadow: `0 0 8px hsl(var(--${stat.color}) / 0.3)` }}
-              />
-
-              <div className="relative z-10 flex items-center gap-2.5">
-                <motion.div
-                  className="w-9 h-9 lg:w-10 lg:h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: `hsl(var(--${stat.color}) / 0.1)` }}
-                  whileHover={{ scale: 1.1, rotate: 5 }}
+              <div className="flex items-center gap-2.5">
+                <div
+                  className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: `hsl(var(--${stat.color}) / 0.08)` }}
                 >
-                  <Icon className={cn("w-4 h-4 lg:w-[18px] lg:h-[18px]", `text-${stat.color}`)} strokeWidth={1.8} />
-                </motion.div>
+                  <Icon className={cn("w-4 h-4", `text-${stat.color}`)} strokeWidth={1.8} />
+                </div>
                 <div className="min-w-0">
-                  <p className="text-xl lg:text-2xl font-extrabold font-mono tabular-nums text-foreground leading-none">
-                    {loading ? <Skeleton className="h-7 w-10" /> : isSuccess ? `${value}%` : value.toLocaleString()}
+                  <p className="text-lg font-extrabold font-mono tabular-nums text-foreground leading-none">
+                    {loading ? <Skeleton className="h-6 w-8" /> : isSuccess ? `${value}%` : value.toLocaleString()}
                   </p>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.1em] mt-0.5 truncate font-display">
+                  <p className="text-[9px] font-bold text-muted-foreground uppercase tracking-[0.1em] mt-0.5 truncate">
                     {stat.label}
                   </p>
                 </div>
