@@ -9,10 +9,10 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const cardVariants = {
-  hidden: { opacity: 0, y: 16, scale: 0.96 },
+  hidden: { opacity: 0, y: 12 },
   visible: (i: number) => ({
-    opacity: 1, y: 0, scale: 1,
-    transition: { type: "spring", stiffness: 350, damping: 24, delay: i * 0.07 },
+    opacity: 1, y: 0,
+    transition: { duration: 0.3, delay: i * 0.06 },
   }),
 };
 
@@ -59,11 +59,11 @@ export default function PopularServices() {
 
   if (isLoading) {
     return (
-      <div className="cd-card">
+      <div className="rounded-2xl border border-border/30 bg-card p-5" style={{ boxShadow: "var(--shadow-card)" }}>
         <Skeleton className="h-5 w-36 mb-4" />
-        <div className="cd-services-grid">
+        <div className="grid grid-cols-2 gap-3">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="rounded-[var(--radius-card)] border border-border/40 bg-card/60 p-4 animate-pulse">
+            <div key={i} className="rounded-2xl border border-border/30 bg-card p-4 animate-pulse">
               <div className="flex items-center gap-3 mb-3">
                 <Skeleton className="w-11 h-11 rounded-xl" />
                 <div className="flex-1 space-y-1.5">
@@ -81,38 +81,38 @@ export default function PopularServices() {
 
   if (!products || products.length === 0) {
     return (
-      <div className="cd-card">
-        <div className="cd-section-title">
-          <h2>Popular Services</h2>
-          <span>Top picks</span>
+      <div className="rounded-2xl border border-border/30 bg-card p-5" style={{ boxShadow: "var(--shadow-card)" }}>
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="w-1.5 h-6 rounded-full bg-primary" />
+          <h2 className="text-sm font-bold text-foreground">Popular Services</h2>
         </div>
-        <p className="cd-stat-delta text-muted-foreground text-sm">No popular products configured.</p>
+        <p className="text-sm text-muted-foreground">No popular products configured.</p>
       </div>
     );
   }
 
   return (
-    <div className="cd-card cd-reveal">
+    <div className="rounded-2xl border border-border/30 bg-card p-5" style={{ boxShadow: "var(--shadow-card)" }}>
       {/* Section header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2.5">
-          <div className="w-1.5 h-6 rounded-full bg-gradient-to-b from-primary to-primary-glow" />
-          <h2 className="text-sm lg:text-base font-extrabold text-foreground tracking-tight font-display">Popular Services</h2>
-          <span className="text-[10px] font-bold text-primary bg-primary/8 px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1 border border-primary/15">
+          <div className="w-1.5 h-6 rounded-full bg-primary" />
+          <h2 className="text-sm lg:text-base font-bold text-foreground tracking-tight">Popular Services</h2>
+          <span className="text-[10px] font-bold text-primary bg-primary/8 px-2 py-0.5 rounded-pill uppercase tracking-wider flex items-center gap-1 border border-primary/15">
             <Flame className="w-3 h-3" />
             Hot
           </span>
         </div>
         <button
           onClick={() => navigate("/dashboard/place-order")}
-          className="text-xs font-bold text-primary flex items-center gap-1 hover:text-primary/80 transition-colors group"
+          className="text-xs font-bold text-primary flex items-center gap-1 hover:text-primary/80 transition-colors"
         >
-          View all <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+          View all <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      {/* Services grid */}
-      <div className="cd-services-grid">
+      {/* Services grid — clean BNPL cards */}
+      <div className="grid grid-cols-2 gap-3">
         {products.slice(0, 6).map((product: any, i: number) => (
           <motion.button
             key={product.id}
@@ -120,42 +120,31 @@ export default function PopularServices() {
             variants={cardVariants}
             initial="hidden"
             animate="visible"
-            whileHover={{ y: -4, transition: { duration: 0.2 } }}
             whileTap={{ scale: 0.98 }}
             onClick={() => navigate("/dashboard/place-order")}
-            className={cn(
-              "cd-service-card text-left cursor-pointer relative group overflow-hidden",
-              "hover:border-primary/25 hover:shadow-[0_12px_40px_-16px_hsl(var(--primary)/0.2)]",
-            )}
+            className="text-left rounded-2xl border border-border/30 bg-card p-4 transition-all duration-200 hover:border-primary/20 group"
+            style={{ boxShadow: "var(--shadow-card)" }}
           >
-            {/* Hover gradient glow */}
-            <div className="absolute inset-0 rounded-[inherit] bg-gradient-to-br from-primary/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-            
-            {/* Shimmer sweep on hover */}
-            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none overflow-hidden rounded-[inherit]">
-              <div className="absolute -inset-full bg-gradient-to-r from-transparent via-primary/[0.03] to-transparent" style={{ animation: 'shimmer-sweep 3s ease-in-out infinite' }} />
-            </div>
-
-            <div className="cd-service-head relative z-10">
+            <div className="flex items-center gap-3 mb-3">
               <ProductIcon
                 imageUrl={product.image_url}
                 name={product.name}
                 category={product.category}
                 size="md"
               />
-              <div className="cd-service-meta">
-                <strong className="line-clamp-1 text-[13px] group-hover:text-primary transition-colors duration-300">{product.name}</strong>
-                <p className="flex items-center gap-1">
-                  <span className="truncate">{product.category || "Service"}</span>
-                </p>
+              <div className="min-w-0 flex-1">
+                <strong className="text-[13px] font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">{product.name}</strong>
+                <p className="text-[10px] text-muted-foreground/50 mt-0.5">{product.category || "Service"}</p>
               </div>
             </div>
-            <div className="cd-service-foot relative z-10">
-              <span className="font-extrabold"><Money amount={product.wholesale_price} compact /></span>
-              <small className="flex items-center gap-1">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold font-mono tabular-nums text-foreground">
+                <Money amount={product.wholesale_price} compact />
+              </span>
+              <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1">
                 <Clock className="w-3 h-3" />
-                {product.processing_time || "normal"}
-              </small>
+                {product.processing_time || "Instant"}
+              </span>
             </div>
           </motion.button>
         ))}

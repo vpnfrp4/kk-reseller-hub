@@ -180,7 +180,7 @@ export default function DashboardHome() {
           </motion.div>
 
           {/* ═══ SECTION GRID: Popular Services + Timeline ═══ */}
-          <div className="cd-section-grid cd-reveal">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <PopularServices />
             <RecentTimeline orders={orders} loading={ordersLoading} />
           </div>

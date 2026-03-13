@@ -21,11 +21,11 @@ interface CategoryCardsOverviewProps {
 
 const container = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.045, delayChildren: 0.05 } },
+  visible: { transition: { staggerChildren: 0.04, delayChildren: 0.05 } },
 };
 const item = {
-  hidden: { opacity: 0, y: 18, scale: 0.96 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease: [0.22, 1, 0.36, 1] } },
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
 };
 
 export default function CategoryCardsOverview({ onCategoryClick }: CategoryCardsOverviewProps) {
@@ -91,7 +91,6 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
       cats = cats.filter(c => activeSet.has(c.name) || !managedMap.has(c.name));
     }
 
-    // Hide IMEI Check category
     cats = cats.filter(c => c.name !== "IMEI Check");
 
     return cats.sort((a, b) => {
@@ -124,32 +123,15 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
 
     if (imageUrl && !imgError) {
       return (
-        <div className={cn(
-          "w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden",
-          "transition-all duration-300 group-hover:scale-110 group-hover:rotate-3",
-          "bg-secondary/40 border border-border/20"
-        )}>
-          <img
-            src={imageUrl}
-            alt=""
-            className="w-full h-full object-contain p-1.5"
-            onError={handleError}
-            loading="lazy"
-          />
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden bg-secondary/30 border border-border/20">
+          <img src={imageUrl} alt="" className="w-full h-full object-contain p-1.5" onError={handleError} loading="lazy" />
         </div>
       );
     }
 
     return (
-      <div className={cn(
-        "w-12 h-12 rounded-xl flex items-center justify-center relative",
-        "transition-all duration-300 group-hover:scale-110 group-hover:rotate-3",
-        iconColor
-      )}>
-        <IconComp className="w-5 h-5 relative z-10" strokeWidth={1.7} />
-        {/* Icon inner glow */}
-        <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-          style={{ boxShadow: "inset 0 0 12px hsl(var(--primary) / 0.15)" }} />
+      <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", iconColor)}>
+        <IconComp className="w-5 h-5" strokeWidth={1.7} />
       </div>
     );
   };
@@ -171,28 +153,17 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
           <motion.button
             key={cat.name}
             variants={item}
-            whileHover={{ y: -4, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } }}
             whileTap={{ scale: 0.97 }}
             onClick={() => onCategoryClick(cat.name)}
             className={cn(
-              "relative overflow-hidden rounded-2xl border border-border/30 bg-card/90",
-              "p-4 sm:p-5 text-left transition-all duration-300 group",
-              "hover:border-primary/30",
-              "hover:shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.15),0_0_0_1px_hsl(var(--primary)/0.08)]",
+              "rounded-2xl border border-border/30 bg-card",
+              "p-4 sm:p-5 text-left transition-all duration-200 group",
+              "hover:border-primary/25",
               "min-h-[148px] sm:min-h-[160px] flex flex-col",
-              "backdrop-blur-sm"
+              "relative"
             )}
+            style={{ boxShadow: "var(--shadow-card)" }}
           >
-            {/* Animated corner glow */}
-            <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-primary/[0.03] blur-3xl opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none group-hover:bg-primary/[0.08]" />
-            <div className="absolute -bottom-16 -left-16 w-32 h-32 rounded-full bg-primary-glow/[0.02] blur-2xl opacity-0 group-hover:opacity-100 transition-all duration-700 delay-100 pointer-events-none" />
-
-            {/* Top accent line with glow */}
-            <div className="absolute top-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <div className="h-full bg-gradient-to-r from-primary/60 via-primary/30 to-transparent" />
-              <div className="h-1 bg-gradient-to-r from-primary/20 via-transparent to-transparent blur-sm -mt-0.5" />
-            </div>
-
             {/* Badge — top-right */}
             <div className="absolute top-3.5 right-3.5 flex items-center gap-1.5">
               {cat.isApi && (
@@ -201,7 +172,7 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
                   API
                 </span>
               )}
-              <span className="inline-flex items-center justify-center min-w-[24px] h-[24px] px-1.5 rounded-lg bg-primary/8 text-[10px] font-bold font-mono tabular-nums text-primary border border-primary/12 group-hover:bg-primary/15 group-hover:border-primary/25 transition-all duration-300">
+              <span className="inline-flex items-center justify-center min-w-[24px] h-[24px] px-1.5 rounded-lg bg-primary/8 text-[10px] font-bold font-mono tabular-nums text-primary border border-primary/12">
                 {cat.count}
               </span>
             </div>
@@ -210,26 +181,22 @@ export default function CategoryCardsOverview({ onCategoryClick }: CategoryCards
               <CategoryIcon imageUrl={cat.image_url} iconColor={iconColor} IconComp={IconComp} />
             </div>
 
-            <p className="text-[13px] sm:text-sm font-bold text-foreground line-clamp-2 mb-auto leading-snug font-display group-hover:text-primary/90 transition-colors duration-300">{cat.name}</p>
+            <p className="text-[13px] sm:text-sm font-bold text-foreground line-clamp-2 mb-auto leading-snug group-hover:text-primary transition-colors">{cat.name}</p>
 
             {/* Sample products */}
             {cat.sampleProducts.length > 0 && (
-              <div className="mt-2.5 pt-2 border-t border-border/15 space-y-0.5 group-hover:border-primary/10 transition-colors">
+              <div className="mt-2.5 pt-2 border-t border-border/15 space-y-0.5">
                 {cat.sampleProducts.slice(0, 2).map((name, j) => (
-                  <p key={j} className="text-[10px] text-muted-foreground/45 truncate leading-relaxed">
-                    {name}
-                  </p>
+                  <p key={j} className="text-[10px] text-muted-foreground/40 truncate leading-relaxed">{name}</p>
                 ))}
                 {cat.count > 2 && (
-                  <p className="text-[10px] text-primary/50 font-semibold mt-0.5 group-hover:text-primary/70 transition-colors">
-                    +{cat.count - 2} more
-                  </p>
+                  <p className="text-[10px] text-primary/50 font-semibold mt-0.5">+{cat.count - 2} more</p>
                 )}
               </div>
             )}
 
-            {/* Hover arrow with glow */}
-            <div className="absolute bottom-3.5 right-3.5 w-7 h-7 rounded-lg bg-primary/8 flex items-center justify-center opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 group-hover:shadow-[0_0_12px_hsl(var(--primary)/0.15)]">
+            {/* Arrow */}
+            <div className="absolute bottom-3.5 right-3.5 w-7 h-7 rounded-lg bg-primary/8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
               <ArrowRight className="w-3.5 h-3.5 text-primary" />
             </div>
           </motion.button>

@@ -455,7 +455,7 @@ export default function CategoryDetailPage() {
   );
 }
 
-/* ═══ SERVICE CARD (Grid) ═══ */
+/* ═══ SERVICE CARD (Grid) — BNPL Clean Style ═══ */
 function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect }: {
   product: any; index: number; isFavorite: boolean;
   onToggleFavorite: (id: string, e?: React.MouseEvent) => void;
@@ -472,7 +472,6 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
   else if (pType === "api") { badgeLabel = "API"; badgeClass = "bg-ice/8 text-ice border-ice/15"; BadgeIcon = Link2; }
 
   const CategoryIcon = getCategoryIcon(p.category, p.name);
-  const iconColor = getCategoryIconColor(p.category, p.name);
 
   return (
     <motion.button
@@ -482,24 +481,25 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
       onClick={() => !isOutOfStock && onSelect(p.id)}
       disabled={isOutOfStock}
       className={cn(
-        "w-full text-left rounded-2xl border border-border/30 bg-card/90 overflow-hidden group/card transition-all duration-250 relative",
+        "w-full text-left rounded-2xl border border-border/30 bg-card overflow-hidden group/card transition-all duration-200 relative",
         isOutOfStock
           ? "opacity-35 cursor-not-allowed"
-          : "cursor-pointer hover:border-primary/25 hover:shadow-[0_6px_24px_-6px_hsl(var(--primary)/0.1)] hover:-translate-y-0.5 active:scale-[0.98]"
+          : "cursor-pointer hover:border-primary/20 active:scale-[0.99]"
       )}
+      style={{ boxShadow: "var(--shadow-card)" }}
     >
       {/* Image area */}
-      <div className="relative w-full aspect-[5/3] overflow-hidden bg-secondary/20">
+      <div className="relative w-full aspect-[5/3] overflow-hidden bg-secondary/15">
         {p.image_url && imgStatus !== "error" ? (
           <>
             {imgStatus === "loading" && (
-              <div className="absolute inset-0 bg-muted/20 animate-pulse" />
+              <div className="absolute inset-0 bg-muted/15 animate-pulse" />
             )}
             <img
               src={p.image_url}
               alt={sanitizeName(p.name)}
               className={cn(
-                "w-full h-full object-cover transition-transform duration-400 group-hover/card:scale-105",
+                "w-full h-full object-cover transition-transform duration-300 group-hover/card:scale-105",
                 imgStatus === "loaded" ? "opacity-100" : "opacity-0"
               )}
               loading="lazy"
@@ -508,11 +508,11 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
             />
           </>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-primary/[0.04] to-transparent">
+          <div className="w-full h-full flex flex-col items-center justify-center gap-2 bg-secondary/10">
             <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-primary/8">
-              <CategoryIcon className="w-6 h-6 text-primary/50" strokeWidth={1.5} />
+              <CategoryIcon className="w-6 h-6 text-primary/40" strokeWidth={1.5} />
             </div>
-            <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/30 px-4 text-center line-clamp-1">
+            <span className="text-[9px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/25 px-4 text-center line-clamp-1">
               {p.category}
             </span>
           </div>
@@ -523,7 +523,7 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
           <button
             onClick={(e) => onToggleFavorite(p.id, e)}
             className={cn(
-              "absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-black/25 backdrop-blur-sm transition-all duration-200 z-10",
+              "absolute top-2.5 right-2.5 p-1.5 rounded-lg bg-black/20 backdrop-blur-sm transition-all duration-200 z-10",
               isFavorite ? "text-warning opacity-100" : "text-white/40 opacity-0 group-hover/card:opacity-100 hover:text-warning/80"
             )}
           >
