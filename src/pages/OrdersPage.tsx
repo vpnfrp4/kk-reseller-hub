@@ -79,6 +79,35 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+/* ── Order Progress Bar (BNPL style) ── */
+function OrderProgressBar({ order }: { order: any }) {
+  const statusMap: Record<string, number> = {
+    pending: 1, pending_creation: 1, pending_review: 1,
+    processing: 2, api_pending: 2,
+    completed: 3, delivered: 3,
+    rejected: 3, cancelled: 3,
+  };
+  const progress = statusMap[order.status] || 1;
+  const total = 3;
+  const isFailed = order.status === "rejected" || order.status === "cancelled";
+
+  return (
+    <div className="flex items-center gap-1 w-full">
+      {Array.from({ length: total }).map((_, i) => (
+        <div
+          key={i}
+          className={cn(
+            "h-[3px] flex-1 rounded-full transition-all duration-300",
+            i < progress
+              ? isFailed ? "bg-destructive" : "bg-primary"
+              : "bg-border/40"
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
 /* ── Order Timeline ── */
 function OrderTimeline({ order }: { order: any }) {
   const steps = [
