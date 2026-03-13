@@ -79,6 +79,35 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+/* ── Order Progress Bar (BNPL style) ── */
+function OrderProgressBar({ order }: { order: any }) {
+  const statusMap: Record<string, number> = {
+    pending: 1, pending_creation: 1, pending_review: 1,
+    processing: 2, api_pending: 2,
+    completed: 3, delivered: 3,
+    rejected: 3, cancelled: 3,
+  };
+  const progress = statusMap[order.status] || 1;
+  const total = 3;
+  const isFailed = order.status === "rejected" || order.status === "cancelled";
+
+  return (
+    <div className="flex items-center gap-1 w-full">
+      {Array.from({ length: total }).map((_, i) => (
+        <div
+          key={i}
+          className={cn(
+            "h-[3px] flex-1 rounded-full transition-all duration-300",
+            i < progress
+              ? isFailed ? "bg-destructive" : "bg-primary"
+              : "bg-border/40"
+          )}
+        />
+      ))}
+    </div>
+  );
+}
+
 /* ── Order Timeline ── */
 function OrderTimeline({ order }: { order: any }) {
   const steps = [
@@ -711,54 +740,56 @@ export default function OrdersPage() {
               <div
                 key={row.id}
                 className={cn(
-                  "rounded-2xl border border-border/25 bg-card/80 overflow-hidden transition-all duration-200",
+                  "rounded-2xl border border-border/30 bg-card overflow-hidden transition-all duration-200",
                   highlightedIds.has(row.id) && "animate-[highlight-flash_2s_ease-out] ring-1 ring-primary/25 bg-primary/4",
                 )}
+                style={{ boxShadow: "var(--shadow-card)" }}
               >
                 <div
                   className="p-4 cursor-pointer active:scale-[0.99] transition-transform"
                   onClick={() => toggleExpand(row.id)}
                 >
-                  {/* Top row */}
-                  <div className="flex items-start justify-between gap-3 mb-2">
-                    <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                      <ProductIcon
-                        imageUrl={row.products?.image_url}
-                        name={row.product_name}
-                        category={row.products?.category || row.product_type || "General"}
-                        size="sm"
-                      />
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground line-clamp-1">{sanitizeName(row.product_name)}</p>
-                        <p className="text-[11px] text-muted-foreground font-mono mt-0.5">{row.order_code || row.id.slice(0, 8)}</p>
-                      </div>
+                  {/* Top row: Name + Price */}
+                  <div className="flex items-start justify-between gap-3 mb-1.5">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-foreground line-clamp-1">{sanitizeName(row.product_name)}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
+                        {format(new Date(row.created_at), "dd MMM yyyy")}
+                      </p>
                     </div>
-                    <StatusBadge status={row.status} />
+                    <div className="text-right shrink-0">
+                      <Money amount={row.price} className="text-sm font-bold text-foreground" />
+                      <p className="text-[10px] text-muted-foreground mt-0.5 capitalize">{row.status.replace("_", " ")}</p>
+                    </div>
                   </div>
 
-                  {/* Details row */}
-                  <div className="flex items-center justify-between mt-3">
-                    <div className="flex items-center gap-2">
-                      <ProductTypeBadge type={row.product_type} />
-                      <span className="text-[11px] text-muted-foreground">{format(new Date(row.created_at), "MMM dd, yyyy")}</span>
-                    </div>
-                    <Money amount={row.price} className="text-sm font-bold text-foreground" />
+                  {/* BNPL-style progress bar */}
+                  <div className="mt-3 mb-2">
+                    <OrderProgressBar order={row} />
                   </div>
 
-                  {/* Action row */}
-                  <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/20">
-                    <button
-                      onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/orders/${row.id}`); }}
-                      className="text-xs font-medium text-primary flex items-center gap-1.5 hover:underline"
-                    >
-                      View Details
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
-                    <ChevronDown className={cn(
-                      "w-4 h-4 text-muted-foreground transition-transform duration-200",
-                      expandedId === row.id && "rotate-180"
-                    )} />
-                  </div>
+                  {/* Action buttons (BNPL style) */}
+                  {["processing", "pending", "pending_creation", "pending_review", "api_pending"].includes(row.status) && (
+                    <div className="mt-3 space-y-2">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/orders/${row.id}`); }}
+                        className="w-full h-10 rounded-pill bg-primary text-primary-foreground text-sm font-bold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+                        style={{ boxShadow: "0 4px 16px hsl(var(--primary) / 0.25)" }}
+                      >
+                        Track Order
+                      </button>
+                    </div>
+                  )}
+                  {["completed", "delivered"].includes(row.status) && (
+                    <div className="mt-3">
+                      <button
+                        onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/orders/${row.id}`); }}
+                        className="w-full h-10 rounded-pill border border-border/40 bg-card text-foreground text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+                      >
+                        View Details
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Expanded detail */}

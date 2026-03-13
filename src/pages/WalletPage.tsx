@@ -327,48 +327,26 @@ export default function WalletPage() {
           </div>
         </div>
 
-        {/* ═══ STEP PROGRESS BAR ═══ */}
-        <div className="relative p-4 rounded-[var(--radius-card)] border border-border/30 bg-card/60 backdrop-blur-sm" style={{ boxShadow: "var(--shadow-card)" }}>
-          <div className="flex items-center justify-between relative z-10">
-            {STEPS_INFO.map((s, i) => {
-              const isDone = i < currentStepIdx;
-              const isActive = i === currentStepIdx;
-              const StepIcon = s.icon;
-              return (
-                <div key={s.key} className="flex flex-col items-center gap-2 relative flex-1">
-                  {/* Connector line */}
-                  {i > 0 && (
-                    <div className="absolute top-5 right-1/2 w-full h-0.5 -z-10" style={{ transform: "translateX(-50%)" }}>
-                      <div className={cn("h-full transition-all duration-500 rounded-full", isDone || isActive ? "bg-primary" : "bg-border/50")} />
-                    </div>
-                  )}
-                  <div className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center transition-all duration-300 relative",
-                    isDone
-                      ? "bg-primary text-primary-foreground shadow-[0_0_16px_hsl(var(--primary)/0.25)]"
-                      : isActive
-                        ? "bg-primary/10 border-2 border-primary text-primary shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
-                        : "bg-secondary border border-border text-muted-foreground"
-                  )}>
-                    {isDone ? <CheckCircle2 className="w-5 h-5" /> : <StepIcon className="w-4 h-4" />}
-                    {isActive && <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-ping opacity-30" />}
-                  </div>
-                  <span className={cn(
-                    "text-[10px] sm:text-xs font-semibold transition-colors text-center",
-                    isDone || isActive ? "text-foreground" : "text-muted-foreground/50"
-                  )}>
-                    {s.label}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-          {/* Background track */}
-          <div className="absolute top-[calc(1rem+20px)] left-[16.6%] right-[16.6%] h-0.5 bg-border/30 -z-0 rounded-full" />
-          <div
-            className="absolute top-[calc(1rem+20px)] left-[16.6%] h-0.5 bg-primary transition-all duration-500 -z-0 rounded-full"
-            style={{ width: `${currentStepIdx * 33.3}%` }}
-          />
+        {/* ═══ STEP PROGRESS BAR (BNPL style) ═══ */}
+        <div className="flex items-center gap-2 px-1">
+          {STEPS_INFO.map((s, i) => {
+            const isDone = i < currentStepIdx;
+            const isActive = i === currentStepIdx;
+            return (
+              <div key={s.key} className="flex-1 flex flex-col items-center gap-1.5">
+                <div className={cn(
+                  "h-[3px] w-full rounded-full transition-all duration-400",
+                  isDone ? "bg-primary" : isActive ? "bg-primary" : "bg-border/40"
+                )} />
+                <span className={cn(
+                  "text-[10px] font-semibold transition-colors",
+                  isDone || isActive ? "text-foreground" : "text-muted-foreground/50"
+                )}>
+                  {s.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
 
         {/* ═══ STEP CONTENT ═══ */}

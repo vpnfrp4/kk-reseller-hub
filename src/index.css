@@ -944,6 +944,17 @@ html {
   .landing-outline-btn { color: #39FF14; }
   .landing-outline-btn:hover { background: rgba(57, 255, 20, 0.06); }
 
+  /* ─── BNPL Hero Gradient ─── */
+  .bnpl-hero-gradient {
+    background: linear-gradient(145deg, hsl(0 80% 45%), hsl(15 90% 42%), hsl(20 85% 30%), hsl(225 44% 8%));
+    background-size: 200% 200%;
+  }
+
+  .dark .bnpl-hero-gradient {
+    background: linear-gradient(145deg, hsl(0 75% 38%), hsl(15 85% 35%), hsl(20 80% 22%), hsl(225 44% 4%));
+    background-size: 200% 200%;
+  }
+
   /* ─── Balance Card ─── */
   .balance-card {
     background: linear-gradient(135deg, hsl(var(--card)), hsl(var(--secondary)));
