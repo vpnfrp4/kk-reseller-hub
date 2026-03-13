@@ -290,40 +290,43 @@ export default function WalletPage() {
   return (
     <PullToRefresh onRefresh={async () => { await Promise.all([refetchTransactions(), queryClient.invalidateQueries({ queryKey: ["payment-methods"] })]); }}>
       <div className="space-y-6">
-        {/* ═══ HEADER ═══ */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {step !== "select" ? (
-              <button onClick={goBack}
-                className="p-2 rounded-[var(--radius-btn)] bg-secondary border border-border text-muted-foreground hover:text-foreground transition-colors">
-                <ArrowLeft className="w-4 h-4" />
-              </button>
-            ) : (
-              <div className="w-10 h-10 rounded-[var(--radius-card)] bg-primary/10 border border-primary/20 flex items-center justify-center"
-                style={{ boxShadow: "0 0 20px hsl(var(--primary) / 0.1)" }}>
-                <Wallet className="w-5 h-5 text-primary" />
+        {/* ═══ BNPL HEADER ═══ */}
+        <div className="relative overflow-hidden rounded-[var(--radius-modal)] p-5 lg:p-7">
+          <div className="absolute inset-0 bnpl-hero-gradient" />
+          <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-white/[0.05] blur-3xl pointer-events-none" />
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              {step !== "select" ? (
+                <button onClick={goBack}
+                  className="p-2 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-colors backdrop-blur-sm">
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                  <Wallet className="w-5 h-5 text-white" />
+                </div>
+              )}
+              <div>
+                <h1 className="text-lg font-bold text-white">
+                  {step === "select" ? "Payment Gateway" : step === "details" ? "Payment Details" : "Upload Proof"}
+                </h1>
+                <p className="text-xs text-white/45">
+                  {step === "select" ? "Choose your preferred payment method" : step === "details" ? `Pay via ${activeMethod?.provider || ""}` : "Upload your payment screenshot"}
+                </p>
               </div>
-            )}
-            <div>
-              <h1 className="text-lg font-bold text-foreground">
-                {step === "select" ? "Payment Gateway" : step === "details" ? "Payment Details" : "Upload Proof"}
-              </h1>
-              <p className="text-xs text-muted-foreground">
-                {step === "select" ? "Choose your preferred payment method" : step === "details" ? `Pay via ${activeMethod?.provider || ""}` : "Upload your payment screenshot"}
-              </p>
             </div>
-          </div>
 
-          <div className="flex items-center gap-2">
-            {/* Balance chip */}
-            <div className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-[var(--radius-card)] bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
-              <Wallet className="w-4 h-4 text-primary" />
-              {!profile ? <Skeleton className="h-5 w-24" /> : <Money amount={profile.balance || 0} className="font-mono font-bold text-foreground tabular-nums" />}
+            <div className="flex items-center gap-2">
+              {/* Balance chip */}
+              <div className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-pill bg-white/10 backdrop-blur-sm">
+                <Wallet className="w-4 h-4 text-white/70" />
+                {!profile ? <Skeleton className="h-5 w-24 bg-white/10" /> : <Money amount={profile.balance || 0} className="font-mono font-bold text-white tabular-nums" />}
+              </div>
+              <button onClick={() => setShowHistory(true)}
+                className="flex items-center gap-1.5 px-3 py-2.5 rounded-pill bg-white/10 text-xs font-semibold text-white/70 hover:bg-white/20 hover:text-white transition-all backdrop-blur-sm">
+                <History className="w-3.5 h-3.5" /> History
+              </button>
             </div>
-            <button onClick={() => setShowHistory(true)}
-              className="flex items-center gap-1.5 px-3 py-2.5 rounded-[var(--radius-btn)] bg-secondary border border-border text-xs font-semibold text-muted-foreground hover:text-foreground hover:border-primary/20 transition-all">
-              <History className="w-3.5 h-3.5" /> History
-            </button>
           </div>
         </div>
 

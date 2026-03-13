@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FAST_QUERY_OPTIONS } from "@/lib/query-options";
 import { Zap, Plus, Search, ArrowRight, Hand } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { PageContainer } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
@@ -141,7 +142,7 @@ export default function DashboardHome() {
             onWalletClick={() => navigate("/dashboard/wallet")}
           />
 
-          {/* ═══ QUICK ACTIONS ═══ */}
+          {/* ═══ QUICK ACTIONS (BNPL clean cards) ═══ */}
           <motion.div
             className="grid grid-cols-2 lg:grid-cols-3 gap-3"
             initial={{ opacity: 0, y: 12 }}
@@ -152,32 +153,28 @@ export default function DashboardHome() {
               { label: "Place Order", desc: "Browse services", icon: Zap, path: "/dashboard/place-order", color: "primary" },
               { label: "Add Funds", desc: "Top up wallet", icon: Plus, path: "/dashboard/wallet", color: "success" },
               { label: "My Orders", desc: "Track progress", icon: Search, path: "/dashboard/orders", color: "primary", desktopOnly: true },
-            ].map((action, i) => (
+            ].map((action) => (
               <motion.button
                 key={action.label}
-                whileHover={{ y: -4, transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigate(action.path)}
-                className={`relative overflow-hidden flex items-center gap-3 p-4 rounded-[var(--radius-card)] border border-border/40 bg-card/80 backdrop-blur-sm hover:border-primary/25 transition-all duration-300 text-left group ${action.desktopOnly ? "hidden lg:flex" : ""}`}
+                className={cn(
+                  "flex items-center gap-3 p-4 rounded-2xl border border-border/30 bg-card text-left transition-all duration-200",
+                  action.desktopOnly ? "hidden lg:flex" : ""
+                )}
                 style={{ boxShadow: "var(--shadow-card)" }}
               >
-                {/* Hover glow */}
-                <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-primary/[0.04] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                {/* Top accent */}
-                <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary/40 via-primary/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 relative"
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                   style={{ background: `hsl(var(--${action.color}) / 0.1)` }}
                 >
                   <action.icon className={`w-5 h-5 text-${action.color}`} />
-                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ boxShadow: `inset 0 0 12px hsl(var(--${action.color}) / 0.15)` }} />
                 </div>
-                <div className="relative z-10">
-                  <p className="text-sm font-extrabold text-foreground group-hover:text-primary transition-colors duration-300">{action.label}</p>
+                <div>
+                  <p className="text-sm font-bold text-foreground">{action.label}</p>
                   <p className="text-[10px] text-muted-foreground font-medium">{action.desc}</p>
                 </div>
-                <ArrowRight className="w-3.5 h-3.5 ml-auto text-muted-foreground/20 group-hover:text-primary/60 group-hover:translate-x-0.5 transition-all duration-300" />
+                <ArrowRight className="w-3.5 h-3.5 ml-auto text-muted-foreground/20" />
               </motion.button>
             ))}
           </motion.div>

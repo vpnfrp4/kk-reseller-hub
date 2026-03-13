@@ -219,20 +219,14 @@ function ExpandedOrderDetail({ order }: { order: any }) {
 /* ── Stat Mini Card ── */
 function MiniStat({ label, value, icon: Icon, color, accent }: { label: string; value: number; icon: any; color: string; accent?: boolean }) {
   return (
-    <motion.div
-      whileHover={{ y: -3, transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] } }}
+    <div
       className={cn(
-        "relative overflow-hidden rounded-2xl border bg-card/90 backdrop-blur-sm p-4 flex items-center gap-3 transition-all duration-300 group",
-        "hover:shadow-[0_8px_28px_-8px_hsl(var(--primary)/0.12)]",
-        accent ? "border-primary/20 bg-gradient-to-br from-primary/6 to-transparent" : "border-border/30 hover:border-primary/15",
+        "rounded-2xl border bg-card p-4 flex items-center gap-3 transition-all duration-200",
+        accent ? "border-primary/20" : "border-border/30",
       )}
+      style={{ boxShadow: "var(--shadow-card)" }}
     >
-      {/* Hover glow */}
-      <div className="absolute -top-10 -right-10 w-24 h-24 rounded-full bg-primary/[0.04] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-      {/* Top accent line */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary/40 via-primary/15 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-      <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300")}
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
         style={{ background: `hsl(var(--${color}) / 0.08)` }}>
         <Icon className={cn("w-[18px] h-[18px]", `text-${color}`)} strokeWidth={1.6} />
       </div>
@@ -240,7 +234,7 @@ function MiniStat({ label, value, icon: Icon, color, accent }: { label: string; 
         <p className="text-xl font-extrabold font-mono tabular-nums text-foreground leading-tight">{value.toLocaleString()}</p>
         <p className="text-[9px] font-bold text-muted-foreground/50 uppercase tracking-wider mt-0.5">{label}</p>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -476,29 +470,33 @@ export default function OrdersPage() {
           { label: l(t.nav.orders) },
         ]} />
 
-        {/* ═══ PAGE HEADER ═══ */}
+        {/* ═══ BNPL PAGE HEADER ═══ */}
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="flex items-center justify-between"
+          className="relative overflow-hidden rounded-[var(--radius-modal)] p-5 lg:p-7"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center">
-              <Package className="w-4.5 h-4.5 text-primary" strokeWidth={1.7} />
+          <div className="absolute inset-0 bnpl-hero-gradient" />
+          <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-white/[0.05] blur-3xl pointer-events-none" />
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                <Package className="w-4.5 h-4.5 text-white" strokeWidth={1.7} />
+              </div>
+              <div>
+                <h1 className="text-xl font-extrabold text-white tracking-tight">Order History</h1>
+                <p className="text-xs text-white/45 hidden sm:block">Track and manage all your service orders</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-extrabold text-foreground tracking-tight">Order History</h1>
-              <p className="text-xs text-muted-foreground/50 hidden sm:block">Track and manage all your service orders</p>
-            </div>
+            <Button onClick={exportCSV} size="sm" className="gap-2 rounded-pill bg-white/10 text-white border-0 hover:bg-white/20 backdrop-blur-sm">
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Export</span>
+            </Button>
           </div>
-          <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2 rounded-xl border-border/30 text-muted-foreground hover:text-primary hover:border-primary/25 hover:bg-primary/5 transition-all">
-            <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Export</span>
-          </Button>
         </motion.div>
 
-        {/* ═══ STAT CARDS ═══ */}
+        {/* ═══ STAT CARDS (BNPL clean style) ═══ */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <MiniStat label="Total Orders" value={stats?.total || 0} icon={Package} color="primary" accent />
           <MiniStat label="Processing" value={stats?.processing || 0} icon={Clock} color="warning" />

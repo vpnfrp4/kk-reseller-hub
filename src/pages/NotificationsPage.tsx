@@ -186,52 +186,64 @@ export default function NotificationsPage() {
         { label: l(t.nav.notifications) },
       ]} />
 
-      {/* Header with filters */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-[var(--space-default)] animate-fade-in">
-        <div className="flex items-center gap-3">
-          <div className="relative">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-              <Bell className="w-5 h-5 text-primary" />
+      {/* BNPL Header */}
+      <div className="relative overflow-hidden rounded-[var(--radius-modal)] animate-fade-in">
+        <div className="absolute inset-0 bnpl-hero-gradient" />
+        <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-white/[0.05] blur-3xl pointer-events-none" />
+        <div className="relative z-10 p-5 lg:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                  <Bell className="w-5 h-5 text-white" />
+                </div>
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 rounded-full bg-white text-foreground text-[10px] font-bold flex items-center justify-center px-1.5 shadow-lg">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">{l(t.notifs.title)}</p>
+                <p className="text-[11px] text-white/45">
+                  {unreadCount > 0 ? `${unreadCount} ${l(t.notifs.unread)}` : l(t.notifs.allCaughtUp)}
+                </p>
+              </div>
             </div>
-            {unreadCount > 0 && (
-              <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1.5 animate-pulse shadow-[0_0_8px_hsl(142_71%_45%/0.4)]">
-                {unreadCount > 99 ? "99+" : unreadCount}
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setFilter("all")}
+                className={cn(
+                  "px-3 py-1.5 rounded-pill text-xs font-semibold transition-all",
+                  filter === "all" ? "bg-white text-foreground" : "bg-white/10 text-white/70 hover:bg-white/20"
+                )}
+              >
+                {l(t.notifs.all)}
+              </button>
+              <button
+                onClick={() => setFilter("unread")}
+                className={cn(
+                  "px-3 py-1.5 rounded-pill text-xs font-semibold flex items-center gap-1.5 transition-all",
+                  filter === "unread" ? "bg-white text-foreground" : "bg-white/10 text-white/70 hover:bg-white/20"
+                )}
+              >
+                <Filter className="w-3 h-3" />
+                {l(t.notifs.unreadFilter)}
+              </button>
+              {unreadCount > 0 && (
+                <Button variant="ghost" size="sm" onClick={markAllRead} className="gap-1.5 text-white/60 hover:text-white text-[11px] hover:bg-white/10">
+                  <CheckCheck className="w-3.5 h-3.5" />
+                  {l(t.notifs.markAllRead)}
+                </Button>
+              )}
+              {notifications.length > 0 && (
+                <Button variant="ghost" size="sm" onClick={clearAll} className="gap-1.5 text-white/60 hover:text-white text-[11px] hover:bg-white/10">
+                  <Trash2 className="w-3.5 h-3.5" />
+                  {l(t.notifs.clearAll)}
+                </Button>
+              )}
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-semibold text-foreground">{l(t.notifs.title)}</p>
-            <p className="text-[11px] text-muted-foreground">
-              {unreadCount > 0 ? `${unreadCount} ${l(t.notifs.unread)}` : l(t.notifs.allCaughtUp)}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-[var(--space-tight)]">
-          <button
-            onClick={() => setFilter("all")}
-            className={`filter-pill ${filter === "all" ? "filter-pill-active" : "filter-pill-inactive"}`}
-          >
-            {l(t.notifs.all)}
-          </button>
-          <button
-            onClick={() => setFilter("unread")}
-            className={`filter-pill flex items-center gap-1.5 ${filter === "unread" ? "filter-pill-active" : "filter-pill-inactive"}`}
-          >
-            <Filter className="w-3 h-3" />
-            {l(t.notifs.unreadFilter)}
-          </button>
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllRead} className="gap-1.5 text-muted-foreground text-[11px]">
-              <CheckCheck className="w-3.5 h-3.5" />
-              {l(t.notifs.markAllRead)}
-            </Button>
-          )}
-          {notifications.length > 0 && (
-            <Button variant="ghost" size="sm" onClick={clearAll} className="gap-1.5 text-muted-foreground hover:text-destructive text-[11px]">
-              <Trash2 className="w-3.5 h-3.5" />
-              {l(t.notifs.clearAll)}
-            </Button>
-          )}
         </div>
       </div>
 
