@@ -307,7 +307,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         </AnimatePresence>
 
         {/* ── Main Content ── */}
-        <main className="min-w-0 pb-24 lg:pb-4" data-scroll-area>
+        <main className="min-w-0 pb-28 lg:pb-4" data-scroll-area>
           <PullToRefresh onRefresh={handlePullRefresh}>
             <AnimatePresence mode="wait">
               <PageTransition key={location.pathname}>
