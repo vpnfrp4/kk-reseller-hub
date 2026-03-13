@@ -3,9 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Money } from "@/components/shared";
-import { ArrowRight, Clock } from "lucide-react";
 import ProductIcon from "@/components/products/ProductIcon";
-import { cn } from "@/lib/utils";
 
 export default function PopularServices() {
   const navigate = useNavigate();
@@ -50,79 +48,62 @@ export default function PopularServices() {
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
-        <Skeleton className="h-5 w-36" />
-        <Skeleton className="h-36 w-full rounded-2xl" />
+      <div className="cd-card cd-reveal">
+        <Skeleton className="h-5 w-36 mb-3" />
+        <div className="cd-services-grid">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-28 rounded-[0.92rem]" />
+          ))}
+        </div>
       </div>
     );
   }
 
   if (!products || products.length === 0) return null;
 
-  const [featured, ...rest] = products;
-
   return (
-    <div className="space-y-3">
-      {/* Featured banner card — large, rounded, image-led like BNPL reference */}
-      {featured && (
-        <button
+    <div className="cd-card cd-reveal">
+      <div className="cd-section-title">
+        <h2>Popular Services</h2>
+        <span
+          className="text-primary cursor-pointer hover:underline"
           onClick={() => navigate("/dashboard/place-order")}
-          className="w-full rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 via-primary/5 to-secondary text-left transition-all duration-200 hover:shadow-md active:scale-[0.99] group"
         >
-          <div className="p-5 flex items-center gap-4">
-            <ProductIcon
-              imageUrl={featured.image_url}
-              name={featured.name}
-              category={featured.category}
-              size="lg"
-            />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
-                {featured.name}
-              </p>
-              <p className="text-[11px] text-muted-foreground mt-1">{featured.category}</p>
-              <div className="flex items-center gap-2 mt-2">
-                <span className="text-base font-bold tabular-nums text-foreground" style={{ fontFamily: "'Space Grotesk', monospace" }}>
-                  <Money amount={featured.wholesale_price} compact />
-                </span>
-                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                  <Clock className="w-3 h-3" /> {featured.processing_time || "Instant"}
-                </span>
+          View all →
+        </span>
+      </div>
+
+      <div className="cd-services-grid">
+        {products.slice(0, 6).map((product: any) => (
+          <button
+            key={product.id}
+            onClick={() => navigate("/dashboard/place-order")}
+            className="cd-service-card text-left"
+          >
+            <div className="cd-service-head">
+              <div className="cd-service-thumb">
+                <ProductIcon
+                  imageUrl={product.image_url}
+                  name={product.name}
+                  category={product.category}
+                  size="sm"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="cd-service-meta">
+                <strong>{product.name}</strong>
+                <p>{product.category}</p>
               </div>
             </div>
-            <ArrowRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-primary/50 transition-colors shrink-0" />
-          </div>
-        </button>
-      )}
-
-      {/* Remaining as compact list */}
-      {rest.length > 0 && (
-        <div className="space-y-1.5">
-          {rest.slice(0, 4).map((product: any) => (
-            <button
-              key={product.id}
-              onClick={() => navigate("/dashboard/place-order")}
-              className="w-full flex items-center gap-3 p-3 rounded-2xl border border-border/15 bg-card text-left transition-all duration-150 hover:bg-secondary/30 active:scale-[0.99] group"
-            >
-              <ProductIcon
-                imageUrl={product.image_url}
-                name={product.name}
-                category={product.category}
-                size="sm"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-[13px] font-medium text-foreground line-clamp-1 group-hover:text-primary transition-colors">
-                  {product.name}
-                </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">{product.category}</p>
-              </div>
-              <span className="text-sm font-semibold tabular-nums text-foreground shrink-0" style={{ fontFamily: "'Space Grotesk', monospace" }}>
+            <div className="cd-service-foot">
+              <span style={{ fontFamily: "var(--font-display)" }}>
                 <Money amount={product.wholesale_price} compact />
               </span>
-            </button>
-          ))}
-        </div>
-      )}
+              <small>{product.processing_time || "Instant"}</small>
+            </div>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
