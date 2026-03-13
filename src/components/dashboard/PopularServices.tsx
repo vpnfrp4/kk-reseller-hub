@@ -5,7 +5,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Money } from "@/components/shared";
 import { ArrowRight, Clock } from "lucide-react";
 import ProductIcon from "@/components/products/ProductIcon";
-import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export default function PopularServices() {
@@ -53,90 +52,57 @@ export default function PopularServices() {
     return (
       <div className="space-y-3">
         <Skeleton className="h-5 w-36" />
-        <div className="space-y-2.5">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="rounded-2xl border border-border/30 bg-card p-4 animate-pulse">
-              <div className="flex items-center gap-3">
-                <Skeleton className="w-12 h-12 rounded-xl" />
-                <div className="flex-1 space-y-1.5">
-                  <Skeleton className="h-4 w-32" />
-                  <Skeleton className="h-3 w-20" />
-                </div>
-                <Skeleton className="h-5 w-16" />
-              </div>
-            </div>
-          ))}
-        </div>
+        <Skeleton className="h-36 w-full rounded-2xl" />
       </div>
     );
   }
 
   if (!products || products.length === 0) return null;
 
-  // Show first product as a featured card, rest as list
   const [featured, ...rest] = products;
 
   return (
-    <motion.div
-      className="space-y-3"
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: 0.25 }}
-    >
-      <div className="flex items-center justify-between">
-        <h2 className="text-base font-bold text-foreground">Popular Services</h2>
-        <button
-          onClick={() => navigate("/dashboard/place-order")}
-          className="text-xs font-bold text-primary flex items-center gap-1 hover:text-primary/80 transition-colors"
-        >
-          See All <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
-
-      {/* Featured card — larger, like the Nike/Zara banner in BNPL reference */}
+    <div className="space-y-3">
+      {/* Featured banner card — large, rounded, image-led like BNPL reference */}
       {featured && (
         <button
           onClick={() => navigate("/dashboard/place-order")}
-          className="w-full rounded-2xl overflow-hidden border border-border/30 bg-card text-left transition-all duration-200 hover:border-primary/20 active:scale-[0.99] group"
-          style={{ boxShadow: "var(--shadow-card)" }}
+          className="w-full rounded-2xl overflow-hidden bg-gradient-to-br from-primary/10 via-primary/5 to-secondary text-left transition-all duration-200 hover:shadow-md active:scale-[0.99] group"
         >
-          <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5">
-            <div className="flex items-center gap-4">
-              <ProductIcon
-                imageUrl={featured.image_url}
-                name={featured.name}
-                category={featured.category}
-                size="lg"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="text-base font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
-                  {featured.name}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">{featured.category || "Service"}</p>
-                <div className="flex items-center gap-3 mt-2">
-                  <span className="text-lg font-extrabold font-mono tabular-nums text-foreground">
-                    <Money amount={featured.wholesale_price} compact />
-                  </span>
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {featured.processing_time || "Instant"}
-                  </span>
-                </div>
+          <div className="p-5 flex items-center gap-4">
+            <ProductIcon
+              imageUrl={featured.image_url}
+              name={featured.name}
+              category={featured.category}
+              size="lg"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                {featured.name}
+              </p>
+              <p className="text-[11px] text-muted-foreground mt-1">{featured.category}</p>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-base font-bold tabular-nums text-foreground" style={{ fontFamily: "'Space Grotesk', monospace" }}>
+                  <Money amount={featured.wholesale_price} compact />
+                </span>
+                <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
+                  <Clock className="w-3 h-3" /> {featured.processing_time || "Instant"}
+                </span>
               </div>
             </div>
+            <ArrowRight className="w-5 h-5 text-muted-foreground/30 group-hover:text-primary/50 transition-colors shrink-0" />
           </div>
         </button>
       )}
 
-      {/* Rest as clean list items */}
+      {/* Remaining as compact list */}
       {rest.length > 0 && (
-        <div className="space-y-2">
-          {rest.slice(0, 5).map((product: any) => (
+        <div className="space-y-1.5">
+          {rest.slice(0, 4).map((product: any) => (
             <button
               key={product.id}
               onClick={() => navigate("/dashboard/place-order")}
-              className="w-full flex items-center gap-3 p-3.5 rounded-2xl border border-border/30 bg-card text-left transition-all duration-200 hover:border-primary/20 active:scale-[0.99] group"
-              style={{ boxShadow: "var(--shadow-card)" }}
+              className="w-full flex items-center gap-3 p-3 rounded-2xl border border-border/15 bg-card text-left transition-all duration-150 hover:bg-secondary/30 active:scale-[0.99] group"
             >
               <ProductIcon
                 imageUrl={product.image_url}
@@ -145,20 +111,18 @@ export default function PopularServices() {
                 size="sm"
               />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                <p className="text-[13px] font-medium text-foreground line-clamp-1 group-hover:text-primary transition-colors">
                   {product.name}
                 </p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  {product.category || "Service"} · {product.processing_time || "Instant"}
-                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">{product.category}</p>
               </div>
-              <span className="text-sm font-bold font-mono tabular-nums text-foreground shrink-0">
+              <span className="text-sm font-semibold tabular-nums text-foreground shrink-0" style={{ fontFamily: "'Space Grotesk', monospace" }}>
                 <Money amount={product.wholesale_price} compact />
               </span>
             </button>
           ))}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }

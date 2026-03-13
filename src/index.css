@@ -284,33 +284,10 @@ html {
     font-family: 'JetBrains Mono', monospace;
   }
 
-  /* Orange ambient background with animated blobs + grid */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -2;
-    pointer-events: none;
-    background:
-      radial-gradient(ellipse 600px 500px at 10% 8%, var(--ambient-blob-1), transparent 50%),
-      radial-gradient(ellipse 500px 400px at 90% 6%, var(--ambient-blob-2), transparent 48%),
-      radial-gradient(ellipse 700px 500px at 50% 100%, var(--ambient-blob-3, transparent), transparent 50%),
-      radial-gradient(ellipse 400px 300px at 70% 60%, var(--ambient-blob-4, transparent), transparent 45%),
-      linear-gradient(145deg, hsl(var(--background)), hsl(var(--accent)));
-  }
+  /* Clean BNPL background — no ambient blobs or grid */
+  body::before,
   body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image:
-      linear-gradient(hsl(var(--primary) / 0.03) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--primary) / 0.025) 1px, transparent 1px);
-    background-size: 42px 42px;
-    opacity: 0.3;
-    mask-image: radial-gradient(ellipse 80% 80% at 50% 30%, black 20%, transparent 70%);
-    -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 30%, black 20%, transparent 70%);
+    display: none;
   }
 
   @keyframes slideUpFade {

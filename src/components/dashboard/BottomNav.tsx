@@ -20,11 +20,8 @@ export default function BottomNav() {
   };
 
   return (
-    <nav
-      className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-card/95 backdrop-blur-xl pb-[env(safe-area-inset-bottom)]"
-      style={{ boxShadow: "0 -1px 0 hsl(var(--border) / 0.3)" }}
-    >
-      <div className="flex items-end justify-around px-2 pt-1.5 pb-1.5 max-w-md mx-auto relative">
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-card pb-[env(safe-area-inset-bottom)]">
+      <div className="flex items-end justify-around px-3 pt-2 pb-2 max-w-md mx-auto">
         {navItems.map((item) => {
           const active = isActive(item.path);
           const Icon = item.icon;
@@ -34,17 +31,17 @@ export default function BottomNav() {
               <PrefetchLink
                 key={item.path}
                 to={item.path}
-                className="relative -mt-5 flex flex-col items-center"
+                className="relative -mt-6 flex flex-col items-center"
               >
                 <div
                   className={cn(
-                    "w-14 h-14 rounded-full flex items-center justify-center transition-all duration-200",
-                    "bg-foreground text-background shadow-xl",
-                    active && "ring-4 ring-foreground/10 scale-105"
+                    "w-[52px] h-[52px] rounded-full flex items-center justify-center transition-all duration-200",
+                    "bg-foreground text-background",
+                    active && "scale-110"
                   )}
-                  style={{ boxShadow: "0 6px 20px hsl(var(--foreground) / 0.25)" }}
+                  style={{ boxShadow: "0 4px 20px hsl(var(--foreground) / 0.2)" }}
                 >
-                  <Icon className="w-6 h-6" strokeWidth={1.8} />
+                  <Icon className="w-5 h-5" strokeWidth={1.8} />
                 </div>
               </PrefetchLink>
             );
@@ -55,12 +52,12 @@ export default function BottomNav() {
               key={item.path}
               to={item.path}
               className={cn(
-                "flex flex-col items-center gap-0.5 py-1.5 px-2 min-w-[52px] transition-colors duration-200",
-                active ? "text-foreground" : "text-muted-foreground"
+                "flex flex-col items-center gap-0.5 py-1 px-3 min-w-[48px] transition-colors duration-200",
+                active ? "text-foreground" : "text-muted-foreground/60"
               )}
             >
-              <Icon className="w-5 h-5" strokeWidth={active ? 2 : 1.5} />
-              <span className={cn("text-[10px]", active ? "font-bold" : "font-medium")}>
+              <Icon className="w-[22px] h-[22px]" strokeWidth={active ? 1.8 : 1.3} />
+              <span className={cn("text-[10px]", active ? "font-semibold" : "font-normal")}>
                 {item.label}
               </span>
             </PrefetchLink>
