@@ -6,9 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FAST_QUERY_OPTIONS } from "@/lib/query-options";
-import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-import { PageContainer } from "@/components/shared";
 import { t, useT } from "@/lib/i18n";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import PullToRefresh from "@/components/shared/PullToRefresh";
@@ -88,73 +86,73 @@ export default function DashboardHome() {
 
   const statsLoading = ordersLoading || !profile;
 
-  // Most recent active order for the "installment card"
+  // Most recent active order
   const recentActiveOrder = orders?.find((o: any) =>
     ["processing", "pending", "pending_creation", "pending_review", "api_pending"].includes(o.status)
   );
 
   return (
-    <PageContainer>
-      <PullToRefresh onRefresh={async () => {
-        await Promise.all([
-          refreshProfile(),
-          queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] }),
-          queryClient.invalidateQueries({ queryKey: ["popular-services-dashboard"] }),
-          queryClient.invalidateQueries({ queryKey: ["service-categories-dashboard"] }),
-        ]);
-      }}>
-        <div className="space-y-6">
+    <PullToRefresh onRefresh={async () => {
+      await Promise.all([
+        refreshProfile(),
+        queryClient.invalidateQueries({ queryKey: ["dashboard-orders"] }),
+        queryClient.invalidateQueries({ queryKey: ["popular-services-dashboard"] }),
+        queryClient.invalidateQueries({ queryKey: ["service-categories-dashboard"] }),
+      ]);
+    }}>
+      <div className="grid gap-4">
+        {/* ═══ PAGE HEAD ═══ */}
+        <section className="cd-page-head cd-reveal">
+          <div>
+            <h1>Dashboard</h1>
+            <p>Welcome back, {profile?.name || "Reseller"}</p>
+          </div>
+        </section>
 
-          {/* ═══ BNPL HERO (balance + mini stats) ═══ */}
-          <HeroStats
-            balance={displayBalance}
-            totalOrders={totalOrders}
-            todayOrders={todayOrders}
-            successRate={successRate}
-            processingOrders={processingOrders}
-            loading={statsLoading}
-            onWalletClick={() => navigate("/dashboard/wallet")}
-          />
+        {/* ═══ STAT CARDS ═══ */}
+        <HeroStats
+          balance={displayBalance}
+          totalOrders={totalOrders}
+          todayOrders={todayOrders}
+          successRate={successRate}
+          processingOrders={processingOrders}
+          loading={statsLoading}
+          onWalletClick={() => navigate("/dashboard/wallet")}
+        />
 
-          {/* ═══ ACTIVE ORDER CARD (like "Adidas Store / Overdue" in BNPL ref) ═══ */}
-          {recentActiveOrder && (
-            <button
-              onClick={() => navigate(`/dashboard/orders/${recentActiveOrder.id}`)}
-              className="w-full rounded-2xl border border-border/20 bg-card p-4 text-left transition-all duration-200 hover:border-primary/20 active:scale-[0.99]"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="text-[15px] font-semibold text-foreground line-clamp-1">
-                    {recentActiveOrder.product_name}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Processing</p>
-                </div>
-                <div className="text-right shrink-0">
-                  <p className="text-[15px] font-bold tabular-nums text-foreground" style={{ fontFamily: "'Space Grotesk', monospace" }}>
-                    {formatAmount(recentActiveOrder.price)}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5">{recentActiveOrder.order_code}</p>
-                </div>
+        {/* ═══ ACTIVE ORDER ═══ */}
+        {recentActiveOrder && (
+          <button
+            onClick={() => navigate(`/dashboard/orders/${recentActiveOrder.id}`)}
+            className="cd-card cd-reveal text-left"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <strong className="text-[0.88rem] line-clamp-1">{recentActiveOrder.product_name}</strong>
+                <p className="text-[0.75rem] text-muted-foreground mt-0.5">Processing</p>
               </div>
-              {/* Progress bar */}
-              <div className="mt-3 flex gap-1">
-                <div className="h-1 flex-1 rounded-full bg-primary" />
-                <div className="h-1 flex-1 rounded-full bg-primary/40" />
-                <div className="h-1 flex-1 rounded-full bg-border/30" />
+              <div className="text-right shrink-0">
+                <span className="text-[0.88rem] font-bold tabular-nums" style={{ fontFamily: "var(--font-display)" }}>
+                  {formatAmount(recentActiveOrder.price)}
+                </span>
+                <p className="text-[0.7rem] text-muted-foreground mt-0.5">{recentActiveOrder.order_code}</p>
               </div>
-            </button>
-          )}
+            </div>
+            <div className="cd-progress-track mt-3">
+              <div className="cd-progress-fill" style={{ width: "45%" }} />
+            </div>
+          </button>
+        )}
 
-          {/* ═══ POPULAR SERVICES (featured banner) ═══ */}
+        {/* ═══ TWO-COLUMN LAYOUT ═══ */}
+        <div className="cd-section-grid">
           <PopularServices />
-
-          {/* ═══ CATEGORIES (circular icons — like BNPL ref) ═══ */}
-          <ServiceCategories />
-
-          {/* ═══ RECENT ACTIVITY ═══ */}
-          <RecentTimeline orders={orders} loading={ordersLoading} />
+          <div className="grid gap-4">
+            <ServiceCategories />
+            <RecentTimeline orders={orders} loading={ordersLoading} />
+          </div>
         </div>
-      </PullToRefresh>
-    </PageContainer>
+      </div>
+    </PullToRefresh>
   );
 }

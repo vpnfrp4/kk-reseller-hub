@@ -20,7 +20,7 @@ export default function BottomNav() {
   };
 
   return (
-    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-card pb-[env(safe-area-inset-bottom)]">
+    <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 border-t border-border bg-card/92 backdrop-blur-md pb-[env(safe-area-inset-bottom)]">
       <div className="flex items-end justify-around px-3 pt-2 pb-2 max-w-md mx-auto">
         {navItems.map((item) => {
           const active = isActive(item.path);
@@ -36,10 +36,10 @@ export default function BottomNav() {
                 <div
                   className={cn(
                     "w-[52px] h-[52px] rounded-full flex items-center justify-center transition-all duration-200",
-                    "bg-foreground text-background",
+                    "bg-primary text-primary-foreground",
                     active && "scale-110"
                   )}
-                  style={{ boxShadow: "0 4px 20px hsl(var(--foreground) / 0.2)" }}
+                  style={{ boxShadow: "0 8px 16px -10px hsl(var(--primary))" }}
                 >
                   <Icon className="w-5 h-5" strokeWidth={1.8} />
                 </div>
@@ -53,7 +53,7 @@ export default function BottomNav() {
               to={item.path}
               className={cn(
                 "flex flex-col items-center gap-0.5 py-1 px-3 min-w-[48px] transition-colors duration-200",
-                active ? "text-foreground" : "text-muted-foreground/60"
+                active ? "text-primary" : "text-muted-foreground/60"
               )}
             >
               <Icon className="w-[22px] h-[22px]" strokeWidth={active ? 1.8 : 1.3} />
