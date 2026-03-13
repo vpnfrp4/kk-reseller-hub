@@ -6,7 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { FAST_QUERY_OPTIONS } from "@/lib/query-options";
-import { Zap, Plus, Search, ArrowRight, Hand } from "lucide-react";
+import { Zap, Plus, Search, ArrowRight, Hand, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
 import { PageContainer } from "@/components/shared";
@@ -14,8 +14,10 @@ import { t, useT } from "@/lib/i18n";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import PullToRefresh from "@/components/shared/PullToRefresh";
 import HeroStats from "@/components/dashboard/HeroStats";
+import ServiceCategories from "@/components/dashboard/ServiceCategories";
 import PopularServices from "@/components/dashboard/PopularServices";
 import RecentTimeline from "@/components/dashboard/RecentTimeline";
+import RecentOrdersList from "@/components/dashboard/RecentOrdersList";
 import { motion } from "framer-motion";
 
 export default function DashboardHome() {
@@ -102,36 +104,7 @@ export default function DashboardHome() {
       }}>
         <div className="space-y-5 lg:space-y-6">
 
-          {/* ═══ MOBILE GREETING ═══ */}
-          <motion.div
-            className="lg:hidden"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <p className="text-muted-foreground text-[11px] font-bold uppercase tracking-[0.12em]">Welcome back,</p>
-            <h1 className="text-xl font-extrabold text-foreground tracking-tight mt-0.5 flex items-center gap-2">
-              {profile?.name || "Reseller"} <Hand className="w-5 h-5 text-primary" />
-            </h1>
-          </motion.div>
-
-
-          {/* ═══ QUICK SEARCH BAR (Mobile) ═══ */}
-          <motion.button
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.15 }}
-            onClick={() => navigate("/dashboard/place-order")}
-            className="lg:hidden w-full flex items-center gap-3 px-4 py-3.5 rounded-[var(--radius-card)] border border-border/40 bg-card/80 backdrop-blur-sm text-muted-foreground text-sm active:scale-[0.99] transition-transform group"
-          >
-            <div className="w-8 h-8 rounded-lg bg-primary/8 flex items-center justify-center shrink-0 group-hover:bg-primary/12 transition-colors">
-              <Search className="w-4 h-4 text-primary/60" />
-            </div>
-            <span className="text-xs font-medium">Search IMEI service, iPhone unlock...</span>
-            <ArrowRight className="w-3.5 h-3.5 ml-auto text-muted-foreground/30" />
-          </motion.button>
-
-          {/* ═══ HERO STATS ═══ */}
+          {/* ═══ HERO STATS (BNPL balance card + mini stats) ═══ */}
           <HeroStats
             balance={displayBalance}
             totalOrders={totalOrders}
@@ -142,50 +115,82 @@ export default function DashboardHome() {
             onWalletClick={() => navigate("/dashboard/wallet")}
           />
 
-          {/* ═══ QUICK ACTIONS (BNPL clean cards) ═══ */}
-          <motion.div
-            className="grid grid-cols-2 lg:grid-cols-3 gap-3"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.25 }}
-          >
-            {[
-              { label: "Place Order", desc: "Browse services", icon: Zap, path: "/dashboard/place-order", color: "primary" },
-              { label: "Add Funds", desc: "Top up wallet", icon: Plus, path: "/dashboard/wallet", color: "success" },
-              { label: "My Orders", desc: "Track progress", icon: Search, path: "/dashboard/orders", color: "primary", desktopOnly: true },
-            ].map((action) => (
-              <motion.button
-                key={action.label}
-                whileTap={{ scale: 0.97 }}
-                onClick={() => navigate(action.path)}
-                className={cn(
-                  "flex items-center gap-3 p-4 rounded-2xl border border-border/30 bg-card text-left transition-all duration-200",
-                  action.desktopOnly ? "hidden lg:flex" : ""
-                )}
-                style={{ boxShadow: "var(--shadow-card)" }}
-              >
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: `hsl(var(--${action.color}) / 0.1)` }}
-                >
-                  <action.icon className={`w-5 h-5 text-${action.color}`} />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-foreground">{action.label}</p>
-                  <p className="text-[10px] text-muted-foreground font-medium">{action.desc}</p>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 ml-auto text-muted-foreground/20" />
-              </motion.button>
-            ))}
-          </motion.div>
+          {/* ═══ RECENT ORDER CARD (BNPL Overdue-style) ═══ */}
+          {orders && orders.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, delay: 0.15 }}
+            >
+              <RecentOrderCard order={orders[0]} onClick={() => navigate(`/dashboard/orders/${orders[0].id}`)} />
+            </motion.div>
+          )}
 
-          {/* ═══ SECTION GRID: Popular Services + Timeline ═══ */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <PopularServices />
-            <RecentTimeline orders={orders} loading={ordersLoading} />
-          </div>
+          {/* ═══ CATEGORIES (circular icons row like BNPL reference) ═══ */}
+          <ServiceCategories />
+
+          {/* ═══ POPULAR SERVICES (featured card style) ═══ */}
+          <PopularServices />
+
+          {/* ═══ RECENT ORDERS LIST ═══ */}
+          <RecentOrdersList orders={orders} loading={ordersLoading} />
         </div>
       </PullToRefresh>
     </PageContainer>
+  );
+}
+
+/* ── BNPL-style Recent Order Card (like the "Adidas Store" card in reference) ── */
+function RecentOrderCard({ order, onClick }: { order: any; onClick: () => void }) {
+  const { formatAmount } = useCurrency();
+  const statusLabel = order.status === "completed" || order.status === "delivered"
+    ? "Completed"
+    : order.status === "processing" || order.status === "api_pending"
+    ? "Processing"
+    : order.status === "failed" || order.status === "cancelled"
+    ? "Failed"
+    : "Pending";
+
+  const statusColor = order.status === "completed" || order.status === "delivered"
+    ? "bg-success"
+    : order.status === "failed" || order.status === "cancelled"
+    ? "bg-destructive"
+    : "bg-primary";
+
+  const progress = order.status === "completed" || order.status === "delivered" ? 100
+    : order.status === "processing" || order.status === "api_pending" ? 60
+    : order.status === "failed" || order.status === "cancelled" ? 100
+    : 25;
+
+  return (
+    <button
+      onClick={onClick}
+      className="w-full rounded-2xl border border-border/30 bg-card p-4 text-left transition-all duration-200 hover:border-primary/20 active:scale-[0.99] group"
+      style={{ boxShadow: "var(--shadow-card)" }}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-base font-bold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+            {order.product_name}
+          </p>
+          <p className="text-xs text-muted-foreground mt-0.5">{statusLabel}</p>
+        </div>
+        <div className="text-right shrink-0">
+          <p className="text-base font-extrabold font-mono tabular-nums text-foreground">
+            {formatAmount(order.price)}
+          </p>
+          <p className="text-[10px] text-muted-foreground font-medium mt-0.5">
+            {order.order_code}
+          </p>
+        </div>
+      </div>
+      {/* Progress bar */}
+      <div className="mt-3 h-1.5 rounded-full bg-secondary overflow-hidden">
+        <div
+          className={cn("h-full rounded-full transition-all duration-500", statusColor)}
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+    </button>
   );
 }

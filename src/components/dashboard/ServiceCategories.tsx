@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 import { ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
 export default function ServiceCategories() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function ServiceCategories() {
 
       return Object.entries(counts)
         .sort(([, a], [, b]) => b - a)
-        .slice(0, 6)
+        .slice(0, 8)
         .map(([name, count]) => ({ name, count }));
     },
     staleTime: 60000,
@@ -36,12 +37,12 @@ export default function ServiceCategories() {
   if (isLoading) {
     return (
       <div className="space-y-3">
-        <Skeleton className="h-5 w-40" />
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="rounded-card border border-border/50 bg-card p-4 animate-pulse h-24">
-              <Skeleton className="w-10 h-10 rounded-xl mb-2" />
-              <Skeleton className="h-3 w-20" />
+        <Skeleton className="h-5 w-32" />
+        <div className="flex gap-5 overflow-x-auto pb-1">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="flex flex-col items-center gap-2 shrink-0">
+              <Skeleton className="w-14 h-14 rounded-full" />
+              <Skeleton className="h-3 w-12" />
             </div>
           ))}
         </div>
@@ -52,13 +53,24 @@ export default function ServiceCategories() {
   if (!categories || categories.length === 0) return null;
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <div className="w-1 h-5 rounded-full bg-gradient-to-b from-accent to-primary" />
-        <h2 className="text-sm lg:text-base font-bold text-foreground">Service Categories</h2>
+    <motion.div
+      className="space-y-3"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: 0.2 }}
+    >
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-foreground">Categories</h2>
+        <button
+          onClick={() => navigate("/dashboard/place-order")}
+          className="text-xs font-bold text-primary flex items-center gap-1 hover:text-primary/80 transition-colors"
+        >
+          See All <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      {/* Horizontal scrollable circular icons — like BNPL reference */}
+      <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-hide -mx-1 px-1">
         {categories.map((cat, i) => {
           const IconComp = getCategoryIcon(cat.name, cat.name);
           const iconColor = getCategoryIconColor(cat.name, cat.name);
@@ -67,35 +79,26 @@ export default function ServiceCategories() {
             <button
               key={cat.name}
               onClick={() => navigate(`/dashboard/place-order/${encodeURIComponent(cat.name)}`)}
-              className={cn(
-                "relative overflow-hidden rounded-card border border-border/50 bg-card",
-                "p-4 text-left transition-all duration-300 group",
-                "hover:border-primary/20 hover:shadow-elevated hover:-translate-y-0.5",
-                "active:scale-[0.98]",
-                "opacity-0 animate-stagger-in"
-              )}
-              style={{ animationDelay: `${0.15 + i * 0.05}s` }}
+              className="flex flex-col items-center gap-1.5 shrink-0 group min-w-[64px]"
             >
               <div
                 className={cn(
-                  "w-10 h-10 rounded-xl flex items-center justify-center mb-2.5",
-                  "transition-all duration-200 group-hover:scale-105",
-                  iconColor
+                  "w-14 h-14 rounded-full flex items-center justify-center",
+                  "border border-border/40 bg-card transition-all duration-200",
+                  "group-hover:border-primary/30 group-hover:shadow-md",
+                  "active:scale-95"
                 )}
+                style={{ boxShadow: "var(--shadow-card)" }}
               >
-                <IconComp className="w-5 h-5" strokeWidth={1.8} />
+                <IconComp className={cn("w-6 h-6", iconColor)} strokeWidth={1.5} />
               </div>
-              <p className="text-xs font-bold text-foreground line-clamp-1">{cat.name}</p>
-              <div className="flex items-center justify-between mt-1">
-                <p className="text-[10px] font-mono text-muted-foreground">
-                  {cat.count} {cat.count === 1 ? "service" : "services"}
-                </p>
-                <ArrowRight className="w-3 h-3 text-muted-foreground/40 group-hover:text-primary transition-colors" />
-              </div>
+              <span className="text-[11px] font-semibold text-foreground text-center line-clamp-1 max-w-[72px]">
+                {cat.name}
+              </span>
             </button>
           );
         })}
       </div>
-    </div>
+    </motion.div>
   );
 }

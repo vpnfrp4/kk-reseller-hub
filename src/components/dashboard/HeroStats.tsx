@@ -1,4 +1,4 @@
-import { Wallet, ShoppingCart, CheckCircle2, Server, Plus, ArrowUpRight } from "lucide-react";
+import { Wallet, ShoppingCart, CheckCircle2, Server, ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Money } from "@/components/shared";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -44,52 +44,50 @@ export default function HeroStats({
   return (
     <motion.div className="space-y-3" variants={containerVariants} initial="hidden" animate="visible">
       {/* ═══ BNPL HERO BALANCE CARD ═══ */}
-      <motion.button
+      <motion.div
         variants={cardVariant}
-        onClick={onWalletClick}
-        whileTap={{ scale: 0.995 }}
-        className="relative w-full overflow-hidden rounded-[var(--radius-modal)] text-left group"
+        className="relative w-full overflow-hidden rounded-3xl"
       >
-        {/* Red-to-dark gradient background (BNPL style) */}
+        {/* Red-to-dark gradient background */}
         <div className="absolute inset-0 bnpl-hero-gradient" />
         
-        {/* Soft radial light effect top-right */}
-        <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-white/[0.06] blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-48 h-48 rounded-full bg-black/20 blur-3xl pointer-events-none" />
+        {/* Soft radial glow */}
+        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-white/[0.06] blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-52 h-52 rounded-full bg-black/20 blur-3xl pointer-events-none" />
         
         {/* Content */}
-        <div className="relative z-10 p-6 lg:p-8">
-          <p className="text-[11px] font-medium text-white/60 uppercase tracking-[0.14em] mb-1">
-            Current Balance
+        <div className="relative z-10 px-6 pt-8 pb-7 lg:px-8 lg:pt-10 lg:pb-8">
+          <p className="text-[11px] font-medium text-white/50 uppercase tracking-[0.16em]">
+            Current credit limit
           </p>
 
           {loading ? (
-            <Skeleton className="h-14 w-52 rounded-2xl bg-white/10" />
+            <Skeleton className="h-14 w-52 rounded-2xl bg-white/10 mt-2" />
           ) : (
             <motion.div
               initial={{ opacity: 0, scale: 0.92 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }}
-              className="text-[2.6rem] lg:text-[3.4rem] font-extrabold text-white leading-none tracking-tight font-display"
+              className="mt-1"
             >
-              <Money amount={balance} raw className="text-[2.6rem] lg:text-[3.4rem] !text-white [&_*]:!text-white" />
+              <Money amount={balance} raw className="text-[2.8rem] lg:text-[3.6rem] font-extrabold !text-white [&_*]:!text-white leading-none tracking-tight font-display" />
             </motion.div>
           )}
 
-          <div className="flex items-center gap-3 mt-4">
+          <div className="flex items-center gap-3 mt-5">
             <Button
               size="sm"
               onClick={(e) => { e.stopPropagation(); navigate("/dashboard/wallet"); }}
-              className="gap-1.5 rounded-pill h-10 px-5 font-bold bg-foreground text-background hover:bg-foreground/90 shadow-xl"
+              className="gap-1.5 rounded-pill h-11 px-6 font-bold bg-foreground text-background hover:bg-foreground/90 shadow-xl text-sm"
             >
               Enhance <ArrowUpRight className="w-4 h-4" />
             </Button>
-            <span className="text-xs text-white/40 font-medium">
+            <span className="text-xs text-white/35 font-medium">
               {totalOrders} orders placed
             </span>
           </div>
         </div>
-      </motion.button>
+      </motion.div>
 
       {/* ═══ MINI STAT CARDS ═══ */}
       <div className="grid grid-cols-3 gap-2.5">
@@ -102,7 +100,7 @@ export default function HeroStats({
             <motion.div
               key={stat.key}
               variants={cardVariant}
-              className="relative overflow-hidden rounded-2xl border border-border/40 bg-card p-3.5 transition-all duration-300 group"
+              className="rounded-2xl border border-border/30 bg-card p-3.5"
               style={{ boxShadow: "var(--shadow-card)" }}
             >
               <div className="flex items-center gap-2.5">
