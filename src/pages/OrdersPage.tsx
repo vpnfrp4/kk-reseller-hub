@@ -502,7 +502,7 @@ export default function OrdersPage() {
           </div>
         </motion.div>
 
-        {/* ═══ STAT CARDS ═══ */}
+        {/* ═══ STAT CARDS (BNPL clean style) ═══ */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <MiniStat label="Total Orders" value={stats?.total || 0} icon={Package} color="primary" accent />
           <MiniStat label="Processing" value={stats?.processing || 0} icon={Clock} color="warning" />
