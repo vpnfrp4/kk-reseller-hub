@@ -43,12 +43,11 @@ export default function HeroStats({
           {loading ? (
             <Skeleton className="h-16 w-56 rounded-2xl bg-white/10 mt-2" />
           ) : (
-            <div className="mt-1.5">
+            <div className="mt-1.5" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
               <Money
                 amount={balance}
                 raw
                 className="text-[3rem] lg:text-[3.8rem] font-extrabold !text-white [&_*]:!text-white leading-none tracking-tight"
-                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               />
             </div>
           )}
