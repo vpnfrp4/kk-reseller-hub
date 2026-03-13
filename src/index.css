@@ -256,18 +256,40 @@ html {
     padding-right: env(safe-area-inset-right);
   }
 
-  h1 { @apply text-2xl md:text-3xl font-bold leading-tight; letter-spacing: -0.02em; }
-  h2 { @apply text-lg font-semibold leading-snug; letter-spacing: -0.01em; }
-  h3 { @apply text-base font-semibold leading-snug; }
-
-  .font-mono {
-    font-family: 'JetBrains Mono', monospace;
+  /* ─── CarDrive Ambient Background ─── */
+  .app-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 12% 16%, hsl(210 86% 90% / 0.78), transparent 38%),
+      radial-gradient(circle at 89% 8%, hsl(30 90% 86% / 0.66), transparent 44%),
+      radial-gradient(circle at 40% 85%, hsl(193 40% 90% / 0.46), transparent 38%),
+      hsl(var(--background));
   }
 
-  /* Clean BNPL background — no ambient blobs or grid */
-  body::before,
-  body::after {
-    display: none;
+  .app-bg::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.18) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.18) 1px, transparent 1px);
+    background-size: 42px 42px;
+    opacity: 0.28;
+  }
+
+  .dark .app-bg {
+    background:
+      radial-gradient(circle at 10% 15%, hsl(211 95% 20% / 0.48), transparent 40%),
+      radial-gradient(circle at 88% 10%, hsl(24 95% 20% / 0.42), transparent 45%),
+      radial-gradient(circle at 42% 88%, hsl(218 58% 14% / 0.72), transparent 50%),
+      hsl(var(--background));
+  }
+
+  .dark .app-bg::before {
+    opacity: 0.18;
   }
 
   @keyframes slideUpFade {
