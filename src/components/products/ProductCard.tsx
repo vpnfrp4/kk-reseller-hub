@@ -67,20 +67,14 @@ export default function ProductCard({
   return (
     <div
       className={cn(
-        "group relative opacity-0 animate-stagger-in flex flex-col overflow-hidden",
-        "rounded-card bg-card/80 backdrop-blur-sm border border-border/30",
-        "transition-all duration-300 ease-out",
-        "hover:border-primary/25 hover:shadow-[0_12px_40px_-10px_hsl(var(--primary)/0.18)]",
-        "hover:-translate-y-1.5",
+        "group opacity-0 animate-stagger-in flex flex-col overflow-hidden",
+        "rounded-2xl bg-card border border-border/30",
+        "transition-all duration-200",
+        "hover:border-primary/20",
       )}
-      style={{ animationDelay: `${index * 0.04}s` }}
+      style={{ animationDelay: `${index * 0.04}s`, boxShadow: "var(--shadow-card)" }}
     >
-      {/* Top gradient accent line */}
-      <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/25 to-transparent group-hover:via-primary/40 transition-all duration-300" />
-      {/* Corner hover glow */}
-      <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-primary/[0.04] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-      <div className="p-6 flex flex-col flex-1 gap-4">
+      <div className="p-5 flex flex-col flex-1 gap-4">
         {/* ─── Name + Type badge ─── */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0 flex-1">
@@ -95,13 +89,13 @@ export default function ProductCard({
               <Link to={`/dashboard/products/${product.slug || product.id}`}>
                 <h3 className="text-sm font-semibold text-foreground leading-snug line-clamp-2 group-hover:text-primary transition-colors duration-200">
                   {product.display_id && (
-                    <span className="font-mono font-bold text-primary/70 mr-1">#{product.display_id}</span>
+                    <span className="font-mono font-bold text-primary/60 mr-1">#{product.display_id}</span>
                   )}
                   {product.name}
                 </h3>
               </Link>
               {product.duration && (
-                <p className="text-[10px] text-muted-foreground/60 mt-1.5 tracking-wide uppercase">
+                <p className="text-[10px] text-muted-foreground/50 mt-1.5 tracking-wide uppercase">
                   {product.duration}
                 </p>
               )}
@@ -123,14 +117,14 @@ export default function ProductCard({
 
         {/* ─── Meta chips ─── */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/70">
+          <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground/60">
             <Clock className="w-3 h-3" />
             {deliveryTime}
           </span>
           {successRate !== null && (
             <>
               <span className="w-px h-3 bg-border/30" />
-              <span className="inline-flex items-center gap-1 text-[10px] text-primary/80">
+              <span className="inline-flex items-center gap-1 text-[10px] text-primary/70">
                 <ShieldCheck className="w-3 h-3" />
                 {successRate}%
               </span>
@@ -149,7 +143,7 @@ export default function ProductCard({
         {/* ─── Price + Action ─── */}
         <div className="mt-auto pt-4 border-t border-border/10 flex items-end justify-between gap-3">
           <div>
-            <p className="text-xl font-bold font-mono tabular-nums text-primary leading-none">
+            <p className="text-xl font-bold font-mono tabular-nums text-foreground leading-none">
               {displayPrice.toLocaleString()}
               <span className="text-[10px] font-medium text-muted-foreground/50 ml-1 tracking-normal font-sans">
                 MMK
@@ -166,8 +160,7 @@ export default function ProductCard({
             size="sm"
             className={cn(
               "h-10 px-6 text-[11px] font-bold rounded-pill",
-              "shadow-[0_2px_12px_-3px_hsl(var(--primary)/0.3)]",
-              "hover:shadow-[0_6px_24px_-4px_hsl(var(--primary)/0.4)]",
+              "shadow-[0_2px_8px_hsl(var(--primary)/0.2)]",
               "hover:scale-[1.02] active:scale-[0.98]",
               "transition-all duration-200",
             )}
