@@ -476,26 +476,30 @@ export default function OrdersPage() {
           { label: l(t.nav.orders) },
         ]} />
 
-        {/* ═══ PAGE HEADER ═══ */}
+        {/* ═══ BNPL PAGE HEADER ═══ */}
         <motion.div
           initial={{ opacity: 0, y: -6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.2 }}
-          className="flex items-center justify-between"
+          className="relative overflow-hidden rounded-[var(--radius-modal)] p-5 lg:p-7"
         >
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary/8 flex items-center justify-center">
-              <Package className="w-4.5 h-4.5 text-primary" strokeWidth={1.7} />
+          <div className="absolute inset-0 bnpl-hero-gradient" />
+          <div className="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-white/[0.05] blur-3xl pointer-events-none" />
+          <div className="relative z-10 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center backdrop-blur-sm">
+                <Package className="w-4.5 h-4.5 text-white" strokeWidth={1.7} />
+              </div>
+              <div>
+                <h1 className="text-xl font-extrabold text-white tracking-tight">Order History</h1>
+                <p className="text-xs text-white/45 hidden sm:block">Track and manage all your service orders</p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-xl font-extrabold text-foreground tracking-tight">Order History</h1>
-              <p className="text-xs text-muted-foreground/50 hidden sm:block">Track and manage all your service orders</p>
-            </div>
+            <Button onClick={exportCSV} size="sm" className="gap-2 rounded-pill bg-white/10 text-white border-0 hover:bg-white/20 backdrop-blur-sm">
+              <Download className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Export</span>
+            </Button>
           </div>
-          <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2 rounded-xl border-border/30 text-muted-foreground hover:text-primary hover:border-primary/25 hover:bg-primary/5 transition-all">
-            <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Export</span>
-          </Button>
         </motion.div>
 
         {/* ═══ STAT CARDS ═══ */}
