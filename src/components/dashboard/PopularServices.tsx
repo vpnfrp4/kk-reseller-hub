@@ -3,18 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Money } from "@/components/shared";
-import { ArrowRight, Clock, Flame } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import ProductIcon from "@/components/products/ProductIcon";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: (i: number) => ({
-    opacity: 1, y: 0,
-    transition: { duration: 0.3, delay: i * 0.06 },
-  }),
-};
 
 export default function PopularServices() {
   const navigate = useNavigate();
@@ -59,19 +51,19 @@ export default function PopularServices() {
 
   if (isLoading) {
     return (
-      <div className="rounded-2xl border border-border/30 bg-card p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-        <Skeleton className="h-5 w-36 mb-4" />
-        <div className="grid grid-cols-2 gap-3">
-          {[1, 2, 3, 4].map((i) => (
+      <div className="space-y-3">
+        <Skeleton className="h-5 w-36" />
+        <div className="space-y-2.5">
+          {[1, 2, 3].map((i) => (
             <div key={i} className="rounded-2xl border border-border/30 bg-card p-4 animate-pulse">
-              <div className="flex items-center gap-3 mb-3">
-                <Skeleton className="w-11 h-11 rounded-xl" />
+              <div className="flex items-center gap-3">
+                <Skeleton className="w-12 h-12 rounded-xl" />
                 <div className="flex-1 space-y-1.5">
-                  <Skeleton className="h-3.5 w-28" />
-                  <Skeleton className="h-3 w-16" />
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-20" />
                 </div>
+                <Skeleton className="h-5 w-16" />
               </div>
-              <Skeleton className="h-5 w-full" />
             </div>
           ))}
         </div>
@@ -79,76 +71,94 @@ export default function PopularServices() {
     );
   }
 
-  if (!products || products.length === 0) {
-    return (
-      <div className="rounded-2xl border border-border/30 bg-card p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-        <div className="flex items-center gap-2.5 mb-3">
-          <div className="w-1.5 h-6 rounded-full bg-primary" />
-          <h2 className="text-sm font-bold text-foreground">Popular Services</h2>
-        </div>
-        <p className="text-sm text-muted-foreground">No popular products configured.</p>
-      </div>
-    );
-  }
+  if (!products || products.length === 0) return null;
+
+  // Show first product as a featured card, rest as list
+  const [featured, ...rest] = products;
 
   return (
-    <div className="rounded-2xl border border-border/30 bg-card p-5" style={{ boxShadow: "var(--shadow-card)" }}>
-      {/* Section header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2.5">
-          <div className="w-1.5 h-6 rounded-full bg-primary" />
-          <h2 className="text-sm lg:text-base font-bold text-foreground tracking-tight">Popular Services</h2>
-          <span className="text-[10px] font-bold text-primary bg-primary/8 px-2 py-0.5 rounded-pill uppercase tracking-wider flex items-center gap-1 border border-primary/15">
-            <Flame className="w-3 h-3" />
-            Hot
-          </span>
-        </div>
+    <motion.div
+      className="space-y-3"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: 0.25 }}
+    >
+      <div className="flex items-center justify-between">
+        <h2 className="text-base font-bold text-foreground">Popular Services</h2>
         <button
           onClick={() => navigate("/dashboard/place-order")}
           className="text-xs font-bold text-primary flex items-center gap-1 hover:text-primary/80 transition-colors"
         >
-          View all <ArrowRight className="w-3.5 h-3.5" />
+          See All <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      {/* Services grid — clean BNPL cards */}
-      <div className="grid grid-cols-2 gap-3">
-        {products.slice(0, 6).map((product: any, i: number) => (
-          <motion.button
-            key={product.id}
-            custom={i}
-            variants={cardVariants}
-            initial="hidden"
-            animate="visible"
-            whileTap={{ scale: 0.98 }}
-            onClick={() => navigate("/dashboard/place-order")}
-            className="text-left rounded-2xl border border-border/30 bg-card p-4 transition-all duration-200 hover:border-primary/20 group"
-            style={{ boxShadow: "var(--shadow-card)" }}
-          >
-            <div className="flex items-center gap-3 mb-3">
+      {/* Featured card — larger, like the Nike/Zara banner in BNPL reference */}
+      {featured && (
+        <button
+          onClick={() => navigate("/dashboard/place-order")}
+          className="w-full rounded-2xl overflow-hidden border border-border/30 bg-card text-left transition-all duration-200 hover:border-primary/20 active:scale-[0.99] group"
+          style={{ boxShadow: "var(--shadow-card)" }}
+        >
+          <div className="relative bg-gradient-to-br from-primary/10 via-primary/5 to-transparent p-5">
+            <div className="flex items-center gap-4">
+              <ProductIcon
+                imageUrl={featured.image_url}
+                name={featured.name}
+                category={featured.category}
+                size="lg"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-base font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
+                  {featured.name}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">{featured.category || "Service"}</p>
+                <div className="flex items-center gap-3 mt-2">
+                  <span className="text-lg font-extrabold font-mono tabular-nums text-foreground">
+                    <Money amount={featured.wholesale_price} compact />
+                  </span>
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <Clock className="w-3 h-3" />
+                    {featured.processing_time || "Instant"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </button>
+      )}
+
+      {/* Rest as clean list items */}
+      {rest.length > 0 && (
+        <div className="space-y-2">
+          {rest.slice(0, 5).map((product: any) => (
+            <button
+              key={product.id}
+              onClick={() => navigate("/dashboard/place-order")}
+              className="w-full flex items-center gap-3 p-3.5 rounded-2xl border border-border/30 bg-card text-left transition-all duration-200 hover:border-primary/20 active:scale-[0.99] group"
+              style={{ boxShadow: "var(--shadow-card)" }}
+            >
               <ProductIcon
                 imageUrl={product.image_url}
                 name={product.name}
                 category={product.category}
-                size="md"
+                size="sm"
               />
               <div className="min-w-0 flex-1">
-                <strong className="text-[13px] font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">{product.name}</strong>
-                <p className="text-[10px] text-muted-foreground/50 mt-0.5">{product.category || "Service"}</p>
+                <p className="text-sm font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors">
+                  {product.name}
+                </p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  {product.category || "Service"} · {product.processing_time || "Instant"}
+                </p>
               </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-bold font-mono tabular-nums text-foreground">
+              <span className="text-sm font-bold font-mono tabular-nums text-foreground shrink-0">
                 <Money amount={product.wholesale_price} compact />
               </span>
-              <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1">
-                <Clock className="w-3 h-3" />
-                {product.processing_time || "Instant"}
-              </span>
-            </div>
-          </motion.button>
-        ))}
-      </div>
-    </div>
+            </button>
+          ))}
+        </div>
+      )}
+    </motion.div>
   );
 }
