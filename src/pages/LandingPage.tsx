@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useLang } from "@/contexts/LangContext";
 import kkLogo from "@/assets/kkremote-logo.png";
+import landingBanner from "@/assets/landing-banner.png";
 import {
   Accordion,
   AccordionContent,
@@ -294,64 +295,13 @@ export default function LandingPage() {
 
               {/* Floating device illustrations */}
               <ScrollReveal delay={500}>
-                <div className="mt-16 relative w-full max-w-3xl mx-auto">
-                  <div className="flex justify-center items-end gap-4 sm:gap-8">
-                    {/* Phone mockup left */}
-                    <div className="w-[100px] sm:w-[140px] h-[200px] sm:h-[280px] rounded-[20px] sm:rounded-[28px] border-2 border-border/30 bg-card/60 backdrop-blur-xl shadow-2xl transform -rotate-6 translate-y-4 transition-transform duration-500 hover:rotate-0 hover:translate-y-0">
-                      <div className="p-2 sm:p-3 pt-6 sm:pt-8 space-y-2">
-                        <div className="h-2 w-3/4 bg-primary/20 rounded-full" />
-                        <div className="h-2 w-1/2 bg-muted rounded-full" />
-                        <div className="mt-3 sm:mt-4 space-y-1.5">
-                          <div className="h-6 sm:h-8 rounded-lg bg-primary/[0.08] border border-primary/10" />
-                          <div className="h-6 sm:h-8 rounded-lg bg-accent/[0.06] border border-accent/10" />
-                          <div className="h-6 sm:h-8 rounded-lg bg-primary/[0.05] border border-border/20" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Main device */}
-                    <div className="w-[160px] sm:w-[220px] h-[260px] sm:h-[360px] rounded-[24px] sm:rounded-[32px] border-2 border-primary/20 bg-card/70 backdrop-blur-xl shadow-[0_20px_60px_-15px_hsl(var(--primary)/0.2)] z-10 transition-transform duration-500 hover:-translate-y-2">
-                      <div className="p-3 sm:p-4 pt-8 sm:pt-10 space-y-3">
-                        <div className="text-center">
-                          <div className="h-3 w-2/3 mx-auto bg-primary/30 rounded-full mb-1" />
-                          <div className="h-2 w-1/2 mx-auto bg-muted rounded-full" />
-                        </div>
-                        <div className="mt-2 sm:mt-4 grid grid-cols-2 gap-1.5 sm:gap-2">
-                          {["Unlock", "IMEI", "iCloud", "Status"].map((label) => (
-                            <div key={label} className="h-12 sm:h-16 rounded-xl bg-primary/[0.06] border border-primary/10 flex items-center justify-center">
-                              <span className="text-[8px] sm:text-[10px] font-semibold text-primary/60">{label}</span>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="space-y-1.5">
-                          <div className="h-5 sm:h-7 rounded-lg bg-muted/50 border border-border/20" />
-                          <div className="h-5 sm:h-7 rounded-lg bg-muted/30 border border-border/10" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Phone mockup right */}
-                    <div className="w-[100px] sm:w-[140px] h-[200px] sm:h-[280px] rounded-[20px] sm:rounded-[28px] border-2 border-border/30 bg-card/60 backdrop-blur-xl shadow-2xl transform rotate-6 translate-y-4 transition-transform duration-500 hover:rotate-0 hover:translate-y-0">
-                      <div className="p-2 sm:p-3 pt-6 sm:pt-8 space-y-2">
-                        <div className="h-2 w-2/3 bg-accent/20 rounded-full" />
-                        <div className="h-2 w-1/3 bg-muted rounded-full" />
-                        <div className="mt-3 sm:mt-4 space-y-1.5">
-                          <div className="flex items-center gap-1.5 h-6 sm:h-8 rounded-lg bg-green-500/[0.08] border border-green-500/10 px-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                            <div className="h-1.5 flex-1 bg-green-500/15 rounded-full" />
-                          </div>
-                          <div className="flex items-center gap-1.5 h-6 sm:h-8 rounded-lg bg-amber-500/[0.06] border border-amber-500/10 px-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                            <div className="h-1.5 flex-1 bg-amber-500/10 rounded-full" />
-                          </div>
-                          <div className="flex items-center gap-1.5 h-6 sm:h-8 rounded-lg bg-primary/[0.05] border border-border/20 px-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary/50" />
-                            <div className="h-1.5 flex-1 bg-primary/10 rounded-full" />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                <div className="mt-16 relative w-full max-w-4xl mx-auto">
+                  <img
+                    src={landingBanner}
+                    alt="KarKar4 Store - Premium Digital Services including VPN, Netflix, Spotify, CapCut"
+                    className="w-full rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-border/20"
+                    loading="eager"
+                  />
                 </div>
               </ScrollReveal>
             </div>
