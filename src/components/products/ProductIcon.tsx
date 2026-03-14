@@ -47,8 +47,8 @@ export default function ProductIcon({
   // No image URL — show category icon or letter fallback
   if (!imageUrl) {
     return (
-      <div className={cn(containerBase, iconColor)}>
-        <IconComp className={s.icon} />
+      <div className={containerBase}>
+        <IconComp className={cn(s.icon, "text-primary")} />
       </div>
     );
   }
@@ -81,7 +81,7 @@ export default function ProductIcon({
       {status === "error" && (
         <span
           className={cn(
-            "font-bold uppercase select-none bg-gradient-to-br from-primary/80 to-primary/40 bg-clip-text text-transparent",
+            "font-bold uppercase select-none text-primary",
             s.text
           )}
         >
