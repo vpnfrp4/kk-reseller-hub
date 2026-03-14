@@ -1,37 +1,72 @@
 import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PrefetchLink from "@/components/PrefetchLink";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import PageTransition from "@/components/dashboard/PageTransition";
 import PullToRefresh from "@/components/shared/PullToRefresh";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useCurrency } from "@/contexts/CurrencyContext";
+
 import {
-  Home, ShoppingCart, Receipt, Wallet, Settings, LogOut, ArrowLeftRight, Sun, Moon,
+  Home,
+  ShoppingCart,
+  Receipt,
+  LogOut,
+  ArrowLeftRight,
+  Wallet,
+  Settings,
+  Menu,
+  X,
+  Bell,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTheme } from "next-themes";
+
 import BottomNav from "@/components/dashboard/BottomNav";
 import NotificationDropdown from "@/components/dashboard/NotificationDropdown";
 
-const NAV_LINKS = [
-  { to: "/dashboard", key: "dashboard", icon: Home, label: "Dashboard" },
-  { to: "/dashboard/place-order", key: "place-order", icon: ShoppingCart, label: "Place Order" },
-  { to: "/dashboard/orders", key: "orders", icon: Receipt, label: "Orders" },
-  { to: "/dashboard/wallet", key: "wallet", icon: Wallet, label: "Wallet" },
-  { to: "/dashboard/settings", key: "settings", icon: Settings, label: "Settings" },
+/* ── Nav items ── */
+interface NavItem {
+  label: string;
+  icon: React.ElementType;
+  path: string;
+}
+
+const navItems: NavItem[] = [
+  { label: "Dashboard", icon: Home, path: "/dashboard" },
+  { label: "Place Order", icon: ShoppingCart, path: "/dashboard/place-order" },
+  { label: "Orders", icon: Receipt, path: "/dashboard/orders" },
+  { label: "Wallet", icon: Wallet, path: "/dashboard/wallet" },
 ];
 
+/* ── Sidebar Nav Link ── */
+function SidebarNavLink({ item, active, onClick }: { item: NavItem; active: boolean; onClick?: () => void }) {
+  return (
+    <PrefetchLink
+      to={item.path}
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-medium transition-all duration-200",
+        active
+          ? "text-foreground bg-secondary font-semibold"
+          : "text-muted-foreground hover:text-foreground hover:bg-secondary/60"
+      )}
+    >
+      <item.icon className={cn("w-[18px] h-[18px]", active ? "text-foreground" : "text-muted-foreground")} strokeWidth={1.5} />
+      {item.label}
+    </PrefetchLink>
+  );
+}
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+
   const { user, profile, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { theme, setTheme } = useTheme();
-  const { formatAmount } = useCurrency();
 
   const handlePullRefresh = useCallback(async () => {
     await queryClient.invalidateQueries();
@@ -58,125 +93,135 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return location.pathname.startsWith(path);
   };
 
-  const initial = (profile?.name || profile?.email || "K").charAt(0).toUpperCase();
-
   return (
-    <>
-      {/* ─── Ambient Background ─── */}
-      <div className="app-bg" aria-hidden="true" />
+    <div className="min-h-[100dvh] flex flex-col bg-background">
+      {/* ═══ MINIMAL TOP BAR (BNPL) ═══ */}
+      <header className="sticky top-0 z-50 bg-background">
+        <div className="w-full max-w-[1220px] mx-auto px-4 sm:px-5">
+          <div className="flex items-center justify-between h-14 lg:h-16">
+            {/* Left: Search icon (mobile) / Brand (desktop) */}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate("/dashboard/place-order")}
+                className="lg:hidden p-2 -ml-2 text-muted-foreground"
+              >
+                <Search className="w-5 h-5" strokeWidth={1.5} />
+              </button>
+              <Link to="/dashboard" className="hidden lg:inline-flex items-center gap-2.5">
+                <strong className="text-base font-bold tracking-tight">KKTech</strong>
+              </Link>
+            </div>
 
-      {/* ═══ TOPBAR ═══ */}
-      <header className="sticky top-0 z-50 border-b border-border bg-card/90 backdrop-blur-lg">
-        <div className="w-[min(1220px,calc(100%-1.6rem))] mx-auto min-h-[62px] flex items-center justify-between gap-4">
-          {/* Brand */}
-          <Link to="/dashboard" className="inline-flex items-center gap-3">
-            <span
-              className="w-[34px] h-[34px] rounded-[0.9rem] grid place-items-center text-[0.72rem] font-bold text-primary-foreground bg-primary"
-              style={{ boxShadow: "0 8px 16px -10px hsl(var(--primary))" }}
-            >
-              KK
-            </span>
-            <span className="hidden sm:grid gap-0.5">
-              <strong className="text-base font-bold tracking-tight" style={{ fontFamily: "var(--font-display)" }}>
-                KKTech Panel
-              </strong>
-              <span className="text-[0.72rem] text-muted-foreground">Reseller Dashboard</span>
-            </span>
-          </Link>
-
-          {/* Right actions */}
-          <div className="flex items-center gap-2.5">
-            {/* Theme toggle */}
-            <button
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="w-[34px] h-[34px] rounded-full border border-border bg-card text-muted-foreground grid place-items-center hover:text-foreground hover:border-primary/40 transition-all"
-              style={{ boxShadow: "0 6px 14px -10px hsl(var(--foreground) / 0.45)" }}
-            >
-              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </button>
-
-            {/* Balance pill */}
-            <span
-              className="hidden sm:inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[0.77rem] font-bold border border-primary/20 bg-primary/10 text-primary"
-              style={{ fontFamily: "var(--font-display)" }}
-            >
-              💰 {formatAmount(profile?.balance || 0)} MMK
-            </span>
-
-            <NotificationDropdown />
-
-            {/* Avatar */}
-            <span className="w-[34px] h-[34px] rounded-full grid place-items-center text-[0.8rem] font-bold text-accent-foreground bg-accent border border-border">
-              {initial}
-            </span>
+            {/* Right: Notification bell */}
+            <div className="flex items-center gap-1">
+              <NotificationDropdown />
+              {/* Mobile hamburger */}
+              <button
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                className="lg:hidden p-2 text-muted-foreground"
+              >
+                {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
           </div>
         </div>
       </header>
 
       {/* ═══ SHELL: SIDEBAR + CONTENT ═══ */}
-      <div className="w-[min(1220px,calc(100%-1.6rem))] mx-auto grid gap-4 py-4 lg:grid-cols-[var(--sidebar-width)_minmax(0,1fr)]">
+      <div className="w-full max-w-[1220px] mx-auto px-4 sm:px-5 flex-1 grid gap-5 py-3 lg:py-5 lg:grid-cols-[220px_minmax(0,1fr)]">
 
         {/* ── Desktop Sidebar ── */}
-        <aside className="hidden lg:block self-start sticky top-[77px] cd-reveal">
-          <div
-            className="border border-border rounded-[1.2rem] bg-card/80 backdrop-blur-[10px] overflow-hidden"
-            style={{ boxShadow: "0 20px 30px -24px hsl(var(--foreground) / 0.35)" }}
-          >
-            <div className="px-4 pt-4 pb-3 border-b border-border">
-              <p className="text-[0.74rem] text-muted-foreground uppercase tracking-[0.12em] font-semibold">
-                Main Navigation
-              </p>
-            </div>
+        <aside className="hidden lg:block self-start sticky top-20">
+          <nav className="space-y-1">
+            {navItems.map((item) => (
+              <SidebarNavLink key={item.path} item={item} active={isActive(item.path)} />
+            ))}
 
-            <nav className="grid gap-1 p-3">
-              {NAV_LINKS.map((link) => {
-                const active = isActive(link.to);
-                const Icon = link.icon;
-                return (
-                  <PrefetchLink
-                    key={link.key}
-                    to={link.to}
-                    className={cn(
-                      "flex items-center gap-2.5 border border-transparent rounded-[0.8rem] px-3 py-2.5 text-[0.86rem] font-semibold transition-all duration-200",
-                      active
-                        ? "text-primary border-primary/25 bg-primary/10"
-                        : "text-muted-foreground hover:border-input hover:text-foreground hover:bg-secondary"
-                    )}
-                  >
-                    <Icon className="w-4 h-4" strokeWidth={1.5} />
-                    {link.label}
-                  </PrefetchLink>
-                );
-              })}
+            {isAdmin && (
+              <>
+                <div className="h-px bg-border/20 mx-3 my-3" />
+                <SidebarNavLink
+                  item={{ label: "Admin", icon: ArrowLeftRight, path: "/admin" }}
+                  active={location.pathname.startsWith("/admin")}
+                />
+              </>
+            )}
 
-              {isAdmin && (
-                <Link
-                  to="/admin"
-                  className={cn(
-                    "flex items-center gap-2.5 border border-transparent rounded-[0.8rem] px-3 py-2.5 text-[0.86rem] font-semibold transition-all duration-200",
-                    location.pathname.startsWith("/admin")
-                      ? "text-primary border-primary/25 bg-primary/10"
-                      : "text-muted-foreground hover:border-input hover:text-foreground hover:bg-secondary"
-                  )}
-                >
-                  <ArrowLeftRight className="w-4 h-4" strokeWidth={1.5} />
-                  Admin
-                </Link>
-              )}
-            </nav>
+            <div className="h-px bg-border/20 mx-3 my-3" />
 
-            <div className="px-3 pb-3 pt-1 border-t border-border">
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 rounded-[calc(var(--radius)-4px)] border border-input bg-card px-3.5 py-2.5 text-[0.78rem] font-bold uppercase tracking-[0.08em] text-secondary-foreground hover:bg-secondary transition-all"
-                style={{ fontFamily: "var(--font-display)" }}
-              >
-                <LogOut className="w-4 h-4" strokeWidth={1.5} />
-                Sign Out
-              </button>
-            </div>
-          </div>
+            <SidebarNavLink
+              item={{ label: "Settings", icon: Settings, path: "/dashboard/settings" }}
+              active={location.pathname.startsWith("/dashboard/settings")}
+            />
+
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-all duration-200 text-left"
+            >
+              <LogOut className="w-[18px] h-[18px]" strokeWidth={1.5} />
+              Sign Out
+            </button>
+          </nav>
         </aside>
+
+        {/* ── Mobile Menu Dropdown ── */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.15 }}
+              className="lg:hidden rounded-2xl bg-card border border-border/30 overflow-hidden"
+              style={{ boxShadow: "var(--shadow-card)" }}
+            >
+              <nav className="p-2 grid grid-cols-2 gap-1">
+                {navItems.map((item) => {
+                  const active = isActive(item.path);
+                  return (
+                    <PrefetchLink
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={cn(
+                        "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all",
+                        active ? "text-foreground bg-secondary" : "text-muted-foreground"
+                      )}
+                    >
+                      <item.icon className="w-4 h-4" strokeWidth={1.5} />
+                      {item.label}
+                    </PrefetchLink>
+                  );
+                })}
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-primary"
+                  >
+                    <ArrowLeftRight className="w-4 h-4" strokeWidth={1.5} />
+                    Admin
+                  </Link>
+                )}
+                <PrefetchLink
+                  to="/dashboard/settings"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground"
+                >
+                  <Settings className="w-4 h-4" strokeWidth={1.5} />
+                  Settings
+                </PrefetchLink>
+                <button
+                  onClick={() => { setMobileMenuOpen(false); handleLogout(); }}
+                  className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-destructive text-left"
+                >
+                  <LogOut className="w-4 h-4" strokeWidth={1.5} />
+                  Sign Out
+                </button>
+              </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Main Content ── */}
         <main className="min-w-0 pb-24 lg:pb-6" data-scroll-area>
@@ -192,6 +237,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Bottom Nav (mobile only) */}
       <BottomNav />
-    </>
+    </div>
   );
 }
