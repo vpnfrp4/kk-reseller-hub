@@ -81,7 +81,7 @@ export default function ProductIcon({
       {status === "error" && (
         <span
           className={cn(
-            "font-bold uppercase select-none bg-gradient-to-br from-primary/80 to-primary/40 bg-clip-text text-transparent",
+            "font-bold uppercase select-none text-primary",
             s.text
           )}
         >
