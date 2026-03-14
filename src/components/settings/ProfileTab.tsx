@@ -145,15 +145,26 @@ export default function ProfileTab() {
 
   return (
     <div className="space-y-default">
-      {/* Avatar + Identity */}
-      <div className="glass-card p-card">
-        <div className="flex items-start gap-card">
+      {/* Edit Profile — single card with avatar inline */}
+      <div className="glass-card p-card space-y-default">
+        <div className="flex items-center gap-compact">
+          <div className="w-8 h-8 rounded-btn bg-primary/10 flex items-center justify-center">
+            <User className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-foreground">Personal Information</h3>
+            <p className="text-[11px] text-muted-foreground">Update your display name and avatar</p>
+          </div>
+        </div>
+
+        {/* Avatar row */}
+        <div className="flex items-center gap-4">
           <div className="relative group">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center overflow-hidden">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 flex items-center justify-center overflow-hidden">
               {avatarUrl ? (
                 <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
               ) : (
-                <span className="text-2xl font-bold text-primary tracking-tight">{initials}</span>
+                <span className="text-xl font-bold text-primary tracking-tight">{initials}</span>
               )}
             </div>
             <button
@@ -162,47 +173,24 @@ export default function ProfileTab() {
               className="absolute inset-0 rounded-2xl bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
               type="button"
             >
-              {uploading ? <Loader2 className="w-5 h-5 text-primary animate-spin" /> : <Camera className="w-5 h-5 text-muted-foreground" />}
+              {uploading ? <Loader2 className="w-4 h-4 text-primary animate-spin" /> : <Camera className="w-4 h-4 text-muted-foreground" />}
             </button>
             <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleAvatarUpload} />
           </div>
-          <div className="flex-1 min-w-0 space-y-micro">
-            <h3 className="text-lg font-semibold text-foreground truncate">{profile?.name || "Unnamed User"}</h3>
-            <div className="flex items-center gap-tight text-sm text-muted-foreground">
-              <Mail className="w-3.5 h-3.5 shrink-0" />
-              <span className="truncate font-mono text-xs">{profile?.email}</span>
-            </div>
-            <div className="flex items-center gap-tight text-xs text-muted-foreground/60">
-              <Calendar className="w-3 h-3 shrink-0" />
-              <span>Member</span>
-            </div>
-            <div className="flex items-center gap-tight pt-micro">
-              <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1.5" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
-                <Camera className="w-3 h-3" />
-                {avatarUrl ? "Change Avatar" : "Upload Avatar"}
+          <div className="flex items-center gap-tight">
+            <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1.5" onClick={() => fileInputRef.current?.click()} disabled={uploading}>
+              <Camera className="w-3 h-3" />
+              {avatarUrl ? "Change Avatar" : "Upload Avatar"}
+            </Button>
+            {avatarUrl && (
+              <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1.5 text-destructive/60 hover:text-destructive" onClick={handleRemoveAvatar} disabled={uploading}>
+                <Trash2 className="w-3 h-3" />
+                Remove
               </Button>
-              {avatarUrl && (
-                <Button variant="ghost" size="sm" className="h-7 text-[11px] gap-1.5 text-destructive/60 hover:text-destructive" onClick={handleRemoveAvatar} disabled={uploading}>
-                  <Trash2 className="w-3 h-3" />
-                  Remove
-                </Button>
-              )}
-            </div>
+            )}
           </div>
         </div>
-      </div>
 
-      {/* Edit Profile */}
-      <div className="glass-card p-card space-y-default">
-        <div className="flex items-center gap-compact">
-          <div className="w-8 h-8 rounded-btn bg-primary/10 flex items-center justify-center">
-            <User className="w-4 h-4 text-primary" />
-          </div>
-          <div>
-            <h3 className="text-sm font-semibold text-foreground">Personal Information</h3>
-            <p className="text-[11px] text-muted-foreground">Update your display name</p>
-          </div>
-        </div>
         <form onSubmit={handleUpdateName} className="space-y-default">
           <div className="grid gap-default sm:grid-cols-2">
             <div className="space-y-micro">
