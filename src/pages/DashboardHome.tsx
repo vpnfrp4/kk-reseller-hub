@@ -148,8 +148,6 @@ export default function DashboardHome() {
           {/* ═══ POPULAR SERVICES (featured banner) ═══ */}
           <PopularServices />
 
-          {/* ═══ CATEGORIES (circular icons — like BNPL ref) ═══ */}
-          <ServiceCategories />
 
           {/* ═══ RECENT ACTIVITY ═══ */}
           <RecentTimeline orders={orders} loading={ordersLoading} />
