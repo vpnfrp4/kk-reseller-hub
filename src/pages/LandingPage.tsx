@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import { useLang } from "@/contexts/LangContext";
 import kkLogo from "@/assets/kkremote-logo.png";
+import landingBanner from "@/assets/landing-banner.png";
 import {
   Accordion,
   AccordionContent,
