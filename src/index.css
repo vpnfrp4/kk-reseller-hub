@@ -134,6 +134,7 @@ html {
 
     --font-display: "Space Grotesk", "Noto Sans Myanmar", "Segoe UI", sans-serif;
     --font-body: "Noto Sans Myanmar", "Space Grotesk", "Segoe UI", sans-serif;
+  }
 
   .dark {
     /* ═══ DARK THEME — Warm Charcoal + Orange ═══ */
