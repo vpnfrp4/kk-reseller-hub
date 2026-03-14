@@ -57,7 +57,7 @@ export default function HeroStats({
               onClick={(e) => { e.stopPropagation(); navigate("/dashboard/wallet"); }}
               className="inline-flex items-center gap-2 h-12 px-7 rounded-full bg-foreground text-background font-bold text-sm shadow-xl hover:opacity-90 transition-opacity active:scale-[0.97]"
             >
-              Enhance <ArrowUpRight className="w-4 h-4" />
+              Add fund <ArrowUpRight className="w-4 h-4" />
             </button>
           </div>
         </div>
