@@ -246,13 +246,34 @@ export default function LandingPage() {
 
           <div className="relative mx-auto max-w-[1200px] px-6 pt-20 pb-16 sm:pt-28 sm:pb-20 md:pt-32 md:pb-24">
             <ScrollReveal>
-              <div className="relative w-full max-w-5xl mx-auto">
+              <div className="relative w-full max-w-5xl mx-auto overflow-hidden rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-border/20">
                 <img
                   src={landingBanner}
                   alt="KarKar4 Store - Premium Digital Services including VPN, Netflix, Spotify, CapCut"
-                  className="w-full rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-border/20"
+                  className="w-full block"
                   loading="eager"
                 />
+                {/* Overlay gradient */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                {/* Overlay content */}
+                <div className="absolute inset-x-0 bottom-0 p-6 sm:p-10 flex flex-col items-start gap-4">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight drop-shadow-lg">
+                    KKTech <span className="text-primary">Reseller</span> Platform
+                  </h1>
+                  <p className="text-sm sm:text-base text-white/80 max-w-lg leading-relaxed drop-shadow">
+                    Professional unlock services, IMEI tools & digital subscriptions — all in one platform.
+                  </p>
+                  <div className="flex flex-wrap gap-3 mt-1">
+                    <Button size="lg" variant="premium" className="h-12 px-8 text-sm font-bold shadow-[0_0_30px_-6px_hsl(var(--primary)/0.6)]" asChild>
+                      <Link to="/login">
+                        Start Ordering <ArrowRight className="w-4 h-4 ml-2" />
+                      </Link>
+                    </Button>
+                    <Button variant="outline" size="lg" className="h-12 px-8 text-sm font-semibold border-white/30 text-white bg-white/10 backdrop-blur-sm hover:bg-white/20" asChild>
+                      <Link to="/login">Create Account</Link>
+                    </Button>
+                  </div>
+                </div>
               </div>
             </ScrollReveal>
           </div>
