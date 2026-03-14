@@ -6,9 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 type IconSize = "sm" | "md" | "lg";
 
 const SIZE_MAP: Record<IconSize, { container: string; img: string; text: string; icon: string; padding: string }> = {
-  sm: { container: "w-8 h-8", img: "w-8 h-8", text: "text-xs", icon: "w-3.5 h-3.5", padding: "p-1" },
-  md: { container: "w-10 h-10", img: "w-10 h-10", text: "text-sm", icon: "w-4 h-4", padding: "p-1.5" },
-  lg: { container: "w-11 h-11", img: "w-11 h-11", text: "text-base", icon: "w-4.5 h-4.5", padding: "p-1.5" },
+  sm: { container: "w-10 h-10", img: "w-10 h-10", text: "text-xs", icon: "w-4 h-4", padding: "p-1.5" },
+  md: { container: "w-11 h-11", img: "w-11 h-11", text: "text-sm", icon: "w-5 h-5", padding: "p-2" },
+  lg: { container: "w-14 h-14", img: "w-14 h-14", text: "text-base", icon: "w-6 h-6", padding: "p-2.5" },
 };
 
 interface ProductIconProps {
@@ -38,8 +38,8 @@ export default function ProductIcon({
   const handleError = useCallback(() => setStatus("error"), []);
 
   const containerBase = cn(
-    "shrink-0 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden",
-    "bg-[#1A1F2E]",
+    "shrink-0 rounded-2xl border border-border/30 flex items-center justify-center overflow-hidden",
+    "bg-secondary",
     s.container,
     className
   );
