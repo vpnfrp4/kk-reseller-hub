@@ -244,67 +244,17 @@ export default function LandingPage() {
             <div className="absolute top-[60%] right-[20%] w-[300px] h-[300px] rounded-full bg-primary/[0.04] blur-[80px] animate-float-gentle" style={{ animationDelay: "-6s" }} />
           </div>
 
-          <div className="relative mx-auto max-w-[1200px] px-6 pt-20 pb-16 sm:pt-28 sm:pb-20 md:pt-36 md:pb-28 lg:pt-44 lg:pb-36">
-            <div className="flex flex-col items-center text-center relative z-10">
-              {/* Trust badge */}
-              <ScrollReveal>
-                <div className="relative inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] backdrop-blur-xl px-5 py-2 mb-8 shadow-[0_0_30px_-8px_hsl(var(--primary)/0.25)] overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/[0.08] to-transparent animate-shimmer" style={{ backgroundSize: '200% 100%' }} />
-                  <ShieldCheck className="h-4 w-4 text-primary relative z-10" />
-                  <span className="text-xs font-semibold text-primary/80 relative z-10">Trusted by technicians and resellers worldwide</span>
-                </div>
-              </ScrollReveal>
-
-              {/* Main heading */}
-              <ScrollReveal delay={100}>
-                <h1 className="text-[2.5rem] font-black leading-[1.06] tracking-tight sm:text-[3.5rem] lg:text-[4.5rem] max-w-4xl">
-                  <span className="text-foreground">KKTech</span>{" "}
-                  <span className="gradient-text">Reseller</span>
-                  <br />
-                  <span className="text-foreground">Platform</span>
-                </h1>
-              </ScrollReveal>
-
-              {/* Subtitle */}
-              <ScrollReveal delay={200}>
-                <p className="mt-4 text-lg sm:text-xl font-semibold text-foreground/80 tracking-wide">
-                  Professional Unlock Services Marketplace for Technicians
-                </p>
-              </ScrollReveal>
-
-              {/* Description */}
-              <ScrollReveal delay={300}>
-                <p className="mt-5 text-base sm:text-lg text-muted-foreground max-w-xl leading-relaxed">
-                  Access premium unlock services, IMEI tools, and digital services from a single powerful platform.
-                </p>
-              </ScrollReveal>
-
-              {/* CTA Buttons */}
-              <ScrollReveal delay={400}>
-                <div className="mt-10 flex flex-col sm:flex-row gap-4">
-                  <Button size="lg" variant="premium" className="h-14 px-10 text-base font-bold shadow-[0_0_40px_-8px_hsl(var(--primary)/0.5)]" asChild>
-                    <Link to="/login">
-                      Start Ordering <ArrowRight className="w-4 h-4 ml-2" />
-                    </Link>
-                  </Button>
-                  <Button variant="outline" size="lg" className="h-14 px-10 text-base font-semibold border-border/60 bg-card/40 backdrop-blur-sm hover:bg-card/70" asChild>
-                    <Link to="/login">Create Reseller Account</Link>
-                  </Button>
-                </div>
-              </ScrollReveal>
-
-              {/* Floating device illustrations */}
-              <ScrollReveal delay={500}>
-                <div className="mt-16 relative w-full max-w-4xl mx-auto">
-                  <img
-                    src={landingBanner}
-                    alt="KarKar4 Store - Premium Digital Services including VPN, Netflix, Spotify, CapCut"
-                    className="w-full rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-border/20"
-                    loading="eager"
-                  />
-                </div>
-              </ScrollReveal>
-            </div>
+          <div className="relative mx-auto max-w-[1200px] px-6 pt-20 pb-16 sm:pt-28 sm:pb-20 md:pt-32 md:pb-24">
+            <ScrollReveal>
+              <div className="relative w-full max-w-5xl mx-auto">
+                <img
+                  src={landingBanner}
+                  alt="KarKar4 Store - Premium Digital Services including VPN, Netflix, Spotify, CapCut"
+                  className="w-full rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-border/20"
+                  loading="eager"
+                />
+              </div>
+            </ScrollReveal>
           </div>
         </section>
 
