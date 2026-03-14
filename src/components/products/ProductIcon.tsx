@@ -47,8 +47,8 @@ export default function ProductIcon({
   // No image URL — show category icon or letter fallback
   if (!imageUrl) {
     return (
-      <div className={cn(containerBase, iconColor)}>
-        <IconComp className={s.icon} />
+      <div className={containerBase}>
+        <IconComp className={cn(s.icon, "text-primary")} />
       </div>
     );
   }
