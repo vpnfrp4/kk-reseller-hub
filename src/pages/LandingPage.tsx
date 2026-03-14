@@ -244,13 +244,13 @@ export default function LandingPage() {
             <div className="absolute top-[60%] right-[20%] w-[300px] h-[300px] rounded-full bg-primary/[0.04] blur-[80px] animate-float-gentle" style={{ animationDelay: "-6s" }} />
           </div>
 
-          <div className="relative mx-auto max-w-[1200px] px-6 pt-20 pb-16 sm:pt-28 sm:pb-20 md:pt-32 md:pb-24">
+          <div className="relative mx-auto max-w-[1200px] px-3 sm:px-6 pt-16 pb-12 sm:pt-28 sm:pb-20 md:pt-32 md:pb-24">
             <ScrollReveal>
               <div className="relative w-full max-w-5xl mx-auto">
                 <img
                   src={landingBanner}
                   alt="KarKar4 Store - Premium Digital Services including VPN, Netflix, Spotify, CapCut"
-                  className="w-full rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-border/20"
+                  className="w-full rounded-xl sm:rounded-2xl md:rounded-3xl shadow-[0_12px_40px_-10px_rgba(0,0,0,0.25)] sm:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-border/20"
                   loading="eager"
                 />
               </div>
