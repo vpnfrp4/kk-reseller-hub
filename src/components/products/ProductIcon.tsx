@@ -38,8 +38,8 @@ export default function ProductIcon({
   const handleError = useCallback(() => setStatus("error"), []);
 
   const containerBase = cn(
-    "shrink-0 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden",
-    "bg-[#1A1F2E]",
+    "shrink-0 rounded-2xl border border-border/30 flex items-center justify-center overflow-hidden",
+    "bg-secondary",
     s.container,
     className
   );
