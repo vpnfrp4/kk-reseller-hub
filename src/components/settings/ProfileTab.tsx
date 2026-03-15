@@ -199,7 +199,7 @@ export default function ProfileTab() {
 
             {/* Bot Commands Reference */}
             <div className="p-3 rounded-lg bg-muted/10 border border-border/10 space-y-2">
-              <p className="text-[11px] font-semibold text-foreground flex items-center gap-1"><ClipboardList className="w-3 h-3 text-primary" /> Bot Commands:</p>
+              <p className="text-[11px] font-semibold text-foreground flex items-center gap-1"><ClipboardList className="w-3 h-3 text-primary" /> {l(t.settings.botCommands)}:</p>
               <div className="grid gap-1.5">
                 {[
                   { cmd: "/balance", desc: "Check wallet balance (MMK & USD)" },
