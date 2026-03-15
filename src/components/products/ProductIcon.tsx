@@ -77,7 +77,8 @@ export default function ProductIcon({
           status === "loaded" ? "block" : "hidden"
         )}
         loading="eager"
-        decoding="async"
+        decoding={priority ? "sync" : "async"}
+        fetchPriority={priority ? "high" : "auto"}
         onLoad={handleLoad}
         onError={handleError}
         referrerPolicy="no-referrer"
