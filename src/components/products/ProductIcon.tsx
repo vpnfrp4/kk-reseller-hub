@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 import { Skeleton } from "@/components/ui/skeleton";
+import { preloaded } from "@/lib/image-preloader";
 
 type IconSize = "sm" | "md" | "lg";
 
@@ -29,13 +30,20 @@ export default function ProductIcon({
   className,
   priority = false,
 }: ProductIconProps) {
+  // Skip skeleton for preloaded/cached images
+  const getInitialStatus = (url?: string | null): "loading" | "loaded" | "error" => {
+    if (!url) return "error";
+    if (preloaded.has(url)) return "loaded";
+    return "loading";
+  };
+
   const [status, setStatus] = useState<"loading" | "loaded" | "error">(
-    imageUrl ? "loading" : "error"
+    getInitialStatus(imageUrl)
   );
 
   // Reset status when imageUrl changes
   useEffect(() => {
-    setStatus(imageUrl ? "loading" : "error");
+    setStatus(getInitialStatus(imageUrl));
   }, [imageUrl]);
 
   const s = SIZE_MAP[size];
