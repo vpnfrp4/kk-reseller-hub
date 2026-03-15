@@ -27,6 +27,7 @@ export default function ProductIcon({
   category = "General",
   size = "md",
   className,
+  priority = false,
 }: ProductIconProps) {
   const [status, setStatus] = useState<"loading" | "loaded" | "error">(
     imageUrl ? "loading" : "error"
