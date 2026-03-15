@@ -1,7 +1,8 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 import { Skeleton } from "@/components/ui/skeleton";
+import { preloaded } from "@/lib/image-preloader";
 
 type IconSize = "sm" | "md" | "lg";
 

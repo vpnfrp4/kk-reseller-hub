@@ -3,7 +3,7 @@
  * Uses <link rel="preload"> for high-priority above-fold images,
  * falls back to Image() for broader support.
  */
-const preloaded = new Set<string>();
+export const preloaded = new Set<string>();
 
 export function preloadImages(urls: (string | null | undefined)[], highPriority = false) {
   for (const url of urls) {
