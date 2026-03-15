@@ -13,19 +13,17 @@ import {
   Globe,
   CreditCard,
   Smartphone,
-  Lock,
-  Search,
   UserPlus,
   Wallet,
   MousePointerClick,
   CheckCircle2,
-  Languages,
   Activity,
   Bell,
   BotMessageSquare,
   Server,
   BarChart3,
   Fingerprint,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -59,8 +57,8 @@ const ScrollReveal = forwardRef<HTMLDivElement, { children: ReactNode; delay?: n
 
     const style: CSSProperties = {
       opacity: visible ? 1 : 0,
-      transform: visible ? "translateY(0)" : "translateY(20px)",
-      transition: `opacity 0.6s ease-out ${delay}ms, transform 0.6s ease-out ${delay}ms`,
+      transform: visible ? "translateY(0)" : "translateY(24px)",
+      transition: `opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms, transform 0.7s cubic-bezier(0.16, 1, 0.3, 1) ${delay}ms`,
     };
 
     const setRefs = (node: HTMLDivElement | null) => {
@@ -78,17 +76,34 @@ ScrollReveal.displayName = "ScrollReveal";
 function AnimatedStat({ target, suffix, label, icon: Icon }: { target: number; suffix: string; label: string; icon: typeof Zap }) {
   const { display, ref } = useCountUpOnView(target, 1400);
   return (
-    <div ref={ref} className="relative group text-center rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl p-8 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1">
-      {/* Top accent shine */}
-      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent rounded-t-2xl" />
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:shadow-[0_0_16px_-4px_hsl(var(--primary)/0.3)]">
+    <div ref={ref} className="text-center py-6 sm:py-8">
+      <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/[0.08]">
         <Icon className="h-5 w-5 text-primary" />
       </div>
-      <p className="text-3xl sm:text-4xl font-black tracking-tight gradient-text">
+      <p className="text-3xl sm:text-4xl font-black tracking-tight font-display gradient-text">
         {display.toLocaleString()}{suffix}
       </p>
-      <p className="mt-2 text-sm font-medium text-muted-foreground">{label}</p>
+      <p className="mt-1.5 text-sm text-muted-foreground">{label}</p>
     </div>
+  );
+}
+
+/* ───────── SECTION HEADER ───────── */
+function SectionHeader({ badge, title, description }: { badge: string; title: string; description: string }) {
+  return (
+    <ScrollReveal>
+      <div className="text-center max-w-2xl mx-auto mb-14 sm:mb-16">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/[0.06] px-3.5 py-1 mb-5 text-[11px] font-bold uppercase tracking-[0.15em] text-primary/90">
+          {badge}
+        </span>
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight font-display gradient-text">
+          {title}
+        </h2>
+        <p className="mt-4 text-base sm:text-lg text-muted-foreground leading-relaxed">
+          {description}
+        </p>
+      </div>
+    </ScrollReveal>
   );
 }
 
@@ -103,9 +118,9 @@ const features = [
 ];
 
 const steps = [
-  { icon: UserPlus, step: "01", title: "Create Reseller Account", desc: "Sign up in seconds with your email. No minimums, no commitments required to get started." },
-  { icon: Wallet, step: "02", title: "Add Funds to Wallet", desc: "Top up via KBZPay, WavePay, bank transfer, or Binance. Approved within minutes." },
-  { icon: MousePointerClick, step: "03", title: "Start Ordering Services", desc: "Browse the catalog, select your service, submit details, and receive results automatically." },
+  { icon: UserPlus, title: "Create Account", desc: "Sign up in seconds with your email. No minimums, no commitments required." },
+  { icon: Wallet, title: "Add Funds", desc: "Top up via KBZPay, WavePay, bank transfer, or Binance. Approved within minutes." },
+  { icon: MousePointerClick, title: "Start Ordering", desc: "Browse the catalog, select your service, submit details, and receive results automatically." },
 ];
 
 const popularServices = [
@@ -173,7 +188,7 @@ function OrgWebsiteJsonLd() {
 }
 
 /* ═══════════════════════════════════════════════════════
-   LANDING PAGE — PREMIUM SAAS (LetsVPN / Stripe inspired)
+   LANDING PAGE — PREMIUM MARKETING
    ═══════════════════════════════════════════════════════ */
 export default function LandingPage() {
   const [contactOpen, setContactOpen] = useState(false);
@@ -187,7 +202,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen w-full" style={{ overflow: "visible" }}>
+    <div className="min-h-screen w-full">
       <FaqJsonLd />
       <OrgWebsiteJsonLd />
 
@@ -196,15 +211,15 @@ export default function LandingPage() {
         className="sticky top-0 z-50 border-b transition-all duration-300"
         style={{
           borderColor: scrollY > 20 ? "hsl(var(--border) / 0.5)" : "transparent",
-          background: scrollY > 20 ? "hsl(var(--background) / 0.85)" : "hsl(var(--background) / 0.6)",
-          backdropFilter: "blur(20px) saturate(1.4)",
-          WebkitBackdropFilter: "blur(20px) saturate(1.4)",
+          background: scrollY > 20 ? "hsl(var(--background) / 0.88)" : "transparent",
+          backdropFilter: scrollY > 20 ? "blur(20px) saturate(1.4)" : "none",
+          WebkitBackdropFilter: scrollY > 20 ? "blur(20px) saturate(1.4)" : "none",
         }}
       >
-        <div className="mx-auto flex max-w-[1200px] items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-5 sm:px-8 py-4">
           <Link to="/" className="flex items-center gap-2.5">
             <img src={kkLogo} alt="KKTech" className="h-8 w-8 rounded-lg" />
-            <span className="text-xl font-extrabold tracking-tight text-foreground">
+            <span className="text-xl font-extrabold tracking-tight font-display text-foreground">
               KK<span className="text-primary">Tech</span>
             </span>
           </Link>
@@ -216,7 +231,7 @@ export default function LandingPage() {
           </nav>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <Button variant="ghost" size="sm" className="text-sm font-medium" asChild>
+            <Button variant="ghost" size="sm" className="text-sm font-medium hidden sm:inline-flex" asChild>
               <Link to="/login">Log In</Link>
             </Button>
             <Button size="sm" variant="premium" className="text-sm px-5 font-semibold" asChild>
@@ -226,114 +241,124 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <main className="w-full" style={{ overflow: "visible" }}>
+      <main className="w-full">
 
-        {/* ═══════════ HERO ═══════════ */}
+        {/* ═══════════════════════════════════
+            HERO — Split layout: text + banner
+            ═══════════════════════════════════ */}
         <section className="relative overflow-hidden">
-          {/* Tech grid background */}
-          <div className="absolute inset-0 opacity-[0.035]" style={{
-            backgroundImage: "linear-gradient(hsl(var(--foreground) / 0.1) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground) / 0.1) 1px, transparent 1px)",
-            backgroundSize: "64px 64px",
-          }} />
-
-          {/* Floating gradient orbs */}
+          {/* Background ambient */}
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            <div className="absolute top-[8%] left-[5%] w-[500px] h-[500px] rounded-full bg-primary/[0.08] blur-[120px] animate-float-gentle" />
-            <div className="absolute top-[20%] right-[0%] w-[450px] h-[450px] rounded-full bg-accent/[0.07] blur-[120px] animate-float-gentle" style={{ animationDelay: "-2s" }} />
-            <div className="absolute bottom-[5%] left-[30%] w-[400px] h-[400px] rounded-full bg-primary-glow/[0.06] blur-[100px] animate-float-gentle" style={{ animationDelay: "-4s" }} />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[600px] rounded-full bg-primary/[0.06] blur-[140px]" />
+            <div className="absolute bottom-0 right-0 w-[500px] h-[400px] rounded-full bg-primary-glow/[0.04] blur-[120px]" />
           </div>
 
-          <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 pt-16 pb-12 sm:pt-24 sm:pb-20 md:pt-28 md:pb-24">
-            {/* ─── Text content ─── */}
-            <ScrollReveal>
-              <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
-                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] px-4 py-1.5 mb-6">
-                  <Zap className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-xs font-bold uppercase tracking-[0.15em] text-primary/90">Myanmar&apos;s #1 Digital Unlock Platform</span>
-                </div>
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] gradient-text">
-                  Professional Unlock
-                  <br />
-                  <span className="text-foreground">Services at Scale</span>
-                </h1>
-                <p className="mt-5 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                  Instant IMEI unlock, GSM tools, and premium digital subscriptions. Built for resellers who demand speed, reliability, and wholesale pricing.
-                </p>
-                <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
-                  <Button size="lg" variant="premium" className="text-base px-8 py-6 font-semibold w-full sm:w-auto" asChild>
-                    <Link to="/login">
-                      Get Started Free
-                      <ArrowRight className="ml-2 w-4 h-4" />
-                    </Link>
-                  </Button>
-                  <Button size="lg" variant="outline" className="text-base px-8 py-6 font-medium w-full sm:w-auto border-border/50 hover:bg-secondary/50" asChild>
-                    <a href="#features">
-                      Explore Features
-                    </a>
-                  </Button>
-                </div>
-              </div>
-            </ScrollReveal>
+          <div className="relative mx-auto max-w-6xl px-5 sm:px-8 pt-12 pb-8 sm:pt-20 sm:pb-16 lg:pt-24 lg:pb-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
+              {/* ─── Left: Text content ─── */}
+              <ScrollReveal>
+                <div className="max-w-xl">
+                  <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] px-4 py-1.5 mb-6">
+                    <Zap className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-[11px] font-bold uppercase tracking-[0.15em] text-primary/90">Myanmar&apos;s #1 Unlock Platform</span>
+                  </div>
 
-            {/* ─── Banner image ─── */}
-            <ScrollReveal delay={150}>
-              <div className="relative w-full max-w-5xl mx-auto group">
-                {/* Glow behind the image */}
-                <div className="absolute -inset-4 sm:-inset-6 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-b from-primary/[0.12] via-primary/[0.04] to-transparent blur-2xl opacity-60 group-hover:opacity-80 transition-opacity duration-700 pointer-events-none" />
-                {/* Subtle border frame */}
-                <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-border/30 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)] group-hover:shadow-[0_24px_70px_-12px_rgba(0,0,0,0.5)] transition-shadow duration-500">
-                  <img
-                    src={landingBanner}
-                    alt="KarKar4 Store - Premium Digital Services including VPN, Netflix, Spotify, CapCut"
-                    className="w-full block"
-                    loading="eager"
-                    fetchPriority="high"
-                  />
-                  {/* Bottom fade overlay for seamless blend */}
-                  <div className="absolute inset-x-0 bottom-0 h-16 sm:h-24 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
+                  <h1 className="text-3xl sm:text-4xl lg:text-[3.25rem] font-extrabold tracking-tight leading-[1.1] font-display">
+                    <span className="gradient-text">Professional Unlock</span>
+                    <br />
+                    <span className="text-foreground">Services at Scale</span>
+                  </h1>
+
+                  <p className="mt-5 text-base sm:text-lg text-muted-foreground leading-relaxed max-w-md">
+                    Instant IMEI unlock, GSM tools, and premium digital subscriptions. Built for resellers who demand speed and wholesale pricing.
+                  </p>
+
+                  {/* CTAs */}
+                  <div className="mt-8 flex flex-col sm:flex-row items-start gap-3">
+                    <Button size="lg" variant="premium" className="text-base px-8 h-13 font-semibold w-full sm:w-auto" asChild>
+                      <Link to="/login">
+                        Get Started Free
+                        <ArrowRight className="ml-2 w-4 h-4" />
+                      </Link>
+                    </Button>
+                    <Button size="lg" variant="outline" className="text-base px-8 h-13 font-medium w-full sm:w-auto" asChild>
+                      <a href="#features">Explore Features</a>
+                    </Button>
+                  </div>
+
+                  {/* Social proof micro-strip */}
+                  <div className="mt-8 flex items-center gap-4 text-sm text-muted-foreground">
+                    <div className="flex -space-x-2">
+                      {[0, 1, 2, 3].map((i) => (
+                        <div key={i} className="h-8 w-8 rounded-full border-2 border-background bg-muted flex items-center justify-center text-[10px] font-bold text-muted-foreground">
+                          {["K", "T", "M", "A"][i]}
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-1">
+                        {[0, 1, 2, 3, 4].map((i) => (
+                          <Star key={i} className="h-3.5 w-3.5 fill-primary text-primary" />
+                        ))}
+                      </div>
+                      <span className="text-xs text-muted-foreground">Trusted by 500+ technicians</span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </ScrollReveal>
+              </ScrollReveal>
+
+              {/* ─── Right: Banner image ─── */}
+              <ScrollReveal delay={200}>
+                <div className="relative">
+                  {/* Glow behind image */}
+                  <div className="absolute -inset-3 sm:-inset-5 rounded-[1.75rem] bg-gradient-to-br from-primary/[0.15] via-primary/[0.05] to-transparent blur-2xl opacity-70 pointer-events-none" />
+
+                  <div className="relative rounded-2xl overflow-hidden border border-border/30 shadow-elevated">
+                    <img
+                      src={landingBanner}
+                      alt="KarKar4 Store - Premium Digital Services including VPN, Netflix, Spotify, CapCut"
+                      className="w-full block"
+                      loading="eager"
+                      fetchPriority="high"
+                    />
+                    {/* Bottom blend */}
+                    <div className="absolute inset-x-0 bottom-0 h-12 sm:h-16 bg-gradient-to-t from-background/60 to-transparent pointer-events-none" />
+                  </div>
+                </div>
+              </ScrollReveal>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══════════ STATS BAR ═══════════ */}
+        <section className="border-y border-border/40 bg-card/30">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <div className="grid grid-cols-2 lg:grid-cols-4 divide-x divide-border/30">
+              <AnimatedStat target={10000} suffix="+" label="Orders Processed" icon={BarChart3} />
+              <AnimatedStat target={500} suffix="+" label="Active Technicians" icon={Fingerprint} />
+              <AnimatedStat target={99} suffix=".9%" label="Platform Uptime" icon={Server} />
+              <AnimatedStat target={24} suffix="/7" label="Service Availability" icon={Clock} />
+            </div>
           </div>
         </section>
 
         {/* ═══════════ FEATURES ═══════════ */}
-        <section id="features" className="relative border-y border-border/40 py-20 sm:py-28 bg-card/20">
-          <div className="pointer-events-none absolute inset-0" style={{
-            background: "radial-gradient(800px circle at 50% 0%, hsl(var(--primary) / 0.04), transparent 60%)",
-          }} />
-          {/* Grid pattern overlay */}
-          <div className="absolute inset-0 opacity-[0.015]" style={{
-            backgroundImage: "linear-gradient(hsl(var(--primary)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--primary)) 1px, transparent 1px)",
-            backgroundSize: "42px 42px",
-          }} />
-          <div className="relative mx-auto max-w-[1200px] px-6">
-            <ScrollReveal>
-              <div className="text-center">
-                <div className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-primary/[0.05] px-4 py-1.5 mb-4">
-                  <Zap className="w-3 h-3 text-primary" />
-                  <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary/80">Platform Features</p>
-                </div>
-                <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl gradient-text">
-                  Everything You Need to Scale
-                </h2>
-                <p className="mt-4 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
-                  A complete toolkit built for professional technicians who demand reliability and speed.
-                </p>
-              </div>
-            </ScrollReveal>
+        <section id="features" className="py-20 sm:py-28">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <SectionHeader
+              badge="Platform Features"
+              title="Everything You Need to Scale"
+              description="A complete toolkit built for professional technicians who demand reliability and speed."
+            />
 
-            <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {features.map((feat, i) => (
-                <ScrollReveal key={feat.title} delay={i * 80}>
-                  <div className="group relative rounded-2xl border border-border/40 bg-card/60 backdrop-blur-xl p-7 transition-all duration-300 hover:border-primary/25 hover:shadow-[0_12px_40px_-12px_hsl(var(--primary)/0.15)] hover:-translate-y-1.5 h-full overflow-hidden">
-                    {/* Top shine line */}
-                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                    {/* Corner glow */}
-                    <div className="absolute -top-12 -right-12 w-28 h-28 rounded-full bg-primary/[0.04] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-                    <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 group-hover:bg-primary/[0.12] group-hover:shadow-[0_0_24px_-6px_hsl(var(--primary)/0.3)] relative">
-                      <feat.icon className="h-5 w-5 text-primary relative z-10" />
-                      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ boxShadow: "inset 0 0 12px hsl(var(--primary) / 0.15)" }} />
+                <ScrollReveal key={feat.title} delay={i * 70}>
+                  <div className="group relative rounded-2xl border border-border/40 bg-card/50 p-7 transition-all duration-300 hover:border-primary/25 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1 h-full">
+                    {/* Top shine */}
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-t-2xl" />
+                    <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/[0.08] transition-all duration-300 group-hover:scale-110 group-hover:bg-primary/[0.12]">
+                      <feat.icon className="h-5 w-5 text-primary" />
                     </div>
                     <h3 className="text-base font-semibold text-foreground mb-2 group-hover:text-primary transition-colors duration-300">{feat.title}</h3>
                     <p className="text-sm leading-relaxed text-muted-foreground">{feat.desc}</p>
@@ -345,41 +370,31 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ HOW IT WORKS ═══════════ */}
-        <section id="how-it-works" className="relative py-20 sm:py-28">
-          <div className="absolute inset-0 opacity-[0.02]" style={{
-            backgroundImage: "linear-gradient(hsl(var(--foreground) / 0.1) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground) / 0.1) 1px, transparent 1px)",
-            backgroundSize: "64px 64px",
-          }} />
-          <div className="relative mx-auto max-w-[1200px] px-6">
-            <ScrollReveal>
-              <div className="text-center">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">Get Started</p>
-                <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl gradient-text">
-                  How It Works
-                </h2>
-                <p className="mt-4 text-base sm:text-lg text-muted-foreground max-w-lg mx-auto">
-                  Three simple steps to start ordering unlock services.
-                </p>
-              </div>
-            </ScrollReveal>
+        <section id="how-it-works" className="py-20 sm:py-28 border-y border-border/40 bg-card/20">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <SectionHeader
+              badge="Get Started"
+              title="Three Steps to Start"
+              description="From signup to your first order in under five minutes."
+            />
 
-            <div className="mt-14 grid gap-6 sm:grid-cols-3">
+            <div className="grid gap-8 sm:grid-cols-3 relative">
+              {/* Connector line (desktop) */}
+              <div className="hidden sm:block absolute top-[4.5rem] left-[16.67%] right-[16.67%] h-px border-t-2 border-dashed border-primary/15 z-0" />
+
               {steps.map((s, i) => (
-                <ScrollReveal key={s.step} delay={i * 120}>
-                  <div className="relative group rounded-2xl border border-border/40 bg-card/60 backdrop-blur-sm p-8 text-center transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
+                <ScrollReveal key={s.title} delay={i * 120}>
+                  <div className="relative text-center z-10">
+                    {/* Step circle */}
+                    <div className="mx-auto mb-6 flex h-[4.5rem] w-[4.5rem] items-center justify-center rounded-2xl bg-primary/[0.08] border border-primary/15">
+                      <s.icon className="h-7 w-7 text-primary" />
+                    </div>
                     {/* Step number */}
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 inline-flex items-center justify-center h-8 w-8 rounded-full bg-primary text-primary-foreground text-sm font-bold shadow-[0_0_20px_-4px_hsl(var(--primary)/0.4)]">
+                    <span className="inline-flex items-center justify-center h-6 w-6 rounded-full bg-primary text-primary-foreground text-xs font-bold mb-3">
                       {i + 1}
-                    </div>
-                    {/* Connector line */}
-                    {i < steps.length - 1 && (
-                      <div className="hidden sm:block absolute top-8 -right-3 w-6 border-t-2 border-dashed border-primary/20 z-10" />
-                    )}
-                    <div className="mx-auto mb-5 mt-2 flex h-14 w-14 items-center justify-center rounded-xl bg-primary/[0.08] transition-transform duration-300 group-hover:scale-110">
-                      <s.icon className="h-6 w-6 text-primary" />
-                    </div>
+                    </span>
                     <h3 className="text-base font-semibold text-foreground mb-2">{s.title}</h3>
-                    <p className="text-sm leading-relaxed text-muted-foreground">{s.desc}</p>
+                    <p className="text-sm leading-relaxed text-muted-foreground max-w-xs mx-auto">{s.desc}</p>
                   </div>
                 </ScrollReveal>
               ))}
@@ -388,32 +403,23 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ POPULAR SERVICES ═══════════ */}
-        <section id="services" className="relative border-y border-border/40 py-20 sm:py-28 bg-card/20">
-          <div className="pointer-events-none absolute inset-0" style={{
-            background: "radial-gradient(600px circle at 30% 50%, hsl(var(--accent) / 0.03), transparent 60%)",
-          }} />
-          <div className="relative mx-auto max-w-[1200px] px-6">
-            <ScrollReveal>
-              <div className="text-center">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">Catalog</p>
-                <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl gradient-text">
-                  Popular Services
-                </h2>
-                <p className="mt-4 text-base sm:text-lg text-muted-foreground max-w-lg mx-auto">
-                  Browse our most requested unlock and IMEI services.
-                </p>
-              </div>
-            </ScrollReveal>
+        <section id="services" className="py-20 sm:py-28">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <SectionHeader
+              badge="Catalog"
+              title="Popular Services"
+              description="Browse our most requested unlock and IMEI services."
+            />
 
-            <div className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {popularServices.map((svc, i) => (
-                <ScrollReveal key={svc.name} delay={i * 80}>
-                  <div className="group rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 flex flex-col h-full">
-                    <span className="inline-block self-start text-[10px] font-bold uppercase tracking-widest text-primary/60 bg-primary/[0.06] rounded-full px-3 py-1 mb-4">
+                <ScrollReveal key={svc.name} delay={i * 70}>
+                  <div className="group rounded-2xl border border-border/40 bg-card/50 p-6 transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5 flex flex-col h-full">
+                    <span className="inline-block self-start text-[10px] font-bold uppercase tracking-widest text-primary/70 bg-primary/[0.06] rounded-full px-3 py-1 mb-4">
                       {svc.category}
                     </span>
                     <h3 className="text-base font-semibold text-foreground mb-2">{svc.name}</h3>
-                    <p className="text-2xl font-black gradient-text mb-5 mt-auto">{svc.price}</p>
+                    <p className="text-2xl font-black gradient-text mb-5 mt-auto font-display">{svc.price}</p>
                     <Button variant="outline" size="sm" className="w-full font-semibold border-primary/20 hover:bg-primary/[0.06] hover:border-primary/40" asChild>
                       <Link to="/login">
                         Order Now <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
@@ -426,54 +432,26 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* ═══════════ PLATFORM STATS ═══════════ */}
-        <section className="relative py-20 sm:py-28">
-          <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            <div className="absolute top-[20%] left-[10%] w-[350px] h-[350px] rounded-full bg-primary/[0.05] blur-[100px] animate-float-gentle" style={{ animationDelay: "-1s" }} />
-            <div className="absolute bottom-[10%] right-[15%] w-[300px] h-[300px] rounded-full bg-accent/[0.04] blur-[90px] animate-float-gentle" style={{ animationDelay: "-3s" }} />
-          </div>
-          <div className="relative mx-auto max-w-[1200px] px-6">
-            <ScrollReveal>
-              <div className="text-center mb-14">
-                <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">Trust</p>
-                <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl gradient-text">
-                  Platform Statistics
-                </h2>
-                <p className="mt-4 text-base sm:text-lg text-muted-foreground max-w-lg mx-auto">
-                  Numbers that speak for themselves.
-                </p>
-              </div>
-            </ScrollReveal>
-            <div className="grid gap-5 grid-cols-2 lg:grid-cols-4">
-              <ScrollReveal delay={0}><AnimatedStat target={10000} suffix="+" label="Orders Processed" icon={BarChart3} /></ScrollReveal>
-              <ScrollReveal delay={100}><AnimatedStat target={500} suffix="+" label="Active Technicians" icon={Fingerprint} /></ScrollReveal>
-              <ScrollReveal delay={200}><AnimatedStat target={99} suffix=".9%" label="Platform Uptime" icon={Server} /></ScrollReveal>
-              <ScrollReveal delay={300}><AnimatedStat target={24} suffix="/7" label="Service Availability" icon={Clock} /></ScrollReveal>
-            </div>
-          </div>
-        </section>
-
         {/* ═══════════ TELEGRAM INTEGRATION ═══════════ */}
-        <section className="relative border-y border-border/40 py-20 sm:py-28 bg-card/20">
-          <div className="pointer-events-none absolute inset-0" style={{
-            background: "radial-gradient(700px circle at 70% 30%, hsl(var(--primary) / 0.03), transparent 60%)",
-          }} />
-          <div className="relative mx-auto max-w-[1200px] px-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        <section className="py-20 sm:py-28 border-y border-border/40 bg-card/20">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
               {/* Left: Content */}
               <ScrollReveal>
                 <div>
-                  <p className="mb-3 text-xs font-bold uppercase tracking-[0.2em] text-primary/70">Automation</p>
-                  <h2 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl gradient-text mb-4">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/[0.06] px-3.5 py-1 mb-5 text-[11px] font-bold uppercase tracking-[0.15em] text-primary/90">
+                    Automation
+                  </span>
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight font-display gradient-text mb-4">
                     Telegram Integration
                   </h2>
                   <p className="text-base sm:text-lg text-muted-foreground leading-relaxed mb-8">
                     Receive instant order notifications directly in Telegram. Stay updated on every order without opening the dashboard.
                   </p>
                   <div className="space-y-5 mb-10">
-                    {telegramFeatures.map((tf, i) => (
+                    {telegramFeatures.map((tf) => (
                       <div key={tf.title} className="flex items-start gap-4 group">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/[0.08] transition-transform duration-300 group-hover:scale-110">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/[0.08] transition-transform duration-300 group-hover:scale-110">
                           <tf.icon className="h-4 w-4 text-primary" />
                         </div>
                         <div>
@@ -483,7 +461,7 @@ export default function LandingPage() {
                       </div>
                     ))}
                   </div>
-                  <Button size="lg" variant="premium" className="h-12 px-8 text-sm font-bold shadow-[0_0_30px_-5px_hsl(var(--primary)/0.4)]" asChild>
+                  <Button size="lg" variant="premium" className="h-12 px-8 text-sm font-bold" asChild>
                     <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer">
                       <Send className="w-4 h-4 mr-2" /> Connect Telegram
                     </a>
@@ -494,8 +472,7 @@ export default function LandingPage() {
               {/* Right: Telegram mockup */}
               <ScrollReveal delay={200}>
                 <div className="relative flex justify-center">
-                  <div className="w-full max-w-[340px] rounded-2xl border border-border/40 bg-card/70 backdrop-blur-xl p-6 shadow-xl">
-                    {/* Chat header */}
+                  <div className="w-full max-w-[340px] rounded-2xl border border-border/40 bg-card/70 backdrop-blur-xl p-6 shadow-elevated">
                     <div className="flex items-center gap-3 pb-4 border-b border-border/30 mb-4">
                       <div className="h-10 w-10 rounded-full bg-primary/[0.12] flex items-center justify-center">
                         <BotMessageSquare className="h-5 w-5 text-primary" />
@@ -505,15 +482,14 @@ export default function LandingPage() {
                         <p className="text-xs text-muted-foreground">Online</p>
                       </div>
                     </div>
-                    {/* Chat messages */}
                     <div className="space-y-3">
                       <div className="self-end ml-auto max-w-[80%] rounded-xl rounded-br-sm bg-primary/[0.1] border border-primary/20 px-4 py-2.5">
-                        <p className="text-xs text-foreground">/check KK-1847</p>
+                        <p className="text-xs text-foreground font-mono">/check KK-1847</p>
                       </div>
                       <div className="max-w-[90%] rounded-xl rounded-bl-sm bg-card border border-border/40 px-4 py-3">
                         <p className="text-xs font-semibold text-primary mb-1">Order Status</p>
                         <p className="text-xs text-foreground">Softbank Japan Unlock</p>
-                        <p className="text-xs text-muted-foreground mt-1">Status: <span className="text-green-400 font-semibold">Completed</span></p>
+                        <p className="text-xs text-muted-foreground mt-1">Status: <span className="text-success font-semibold">Completed</span></p>
                       </div>
                       <div className="max-w-[90%] rounded-xl rounded-bl-sm bg-card border border-border/40 px-4 py-3">
                         <p className="text-xs font-semibold text-primary mb-1">Wallet Alert</p>
@@ -529,23 +505,20 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ FAQ ═══════════ */}
-        <section id="faq" className="relative py-20 sm:py-28">
-          <div className="relative mx-auto max-w-[800px] px-6">
-            <ScrollReveal>
-              <p className="mb-3 text-center text-xs font-bold uppercase tracking-[0.2em] text-primary/70">Support</p>
-              <h2 className="mb-4 text-center text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl gradient-text">
-                Frequently Asked Questions
-              </h2>
-              <p className="mb-12 text-center text-base text-muted-foreground max-w-lg mx-auto">
-                Quick answers to common questions about our platform.
-              </p>
-            </ScrollReveal>
+        <section id="faq" className="py-20 sm:py-28">
+          <div className="mx-auto max-w-3xl px-5 sm:px-8">
+            <SectionHeader
+              badge="Support"
+              title="Frequently Asked Questions"
+              description="Quick answers to common questions about our platform."
+            />
+
             <Accordion type="single" collapsible className="space-y-3">
               {faqs.map((f, i) => (
-                <ScrollReveal key={i} delay={i * 60}>
+                <ScrollReveal key={i} delay={i * 50}>
                   <AccordionItem
                     value={`faq-${i}`}
-                    className="rounded-2xl border border-border/50 bg-card/70 backdrop-blur-sm px-6 transition-colors hover:border-border"
+                    className="rounded-2xl border border-border/40 bg-card/50 px-6 transition-colors hover:border-border/60"
                   >
                     <AccordionTrigger className="text-left text-sm font-semibold text-foreground hover:no-underline py-5">
                       {f.q}
@@ -561,28 +534,25 @@ export default function LandingPage() {
         </section>
 
         {/* ═══════════ FINAL CTA ═══════════ */}
-        <section className="py-20 sm:py-28">
-          <div className="mx-auto max-w-[1200px] px-6">
+        <section className="py-16 sm:py-24">
+          <div className="mx-auto max-w-6xl px-5 sm:px-8">
             <ScrollReveal>
-              <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-card/60 backdrop-blur-xl px-8 py-16 text-center sm:px-16 sm:py-20">
-                <div className="pointer-events-none absolute inset-0 rounded-3xl" style={{
-                  background: "radial-gradient(600px circle at 50% 40%, hsl(var(--primary) / 0.06), transparent 60%)",
-                }} />
+              <div className="relative overflow-hidden rounded-3xl border border-primary/15 bg-gradient-to-br from-primary/[0.06] via-card/80 to-card/60 px-8 py-16 text-center sm:px-16 sm:py-20">
+                {/* Glow */}
+                <div className="pointer-events-none absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-primary/[0.08] blur-[100px] rounded-full" />
                 <div className="relative">
-                  <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl lg:text-4xl">
+                  <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight font-display text-foreground">
                     Ready to start ordering?
                   </h2>
                   <p className="mx-auto mt-4 max-w-md text-base text-muted-foreground">
                     Join thousands of technicians and resellers using KKTech for reliable unlock services.
                   </p>
                   <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-                    <Button size="lg" variant="premium" className="h-14 px-10 text-base font-bold shadow-[0_0_40px_-8px_hsl(var(--primary)/0.5)]" asChild>
+                    <Button size="lg" variant="premium" className="h-14 px-10 text-base font-bold" asChild>
                       <Link to="/login">Create Account <ArrowRight className="w-4 h-4 ml-2" /></Link>
                     </Button>
                     <Button variant="outline" size="lg" className="h-14 px-10 text-base font-semibold" asChild>
-                      <a href="#services" className="inline-flex items-center gap-2">
-                        View Services
-                      </a>
+                      <a href="#services">View Services</a>
                     </Button>
                   </div>
                 </div>
@@ -594,37 +564,32 @@ export default function LandingPage() {
         {/* SEO */}
         <section className="sr-only" aria-hidden="false">
           <h2>KKTech — Professional Unlock Services Marketplace</h2>
-          <p>KKTech provides professional unlock services, IMEI tools, and digital services for technicians and resellers worldwide. Access premium carrier unlock, iCloud removal, and IMEI check services from a single powerful platform.</p>
+          <p>KKTech provides professional unlock services, IMEI tools, and digital services for technicians and resellers worldwide.</p>
         </section>
       </main>
 
       {/* ═══════════ FOOTER ═══════════ */}
-      <footer className="relative border-t border-border/40 overflow-hidden">
-        {/* Footer ambient glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[200px] bg-primary/[0.03] blur-[100px] pointer-events-none" />
-        <div className="relative mx-auto max-w-[1200px] px-6 pt-16 pb-8">
-          <div className="grid gap-12 sm:grid-cols-4">
+      <footer className="border-t border-border/40">
+        <div className="mx-auto max-w-6xl px-5 sm:px-8 pt-14 pb-8">
+          <div className="grid gap-10 sm:grid-cols-4">
             <div className="sm:col-span-2">
-              <span className="flex items-center gap-2.5 group">
-                <div className="relative">
-                  <div className="absolute -inset-1 rounded-lg bg-primary/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  <img src={kkLogo} alt="KKTech" className="relative h-7 w-7 rounded-lg" />
-                </div>
-                <span className="text-xl font-extrabold text-foreground">
+              <Link to="/" className="flex items-center gap-2.5">
+                <img src={kkLogo} alt="KKTech" className="h-7 w-7 rounded-lg" />
+                <span className="text-xl font-extrabold font-display text-foreground">
                   KK<span className="text-primary">Tech</span>
                 </span>
-              </span>
+              </Link>
               <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
                 Professional unlock services marketplace for technicians and resellers. Fast processing, transparent pricing, reliable delivery.
               </p>
-              <div className="mt-6 flex gap-3">
+              <div className="mt-5 flex gap-2.5">
                 {[
                   { href: "https://t.me/kkremote", icon: Send, label: "Telegram" },
                   { href: "https://t.me/KKTechDeals", icon: MessageCircle, label: "Channel" },
                   { href: "viber://chat?number=%2B959787313137", icon: Phone, label: "Viber" },
                 ].map((social) => (
                   <a key={social.label} href={social.href} target="_blank" rel="noopener noreferrer"
-                    className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all duration-300 hover:border-primary/40 hover:text-primary hover:shadow-[0_0_12px_-3px_hsl(var(--primary)/0.3)] hover:-translate-y-0.5"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-border/50 text-muted-foreground transition-all duration-300 hover:border-primary/40 hover:text-primary hover:-translate-y-0.5"
                     aria-label={social.label}>
                     <social.icon className="h-4 w-4" />
                   </a>
@@ -633,20 +598,20 @@ export default function LandingPage() {
             </div>
             <div className="flex flex-col gap-3 text-sm">
               <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Quick Links</span>
-              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Login</Link>
-              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Create Account</Link>
-              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Terms & Conditions</Link>
-              <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Support</a>
+              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground">Login</Link>
+              <Link to="/login" className="text-muted-foreground transition-colors hover:text-foreground">Create Account</Link>
+              <Link to="/terms" className="text-muted-foreground transition-colors hover:text-foreground">Terms & Conditions</Link>
+              <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground">Support</a>
             </div>
             <div className="flex flex-col gap-3 text-sm">
               <span className="mb-1 text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Connect</span>
-              <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Telegram</a>
-              <a href="https://t.me/KKTechDeals" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Telegram Channel</a>
-              <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Free IMEI Check</Link>
-              <Link to="/blog" className="text-muted-foreground transition-colors hover:text-foreground hover:translate-x-0.5 transform transition-transform duration-200">Blog</Link>
+              <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground">Telegram</a>
+              <a href="https://t.me/KKTechDeals" target="_blank" rel="noopener noreferrer" className="text-muted-foreground transition-colors hover:text-foreground">Telegram Channel</a>
+              <Link to="/tools/imei-check" className="text-muted-foreground transition-colors hover:text-foreground">Free IMEI Check</Link>
+              <Link to="/blog" className="text-muted-foreground transition-colors hover:text-foreground">Blog</Link>
             </div>
           </div>
-          <div className="mt-12 flex flex-col items-center gap-3 border-t border-border/20 pt-8 sm:flex-row sm:justify-between">
+          <div className="mt-10 flex flex-col items-center gap-3 border-t border-border/20 pt-6 sm:flex-row sm:justify-between">
             <p className="text-xs text-muted-foreground">© {new Date().getFullYear()} KKTech. All rights reserved.</p>
             <p className="text-xs text-muted-foreground/80">Built for resellers, by resellers.</p>
           </div>
@@ -658,10 +623,10 @@ export default function LandingPage() {
         {contactOpen && (
           <div className="mb-1 flex flex-col gap-2 animate-fade-in">
             <a href="https://t.me/kkremote" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full border border-border/50 bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-accent/5">
-              <Send className="h-4 w-4 text-sky-400" /> Telegram
+              <Send className="h-4 w-4 text-primary" /> Telegram
             </a>
             <a href="viber://chat?number=%2B959787313137" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 rounded-full border border-border/50 bg-card px-4 py-2.5 text-sm font-medium text-foreground shadow-lg transition-all hover:bg-accent/5">
-              <Phone className="h-4 w-4 text-violet-400" /> Viber
+              <Phone className="h-4 w-4 text-muted-foreground" /> Viber
             </a>
           </div>
         )}
