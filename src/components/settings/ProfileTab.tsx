@@ -243,13 +243,13 @@ export default function ProfileTab() {
             {/* Steps */}
             <div className="p-3 rounded-lg bg-muted/10 border border-border/20 space-y-2">
               <p className="text-xs text-muted-foreground">
-                <b>Step 1:</b> Click "Generate Link" below to create your unique connection link.
+                <b>Step 1:</b> {l(t.settings.step1)}
               </p>
               <p className="text-xs text-muted-foreground">
-                <b>Step 2:</b> Open the link to start @{BOT_USERNAME} on Telegram.
+                <b>Step 2:</b> {l(t.settings.step2).replace("{bot}", BOT_USERNAME)}
               </p>
               <p className="text-xs text-muted-foreground">
-                <b>Step 3:</b> Your account will be automatically linked!
+                <b>Step 3:</b> {l(t.settings.step3)}
               </p>
             </div>
 
