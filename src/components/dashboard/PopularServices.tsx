@@ -6,6 +6,8 @@ import { Money } from "@/components/shared";
 import { ArrowRight, Clock } from "lucide-react";
 import ProductIcon from "@/components/products/ProductIcon";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
+import { preloadImages } from "@/lib/image-preloader";
 
 export default function PopularServices() {
   const navigate = useNavigate();
@@ -48,6 +50,13 @@ export default function PopularServices() {
     staleTime: 60000,
   });
 
+  // Preload above-fold product images as soon as data arrives
+  useEffect(() => {
+    if (products?.length) {
+      preloadImages(products.slice(0, 6).map((p: any) => p.image_url), true);
+    }
+  }, [products]);
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -75,6 +84,7 @@ export default function PopularServices() {
               name={featured.name}
               category={featured.category}
               size="lg"
+              priority
             />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">

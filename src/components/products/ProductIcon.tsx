@@ -17,6 +17,8 @@ interface ProductIconProps {
   category?: string;
   size?: IconSize;
   className?: string;
+  /** Mark as high-priority above-fold image */
+  priority?: boolean;
 }
 
 export default function ProductIcon({
@@ -25,6 +27,7 @@ export default function ProductIcon({
   category = "General",
   size = "md",
   className,
+  priority = false,
 }: ProductIconProps) {
   const [status, setStatus] = useState<"loading" | "loaded" | "error">(
     imageUrl ? "loading" : "error"
@@ -74,7 +77,8 @@ export default function ProductIcon({
           status === "loaded" ? "block" : "hidden"
         )}
         loading="eager"
-        decoding="async"
+        decoding={priority ? "sync" : "async"}
+        fetchPriority={priority ? "high" : "auto"}
         onLoad={handleLoad}
         onError={handleError}
         referrerPolicy="no-referrer"

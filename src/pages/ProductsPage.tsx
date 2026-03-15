@@ -8,6 +8,7 @@ import { Package } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import ServiceSelector from "@/components/products/ServiceSelector";
 import { cn } from "@/lib/utils";
+import { preloadImages } from "@/lib/image-preloader";
 
 export default function ProductsPage() {
   const l = useT();
@@ -38,7 +39,13 @@ export default function ProductsPage() {
     },
   });
 
-  // Derive categories with counts
+  // Preload first batch of product images
+  useEffect(() => {
+    if (products?.length) {
+      preloadImages(products.slice(0, 12).map((p: any) => p.image_url));
+    }
+  }, [products]);
+
   const categories = useMemo(() => {
     const cats = new Map<string, number>();
     (products || []).forEach((p: any) => {
