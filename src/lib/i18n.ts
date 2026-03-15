@@ -261,7 +261,7 @@ export const t = {
     browserNotifs: { mm: "ဘရောက်ဇာ အသိပေးချက်", en: "Browser Notifications" },
     browserDesc: { mm: "တက်ဘ်မဟုတ်သည့်အခါ အသိပေးမည်", en: "Desktop alerts when unfocused" },
     alertTypes: { mm: "သတိပေးအမျိုးအစား", en: "Alert Types" },
-    topupApproved: { mm: "ငွေဖြည့်အတည်ပြုပြီး", en: "Top-Up Approved" },
+    topupApprovedNotif: { mm: "ငွေဖြည့်အတည်ပြုပြီး", en: "Top-Up Approved" },
     topupApprovedDesc: { mm: "ငွေဖြည့်ခြင်း အတည်ပြုသည့်အခါ", en: "When your wallet top-up is approved" },
     purchaseComplete: { mm: "ဝယ်ယူမှုပြီးမြောက်", en: "Purchase Complete" },
     purchaseCompleteDesc: { mm: "ထုတ်ကုန်ဝယ်ယူမှု ပြီးမြောက်သည့်အခါ", en: "When a product purchase is completed" },
