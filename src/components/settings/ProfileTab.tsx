@@ -153,20 +153,20 @@ export default function ProfileTab() {
             <Send className="w-4 h-4 text-[hsl(200,80%,50%)]" />
           </div>
           <div className="flex-1">
-            <h3 className="text-sm font-semibold text-foreground">Telegram Bot Integration</h3>
+            <h3 className="text-sm font-semibold text-foreground">{l(t.settings.telegramTitle)}</h3>
             <p className="text-[11px] text-muted-foreground">
-              Manage orders and receive real-time notifications via Telegram
+              {l(t.settings.telegramDesc)}
             </p>
           </div>
           {isLinked ? (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20">
               <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-              <span className="text-[11px] font-medium text-primary">Connected</span>
+              <span className="text-[11px] font-medium text-primary">{l(t.settings.connected)}</span>
             </div>
           ) : (
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-muted/20 border border-border/20">
               <span className="w-2 h-2 rounded-full bg-muted-foreground/40" />
-              <span className="text-[11px] font-medium text-muted-foreground">Not Connected</span>
+              <span className="text-[11px] font-medium text-muted-foreground">{l(t.settings.notConnected)}</span>
             </div>
           )}
         </div>
