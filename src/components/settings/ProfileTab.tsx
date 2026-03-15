@@ -288,7 +288,7 @@ export default function ProfileTab() {
                 disabled={generatingLink}
               >
                 {generatingLink ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Link2 className="w-3.5 h-3.5" />}
-                Generate Connection Link
+                {l(t.settings.generateLink)}
               </Button>
             )}
           </div>
