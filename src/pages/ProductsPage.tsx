@@ -8,6 +8,7 @@ import { Package } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import ServiceSelector from "@/components/products/ServiceSelector";
 import { cn } from "@/lib/utils";
+import { preloadImages } from "@/lib/image-preloader";
 
 export default function ProductsPage() {
   const l = useT();
