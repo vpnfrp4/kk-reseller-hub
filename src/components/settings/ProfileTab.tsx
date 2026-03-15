@@ -186,14 +186,14 @@ export default function ProfileTab() {
 
             {/* What You'll Receive */}
             <div className="p-3 rounded-lg bg-muted/10 border border-border/10 space-y-2">
-              <p className="text-[11px] font-semibold text-foreground flex items-center gap-1"><Bell className="w-3 h-3 text-primary" /> Auto Notifications:</p>
+              <p className="text-[11px] font-semibold text-foreground flex items-center gap-1"><Bell className="w-3 h-3 text-primary" /> {l(t.settings.autoNotifications)}:</p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
-                <span className="flex items-center gap-1"><Package className="w-3 h-3" /> Order placed</span>
-                <span className="flex items-center gap-1"><RefreshCw className="w-3 h-3" /> Order processing</span>
-                <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> Order completed</span>
-                <span className="flex items-center gap-1"><XCircle className="w-3 h-3" /> Order rejected</span>
-                <span className="flex items-center gap-1"><Wallet className="w-3 h-3" /> Top-up approved</span>
-                <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> Balance alerts</span>
+                <span className="flex items-center gap-1"><Package className="w-3 h-3" /> {l(t.settings.orderPlaced)}</span>
+                <span className="flex items-center gap-1"><RefreshCw className="w-3 h-3" /> {l(t.settings.orderProcessing)}</span>
+                <span className="flex items-center gap-1"><CheckCircle2 className="w-3 h-3" /> {l(t.settings.orderCompleted)}</span>
+                <span className="flex items-center gap-1"><XCircle className="w-3 h-3" /> {l(t.settings.orderRejected)}</span>
+                <span className="flex items-center gap-1"><Wallet className="w-3 h-3" /> {l(t.settings.topupApproved)}</span>
+                <span className="flex items-center gap-1"><AlertTriangle className="w-3 h-3" /> {l(t.settings.balanceAlerts)}</span>
               </div>
             </div>
 
