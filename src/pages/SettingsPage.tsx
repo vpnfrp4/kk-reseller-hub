@@ -113,7 +113,7 @@ export default function SettingsPage() {
                     )}
                   >
                     <tab.icon className={cn("w-4 h-4 shrink-0", isActive ? "text-primary-foreground" : "text-muted-foreground")} />
-                    {tab.label}
+                    {l(tab.label)}
                   </button>
                 );
               })}
