@@ -30,13 +30,20 @@ export default function ProductIcon({
   className,
   priority = false,
 }: ProductIconProps) {
+  // Skip skeleton for preloaded/cached images
+  const getInitialStatus = (url?: string | null): "loading" | "loaded" | "error" => {
+    if (!url) return "error";
+    if (preloaded.has(url)) return "loaded";
+    return "loading";
+  };
+
   const [status, setStatus] = useState<"loading" | "loaded" | "error">(
-    imageUrl ? "loading" : "error"
+    getInitialStatus(imageUrl)
   );
 
   // Reset status when imageUrl changes
   useEffect(() => {
-    setStatus(imageUrl ? "loading" : "error");
+    setStatus(getInitialStatus(imageUrl));
   }, [imageUrl]);
 
   const s = SIZE_MAP[size];
