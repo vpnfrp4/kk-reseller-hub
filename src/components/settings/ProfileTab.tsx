@@ -19,72 +19,6 @@ export default function ProfileTab() {
 
   const isLinked = !!(profile as any)?.telegram_chat_id;
 
-  const handleUpdateName = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed || trimmed.length > 100) {
-      toast.error(l(t.settings.nameValidation));
-      return;
-    }
-    setSaving(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ name: trimmed } as any)
-      .eq("user_id", profile?.user_id!);
-    setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    await refreshProfile();
-    toast.success(l(t.settings.nameUpdated));
-  };
-
-  // ── Avatar handlers (unchanged logic) ──
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user) return;
-    const maxSize = 2 * 1024 * 1024;
-    if (file.size > maxSize) { toast.error("File too large. Maximum size is 2MB."); return; }
-    const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-    if (!allowedTypes.includes(file.type)) { toast.error("Invalid file type. Use JPG, PNG, or WebP."); return; }
-    setUploading(true);
-    try {
-      const ext = file.name.split(".").pop() || "jpg";
-      const filePath = `${user.id}/avatar.${ext}`;
-      const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file, { upsert: true, cacheControl: "3600" });
-      if (uploadError) throw uploadError;
-      const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
-      const avatarUrl = `${urlData.publicUrl}?t=${Date.now()}`;
-      const { error: updateError } = await supabase.from("profiles").update({ avatar_url: avatarUrl } as any).eq("user_id", user.id);
-      if (updateError) throw updateError;
-      await refreshProfile();
-      toast.success("Avatar updated successfully");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to upload avatar");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
-    }
-  };
-
-  const handleRemoveAvatar = async () => {
-    if (!user) return;
-    setUploading(true);
-    try {
-      const { data: files } = await supabase.storage.from("avatars").list(user.id);
-      if (files && files.length > 0) {
-        const paths = files.map((f) => `${user.id}/${f.name}`);
-        await supabase.storage.from("avatars").remove(paths);
-      }
-      const { error } = await supabase.from("profiles").update({ avatar_url: null } as any).eq("user_id", user.id);
-      if (error) throw error;
-      await refreshProfile();
-      toast.success("Avatar removed");
-    } catch (err: any) {
-      toast.error(err.message || "Failed to remove avatar");
-    } finally {
-      setUploading(false);
-    }
-  };
-
   // ── Telegram Link Generation (uses user_id directly) ──
   const generateLinkToken = useCallback(async () => {
     if (!user) return;
@@ -128,14 +62,7 @@ export default function ProfileTab() {
     }
   }, [user, refreshProfile]);
 
-  const initials = (profile?.name || profile?.email || "U")
-    .split(" ")
-    .map((w) => w[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
-  const avatarUrl = profile?.avatar_url;
+  const telegramLink = linkToken ? `https://t.me/${BOT_USERNAME}?start=${linkToken}` : null;
   const telegramLink = linkToken ? `https://t.me/${BOT_USERNAME}?start=${linkToken}` : null;
 
   return (
