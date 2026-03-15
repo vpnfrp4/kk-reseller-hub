@@ -241,18 +241,57 @@ export default function LandingPage() {
             <div className="absolute top-[8%] left-[5%] w-[500px] h-[500px] rounded-full bg-primary/[0.08] blur-[120px] animate-float-gentle" />
             <div className="absolute top-[20%] right-[0%] w-[450px] h-[450px] rounded-full bg-accent/[0.07] blur-[120px] animate-float-gentle" style={{ animationDelay: "-2s" }} />
             <div className="absolute bottom-[5%] left-[30%] w-[400px] h-[400px] rounded-full bg-primary-glow/[0.06] blur-[100px] animate-float-gentle" style={{ animationDelay: "-4s" }} />
-            <div className="absolute top-[60%] right-[20%] w-[300px] h-[300px] rounded-full bg-primary/[0.04] blur-[80px] animate-float-gentle" style={{ animationDelay: "-6s" }} />
           </div>
 
-          <div className="relative mx-auto max-w-[1200px] px-3 sm:px-6 pt-16 pb-12 sm:pt-28 sm:pb-20 md:pt-32 md:pb-24">
+          <div className="relative mx-auto max-w-[1200px] px-4 sm:px-6 pt-16 pb-12 sm:pt-24 sm:pb-20 md:pt-28 md:pb-24">
+            {/* ─── Text content ─── */}
             <ScrollReveal>
-              <div className="relative w-full max-w-5xl mx-auto">
-                <img
-                  src={landingBanner}
-                  alt="KarKar4 Store - Premium Digital Services including VPN, Netflix, Spotify, CapCut"
-                  className="w-full rounded-xl sm:rounded-2xl md:rounded-3xl shadow-[0_12px_40px_-10px_rgba(0,0,0,0.25)] sm:shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-border/20"
-                  loading="eager"
-                />
+              <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
+                <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/[0.06] px-4 py-1.5 mb-6">
+                  <Zap className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-xs font-bold uppercase tracking-[0.15em] text-primary/90">Myanmar&apos;s #1 Digital Unlock Platform</span>
+                </div>
+                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.1] gradient-text">
+                  Professional Unlock
+                  <br />
+                  <span className="text-foreground">Services at Scale</span>
+                </h1>
+                <p className="mt-5 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
+                  Instant IMEI unlock, GSM tools, and premium digital subscriptions. Built for resellers who demand speed, reliability, and wholesale pricing.
+                </p>
+                <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <Button size="lg" variant="premium" className="text-base px-8 py-6 font-semibold w-full sm:w-auto" asChild>
+                    <Link to="/login">
+                      Get Started Free
+                      <ArrowRight className="ml-2 w-4 h-4" />
+                    </Link>
+                  </Button>
+                  <Button size="lg" variant="outline" className="text-base px-8 py-6 font-medium w-full sm:w-auto border-border/50 hover:bg-secondary/50" asChild>
+                    <a href="#features">
+                      Explore Features
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            </ScrollReveal>
+
+            {/* ─── Banner image ─── */}
+            <ScrollReveal delay={150}>
+              <div className="relative w-full max-w-5xl mx-auto group">
+                {/* Glow behind the image */}
+                <div className="absolute -inset-4 sm:-inset-6 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-b from-primary/[0.12] via-primary/[0.04] to-transparent blur-2xl opacity-60 group-hover:opacity-80 transition-opacity duration-700 pointer-events-none" />
+                {/* Subtle border frame */}
+                <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden border border-border/30 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.4)] group-hover:shadow-[0_24px_70px_-12px_rgba(0,0,0,0.5)] transition-shadow duration-500">
+                  <img
+                    src={landingBanner}
+                    alt="KarKar4 Store - Premium Digital Services including VPN, Netflix, Spotify, CapCut"
+                    className="w-full block"
+                    loading="eager"
+                    fetchPriority="high"
+                  />
+                  {/* Bottom fade overlay for seamless blend */}
+                  <div className="absolute inset-x-0 bottom-0 h-16 sm:h-24 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
+                </div>
               </div>
             </ScrollReveal>
           </div>
