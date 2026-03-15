@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { User, Lock, Bell, Key, Monitor, Settings2 } from "lucide-react";
+import { useState, useRef } from "react";
+import { User, Lock, Bell, Key, Monitor, Settings2, Camera, Loader2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Breadcrumb from "@/components/Breadcrumb";
 import { t, useT } from "@/lib/i18n";
@@ -13,6 +13,11 @@ import PreferencesTab from "@/components/settings/PreferencesTab";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useAuth } from "@/contexts/AuthContext";
 import { Money } from "@/components/shared";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const tabs = [
   { id: "profile", label: t.settings.profile, icon: User },
