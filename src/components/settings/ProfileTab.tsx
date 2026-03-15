@@ -1,25 +1,20 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { User, Camera, Mail, Calendar, Loader2, Trash2, Send, Link2, Copy, CheckCircle2, Unlink, Bell, Package, RefreshCw, XCircle, Wallet, AlertTriangle, ClipboardList, Sparkles, Search, DollarSign } from "lucide-react";
+import { Send, Link2, Copy, CheckCircle2, Unlink, Bell, Package, RefreshCw, XCircle, Wallet, AlertTriangle, ClipboardList, Sparkles, Search, DollarSign, Loader2 } from "lucide-react";
 import { t, useT } from "@/lib/i18n";
 
 const BOT_USERNAME = "karkar4store_bot";
 
 export default function ProfileTab() {
   const { profile, refreshProfile, user } = useAuth();
-  const [name, setName] = useState(profile?.name || "");
   const [telegramChatId, setTelegramChatId] = useState((profile as any)?.telegram_chat_id || "");
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
   const [linkToken, setLinkToken] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const l = useT();
 
   const isLinked = !!(profile as any)?.telegram_chat_id;
