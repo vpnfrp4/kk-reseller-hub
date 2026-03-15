@@ -15,12 +15,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Money } from "@/components/shared";
 
 const tabs = [
-  { id: "profile", label: "Profile", icon: User },
-  { id: "preferences", label: "Preferences", icon: Settings2 },
-  { id: "security", label: "Security", icon: Lock },
-  { id: "notifications", label: "Notifications", icon: Bell },
-  { id: "api-keys", label: "API Keys", icon: Key },
-  { id: "sessions", label: "Sessions", icon: Monitor },
+  { id: "profile", label: t.settings.profile, icon: User },
+  { id: "preferences", label: t.settings.preferences, icon: Settings2 },
+  { id: "security", label: t.settings.security, icon: Lock },
+  { id: "notifications", label: t.settings.notifications, icon: Bell },
+  { id: "api-keys", label: t.settings.apiKeys, icon: Key },
+  { id: "sessions", label: t.settings.sessions, icon: Monitor },
 ] as const;
 
 type TabId = (typeof tabs)[number]["id"];
