@@ -474,6 +474,11 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
   const [imgStatus, setImgStatus] = useState<"loading" | "loaded" | "error">(
     p.image_url ? "loading" : "error"
   );
+
+  // Reset status when image_url changes
+  React.useEffect(() => {
+    setImgStatus(p.image_url ? "loading" : "error");
+  }, [p.image_url]);
   const pType = p.product_type;
   const isOutOfStock = pType === "digital" && p.stock === 0;
   const pTime = p.processing_time || (pType === "api" || pType === "digital" ? "Instant" : "1–24 Hours");

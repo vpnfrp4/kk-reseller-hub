@@ -1,14 +1,14 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { getCategoryIcon, getCategoryIconColor } from "@/lib/category-icons";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type IconSize = "sm" | "md" | "lg";
 
-const SIZE_MAP: Record<IconSize, { container: string; img: string; text: string; icon: string; padding: string }> = {
-  sm: { container: "w-10 h-10", img: "w-10 h-10", text: "text-xs", icon: "w-4 h-4", padding: "p-1.5" },
-  md: { container: "w-11 h-11", img: "w-11 h-11", text: "text-sm", icon: "w-5 h-5", padding: "p-2" },
-  lg: { container: "w-14 h-14", img: "w-14 h-14", text: "text-base", icon: "w-6 h-6", padding: "p-2.5" },
+const SIZE_MAP: Record<IconSize, { container: string; img: string; text: string; icon: string }> = {
+  sm: { container: "w-10 h-10", img: "w-10 h-10", text: "text-xs", icon: "w-4 h-4" },
+  md: { container: "w-12 h-12", img: "w-12 h-12", text: "text-sm", icon: "w-5 h-5" },
+  lg: { container: "w-16 h-16", img: "w-16 h-16", text: "text-base", icon: "w-6 h-6" },
 };
 
 interface ProductIconProps {
@@ -30,16 +30,20 @@ export default function ProductIcon({
     imageUrl ? "loading" : "error"
   );
 
+  // Reset status when imageUrl changes
+  useEffect(() => {
+    setStatus(imageUrl ? "loading" : "error");
+  }, [imageUrl]);
+
   const s = SIZE_MAP[size];
   const IconComp = getCategoryIcon(category, name);
-  const iconColor = getCategoryIconColor(category, name);
 
   const handleLoad = useCallback(() => setStatus("loaded"), []);
   const handleError = useCallback(() => setStatus("error"), []);
 
   const containerBase = cn(
-    "shrink-0 rounded-2xl border border-border/30 flex items-center justify-center overflow-hidden",
-    "bg-secondary",
+    "shrink-0 rounded-xl flex items-center justify-center overflow-hidden",
+    "bg-secondary/50",
     s.container,
     className
   );
@@ -65,12 +69,11 @@ export default function ProductIcon({
         src={imageUrl}
         alt={name}
         className={cn(
-          "object-contain rounded-lg",
+          "object-cover rounded-lg",
           s.img,
-          s.padding,
           status === "loaded" ? "block" : "hidden"
         )}
-        loading="lazy"
+        loading="eager"
         decoding="async"
         onLoad={handleLoad}
         onError={handleError}
