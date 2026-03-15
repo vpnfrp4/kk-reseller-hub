@@ -224,7 +224,7 @@ export default function ProfileTab() {
               disabled={saving}
             >
               <Unlink className="w-3 h-3" />
-              Disconnect Telegram
+              {l(t.settings.disconnectTelegram)}
             </Button>
           </div>
         ) : (
