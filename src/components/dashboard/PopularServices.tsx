@@ -84,6 +84,7 @@ export default function PopularServices() {
               name={featured.name}
               category={featured.category}
               size="lg"
+              priority
             />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-bold text-foreground line-clamp-2 group-hover:text-primary transition-colors">
