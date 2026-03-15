@@ -50,6 +50,13 @@ export default function PopularServices() {
     staleTime: 60000,
   });
 
+  // Preload above-fold product images as soon as data arrives
+  useEffect(() => {
+    if (products?.length) {
+      preloadImages(products.slice(0, 6).map((p: any) => p.image_url), true);
+    }
+  }, [products]);
+
   if (isLoading) {
     return (
       <div className="space-y-3">
