@@ -93,7 +93,7 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
           onFocus={handleInputFocus}
           className={cn(
             "w-full pl-12 pr-12 py-4 rounded-2xl bg-transparent",
-            "text-sm text-foreground placeholder:text-muted-foreground/40",
+            "text-base sm:text-sm text-foreground placeholder:text-muted-foreground/40",
             "focus:outline-none",
           )}
         />
