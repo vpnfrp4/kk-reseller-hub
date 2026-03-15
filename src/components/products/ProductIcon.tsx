@@ -17,6 +17,8 @@ interface ProductIconProps {
   category?: string;
   size?: IconSize;
   className?: string;
+  /** Mark as high-priority above-fold image */
+  priority?: boolean;
 }
 
 export default function ProductIcon({
