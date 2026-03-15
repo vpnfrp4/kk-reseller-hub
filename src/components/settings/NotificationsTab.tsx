@@ -296,7 +296,7 @@ export default function NotificationsTab() {
         <div className="space-y-tight">
           <ToggleRow
             icon={Wallet}
-            title={l(t.settings.topupApproved)}
+            title={l(t.settings.topupApprovedNotif)}
             description={l(t.settings.topupApprovedDesc)}
             checked={notifPrefs.topupApproved}
             onChange={(v) => updateNotifPref("topupApproved", v)}
