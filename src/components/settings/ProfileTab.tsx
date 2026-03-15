@@ -231,12 +231,12 @@ export default function ProfileTab() {
           <div className="space-y-compact">
             {/* Benefits */}
             <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 space-y-2">
-              <p className="text-[11px] font-semibold text-foreground flex items-center gap-1"><Sparkles className="w-3 h-3 text-primary" /> Why Connect Telegram?</p>
+              <p className="text-[11px] font-semibold text-foreground flex items-center gap-1"><Sparkles className="w-3 h-3 text-primary" /> {l(t.settings.whyConnect)}</p>
               <div className="grid gap-1 text-[11px] text-muted-foreground">
-                <span className="flex items-center gap-1"><Package className="w-3 h-3" /> Instant order status notifications</span>
-                <span className="flex items-center gap-1"><Wallet className="w-3 h-3" /> Wallet top-up alerts with new balance</span>
-                <span className="flex items-center gap-1"><Search className="w-3 h-3" /> Check order status directly from Telegram</span>
-                <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" /> Quick balance checks without opening the app</span>
+                <span className="flex items-center gap-1"><Package className="w-3 h-3" /> {l(t.settings.instantNotifs)}</span>
+                <span className="flex items-center gap-1"><Wallet className="w-3 h-3" /> {l(t.settings.topupAlerts)}</span>
+                <span className="flex items-center gap-1"><Search className="w-3 h-3" /> {l(t.settings.checkFromTg)}</span>
+                <span className="flex items-center gap-1"><DollarSign className="w-3 h-3" /> {l(t.settings.quickBalance)}</span>
               </div>
             </div>
 
