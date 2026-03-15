@@ -91,7 +91,7 @@ export default function SettingsPage() {
                   style={isActive ? undefined : { boxShadow: "var(--shadow-card)" }}
                 >
                   <tab.icon className="w-3.5 h-3.5" />
-                  {tab.label}
+                  {l(tab.label)}
                 </button>
               );
             })}
