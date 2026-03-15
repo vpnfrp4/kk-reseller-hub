@@ -74,7 +74,7 @@ export default function ServiceSelector({ services, isLoading, onSelect }: Servi
   };
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-full overflow-visible">
+    <div ref={containerRef} className="relative w-full max-w-full overflow-visible overflow-x-hidden">
       {/* ─── Trigger / Search Input ─── */}
       <div
         className={cn(
