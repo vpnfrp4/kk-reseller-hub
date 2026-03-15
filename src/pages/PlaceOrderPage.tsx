@@ -476,7 +476,7 @@ function ServiceCard({ product: p, index, isFavorite, onToggleFavorite, onSelect
   );
 
   // Reset status when image_url changes
-  React.useEffect(() => {
+  useEffect(() => {
     setImgStatus(p.image_url ? "loading" : "error");
   }, [p.image_url]);
   const pType = p.product_type;
