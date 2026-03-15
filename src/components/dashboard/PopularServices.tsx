@@ -6,6 +6,8 @@ import { Money } from "@/components/shared";
 import { ArrowRight, Clock } from "lucide-react";
 import ProductIcon from "@/components/products/ProductIcon";
 import { cn } from "@/lib/utils";
+import { useEffect } from "react";
+import { preloadImages } from "@/lib/image-preloader";
 
 export default function PopularServices() {
   const navigate = useNavigate();
