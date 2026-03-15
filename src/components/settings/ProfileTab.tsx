@@ -63,7 +63,6 @@ export default function ProfileTab() {
   }, [user, refreshProfile]);
 
   const telegramLink = linkToken ? `https://t.me/${BOT_USERNAME}?start=${linkToken}` : null;
-  const telegramLink = linkToken ? `https://t.me/${BOT_USERNAME}?start=${linkToken}` : null;
 
   return (
     <div className="space-y-default">
