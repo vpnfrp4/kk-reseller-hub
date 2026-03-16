@@ -55,12 +55,7 @@ export default function LandingPage() {
               KK<span className="text-primary">Tech</span>
             </span>
           </Link>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Button variant="ghost" size="sm" className="text-sm font-medium" asChild>
-              <Link to="/login">Log In</Link>
-            </Button>
-          </div>
+          <ThemeToggle />
         </div>
       </header>
 
