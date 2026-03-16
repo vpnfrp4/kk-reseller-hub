@@ -4,6 +4,7 @@ import { ArrowRight, Gamepad2, Smartphone, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import kkLogo from "@/assets/kkremote-logo.png";
+import landingBanner from "@/assets/landing-banner.png";
 
 /* ───────── JSON-LD ───────── */
 function OrgJsonLd() {
