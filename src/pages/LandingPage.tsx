@@ -4,6 +4,7 @@ import { ArrowRight, Gamepad2, Smartphone, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeToggle";
 import kkLogo from "@/assets/kkremote-logo.png";
+import landingBanner from "@/assets/landing-banner.png";
 
 /* ───────── JSON-LD ───────── */
 function OrgJsonLd() {
@@ -68,49 +69,71 @@ export default function LandingPage() {
         {/* ═══════════════════════════════════
             SECTION 1 — HERO
             ═══════════════════════════════════ */}
-        <section className="relative overflow-hidden">
-          {/* Ambient glow */}
+        <section className="relative overflow-hidden bg-[hsl(220,14%,6%)]">
+          {/* Ambient glows matching banner palette */}
           <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-            <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-primary/[0.07] blur-[160px]" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full bg-primary/[0.08] blur-[180px]" />
+            <div className="absolute bottom-0 right-0 w-[400px] h-[300px] rounded-full bg-[hsl(220,60%,30%)]/[0.1] blur-[120px]" />
           </div>
 
-          <div className="relative mx-auto max-w-5xl px-5 pt-20 pb-16 sm:pt-28 sm:pb-24 lg:pt-36 lg:pb-32 text-center">
-            {/* Headline */}
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.15]">
-              <span className="text-foreground">KKTech – </span>
-              <span className="bg-gradient-to-r from-primary to-[hsl(var(--primary-glow))] bg-clip-text text-transparent">
-                Your Premium
-              </span>
-              <br className="hidden sm:block" />
-              <span className="bg-gradient-to-r from-primary to-[hsl(var(--primary-glow))] bg-clip-text text-transparent">
-                {" "}Digital Service Partner
-              </span>
-            </h1>
+          <div className="relative mx-auto max-w-5xl px-5 pt-14 pb-10 sm:pt-20 sm:pb-16 lg:pt-24 lg:pb-20">
+            {/* Text content */}
+            <div className="text-center mb-10 sm:mb-14">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.15]">
+                <span className="text-[hsl(0,0%,95%)]">KKTech – </span>
+                <span className="bg-gradient-to-r from-[hsl(24,95%,50%)] to-[hsl(40,100%,55%)] bg-clip-text text-transparent">
+                  Your Premium
+                </span>
+                <br className="hidden sm:block" />
+                <span className="bg-gradient-to-r from-[hsl(24,95%,50%)] to-[hsl(40,100%,55%)] bg-clip-text text-transparent">
+                  {" "}Digital Service Partner
+                </span>
+              </h1>
 
-            <p className="mt-5 text-base sm:text-lg text-muted-foreground max-w-md mx-auto leading-relaxed">
-              Fast, secure, and wholesale-priced digital services built for professionals.
-            </p>
+              <p className="mt-5 text-base sm:text-lg text-[hsl(220,10%,60%)] max-w-md mx-auto leading-relaxed">
+                Fast, secure, and wholesale-priced digital services built for professionals.
+              </p>
 
-            {/* CTAs */}
-            <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <Button
-                size="lg"
-                className="text-base px-10 h-14 font-semibold w-full sm:w-auto rounded-2xl shadow-[var(--shadow-glow)]"
-                asChild
-              >
-                <Link to="/login?tab=signup">
-                  Get Started
-                  <ArrowRight className="ml-2 w-4 h-4" />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-base px-10 h-14 font-semibold w-full sm:w-auto rounded-2xl"
-                asChild
-              >
-                <Link to="/login">Login</Link>
-              </Button>
+              {/* CTAs */}
+              <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
+                <Button
+                  size="lg"
+                  className="text-base px-10 h-14 font-semibold w-full sm:w-auto rounded-2xl shadow-[0_0_30px_hsl(24,95%,50%/0.3)]"
+                  asChild
+                >
+                  <Link to="/login?tab=signup">
+                    Get Started
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </Link>
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="text-base px-10 h-14 font-semibold w-full sm:w-auto rounded-2xl border-[hsl(220,10%,25%)] text-[hsl(0,0%,90%)] hover:bg-[hsl(220,12%,15%)]"
+                  asChild
+                >
+                  <Link to="/login">Login</Link>
+                </Button>
+              </div>
+            </div>
+
+            {/* Banner image */}
+            <div className="relative mx-auto max-w-4xl">
+              {/* Glow behind banner */}
+              <div className="absolute -inset-4 sm:-inset-6 rounded-3xl bg-gradient-to-br from-primary/[0.12] via-[hsl(220,60%,40%)]/[0.06] to-transparent blur-2xl pointer-events-none" />
+
+              <div className="relative rounded-2xl overflow-hidden border border-[hsl(220,12%,18%)] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.6)]">
+                <img
+                  src={landingBanner}
+                  alt="KarKar4 Store — Premium Digital Services: VPN, Netflix, Spotify, CapCut"
+                  className="w-full block"
+                  loading="eager"
+                  fetchPriority="high"
+                />
+              </div>
+
+              {/* Bottom fade to blend with next section */}
+              <div className="absolute inset-x-0 -bottom-1 h-16 sm:h-24 bg-gradient-to-t from-background to-transparent pointer-events-none" />
             </div>
           </div>
         </section>
